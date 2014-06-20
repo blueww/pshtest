@@ -1,0 +1,5 @@
+BUILD_PASS1_CONSUMES= \
+    services\data\tests\common\storagetestlib|PASS1 \
+    services\data\tests\common\storagetestlibxscl4preview2|PASS1 \
+    services\data\tests\common\testframework\mstest\mstestlib|PASS1 \
+

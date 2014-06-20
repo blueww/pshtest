@@ -1,0 +1,191 @@
+﻿namespace Management.Storage.ScenarioTest.Functional.CloudFile
+{
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Management.Storage.ScenarioTest.Common;
+    using Management.Storage.ScenarioTest.Util;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using StorageTestLib;
+
+    [TestClass]
+    internal class RemoveAzureStorageFileShareTest : TestBase
+    {
+        private Random randomProvider = new Random();
+
+        [ClassInitialize]
+        public static void NewAzureStorageFileShareTestInitialize(TestContext context)
+        {
+            StorageAccount = Utility.ConstructStorageAccountFromConnectionString();
+            TestBase.TestClassInitialize(context);
+        }
+
+        [ClassCleanup]
+        public static void NewAzureStorageFileShareTestCleanup()
+        {
+            TestBase.TestClassCleanup();
+        }
+
+        public override void OnTestCleanUp()
+        {
+            this.agent.Dispose();
+        }
+
+        /// <summary>
+        /// Positive functional test case 5.4.2
+        /// </summary>
+        [TestMethod]
+        [TestCategory(PsTag.File)]
+        [TestCategory(Tag.Function)]
+        public void PipelineMultipleShareNamesToRemoveTest()
+        {
+            // TODO: Generate more random names for file shares after the
+            // naming rules is settled down.
+            int numberOfShares = this.randomProvider.Next(2, 33);
+            string[] names = Enumerable.Range(0, numberOfShares)
+                    .Select(i => CloudFileUtil.GenerateUniqueFileShareName()).ToArray();
+            foreach (var name in names)
+            {
+                fileUtil.EnsureFileShareExists(name);
+            }
+
+            try
+            {
+                this.agent.RemoveFileShareFromPipeline();
+                var result = this.agent.Invoke(names);
+
+                this.agent.AssertNoError();
+                result.AssertNoResult();
+            }
+            finally
+            {
+                foreach (string fileShareName in names)
+                {
+                    fileUtil.DeleteFileShareIfExists(fileShareName);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Negative functional test case 5.4.1 with invalid account
+        /// </summary>
+        [TestMethod]
+        [TestCategory(PsTag.File)]
+        [TestCategory(Tag.Function)]
+        public void RemoveFileShareWithInvalidAccountTest()
+        {
+            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
+            fileUtil.EnsureFileShareExists(fileShareName);
+            try
+            {
+                // Creates an storage context object with invalid account
+                // name.
+                var invalidAccount = CloudFileUtil.MockupStorageAccount(StorageAccount, mockupAccountName: true);
+                object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
+                this.agent.RemoveFileShareByName(fileShareName, false, invalidStorageContextObject);
+                var result = this.agent.Invoke();
+                this.agent.AssertErrors(record => record.AssertFullQualifiedErrorId(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
+                fileUtil.AssertFileShareExists(fileShareName, "File share should not be removed when providing invalid credentials.");
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(fileShareName);
+            }
+        }
+
+        /// <summary>
+        /// Negative functional test case 5.4.1 with invalid key value
+        /// </summary>
+        [TestMethod]
+        [TestCategory(PsTag.File)]
+        [TestCategory(Tag.Function)]
+        public void RemoveFileShareWithInvalidKeyValueTest()
+        {
+            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
+            fileUtil.EnsureFileShareExists(fileShareName);
+            try
+            {
+                // Creates an storage context object with invalid key value
+                var invalidAccount = CloudFileUtil.MockupStorageAccount(StorageAccount, mockupAccountKey: true);
+                object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
+                this.agent.RemoveFileShareByName(fileShareName, false, invalidStorageContextObject);
+                var result = this.agent.Invoke();
+                this.agent.AssertErrors(record => record.AssertFullQualifiedErrorId(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
+                fileUtil.AssertFileShareExists(fileShareName, "File share should not be removed when providing invalid credentials.");
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(fileShareName);
+            }
+        }
+
+        /// <summary>
+        /// Negative functional test case 5.4.2
+        /// </summary>
+        [TestMethod]
+        [TestCategory(PsTag.File)]
+        [TestCategory(Tag.Function)]
+        public void RemoveNonExistingFileShareTest()
+        {
+            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
+            fileUtil.DeleteFileShareIfExists(fileShareName);
+
+            try
+            {
+                this.agent.RemoveFileShareByName(fileShareName);
+                var result = this.agent.Invoke();
+                this.agent.AssertErrors(record => record.AssertFullQualifiedErrorId(AssertUtil.ShareNotFoundFullQualifiedErrorId));
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(fileShareName);
+            }
+        }
+
+        /// <summary>
+        /// Negative functional test case 5.4.5
+        /// </summary>
+        [TestMethod]
+        [TestCategory(PsTag.File)]
+        [TestCategory(Tag.Function)]
+        public void RemoveFileShareWhileAFileIsUploading()
+        {
+            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
+            var fileShare = fileUtil.EnsureFileShareExists(fileShareName);
+
+            var stream = new BlockReadUntilSetStream();
+            Task uploadTask = null;
+            try
+            {
+                string fileName = CloudFileUtil.GenerateUniqueFileName();
+                var file = fileUtil.CreateFile(fileShare, fileName);
+
+                // Creates a stream which would block the read operation.
+                uploadTask = Task.Factory.StartNew(() => file.UploadFromStream(stream));
+                this.agent.RemoveFileShareByName(fileShareName);
+                var result = this.agent.Invoke();
+                this.agent.AssertNoError();
+            }
+            finally
+            {
+                stream.StopBlockingReadOperation();
+                if (uploadTask != null)
+                {
+                    try
+                    {
+                        uploadTask.Wait();
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                stream.Dispose();
+                fileUtil.DeleteFileShareIfExists(fileShareName);
+            }
+        }
+    }
+}

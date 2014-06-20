@@ -1,0 +1,211 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{2A32B519-4847-4FA2-8D1D-D3523BC535EC}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Management.Storage.ScenarioTest</RootNamespace>
+    <AssemblyName>PowerShellTest</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <TargetFrameworkProfile />
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <CodeAnalysisRuleSet>..\..\internal\tools\analysis\fxcop\azure-storage-dm.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Data.Edm, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\dmlib\lib\ClassLibraryCommon\Dependencies\Microsoft.Data.Edm.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.OData, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\dmlib\lib\ClassLibraryCommon\Dependencies\Microsoft.Data.OData.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Data.Services.Client, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\dmlib\lib\ClassLibraryCommon\Dependencies\Microsoft.Data.Services.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\AzCopy\dmlib\internal\imports\VisualStudio\VS10RTM\MsTest\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Storage, Version=4.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\AzCopy\dmlib\lib\ClassLibraryCommon\Dependencies\Microsoft.WindowsAzure.Storage.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\dmlib\lib\ClassLibraryCommon\Dependencies\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Spatial, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\dmlib\lib\ClassLibraryCommon\Dependencies\System.Spatial.dll</HintPath>
+    </Reference>
+    <Reference Include="system.management.automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\imports\system.management.automation.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\AzCopy\dmlib\internal\test\StorageTestLib\StorageTestLib.csproj">
+      <Project>{4f2832dd-e6c6-48b7-819a-ae06bfcafa7c}</Project>
+      <Name>StorageTestLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\AzCopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\MsTestLib.csproj">
+      <Project>{ac39b50f-dc27-4411-9ed4-a4a137190acb}</Project>
+      <Name>MsTestLib</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Agent.cs" />
+    <Compile Include="AgentFactory.cs" />
+    <Compile Include="AssemblyInitCleanup.cs" />
+    <Compile Include="BVT\HTTPS\AnonymousBVT.cs" />
+    <Compile Include="BVT\HTTPS\AzureEnvironment.cs" />
+    <Compile Include="BVT\HTTPS\ParamConnectionStringBVT.cs" />
+    <Compile Include="BVT\HTTPS\ParamNameKeyBVT.cs" />
+    <Compile Include="BVT\HTTPS\EnvNameKeyBVT.cs" />
+    <Compile Include="BVT\HTTPS\SecondaryEndPointBVT.cs" />
+    <Compile Include="BVT\HTTP\AnonymousBVT.cs" />
+    <Compile Include="BVT\HTTP\AzureEmulatorBVT.cs" />
+    <Compile Include="BVT\HTTPS\ConnectionStringBVT.cs" />
+    <Compile Include="BVT\HTTPS\EnvConnectionStringBVT.cs" />
+    <Compile Include="BVT\HTTPS\NameKeyContextBVT.cs" />
+    <Compile Include="BVT\HTTPS\SubScriptionBVT.cs" />
+    <Compile Include="BVT\HTTP\AzureEnvironment.cs" />
+    <Compile Include="BVT\HTTP\ConnectionStringBVT.cs" />
+    <Compile Include="BVT\HTTP\EnvConnectionStringBVT.cs" />
+    <Compile Include="BVT\HTTP\NameKeyContextBVT.cs" />
+    <Compile Include="BVT\HTTP\ParamConnectionStringBVT.cs" />
+    <Compile Include="BVT\HTTP\SecondaryEndPointBVT.cs" />
+    <Compile Include="CLIContainerFunc.cs" />
+    <Compile Include="CLIContextFunc.cs" />
+    <Compile Include="CLIAccountParamFunc.cs" />
+    <Compile Include="CLIQueueFunc.cs" />
+    <Compile Include="CLITableFunc.cs" />
+    <Compile Include="CLIBlobFunc.cs" />
+    <Compile Include="Common\TestBase.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="Functional\Blob\NewBlobSas.cs" />
+    <Compile Include="Functional\Blob\NewContainerSas.cs" />
+    <Compile Include="Functional\Blob\ShowContainer.cs" />
+    <Compile Include="Functional\Blob\ShowBlob.cs" />
+    <Compile Include="Functional\Blob\GetBlob.cs" />
+    <Compile Include="Functional\Blob\GetBlobContent.cs" />
+    <Compile Include="Functional\Blob\GetContainer.cs" />
+    <Compile Include="Functional\Blob\GetCopyState.cs" />
+    <Compile Include="Functional\Blob\NewContainer.cs" />
+    <Compile Include="Functional\Blob\RemoveBlob.cs" />
+    <Compile Include="Functional\Blob\RemoveContainer.cs" />
+    <Compile Include="Functional\Blob\SetBlobContent.cs" />
+    <Compile Include="Functional\Blob\SetContainerAcl.cs" />
+    <Compile Include="Functional\Blob\StartCopy.cs" />
+    <Compile Include="Functional\Blob\StopCopy.cs" />
+    <Compile Include="Functional\CloudFile\GetAzureStorageFileTest.cs" />
+    <Compile Include="Functional\CloudFile\MountTest.cs" />
+    <Compile Include="Functional\CloudFile\InvalidParameterTest.cs" />
+    <Compile Include="Functional\CloudFile\ParameterSetNotMatchTest.cs" />
+    <Compile Include="Functional\CloudFile\RemoveAzureStorageFileTest.cs" />
+    <Compile Include="Functional\CloudFile\GetAzureStorageShareTest.cs" />
+    <Compile Include="Functional\CloudFile\SetAzureStorageFileContentTest.cs" />
+    <Compile Include="Functional\CloudFile\GetAzureStorageFileContentTest.cs" />
+    <Compile Include="Functional\CloudFile\NewAzureStorageFileDirectoryTest.cs" />
+    <Compile Include="Functional\CloudFile\NewAzureStorageFileShareTest.cs" />
+    <Compile Include="Functional\CloudFile\RemoveAzureStorageFileDirectoryTest.cs" />
+    <Compile Include="Functional\CloudFile\RemoveAzureStorageFileShareTest.cs" />
+    <Compile Include="IExecutionError.cs" />
+    <Compile Include="IExecutionResult.cs" />
+    <Compile Include="PowerShellExecutionError.cs" />
+    <Compile Include="PowerShellExecutionResult.cs" />
+    <Compile Include="Util\AssertUtil.cs" />
+    <Compile Include="Util\BlockReadUntilSetStream.cs" />
+    <Compile Include="Functional\SASInterop.cs" />
+    <Compile Include="Functional\Queue\NewQueueSas.cs" />
+    <Compile Include="Functional\Queue\RemoveQueue.cs" />
+    <Compile Include="Functional\Service\SetServiceLogging.cs" />
+    <Compile Include="Functional\Service\SetServiceMetrics.cs" />
+    <Compile Include="Functional\StorageContext.cs" />
+    <Compile Include="Functional\Queue\GetQueue.cs" />
+    <Compile Include="Functional\Table\NewTableSas.cs" />
+    <Compile Include="Functional\Table\RemoveTable.cs" />
+    <Compile Include="GB18030Test\BlobContentTest.cs" />
+    <Compile Include="NodeJSAgent.cs" />
+    <Compile Include="Performance\CLIPerf_N_64M_Big.cs" />
+    <Compile Include="Performance\CLIPerf_2G_N.cs" />
+    <Compile Include="Performance\CLIPerf_OneBlob.cs" />
+    <Compile Include="Performance\CLIPerf.cs" />
+    <Compile Include="Performance\CLIPerf_BlobCmdlets.cs" />
+    <Compile Include="PowerShellAgent.cs" />
+    <Compile Include="BVT\CLICommonBVT.cs" />
+    <Compile Include="PsTag.cs" />
+    <Compile Include="StorageObjectType.cs" />
+    <Compile Include="Utility.cs" />
+    <Compile Include="Util\CloudFileUtil.cs" />
+    <Compile Include="Util\FileNamingGenerator.cs" />
+    <Compile Include="Util\Globalization\Big5Generator.cs" />
+    <Compile Include="Util\Globalization\DoubleBytesCodePageUnicodeGenerator.cs" />
+    <Compile Include="Util\Globalization\GB2312Generator.cs" />
+    <Compile Include="Util\Globalization\GBK18030Generator.cs" />
+    <Compile Include="Util\Globalization\ShiftJISGenerator.cs" />
+    <Compile Include="Util\Globalization\SingleByteCodePageUnicodeGenerator.cs" />
+    <Compile Include="Util\Globalization\UnicodeGenerator.cs" />
+    <Compile Include="Util\Globalization\Windows1250Generator.cs" />
+    <Compile Include="Util\Globalization\Windows1257Generator.cs" />
+    <Compile Include="Util\Globalization\Windows1256Generator.cs" />
+    <Compile Include="Util\Globalization\Windows1254Generator.cs" />
+    <Compile Include="Util\Globalization\Windows1253Generator.cs" />
+    <Compile Include="Util\Globalization\Windows1252Generator.cs" />
+    <Compile Include="Util\PowerShellExtension.cs" />
+    <Compile Include="BVT\CLICommonBVT.File.cs" />
+    <None Include="deploy.cmd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <Content Include="MyTestData.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData.xml">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Compile Include="Util\CloudBlobUtil.cs" />
+    <Compile Include="Util\CloudQueueUtil.cs" />
+    <Compile Include="Util\CloudTableUtil.cs" />
+    <Compile Include="Util\FileUtil.cs" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy /Y ..\..\..\..\azcopy\dmlib\internal\imports\WTT\2.6\Logger\amd64\WTTlog.dll</PostBuildEvent>
+  </PropertyGroup>
+</Project>
