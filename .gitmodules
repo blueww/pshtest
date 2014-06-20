@@ -1,0 +1,9 @@
+[submodule "azcopy"]
+	path = azcopy
+	url = https://github.com/wastore/azure-storage-azcopy-pr.git
+[submodule "PowerShell"]
+	path = PowerShell
+	url = https://github.com/Azure/azure-sdk-tools.git
+[submodule "Xplat"]
+	path = Xplat
+	url = https://github.com/Azure/azure-sdk-tools-xplat.git

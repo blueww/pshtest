@@ -1,0 +1,1295 @@
+// ----------------------------------------------------------------------------------
+//
+// Copyright Microsoft Corporation
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// ----------------------------------------------------------------------------------
+
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
+using Management.Storage.ScenarioTest.Common;
+using Management.Storage.ScenarioTest.Util;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Queue;
+using Microsoft.WindowsAzure.Storage.Shared.Protocol;
+using Microsoft.WindowsAzure.Storage.Table;
+using MS.Test.Common.MsTestLib;
+using StorageTestLib;
+using CloudStorageAccount = Microsoft.WindowsAzure.Storage.CloudStorageAccount;
+using StorageBlob = Microsoft.WindowsAzure.Storage.Blob;
+
+namespace Management.Storage.ScenarioTest.BVT
+{
+    /// <summary>
+    /// this class contain all the bvt cases for` the full functional storage context such as local/connectionstring/namekey, anonymous and sas token are excluded.
+    /// </summary>
+    //TODO use the TestBase as the base class
+    internal abstract partial class CLICommonBVT : TestBase
+    {
+        private static CloudBlobHelper CommonBlobHelper;
+        private static CloudStorageAccount CommonStorageAccount;
+        private static string CommonBlockFilePath;
+        private static string CommonPageFilePath;
+        private static string CommonSmallFilePath;
+        private static string CommonMediumFilePath;
+        private static string SmallFileMD5;
+        private static string MediumFileMD5;
+
+        //env connection string
+        private static string SavedEnvString;
+        public static string EnvKey;
+
+        /// <summary>
+        /// the storage account which is used to set up the unit tests.
+        /// </summary>
+        protected static CloudStorageAccount SetUpStorageAccount
+        {
+            get
+            {
+                return CommonStorageAccount;
+            }
+
+            set
+            {
+                CommonStorageAccount = value;
+            }
+        }
+
+        #region Additional test attributes
+
+        /// <summary>
+        /// Init test resources for bvt class
+        /// </summary>
+        /// <param name="testContext">TestContext object</param>
+        public static void CLICommonBVTInitialize(TestContext testContext)
+        {
+            TestBase.TestClassInitialize(testContext);
+
+            //add the common initialization
+            EnvKey = Test.Data.Get("EnvContextKey");
+
+            //init the blob helper for blob related operations
+            if (CommonStorageAccount == null)
+            {
+                CommonStorageAccount = TestBase.StorageAccount;
+            }
+
+            CommonBlobHelper = new CloudBlobHelper(CommonStorageAccount);
+
+            //add the language specific initialization
+            lang = AgentFactory.GetLanguage(testContext.Properties);
+            if (lang == Language.PowerShell)
+            {
+                SaveAndCleanSubScriptionAndEnvConnectionString();
+
+                //Clean Storage Context
+                Test.Info("Clean storage context in PowerShell");
+                PowerShellAgent.CleanStorageContext();
+            }
+
+            GenerateBvtTempFiles();
+
+            // initialize file utility
+            fileUtil = new CloudFileUtil(CommonStorageAccount);
+        }
+
+        /// <summary>
+        /// Save azure subscription and env connection string. So the current settings can't impact our tests.
+        /// </summary>
+        //TODO move to TestBase
+        public static void SaveAndCleanSubScriptionAndEnvConnectionString()
+        {
+            Test.Info("Clean Azure Subscription and save env connection string");
+            //can't restore the azure subscription files
+            PowerShellAgent.RemoveAzureSubscriptionIfExists();
+
+            //set env connection string
+            //TODO A little bit trivial, move to CLITestBase class
+            if (string.IsNullOrEmpty(EnvKey))
+            {
+                EnvKey = Test.Data.Get("EnvContextKey");
+            }
+
+            SavedEnvString = System.Environment.GetEnvironmentVariable(EnvKey);
+            System.Environment.SetEnvironmentVariable(EnvKey, string.Empty);
+        }
+
+        /// <summary>
+        /// Restore the previous subscription and env connection string before testing.
+        /// </summary>
+        public static void RestoreSubScriptionAndEnvConnectionString()
+        {
+            Test.Info("Restore env connection string and skip restore subscription");
+            if (EnvKey != null)
+            {
+                Environment.SetEnvironmentVariable(EnvKey, SavedEnvString);
+            }
+        }
+
+        /// <summary>
+        /// Generate temp files
+        /// </summary>
+        private static void GenerateBvtTempFiles()
+        {
+            bool AlwaysOperateOnWindows = (FileUtil.AgentOSType != OSType.Windows);
+
+            CommonBlockFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
+            CommonPageFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
+            CommonSmallFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
+            CommonMediumFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
+
+            FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonBlockFilePath), AlwaysOperateOnWindows);
+            FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonPageFilePath), AlwaysOperateOnWindows);
+            FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonSmallFilePath), AlwaysOperateOnWindows);
+            FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonMediumFilePath), AlwaysOperateOnWindows);
+
+            // Generate block file and page file which are used for uploading
+            FileUtil.GenerateMediumFile(CommonBlockFilePath, Utility.GetRandomTestCount(1, 5), AlwaysOperateOnWindows);
+            FileUtil.GenerateMediumFile(CommonPageFilePath, Utility.GetRandomTestCount(1, 5), AlwaysOperateOnWindows);
+            FileUtil.GenerateMediumFile(CommonMediumFilePath, Utility.GetRandomTestCount(5, 10), AlwaysOperateOnWindows);
+            FileUtil.GenerateSmallFile(CommonSmallFilePath, Utility.GetRandomTestCount(1, 10), AlwaysOperateOnWindows);
+            MediumFileMD5 = FileUtil.GetFileContentMD5(CommonMediumFilePath);
+            SmallFileMD5 = FileUtil.GetFileContentMD5(CommonSmallFilePath);
+        }
+
+        /// <summary>
+        /// Clean up test resources of  bvt class
+        /// </summary>
+        [ClassCleanup()]
+        public static void CLICommonBVTCleanup()
+        {
+            Test.Info(string.Format("BVT Test Class Cleanup"));
+            RestoreSubScriptionAndEnvConnectionString();
+        }
+
+        /// <summary>
+        /// init test resources for one single unit test.
+        /// </summary>
+        [TestInitialize()]
+        public void UnitTestInitialize()
+        {
+            Trace.WriteLine("Unit Test Initialize");
+            agent = AgentFactory.CreateAgent(TestContext.Properties);
+            Test.Start(TestContext.FullyQualifiedTestClassName, TestContext.TestName);
+        }
+
+        /// <summary>
+        /// clean up the test resources for one single unit test.
+        /// </summary>
+        [TestCleanup()]
+        public void UnitTestCleanup()
+        {
+            Trace.WriteLine("Unit Test Cleanup");
+            Test.End(TestContext.FullyQualifiedTestClassName, TestContext.TestName);
+        }
+
+        #endregion
+
+        /// <summary>
+        /// BVT case : for New-AzureStorageContainer
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.FastEnv)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        public void NewContainerTest()
+        {
+            NewContainerTest(agent);
+        }
+
+        /// <summary>
+        /// BVT case : for Get-AzureStorageContainer
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        public void GetContainerTest()
+        {
+            GetContainerTest(agent);
+        }
+
+        /// <summary>
+        /// BVT case : for Remove-AzureStorageContainer
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        public void RemoveContainerTest()
+        {
+            RemoveContainerTest(agent);
+        }
+
+        /// <summary>
+        /// BVT case : for Set-AzureStorageContainerACL
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        public void SetContainerACLTest()
+        {
+            SetContainerACLTest(agent);
+        }
+
+        /// <summary>
+        /// BVT case : for New-AzureStorageTable
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        public void NewTableTest()
+        {
+            NewTableTest(agent);
+        }
+
+        /// <summary>
+        /// BVT case : for Get-AzureStorageTable
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        public void GetTableTest()
+        {
+            GetTableTest(agent);
+        }
+
+        /// <summary>
+        /// BVT case : for Remove-AzureStorageTable
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        public void RemoveTableTest()
+        {
+            RemoveTableTest(agent);
+        }
+
+        /// <summary>
+        /// BVT case : for New-AzureStorageQueue
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        public void NewQueueTest()
+        {
+            NewQueueTest(agent);
+        }
+
+        /// <summary>
+        /// BVT case : for Get-AzureStorageQueue
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        public void GetQueueTest()
+        {
+            GetQueueTest(agent);
+        }
+
+        /// <summary>
+        /// BVT case : for Remove-AzureStorageQueue
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        public void RemoveQueueTest()
+        {
+            RemoveQueueTest(agent);
+        }
+
+        /// <summary>
+        /// BVT case : for Set-AzureStorageBlobContent
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        public void UploadBlobTest()
+        {
+            UploadBlobTest(agent, CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
+            UploadBlobTest(agent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+        }
+
+        /// <summary>
+        /// BVT case : for Get-AzureStorageBlob
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        public void GetBlobTest()
+        {
+            GetBlobTest(agent, CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
+            GetBlobTest(agent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+        }
+
+        /// <summary>
+        /// BVT case : for Get-AzureStorageBlobContent
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        public void DownloadBlobTest()
+        {
+            string downloadDirPath = Test.Data.Get("DownloadDir");
+            DownloadBlobTest(agent, CommonBlockFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
+            DownloadBlobTest(agent, CommonPageFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+        }
+
+        /// <summary>
+        /// BVT case : for Remove-AzureStorageBlob
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        public void RemoveBlobTest()
+        {
+            RemoveBlobTest(agent, CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
+            RemoveBlobTest(agent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+        }
+
+        /// <summary>
+        /// BVT case : for Start-AzureStorageBlobCopy
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        public void StartCopyBlobUsingName()
+        {
+            StartCopyBlobTest(new PowerShellAgent(), false);
+        }
+
+        /// <summary>
+        /// BVT case : for Start-AzureStorageBlobCopy
+        /// </summary>
+        [TestMethod]
+        ////[TestCategory(Tag.BVT)]
+        public void StartCopyBlobUsingUri()
+        {
+            StartCopyBlobTest(new PowerShellAgent(), true);
+        }
+
+        /// <summary>
+        /// BVT case : for Set-AzureStorageServiceLogging
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        public void SetServiceLoggingTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip this case as Azure emulator does not support Get/Set ServiceProperties currently");
+                return;
+            }
+
+            foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
+            {
+                int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
+                string loggingOperations = Utility.GenRandomLoggingOperations();
+
+                ServiceProperties propertiesBeforeSet = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
+
+                // set ServiceProperties(logging)
+                Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, loggingOperations, retentionDays.ToString()),
+                    Utility.GenComparisonData("SetAzureStorageServiceLogging", true));
+
+                Utility.ValidateLoggingProperties(CommonStorageAccount, serviceType, retentionDays, loggingOperations);
+                Utility.ValidateMetricsProperties(CommonStorageAccount, serviceType, Constants.MetricsType.Hour, propertiesBeforeSet.HourMetrics.RetentionDays,
+                    propertiesBeforeSet.HourMetrics.MetricsLevel.ToString());
+            }
+        }
+
+        /// <summary>
+        /// BVT case : for Set-AzureStorageServiceHourMetrics
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        public void SetServiceMetricsTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip this case as Azure emulator does not support Get/Set ServiceProperties currently");
+                return;
+            }
+
+            foreach (Constants.MetricsType metricsType in Enum.GetValues(typeof(Constants.MetricsType)))
+            {
+                foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
+                {
+                    ServiceProperties propertiesBeforeSet = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
+                    int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
+                    string metricsLevel = Utility.GenRandomMetricsLevel();
+                    // set ServiceProperties(metrics)
+                    Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, metricsType, metricsLevel, retentionDays.ToString()),
+                        Utility.GenComparisonData("SetAzureStorageServiceHourMetrics", true));
+
+                    Utility.ValidateMetricsProperties(CommonStorageAccount, serviceType, metricsType, retentionDays, metricsLevel);
+                    Utility.ValidateLoggingProperties(CommonStorageAccount, serviceType, propertiesBeforeSet.Logging.RetentionDays,
+                        propertiesBeforeSet.Logging.LoggingOperations.ToString());
+                }
+            }
+        }
+
+        /// <summary>
+        /// BVT case : for Get-AzureStorageServiceLogging
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        public void GetServiceLoggingTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip this case as Azure emulator does not support Get/Set ServiceProperties currently");
+                return;
+            }
+
+            foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
+            {
+                Test.Assert(agent.GetAzureStorageServiceLogging(serviceType), Utility.GenComparisonData("GetAzureStorageServiceLogging", true));
+                ServiceProperties properties = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
+                agent.OutputValidation(properties, "logging");
+            }
+        }
+
+        /// <summary>
+        /// BVT case : for Get-AzureStorageServiceHourMetrics
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        public void GetServiceMetricsTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip this case as Azure emulator does not support Get/Set ServiceProperties currently");
+                return;
+            }
+
+            foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
+            {
+                Test.Assert(agent.GetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour), Utility.GenComparisonData("GetAzureStorageServiceHourMetrics", true));
+                ServiceProperties properties = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
+                agent.OutputValidation(properties, "HourMetrics");
+
+                Test.Assert(agent.GetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute), Utility.GenComparisonData("GetAzureStorageServiceMinuteMetrics", true));
+                properties = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
+                agent.OutputValidation(properties, "MinuteMetrics");
+            }
+        }
+
+        /// <summary>
+        /// BVT case : for Get-AzureStorageBlobCopyState
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        public void GetBlobCopyStateTest()
+        {
+            CloudBlobUtil blobUtil = new CloudBlobUtil(CommonStorageAccount);
+            blobUtil.SetupTestContainerAndBlob();
+            ICloudBlob destBlob = CopyBlobAndWaitForComplete(blobUtil);
+
+            try
+            {
+                Test.Assert(destBlob.CopyState.Status == CopyStatus.Success, String.Format("The blob copy using storage client should be success, actually it's {0}", destBlob.CopyState.Status));
+
+                PowerShellAgent agent = new PowerShellAgent();
+                Test.Assert(agent.GetAzureStorageBlobCopyState(blobUtil.ContainerName, destBlob.Name, false), "Get copy state should be success");
+                int expectedStateCount = 1;
+                Test.Assert(agent.Output.Count == expectedStateCount, String.Format("Expected to get {0} copy state, actually it's {1}", expectedStateCount, agent.Output.Count));
+                CopyStatus copyStatus = (CopyStatus)agent.Output[0]["Status"];
+                Test.Assert(copyStatus == CopyStatus.Success, String.Format("The blob copy should be success, actually it's {0}", copyStatus));
+                Uri sourceUri = (Uri)agent.Output[0]["Source"];
+                string expectedUri = CloudBlobUtil.ConvertCopySourceUri(blobUtil.Blob.Uri.ToString());
+                Test.Assert(sourceUri.ToString() == expectedUri, String.Format("Expected source uri is {0}, actully it's {1}", expectedUri, sourceUri.ToString()));
+
+                Test.Assert(!agent.GetAzureStorageBlobCopyState(blobUtil.ContainerName, blobUtil.BlobName, false), "Get copy state should be fail since the specified blob don't have any copy operation");
+                Test.Assert(agent.ErrorMessages.Count > 0, "Should return error message");
+                string errorMessage = "Can not find copy task on specified blob";
+                Test.Assert(agent.ErrorMessages[0].StartsWith(errorMessage), String.Format("Error message should start with {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
+            }
+            finally
+            {
+                blobUtil.CleanupTestContainerAndBlob();
+            }
+        }
+
+        /// <summary>
+        /// BVT case : for Stop-AzureStorageBlobCopy
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        public void StopCopyBlobTest()
+        {
+            CloudBlobUtil blobUtil = new CloudBlobUtil(CommonStorageAccount);
+            blobUtil.SetupTestContainerAndBlob();
+            ICloudBlob destBlob = CopyBlobAndWaitForComplete(blobUtil);
+
+            try
+            {
+                PowerShellAgent agent = new PowerShellAgent();
+                string copyId = Guid.NewGuid().ToString();
+                Test.Assert(!agent.StopAzureStorageBlobCopy(blobUtil.ContainerName, blobUtil.BlobName, copyId, true), "Stop copy operation should be fail since the specified blob don't have any copy operation");
+                Test.Assert(agent.ErrorMessages.Count > 0, "Should return error message");
+                string errorMessage = String.Format("Can not find copy task on specified blob '{0}' in container '{1}'", blobUtil.BlobName, blobUtil.ContainerName);
+                Test.Assert(agent.ErrorMessages[0].IndexOf(errorMessage) != -1, String.Format("Error message should contain {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
+
+                errorMessage = "There is currently no pending copy operation.";
+                Test.Assert(!agent.StopAzureStorageBlobCopy(blobUtil.ContainerName, destBlob.Name, copyId, true), "Stop copy operation should be fail since the specified copy operation has finished");
+                Test.Assert(agent.ErrorMessages.Count > 0, "Should return error message");
+                Test.Assert(agent.ErrorMessages[0].IndexOf(errorMessage) != -1, String.Format("Error message should contain {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
+            }
+            finally
+            {
+                blobUtil.CleanupTestContainerAndBlob();
+            }
+        }
+
+        /// <summary>
+        /// BVT case : for contaienr show command
+        /// </summary>
+        [TestMethod]
+        [TestCategory(CLITag.NodeJSBVT)]
+        public void ShowContainerTest()
+        {
+            string NewContainerName = Utility.GenNameString("astoria-");
+
+            Dictionary<string, object> dic = Utility.GenComparisonData(StorageObjectType.Container, NewContainerName);
+
+            // create container if it does not exist
+            CloudBlobContainer container = CommonStorageAccount.CreateCloudBlobClient().GetContainerReference(NewContainerName);
+            container.CreateIfNotExists();
+
+            Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>> { dic };
+
+            NodeJSAgent agent = new NodeJSAgent();
+            try
+            {
+                //--------------Show operation--------------
+                Test.Assert(agent.ShowAzureStorageContainer(NewContainerName), Utility.GenComparisonData("ShowAzureStorageContainer", true));
+                // Verification for returned values
+                container.FetchAttributes();
+                dic.Add("ShowContainer", container);
+                CloudBlobUtil.PackContainerCompareData(container, dic);
+
+                agent.OutputValidation(comp);
+            }
+            finally
+            {
+                // clean up
+                container.DeleteIfExists();
+            }
+        }
+
+        /// <summary>
+        /// BVT case : for blob show command
+        /// </summary>
+        [TestMethod]
+        [TestCategory(CLITag.NodeJSBVT)]
+        public void ShowBlobTest()
+        {
+            ShowBlobTest(CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
+            ShowBlobTest(CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+        }
+
+
+        internal void ShowBlobTest(string UploadFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType Type)
+        {
+            string NewContainerName = Utility.GenNameString("upload-");
+            string BlobName = Path.GetFileName(UploadFilePath);
+
+            Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
+            Dictionary<string, object> dic = Utility.GenComparisonData(StorageObjectType.Blob, BlobName);
+
+            dic["BlobType"] = Type;
+            comp.Add(dic);
+
+            // create the container
+            CloudBlobContainer container = CommonStorageAccount.CreateCloudBlobClient().GetContainerReference(NewContainerName);
+            container.CreateIfNotExists();
+
+            NodeJSAgent agent = new NodeJSAgent();
+            try
+            {
+                bool bSuccess = false;
+                // upload the blob file
+                if (Type == Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob)
+                {
+                    bSuccess = CommonBlobHelper.UploadFileToBlockBlob(NewContainerName, BlobName, UploadFilePath);
+                }
+                else if (Type == Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob)
+                {
+                    bSuccess = CommonBlobHelper.UploadFileToPageBlob(NewContainerName, BlobName, UploadFilePath);
+                }
+                Test.Assert(bSuccess, "upload file {0} to container {1} should succeed", UploadFilePath, NewContainerName);
+
+                //--------------Show operation--------------
+                Test.Assert(agent.ShowAzureStorageBlob(BlobName, NewContainerName), Utility.GenComparisonData("ShowAzureStorageBlob", true));
+
+                // Verification for returned values
+                // get blob object using XSCL 
+                ICloudBlob blob = CommonBlobHelper.QueryBlob(NewContainerName, BlobName);
+                blob.FetchAttributes();
+                CloudBlobUtil.PackBlobCompareData(blob, dic);
+                dic.Add("ShowBlob", blob);
+
+                agent.OutputValidation(comp);
+            }
+            finally
+            {
+                // cleanup
+                container.DeleteIfExists();
+            }
+        }
+
+        internal ICloudBlob CopyBlobAndWaitForComplete(CloudBlobUtil blobUtil)
+        {
+            string destBlobName = Utility.GenNameString("copystate");
+
+            ICloudBlob destBlob = default(ICloudBlob);
+
+            Test.Info("Copy Blob using storage client");
+
+            if (blobUtil.Blob.BlobType == StorageBlob.BlobType.BlockBlob)
+            {
+                CloudBlockBlob blockBlob = blobUtil.Container.GetBlockBlobReference(destBlobName);
+                blockBlob.StartCopyFromBlob((CloudBlockBlob)blobUtil.Blob);
+                destBlob = blockBlob;
+            }
+            else
+            {
+                CloudPageBlob pageBlob = blobUtil.Container.GetPageBlobReference(destBlobName);
+                pageBlob.StartCopyFromBlob((CloudPageBlob)blobUtil.Blob);
+                destBlob = pageBlob;
+            }
+
+            CloudBlobUtil.WaitForCopyOperationComplete(destBlob);
+
+            Test.Assert(destBlob.CopyState.Status == CopyStatus.Success, String.Format("The blob copy using storage client should be success, actually it's {0}", destBlob.CopyState.Status));
+
+            return destBlob;
+        }
+
+        internal void StartCopyBlobTest(Agent agent, bool useUri)
+        {
+            CloudBlobUtil blobUtil = new CloudBlobUtil(CommonStorageAccount);
+            blobUtil.SetupTestContainerAndBlob();
+            string copiedName = Utility.GenNameString("copied");
+
+            if (useUri)
+            {
+                //Set the blob permission, so the copy task could directly copy by uri
+                BlobContainerPermissions permission = new BlobContainerPermissions();
+                permission.PublicAccess = BlobContainerPublicAccessType.Blob;
+                blobUtil.Container.SetPermissions(permission);
+            }
+
+            try
+            {
+                if (useUri)
+                {
+                    Test.Assert(agent.StartAzureStorageBlobCopy(blobUtil.Blob.Uri.ToString(), blobUtil.ContainerName, copiedName, PowerShellAgent.Context), Utility.GenComparisonData("Start copy blob using source uri", true));
+                }
+                else
+                {
+                    Test.Assert(agent.StartAzureStorageBlobCopy(blobUtil.ContainerName, blobUtil.BlobName, blobUtil.ContainerName, copiedName), Utility.GenComparisonData("Start copy blob using blob name", true));
+                }
+
+                Test.Info("Get destination blob in copy task");
+                ICloudBlob blob = blobUtil.Container.GetBlobReferenceFromServer(copiedName);
+                Test.Assert(blob != null, "Destination blob should exist after start copy. If not, please check it's a test issue or dev issue.");
+
+                string sourceUri = CloudBlobUtil.ConvertCopySourceUri(blobUtil.Blob.Uri.ToString());
+
+                Test.Assert(blob.BlobType == blobUtil.Blob.BlobType, String.Format("The destination blob type should be {0}, actually {1}.", blobUtil.Blob.BlobType, blob.BlobType));
+
+                Test.Assert(blob.CopyState.Source.ToString().StartsWith(sourceUri), String.Format("The source of destination blob should start with {0}, and actually it's {1}", sourceUri, blob.CopyState.Source.ToString()));
+            }
+            finally
+            {
+                blobUtil.CleanupTestContainerAndBlob();
+            }
+        }
+
+        internal void NewContainerTest(Agent agent)
+        {
+            string NEW_CONTAINER_NAME = Utility.GenNameString("astoria-");
+
+            Dictionary<string, object> dic = Utility.GenComparisonData(StorageObjectType.Container, NEW_CONTAINER_NAME);
+            Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>> { dic };
+
+            // delete container if it exists
+            CloudBlobContainer container = CommonStorageAccount.CreateCloudBlobClient().GetContainerReference(NEW_CONTAINER_NAME);
+            container.DeleteIfExists();
+
+            try
+            {
+                //--------------New operation--------------
+                Test.Assert(agent.NewAzureStorageContainer(NEW_CONTAINER_NAME), Utility.GenComparisonData("NewAzureStorageContainer", true));
+                // Verification for returned values
+                CloudBlobUtil.PackContainerCompareData(container, dic);
+                agent.OutputValidation(comp);
+                Test.Assert(container.Exists(), "container {0} should exist!", NEW_CONTAINER_NAME);
+            }
+            finally
+            {
+                // clean up
+                container.DeleteIfExists();
+            }
+        }
+
+        internal void GetContainerTest(Agent agent)
+        {
+            string NEW_CONTAINER_NAME = Utility.GenNameString("astoria-");
+
+            Dictionary<string, object> dic = Utility.GenComparisonData(StorageObjectType.Container, NEW_CONTAINER_NAME);
+
+            // create container if it does not exist
+            CloudBlobContainer container = CommonStorageAccount.CreateCloudBlobClient().GetContainerReference(NEW_CONTAINER_NAME);
+            container.CreateIfNotExists();
+
+            Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>> { dic };
+
+            try
+            {
+                //--------------Get operation--------------
+                Test.Assert(agent.GetAzureStorageContainer(NEW_CONTAINER_NAME), Utility.GenComparisonData("GetAzureStorageContainer", true));
+                // Verification for returned values
+                container.FetchAttributes();
+                dic.Add("CloudBlobContainer", container);
+                CloudBlobUtil.PackContainerCompareData(container, dic);
+
+                agent.OutputValidation(comp);
+            }
+            finally
+            {
+                // clean up
+                container.DeleteIfExists();
+            }
+        }
+
+        internal void RemoveContainerTest(Agent agent)
+        {
+            string NEW_CONTAINER_NAME = Utility.GenNameString("astoria-");
+
+            // create container if it does not exist
+            CloudBlobContainer container = CommonStorageAccount.CreateCloudBlobClient().GetContainerReference(NEW_CONTAINER_NAME);
+            container.CreateIfNotExists();
+
+            try
+            {
+                //--------------Remove operation--------------
+                Test.Assert(agent.RemoveAzureStorageContainer(NEW_CONTAINER_NAME), Utility.GenComparisonData("RemoveAzureStorageContainer", true));
+                Test.Assert(!container.Exists(), "container {0} should not exist!", NEW_CONTAINER_NAME);
+            }
+            finally
+            {
+                // clean up
+                container.DeleteIfExists();
+            }
+        }
+
+        internal void SetContainerACLTest(Agent agent)
+        {
+            string NEW_CONTAINER_NAME = Utility.GenNameString("astoria-");
+
+            Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
+            Dictionary<string, object> dic = Utility.GenComparisonData(StorageObjectType.Container, NEW_CONTAINER_NAME);
+            comp.Add(dic);
+
+            // create container if it does not exist
+            CloudBlobContainer container = CommonStorageAccount.CreateCloudBlobClient().GetContainerReference(NEW_CONTAINER_NAME);
+            container.CreateIfNotExists();
+
+            try
+            {
+                BlobContainerPublicAccessType[] accessTypes = new BlobContainerPublicAccessType[] { 
+                    BlobContainerPublicAccessType.Blob,
+                    BlobContainerPublicAccessType.Container,
+                    BlobContainerPublicAccessType.Off
+                };
+
+                // set PublicAccess as one value respetively
+                foreach (var accessType in accessTypes)
+                {
+                    //--------------Set operation-------------- 
+                    Test.Assert(agent.SetAzureStorageContainerACL(NEW_CONTAINER_NAME, accessType),
+                        "SetAzureStorageContainerACL operation should succeed");
+                    // Verification for returned values
+                    dic["PublicAccess"] = accessType;
+                    CloudBlobUtil.PackContainerCompareData(container, dic);
+                    agent.OutputValidation(comp);
+
+                    Test.Assert(container.GetPermissions().PublicAccess == accessType,
+                        "PublicAccess should be equal: {0} = {1}", container.GetPermissions().PublicAccess, accessType);
+                }
+            }
+            finally
+            {
+                // clean up
+                container.DeleteIfExists();
+            }
+        }
+
+        internal void NewTableTest(Agent agent)
+        {
+            string NEW_TABLE_NAME = Utility.GenNameString("Washington");
+            Dictionary<string, object> dic = Utility.GenComparisonData(StorageObjectType.Table, NEW_TABLE_NAME);
+            Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>> { dic };
+
+            // delete table if it exists
+            CloudTable table = CommonStorageAccount.CreateCloudTableClient().GetTableReference(NEW_TABLE_NAME);
+            table.DeleteIfExists();
+
+            try
+            {
+                //--------------New operation--------------
+                Test.Assert(agent.NewAzureStorageTable(NEW_TABLE_NAME), Utility.GenComparisonData("NewAzureStorageTable", true));
+                // Verification for returned values
+                dic.Add("CloudTable", table);
+                agent.OutputValidation(comp);
+                Test.Assert(table.Exists(), "table {0} should exist!", NEW_TABLE_NAME);
+            }
+            finally
+            {
+                table.DeleteIfExists();
+            }
+        }
+
+        internal void GetTableTest(Agent agent)
+        {
+            string NEW_TABLE_NAME = Utility.GenNameString("Washington");
+            Dictionary<string, object> dic = Utility.GenComparisonData(StorageObjectType.Table, NEW_TABLE_NAME);
+            Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>> { dic };
+
+            // create table if it does not exist
+            CloudTable table = CommonStorageAccount.CreateCloudTableClient().GetTableReference(NEW_TABLE_NAME);
+            table.CreateIfNotExists();
+
+            dic.Add("CloudTable", table);
+
+            try
+            {
+                //--------------Get operation--------------
+                Test.Assert(agent.GetAzureStorageTable(NEW_TABLE_NAME), Utility.GenComparisonData("GetAzureStorageTable", true));
+                // Verification for returned values
+                agent.OutputValidation(comp);
+            }
+            finally
+            {
+                // clean up
+                table.DeleteIfExists();
+            }
+        }
+
+        internal void RemoveTableTest(Agent agent)
+        {
+            string NEW_TABLE_NAME = Utility.GenNameString("Washington");
+
+            // create table if it does not exist
+            CloudTable table = CommonStorageAccount.CreateCloudTableClient().GetTableReference(NEW_TABLE_NAME);
+            table.CreateIfNotExists();
+
+            try
+            {
+                //--------------Remove operation--------------
+                Test.Assert(agent.RemoveAzureStorageTable(NEW_TABLE_NAME), Utility.GenComparisonData("RemoveAzureStorageTable", true));
+                Test.Assert(!table.Exists(), "queue {0} should not exist!", NEW_TABLE_NAME);
+            }
+            finally
+            {
+                // clean up
+                table.DeleteIfExists();
+            }
+        }
+
+        internal void NewQueueTest(Agent agent)
+        {
+            string NEW_QUEUE_NAME = Utility.GenNameString("redmond-");
+            Dictionary<string, object> dic = Utility.GenComparisonData(StorageObjectType.Queue, NEW_QUEUE_NAME);
+            Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>> { dic };
+
+            CloudQueue queue = CommonStorageAccount.CreateCloudQueueClient().GetQueueReference(NEW_QUEUE_NAME);
+            // delete queue if it exists
+            queue.DeleteIfExists();
+
+            try
+            {
+                //--------------New operation--------------
+                Test.Assert(agent.NewAzureStorageQueue(NEW_QUEUE_NAME), Utility.GenComparisonData("NewAzureStorageQueue", true));
+                dic.Add("CloudQueue", queue);
+                dic["ApproximateMessageCount"] = null;
+
+                // Verification for returned values               
+                agent.OutputValidation(comp);
+                Test.Assert(queue.Exists(), "queue {0} should exist!", NEW_QUEUE_NAME);
+            }
+            finally
+            {
+                // clean up
+                queue.DeleteIfExists();
+            }
+        }
+
+        internal void GetQueueTest(Agent agent)
+        {
+            string NEW_QUEUE_NAME = Utility.GenNameString("redmond-");
+            Dictionary<string, object> dic = Utility.GenComparisonData(StorageObjectType.Queue, NEW_QUEUE_NAME);
+            Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>> { dic };
+
+            CloudQueue queue = CommonStorageAccount.CreateCloudQueueClient().GetQueueReference(NEW_QUEUE_NAME);
+            // create queue if it does exist
+            queue.CreateIfNotExists();
+
+            dic.Add("CloudQueue", queue);
+            try
+            {
+                //--------------Get operation--------------
+                Test.Assert(agent.GetAzureStorageQueue(NEW_QUEUE_NAME), Utility.GenComparisonData("GetAzureStorageQueue", true));
+                // Verification for returned values
+                queue.FetchAttributes();
+                agent.OutputValidation(comp);
+            }
+            finally
+            {
+                // clean up
+                queue.DeleteIfExists();
+            }
+        }
+
+        internal void RemoveQueueTest(Agent agent)
+        {
+            string NEW_QUEUE_NAME = Utility.GenNameString("redmond-");
+
+            // create queue if it does exist
+            CloudQueue queue = CommonStorageAccount.CreateCloudQueueClient().GetQueueReference(NEW_QUEUE_NAME);
+            queue.CreateIfNotExists();
+
+            try
+            {
+                //--------------Remove operation--------------
+                Test.Assert(agent.RemoveAzureStorageQueue(NEW_QUEUE_NAME), Utility.GenComparisonData("RemoveAzureStorageQueue", true));
+                Test.Assert(!queue.Exists(), "queue {0} should not exist!", NEW_QUEUE_NAME);
+            }
+            finally
+            {
+                // clean up
+                queue.DeleteIfExists();
+            }
+        }
+
+        /// <summary>
+        /// Parameters:
+        ///     Block:
+        ///         True for BlockBlob, false for PageBlob
+        /// </summary>
+        internal void UploadBlobTest(Agent agent, string UploadFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType Type)
+        {
+            string NEW_CONTAINER_NAME = Utility.GenNameString("upload-");
+            string blobName = Path.GetFileName(UploadFilePath);
+
+            Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
+            Dictionary<string, object> dic = Utility.GenComparisonData(StorageObjectType.Blob, blobName);
+
+            dic["BlobType"] = Type;
+            comp.Add(dic);
+
+            // create the container
+            CloudBlobContainer container = CommonStorageAccount.CreateCloudBlobClient().GetContainerReference(NEW_CONTAINER_NAME);
+            container.CreateIfNotExists();
+
+            try
+            {
+                //--------------Upload operation--------------
+                Test.Assert(agent.SetAzureStorageBlobContent(UploadFilePath, NEW_CONTAINER_NAME, Type), Utility.GenComparisonData("SendAzureStorageBlob", true));
+
+                ICloudBlob blob = CommonBlobHelper.QueryBlob(NEW_CONTAINER_NAME, blobName);
+                CloudBlobUtil.PackBlobCompareData(blob, dic);
+                // Verification for returned values
+                agent.OutputValidation(comp);
+                Test.Assert(blob != null && blob.Exists(), "blob " + blobName + " should exist!");
+            }
+            finally
+            {
+                // cleanup
+                container.DeleteIfExists();
+            }
+        }
+
+        /// <summary>
+        /// Parameters:
+        ///     Block:
+        ///         True for BlockBlob, false for PageBlob
+        /// </summary>
+        internal void GetBlobTest(Agent agent, string UploadFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType Type)
+        {
+            string NEW_CONTAINER_NAME = Utility.GenNameString("upload-");
+            string blobName = Path.GetFileName(UploadFilePath);
+
+            Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
+            Dictionary<string, object> dic = Utility.GenComparisonData(StorageObjectType.Blob, blobName);
+
+            dic["BlobType"] = Type;
+            comp.Add(dic);
+
+            // create the container
+            CloudBlobContainer container = CommonStorageAccount.CreateCloudBlobClient().GetContainerReference(NEW_CONTAINER_NAME);
+            container.CreateIfNotExists();
+
+            try
+            {
+                bool bSuccess = false;
+                // upload the blob file
+                if (Type == Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob)
+                    bSuccess = CommonBlobHelper.UploadFileToBlockBlob(NEW_CONTAINER_NAME, blobName, UploadFilePath);
+                else if (Type == Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob)
+                    bSuccess = CommonBlobHelper.UploadFileToPageBlob(NEW_CONTAINER_NAME, blobName, UploadFilePath);
+                Test.Assert(bSuccess, "upload file {0} to container {1} should succeed", UploadFilePath, NEW_CONTAINER_NAME);
+
+                //--------------Get operation--------------
+                Test.Assert(agent.GetAzureStorageBlob(blobName, NEW_CONTAINER_NAME), Utility.GenComparisonData("GetAzureStorageBlob", true));
+
+                // Verification for returned values
+                // get blob object using XSCL 
+                ICloudBlob blob = CommonBlobHelper.QueryBlob(NEW_CONTAINER_NAME, blobName);
+                blob.FetchAttributes();
+                CloudBlobUtil.PackBlobCompareData(blob, dic);
+                dic.Add("ICloudBlob", blob);
+
+                agent.OutputValidation(comp);
+            }
+            finally
+            {
+                // cleanup
+                container.DeleteIfExists();
+            }
+        }
+
+        /// <summary>
+        /// Parameters:
+        ///     Block:
+        ///         True for BlockBlob, false for PageBlob
+        /// </summary>
+        internal void DownloadBlobTest(Agent agent, string UploadFilePath, string DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType Type)
+        {
+            string ContainerName = Utility.GenNameString("upload-");
+            string blobName = Path.GetFileName(UploadFilePath);
+
+            Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
+            Dictionary<string, object> dic = Utility.GenComparisonData(StorageObjectType.Blob, blobName);
+
+            dic["BlobType"] = Type;
+            comp.Add(dic);
+
+            // create the container
+            CloudBlobContainer container = CommonStorageAccount.CreateCloudBlobClient().GetContainerReference(ContainerName);
+            container.CreateIfNotExists();
+
+            try
+            {
+                // upload the blob file
+                bool success = agent.SetAzureStorageBlobContent(UploadFilePath, ContainerName, Type, blobName);
+                Test.Assert(success, "upload file {0} to container {1} should succeed", UploadFilePath, ContainerName);
+
+                //--------------Download operation--------------
+                string downloadFilePath = Path.Combine(DownloadDirPath, blobName);
+                Test.Assert(agent.GetAzureStorageBlobContent(blobName, downloadFilePath, ContainerName),
+                    Utility.GenComparisonData("GetAzureStorageBlobContent", true));
+                ICloudBlob blob = CommonBlobHelper.QueryBlob(ContainerName, blobName);
+                CloudBlobUtil.PackBlobCompareData(blob, dic);
+                // Verification for returned values
+                agent.OutputValidation(comp);
+
+                Test.Assert(FileUtil.CompareTwoFiles(downloadFilePath, UploadFilePath),
+                    String.Format("File '{0}' should be bit-wise identicial to '{1}'", downloadFilePath, UploadFilePath));
+            }
+            finally
+            {
+                // cleanup
+                container.DeleteIfExists();
+            }
+        }
+
+        /// <summary>
+        /// Parameters:
+        ///     Block:
+        ///         True for BlockBlob, false for PageBlob
+        /// </summary>
+        internal void RemoveBlobTest(Agent agent, string UploadFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType Type)
+        {
+            string NEW_CONTAINER_NAME = Utility.GenNameString("upload-");
+            string blobName = Path.GetFileName(UploadFilePath);
+
+            Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
+            Dictionary<string, object> dic = Utility.GenComparisonData(StorageObjectType.Blob, blobName);
+
+            dic["BlobType"] = Type;
+            comp.Add(dic);
+
+            // create the container
+            CloudBlobContainer container = CommonStorageAccount.CreateCloudBlobClient().GetContainerReference(NEW_CONTAINER_NAME);
+            container.CreateIfNotExists();
+
+            try
+            {
+                bool bSuccess = false;
+                // upload the blob file
+                if (Type == Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob)
+                    bSuccess = CommonBlobHelper.UploadFileToBlockBlob(NEW_CONTAINER_NAME, blobName, UploadFilePath);
+                else if (Type == Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob)
+                    bSuccess = CommonBlobHelper.UploadFileToPageBlob(NEW_CONTAINER_NAME, blobName, UploadFilePath);
+                Test.Assert(bSuccess, "upload file {0} to container {1} should succeed", UploadFilePath, NEW_CONTAINER_NAME);
+
+                //--------------Remove operation--------------
+                Test.Assert(agent.RemoveAzureStorageBlob(blobName, NEW_CONTAINER_NAME), Utility.GenComparisonData("RemoveAzureStorageBlob", true));
+                ICloudBlob blob = CommonBlobHelper.QueryBlob(NEW_CONTAINER_NAME, blobName);
+                Test.Assert(blob == null, "blob {0} should not exist!", blobName);
+            }
+            finally
+            {
+                // cleanup
+                container.DeleteIfExists();
+            }
+        }
+
+        /// <summary>
+        /// Create a container and then get it using powershell cmdlet
+        /// </summary>
+        /// <returns>A CloudBlobContainer object which is returned by PowerShell</returns>
+        protected CloudBlobContainer CreateAndPsGetARandomContainer()
+        {
+            string containerName = Utility.GenNameString("bvt");
+            CloudBlobContainer container = SetUpStorageAccount.CreateCloudBlobClient().GetContainerReference(containerName);
+            container.CreateIfNotExists();
+
+            try
+            {
+                PowerShellAgent agent = new PowerShellAgent();
+                Test.Assert(agent.GetAzureStorageContainer(containerName), Utility.GenComparisonData("GetAzureStorageContainer", true));
+                int count = 1;
+                Test.Assert(agent.Output.Count == count, string.Format("get container should return only 1 container, actully it's {0}", agent.Output.Count));
+                return (CloudBlobContainer)agent.Output[0]["CloudBlobContainer"];
+            }
+            finally
+            {
+                // clean up
+                container.DeleteIfExists();
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.NewContainerSas)]
+        public void NewContainerSasTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip NewContainerSasTest as Azure emulator does not support sas token");
+                return;
+            }
+
+            CloudBlobUtil blobUtil = new CloudBlobUtil(CommonStorageAccount);
+            blobUtil.SetupTestContainerAndBlob();
+
+            try
+            {
+                string fullContainerPermission = "rwdl";
+                Test.Assert(agent.NewAzureStorageContainerSAS(blobUtil.Container.Name, string.Empty, fullContainerPermission),
+                    "Generate container sas token should succeed");
+                string sastoken = agent.Output[0][Constants.SASTokenKey].ToString();
+                Test.Info("Generated sas token:{0}", sastoken);
+                blobUtil.ValidateContainerListableWithSasToken(blobUtil.Container, sastoken);
+            }
+            finally
+            {
+                blobUtil.CleanupTestContainerAndBlob();
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.NewBlobSas)]
+        public void NewBlobSasTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip NewBlobSasTest as Azure emulator does not support sas token");
+                return;
+            }
+
+            CloudBlobUtil blobUtil = new CloudBlobUtil(CommonStorageAccount);
+            blobUtil.SetupTestContainerAndBlob();
+
+            try
+            {
+                string fullBlobPermission = "rwd";
+                Test.Assert(agent.NewAzureStorageBlobSAS(blobUtil.Container.Name, blobUtil.Blob.Name, string.Empty, fullBlobPermission),
+                    "Generate container sas token should succeed");
+                string sastoken = agent.Output[0][Constants.SASTokenKey].ToString();
+                Test.Info("Generated sas token:{0}", sastoken);
+                blobUtil.ValidateBlobReadableWithSasToken(blobUtil.Blob, sastoken);
+            }
+            finally
+            {
+                blobUtil.CleanupTestContainerAndBlob();
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.NewQueueSas)]
+        public void NewQueueSasTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip NewQueueSasTest as Azure emulator does not support sas token");
+                return;
+            }
+
+            CloudQueueUtil queueUtil = new CloudQueueUtil(CommonStorageAccount);
+            CloudQueue queue = queueUtil.CreateQueue();
+
+            try
+            {
+                string permission = "raup";
+                Test.Assert(agent.NewAzureStorageQueueSAS(queue.Name, string.Empty, permission),
+                    "Generate queue sas token should succeed");
+                string sastoken = agent.Output[0][Constants.SASTokenKey].ToString();
+                Test.Info("Generated sas token:{0}", sastoken);
+                queueUtil.ValidateQueueAddableWithSasToken(queue, sastoken);
+            }
+            finally
+            {
+                queueUtil.RemoveQueue(queue.Name);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.NewTableSas)]
+        public void NewTableSasTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip NewTableSasTest as Azure emulator does not support sas token");
+                return;
+            }
+
+            CloudTableUtil tableUtil = new CloudTableUtil(CommonStorageAccount);
+            CloudTable table = tableUtil.CreateTable();
+
+            try
+            {
+                string permission = "raud";
+                Test.Assert(agent.NewAzureStorageTableSAS(table.Name, string.Empty, permission),
+                    "Generate table sas token should succeed");
+                string sastoken = agent.Output[0][Constants.SASTokenKey].ToString();
+                Test.Info("Generated sas token:{0}", sastoken);
+                tableUtil.ValidateTableAddableWithSasToken(table, sastoken);
+            }
+            finally
+            {
+                tableUtil.RemoveTable(table);
+            }
+        }
+    }
+}
