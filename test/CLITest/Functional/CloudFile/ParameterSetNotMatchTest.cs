@@ -50,7 +50,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddScript("New-AzureStorageDirectory -Share $share");
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -64,7 +64,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddScript("New-AzureStorageDirectory -ShareName " + this.fileShare.Name);
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -80,7 +80,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddScript("New-AzureStorageDirectory -Directory $dir");
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -95,7 +95,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Remove-AzureStorageDirectory -Share $share");
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -109,7 +109,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Remove-AzureStorageDirectory -ShareName " + this.fileShare.Name);
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -124,7 +124,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Get-AzureStorageFileContent -Share $share");
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -138,7 +138,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Get-AzureStorageFileContent -ShareName " + this.fileShare.Name);
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -154,7 +154,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Get-AzureStorageFileContent -Directory $dir");
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -169,7 +169,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Set-AzureStorageFileContent -Share $share");
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -183,7 +183,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Set-AzureStorageFileContent -ShareName " + this.fileShare.Name);
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -198,7 +198,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Remove-AzureStorageFile -Share $share");
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -212,7 +212,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Remove-AzureStorageFile -ShareName " + this.fileShare.Name);
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
     }
 }

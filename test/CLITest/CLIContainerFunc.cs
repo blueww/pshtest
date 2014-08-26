@@ -31,7 +31,7 @@ namespace Management.Storage.ScenarioTest
     /// this class contains all the functional test cases for PowerShell container cmdlets
     /// </summary>
     [TestClass]
-    class CLIContainerFunc : TestBase
+    public class CLIContainerFunc : TestBase
     {
         private static CloudBlobHelper BlobHelper;
 
@@ -414,7 +414,7 @@ namespace Management.Storage.ScenarioTest
         internal void EnumerateAllContainers(Agent agent)
         {
             //--------------Get operation--------------
-            Test.Assert(agent.GetAzureStorageContainer(""), Utility.GenComparisonData("GetAzureStorageContainer", false));
+            Test.Assert(agent.GetAzureStorageContainer(""), Utility.GenComparisonData("GetAzureStorageContainer", true));
 
             // Verification for returned values
             agent.OutputValidation(StorageAccount.CreateCloudBlobClient().ListContainers());

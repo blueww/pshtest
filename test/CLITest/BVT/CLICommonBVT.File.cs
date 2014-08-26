@@ -16,7 +16,7 @@
     /// <summary>
     /// Contains BVT test cases for file services
     /// </summary>
-    internal partial class CLICommonBVT
+    public partial class CLICommonBVT
     {
         /// <summary>
         /// Stores a list of allowed configuration sets. Notice that they are
@@ -36,6 +36,7 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
         public void NewFileShareTest()
         {
             if (!this.ShouldRunFileTest())
@@ -50,10 +51,10 @@
             {
                 agent.NewFileShare(fileShareName);
 
-                var result = (PowerShellExecutionResult)agent.Invoke();
+                var result = agent.Invoke();
 
                 agent.AssertNoError();
-                result.AssertPSObjectCollection(obj => obj.AssertCloudFileContainer(fileShareName), 1);
+                result.AssertObjectCollection(obj => result.AssertCloudFileContainer(obj, fileShareName), 1);
                 fileUtil.AssertFileShareExists(fileShareName, "Container should exist after created.");
             }
             finally
@@ -70,6 +71,7 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
         public void GetExistingFileShareTest()
         {
             if (!this.ShouldRunFileTest())
@@ -84,10 +86,10 @@
             {
                 agent.GetFileShareByName(fileShareName);
 
-                var result = (PowerShellExecutionResult)agent.Invoke();
+                var result = agent.Invoke();
 
                 agent.AssertNoError();
-                result.AssertPSObjectCollection(obj => obj.AssertCloudFileContainer(fileShareName), 1);
+                result.AssertObjectCollection(obj => result.AssertCloudFileContainer(obj, fileShareName), 1);
             }
             finally
             {
@@ -103,6 +105,7 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
         public void RemoveFileShareTest()
         {
             if (!this.ShouldRunFileTest())
@@ -157,6 +160,7 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
         public void NewDirectoryTest_FileShareNameParameterSet()
         {
             if (!this.ShouldRunFileTest())
@@ -197,6 +201,7 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
         public void RemoveDirectoryTest_FileShareNameParameterSet()
         {
             if (!this.ShouldRunFileTest())
@@ -217,6 +222,7 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
         public void GetFileTest_FileShareNameParameterSet()
         {
             if (!this.ShouldRunFileTest())
@@ -278,7 +284,7 @@
                 var result = (PowerShellExecutionResult)agent.Invoke();
 
                 agent.AssertNoError();
-                result.AssertPSObjectCollection(obj => obj.AssertCloudFile(fileName, directoryName), 1);
+                result.AssertObjectCollection(obj => obj.AssertCloudFile(fileName, directoryName), 1);
             }
             finally
             {
@@ -328,6 +334,7 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
         public void GetFileContentTest_FileShareNameParameterSet()
         {
             if (!this.ShouldRunFileTest())
@@ -428,6 +435,7 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
         public void SetFileContentTest_FileShareNameParameterSet()
         {
             if (!this.ShouldRunFileTest())
@@ -481,6 +489,7 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
         public void RemoveFileTest_FileShareNameParameterSet()
         {
             if (!this.ShouldRunFileTest())
@@ -524,10 +533,10 @@
             {
                 newDirectoryAction(fileShare, directoryName);
 
-                var result = (PowerShellExecutionResult)this.agent.Invoke();
+                var result = this.agent.Invoke();
 
                 agent.AssertNoError();
-                result.AssertPSObjectCollection(obj => obj.AssertCloudFileDirectory(directoryName), 1);
+                result.AssertObjectCollection(obj => result.AssertCloudFileDirectory(obj, directoryName), 1);
                 fileUtil.AssertDirectoryExists(fileShare, directoryName, "Container should exist after created.");
             }
             finally
@@ -588,18 +597,20 @@
         private void GetFileTest(Action<CloudFileShare> getFileAction)
         {
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
-            string fileName = CloudFileUtil.GenerateUniqueFileName();
+            var fileNames = Enumerable.Range(0, random.Next(5, 20)).Select(x => CloudFileUtil.GenerateUniqueFileName()).ToList();
+            var directoryNames = Enumerable.Range(0, random.Next(5, 20)).Select(x => CloudFileUtil.GenerateUniqueDirectoryName()).ToList();
             var fileShare = fileUtil.EnsureFileShareExists(fileShareName);
-            var file = fileUtil.CreateFile(fileShare, fileName);
+            var files = fileNames.Select(name => fileUtil.CreateFile(fileShare, name)).ToList();
+            var directories = directoryNames.Select(name => fileUtil.EnsureDirectoryExists(fileShare, name)).ToList();
 
             try
             {
                 getFileAction(fileShare);
 
-                var result = (PowerShellExecutionResult)agent.Invoke();
+                var result = agent.Invoke();
 
                 agent.AssertNoError();
-                result.AssertPSObjectCollection(obj => obj.AssertCloudFile(fileName), 1);
+                result.AssertFileListItems(files, directories);
             }
             finally
             {
@@ -614,7 +625,7 @@
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             var fileShare = fileUtil.EnsureFileShareExists(fileShareName);
             var cloudFile = fileUtil.CreateFile(fileShare, cloudFileName, localFileName);
-            var destination = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
+            var destination = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName()));
 
             try
             {

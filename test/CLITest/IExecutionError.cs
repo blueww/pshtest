@@ -18,5 +18,6 @@ namespace Management.Storage.ScenarioTest
     /// </summary>
     public interface IExecutionError
     {
+        void AssertError(params string[] errorIds);
     }
 }

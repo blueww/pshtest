@@ -29,7 +29,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTP
     /// bvt tests using connection string
     /// </summary>
     [TestClass]
-    class ConnectionStringBVT : Management.Storage.ScenarioTest.BVT.HTTPS.ConnectionStringBVT
+    public class ConnectionStringBVT : Management.Storage.ScenarioTest.BVT.HTTPS.ConnectionStringBVT
     {
         [ClassInitialize()]
         public static void ConnectionStringHTTPBVTClassInitialize(TestContext testContext)

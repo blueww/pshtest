@@ -32,7 +32,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
     /// functional tests for Set-ContainerAcl
     /// </summary>
     [TestClass]
-    class SetBlobContent : TestBase
+    public class SetBlobContent : TestBase
     {
         private static string uploadDirRoot;
         private static List<string> files = new List<string>();
@@ -117,7 +117,11 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                     Test.Assert(rootFiles[i].Name == blob.Name, string.Format("blob name should be {0}, and actully it's {1}", rootFiles[i].Name, blob.Name));
                     string localMd5 = FileUtil.GetFileContentMD5(Path.Combine(uploadDirRoot, rootFiles[i].Name));
                     Test.Assert(blob.BlobType == blobType, string.Format("blob type should be equal {0} = {1}", blob.BlobType, blobType));
-                    Test.Assert(localMd5 == blob.Properties.ContentMD5, string.Format("blob content md5 should be {0}, and actually it's {1}", localMd5, blob.Properties.ContentMD5));
+
+                    if (blobType == BlobType.BlockBlob)
+                    {
+                        Test.Assert(localMd5 == blob.Properties.ContentMD5, string.Format("blob content md5 should be {0}, and actually it's {1}", localMd5, blob.Properties.ContentMD5));
+                    }
                 }
             }
             finally
@@ -181,7 +185,11 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                         Test.Assert(dirFiles[i] == convertedName, string.Format("blob name should be {0}, and actully it's {1}", dirFiles[i], convertedName));
                         string localMd5 = Helper.GetFileContentMD5(Path.Combine(uploadDirRoot, dirFiles[i]));
                         Test.Assert(blob.BlobType == blobType, "blob type should be block blob");
-                        Test.Assert(localMd5 == blob.Properties.ContentMD5, string.Format("blob content md5 should be {0}, and actually it's {1}", localMd5, blob.Properties.ContentMD5));
+
+                        if (blobType == BlobType.BlockBlob)
+                        {
+                            Test.Assert(localMd5 == blob.Properties.ContentMD5, string.Format("blob content md5 should be {0}, and actually it's {1}", localMd5, blob.Properties.ContentMD5));
+                        }
                     }
                 }
                 finally
@@ -331,10 +339,10 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         /// <summary>
         /// set blob content without force
         /// </summary>
-        [TestMethod()]
-        [TestCategory(Tag.Function)]
-        [TestCategory(PsTag.Blob)]
-        [TestCategory(PsTag.SetBlobContent)]
+        ////[TestMethod()]
+        ////[TestCategory(Tag.Function)]
+        ////[TestCategory(PsTag.Blob)]
+        ////[TestCategory(PsTag.SetBlobContent)]
         public void SetBlobContentForEixstsBlobWithoutForce()
         {
             string filePath = FileUtil.GenerateOneTempTestFile();
@@ -348,6 +356,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 Test.Assert(!agent.SetAzureStorageBlobContent(filePath, container.Name, blob.BlobType, blob.Name, false), "set blob content without force parameter should fail");
                 ExpectedContainErrorMessage(ConfirmExceptionMessage);
                 blob.FetchAttributes();
+
                 ExpectEqual(previousMd5, blob.Properties.ContentMD5, "content md5");
             }
             finally
@@ -377,9 +386,10 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             try
             {
                 string localMD5 = FileUtil.GetFileContentMD5(filePath);
-                Test.Assert(agent.SetAzureStorageBlobContent(filePath, container.Name, blob.BlobType, blob.Name, true), "set blob content with force parameter should succeed");            
+                Test.Assert(agent.SetAzureStorageBlobContent(filePath, container.Name, blob.BlobType, blob.Name, true), "set blob content with force parameter should succeed");
                 blob = CloudBlobUtil.GetBlob(container, blobName, blob.BlobType);
                 blob.FetchAttributes();
+
                 ExpectEqual(localMD5, blob.Properties.ContentMD5, "content md5");
             }
             finally
@@ -416,6 +426,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 Test.Assert(agent.SetAzureStorageBlobContent(filePath, container.Name, blobType, blobName, true), "upload blob with zero size should succeed");
                 ICloudBlob blob = CloudBlobUtil.GetBlob(container, blobName, blobType);
                 blob.FetchAttributes();
+
                 ExpectEqual(localMD5, blob.Properties.ContentMD5, "content md5");
             }
             finally
@@ -452,6 +463,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 Test.Assert(agent.SetAzureStorageBlobContent(filePath, container.Name, blobType, blobName, true), "upload a blob name with special chars should succeed");
                 ICloudBlob blob = CloudBlobUtil.GetBlob(container, blobName, blobType);
                 blob.FetchAttributes();
+
                 ExpectEqual(localMD5, blob.Properties.ContentMD5, "content md5");
             }
             finally
@@ -516,13 +528,18 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 foreach (string key in metadata.Keys)
                 {
-                    if (!blob.Metadata.ContainsKey(key))
+                    if (blob.Metadata.ContainsKey(key))
                     {
-                        Test.AssertFail("Could not find meta data key " + key + " in blob entity");
+                        ExpectEqual(metadata[key].ToString(), blob.Metadata[key], "Meta data key " + key);
+                    }
+                    else if (blob.Metadata.ContainsKey(key.ToLower()))
+                    {
+                        // NodeJS stores key in lower case
+                        ExpectEqual(metadata[key].ToString().ToLower(), blob.Metadata[key.ToLower()], "Meta data key " + key);
                     }
                     else
                     {
-                        ExpectEqual(metadata[key].ToString(), blob.Metadata[key], "Meta data key " + key);
+                        Test.AssertFail("Could not find meta data key " + key + " in blob entity");
                     }
                 }
             }

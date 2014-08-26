@@ -30,5 +30,14 @@ namespace Management.Storage.ScenarioTest
             Hour,
             Minute
         };
+
+        public const int MAX_BLOCK_BLOB_SIZE = 195;   //GB
+        public const int MAX_PAGE_BLOB_SIZE = 1024;   //GB
+        public const int MAX_FILE_SIZE = 1024;   //GB
+        public const string BLOCK_BLOB_UNIT = "G_BLOCK";
+        public const string PAGE_BLOB_UNIT = "G_PAGE";
+        public const string FILE_UNIT = "G_FILE";
+
+        public const int Iterations = 5;
     }
 }

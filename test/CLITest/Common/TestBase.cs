@@ -226,6 +226,8 @@ namespace Management.Storage.ScenarioTest.Common
 
         #endregion
 
+        public delegate void Validator(string s);
+
         /// <summary>
         /// Expect returned error message is the specified error message
         /// </summary>

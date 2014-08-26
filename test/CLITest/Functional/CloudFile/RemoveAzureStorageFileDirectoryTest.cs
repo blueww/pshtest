@@ -81,6 +81,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveSubDirectoryUsingPath()
         {
             var dir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
@@ -95,6 +96,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveSubDirectoryUsingRelativePath()
         {
             var dir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
@@ -123,6 +125,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveDirectoryWithInvalidAccountTest()
         {
             string dir = CloudFileUtil.GenerateUniqueDirectoryName();
@@ -134,7 +137,7 @@
             object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
             this.agent.RemoveDirectory(this.fileShare.Name, dir, invalidStorageContextObject);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertFullQualifiedErrorId(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
+            this.agent.AssertErrors(record => record.AssertError(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
             fileUtil.AssertDirectoryExists(this.fileShare, dir, "Directory should not be created when providing invalid credentials.");
         }
 
@@ -144,6 +147,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveDirectoryWithInvalidKeyValueTest()
         {
             string dir = CloudFileUtil.GenerateUniqueDirectoryName();
@@ -154,7 +158,7 @@
             object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
             this.agent.RemoveDirectory(this.fileShare.Name, dir, invalidStorageContextObject);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertFullQualifiedErrorId(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
+            this.agent.AssertErrors(record => record.AssertError(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
             fileUtil.AssertDirectoryExists(this.fileShare, dir, "Directory should not be created when providing invalid credentials.");
         }
 
@@ -164,6 +168,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveNonExistingDirectoryTest()
         {
             string dir = CloudFileUtil.GenerateUniqueDirectoryName();
@@ -171,7 +176,7 @@
 
             this.agent.RemoveDirectory(this.fileShare, dir);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertFullQualifiedErrorId(AssertUtil.ResourceNotFoundFullQualifiedErrorId));
+            this.agent.AssertErrors(record => record.AssertError(AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -180,6 +185,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveNonEmptyDirectoryTest()
         {
             string dir = CloudFileUtil.GenerateUniqueDirectoryName();
@@ -188,7 +194,7 @@
 
             this.agent.RemoveDirectory(this.fileShare, dir);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertFullQualifiedErrorId(AssertUtil.DirectoryNotEmptyFullQualifiedErrorId));
+            this.agent.AssertErrors(record => record.AssertError(AssertUtil.DirectoryNotEmptyFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -197,6 +203,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveDirectoryUnderNonExistingShareTest()
         {
             string shareName = CloudFileUtil.GenerateUniqueFileShareName();
@@ -204,7 +211,7 @@
             fileUtil.DeleteFileShareIfExists(shareName);
             this.agent.RemoveDirectory(shareName, dir);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertFullQualifiedErrorId(AssertUtil.ShareNotFoundFullQualifiedErrorId));
+            this.agent.AssertErrors(record => record.AssertError(AssertUtil.ShareNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -213,11 +220,12 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveRootDirectoryTest()
         {
             this.agent.RemoveDirectory(this.fileShare, "/");
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertFullQualifiedErrorId(AssertUtil.InvalidResourceFullQualifiedErrorId));
+            this.agent.AssertErrors(record => record.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId, AssertUtil.AuthenticationFailedFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -226,11 +234,12 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveDirectoryUnderRootsParent()
         {
             string dirName = CloudFileUtil.GenerateUniqueDirectoryName();
             this.RemoveDirectoryInternal(() => this.agent.RemoveDirectory(this.fileShare, "../" + dirName));
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidResourceFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId, AssertUtil.AuthenticationFailedFullQualifiedErrorId));
         }
 
         /// <summary>

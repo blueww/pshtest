@@ -29,7 +29,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTP
     /// Bvt test using name and key context in http mode
     /// </summary>
     [TestClass]
-    class NameKeyContextBVT : Management.Storage.ScenarioTest.BVT.HTTPS.NameKeyContextBVT
+    public class NameKeyContextBVT : Management.Storage.ScenarioTest.BVT.HTTPS.NameKeyContextBVT
     {
         [ClassInitialize()]
         public static void NameKeyContextHTTPBVTClassInitialize(TestContext testContext)

@@ -29,7 +29,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
     /// bvt tests using  environment variable "AZURE_STORAGE_CONNECTION_STRING"
     /// </summary>
     [TestClass]
-    class EnvConnectionStringBVT : CLICommonBVT
+    public class EnvConnectionStringBVT : CLICommonBVT
     {
         [ClassInitialize()]
         public static void EnvConnectionStringBVTClassInitialize(TestContext testContext)

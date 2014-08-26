@@ -31,7 +31,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
     /// bvt test using name and key context in https mode
     /// </summary>
     [TestClass]
-    class NameKeyContextBVT : CLICommonBVT
+    public class NameKeyContextBVT : CLICommonBVT
     {
         protected static string StorageAccountName;
         protected static bool isSecondary;

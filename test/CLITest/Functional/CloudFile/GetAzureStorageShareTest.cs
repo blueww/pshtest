@@ -39,6 +39,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void GetAListOfSharedByPrefixTest()
         {
             string prefix = "testprefix";
@@ -64,7 +65,7 @@
 
                 this.agent.GetFileShareByPrefix(prefix);
                 var result = this.agent.Invoke();
-                result.AssertPSObjectCollection(obj => obj.AssertCloudFileContainer(sharesMatchingPrefixList), sharesMatchingPrefixList.Count);
+                result.AssertObjectCollection(obj => result.AssertCloudFileContainer(obj, sharesMatchingPrefixList), sharesMatchingPrefixList.Count);
             }
             finally
             {
@@ -88,6 +89,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void ListAllSharesTest()
         {
             var sharesList = BuildShareNamesByPrefix(string.Empty, this.randomProvider.Next(5, 20)).ToList();
@@ -101,11 +103,11 @@
 
                 this.agent.GetFileShareByPrefix(string.Empty);
                 var result = this.agent.Invoke();
-                result.AssertPSObjectCollection(obj =>
+                result.AssertObjectCollection(obj =>
                 {
                     if (sharesList.Count > 0)
                     {
-                        obj.AssertCloudFileContainer(sharesList, false);
+                        result.AssertCloudFileContainer(obj, sharesList, false);
                     }
                 }, -1);
 
@@ -133,13 +135,14 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void GetNonExistingShareTest()
         {
             string shareName = CloudFileUtil.GenerateUniqueFileShareName();
             fileUtil.DeleteFileShareIfExists(shareName);
             this.agent.GetFileShareByName(shareName);
             this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(
+            this.agent.AssertErrors(err => err.AssertError(
                 AssertUtil.ShareBeingDeletedFullQualifiedErrorId,
                 AssertUtil.ShareNotFoundFullQualifiedErrorId,
                 AssertUtil.ProtocolErrorFullQualifiedErrorId));
@@ -151,6 +154,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void ListFileShareByPrefixAndMatchingNoneTest()
         {
             string prefix = "nonexistingprefix";
@@ -173,12 +177,13 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void GetShareByNameUsingWildCardTest()
         {
             string shareName = string.Concat("*", CloudFileUtil.GenerateUniqueFileShareName());
             this.agent.GetFileShareByName(shareName);
             this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -187,12 +192,13 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void GetShareByPrefixUsingWildCardTest()
         {
             string shareName = string.Concat("*", CloudFileUtil.GenerateUniqueFileShareName());
             this.agent.GetFileShareByPrefix(shareName);
             this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
         }
 
         private static IEnumerable<string> BuildShareNamesByPrefix(string prefix, int numberOfShares)

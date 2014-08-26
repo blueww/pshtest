@@ -10,32 +10,27 @@ using MS.Test.Common.MsTestLib;
 using StorageTestLib;
 using BlobType = Microsoft.WindowsAzure.Storage.Blob.BlobType;
 using ICloudBlob = Microsoft.WindowsAzure.Storage.Blob.ICloudBlob;
+using Management.Storage.ScenarioTest.Performance.Helper;
 
 namespace Management.Storage.ScenarioTest
 {
     [TestClass]
     public class CLIPerf_OneBlob : TestBase
     {
-        private static int MAX_BLOCK_BLOB_SIZE = 195;   //GB
-        private static int MAX_PAGE_BLOB_SIZE = 1024;   //GB
-        private static string BLOCK_BLOB_UNIT = "G_BLOCK";
-        private static string PAGE_BLOB_UNIT = "G_PAGE";
-
         #region Additional test attributes
-        // 
-        //You can use the following additional attributes as you write your tests:
-        //
-        //Use ClassInitialize to run code before running the first test in the class
         [ClassInitialize()]
         public static void MyClassInitialize(TestContext testContext)
         {
             TestBase.TestClassInitialize(testContext);
 
             BlobHelper = new CloudBlobHelper(StorageAccount);
+            FileHelper = new CloudFileHelper(StorageAccount);
             ContainerName = Utility.GenNameString("perf");
 
             BlobHelper.CreateContainer(ContainerName);
             BlobHelper.CleanupContainer(ContainerName);
+
+            FileHelper.CreateShare(ContainerName);
 
             //set the ConcurrentTaskCount field
             PowerShellAgent.ConcurrentTaskCount = Environment.ProcessorCount * 8;
@@ -53,6 +48,7 @@ namespace Management.Storage.ScenarioTest
             // disable this as sometimes we would want to use the generated files to 
             //Helper.DeletePattern("testfile_*");
             BlobHelper.CleanupContainer(ContainerName);
+            FileHelper.CleanupShare(ContainerName);
         }
 
         //Use TestInitialize to run code before running each test
@@ -61,7 +57,6 @@ namespace Management.Storage.ScenarioTest
         {
             Trace.WriteLine("TestInit");
             Test.Start(TestContext.FullyQualifiedTestClassName, TestContext.TestName);
-
         }
 
         //Use TestCleanup to run code after each test has run
@@ -70,40 +65,49 @@ namespace Management.Storage.ScenarioTest
         {
             Trace.WriteLine("TestCleanup");
             Test.End(TestContext.FullyQualifiedTestClassName, TestContext.TestName);
-
         }
         #endregion
 
         [TestMethod]
         [TestCategory(PsTag.Perf)]
         [TestCategory(CLITag.NodeJSPerf)]
+        [Timeout(14400000)]
         public void UploadHttpBlock()
         {
-            Upload(BlobType.BlockBlob);
+            BlobHelper.CleanupContainer(ContainerName);
+            var o = new BlockBlobUploadOperation(this.agent, BlobHelper);
+            Run(o);
         }
 
         [TestMethod]
         [TestCategory(PsTag.Perf)]
         [TestCategory(CLITag.NodeJSPerf)]
+        [Timeout(14400000)]
         public void DownloadHttpBlock()
         {
-            Download();
+            var o = new BlockBlobDownloadOperation(this.agent, BlobHelper);
+            Run(o);
         }
 
         [TestMethod]
         [TestCategory(PsTag.Perf)]
         [TestCategory(CLITag.NodeJSPerf)]
+        [Timeout(14400000)]
         public void UploadHttpPage()
         {
-            Upload(BlobType.PageBlob);
+            BlobHelper.CleanupContainer(ContainerName);
+            var o = new PageBlobUploadOperation(this.agent, BlobHelper);
+            Run(o);
         }
 
         [TestMethod]
         [TestCategory(PsTag.Perf)]
         [TestCategory(CLITag.NodeJSPerf)]
+        [Timeout(14400000)]
         public void DownloadHttpPage()
         {
-            Download();
+            var o = new PageBlobDownloadOperation(this.agent, BlobHelper);
+            Run(o);
         }
 
         [TestMethod]
@@ -111,9 +115,12 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSScale)]
         public void UploadHttpBlock_Max()
         {
+            BlobHelper.CleanupContainer(ContainerName);
+
             //put the generating files here, because it will cost a few hours to generate very big files
             GenerateTestFiles_Max();
-            Upload(BlobType.BlockBlob, true);
+            var o = new BlockBlobUploadOperation(this.agent, BlobHelper);
+            Run(o, true);
         }
 
         [TestMethod]
@@ -121,8 +128,8 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSScale)]
         public void DownloadHttpBlock_Max()
         {
-            GenerateTestFiles_Max();
-            Download(BlobType.BlockBlob, true);
+            var o = new BlockBlobDownloadOperation(this.agent, BlobHelper);
+            Run(o, true);
         }
 
         [TestMethod]
@@ -130,8 +137,10 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSScale)]
         public void UploadHttpPage_Max()
         {
+            BlobHelper.CleanupContainer(ContainerName);
             GenerateTestFiles_Max();
-            Upload(BlobType.PageBlob, true);
+            var o = new PageBlobUploadOperation(this.agent, BlobHelper);
+            Run(o, true);
         }
 
         [TestMethod]
@@ -140,7 +149,28 @@ namespace Management.Storage.ScenarioTest
         public void DownloadHttpPage_Max()
         {
             GenerateTestFiles_Max();
-            Download(BlobType.PageBlob, true);
+            var o = new PageBlobDownloadOperation(this.agent, BlobHelper);
+            Run(o, true);
+        }
+
+        [TestMethod]
+        [TestCategory(PsTag.Perf)]
+        [TestCategory(PsTag.FilePerf)]
+        [Timeout(14400000)]
+        public void UploadFile()
+        {
+            var o = new FileUploadOperation(this.agent, FileHelper);
+            Run(o);
+        }
+
+        [TestMethod]
+        [TestCategory(PsTag.Perf)]
+        [TestCategory(PsTag.FilePerf)]
+        [Timeout(14400000)]
+        public void DownloadFile()
+        {
+            var o = new FileDownloadOperation(this.agent, FileHelper);
+            Run(o);
         }
 
         /// <summary>
@@ -149,12 +179,12 @@ namespace Management.Storage.ScenarioTest
         /// <param name="blobType"></param>
         /// <param name="bMax">indicates whether download a blob with the maximum size</param>
         /// </summary>
-        public void Upload(BlobType blobType, bool bMax = false)
+        public void Run(ICLIOperation operation, bool bMax = false)
         {
             Dictionary<long, double> fileSizeTime = new Dictionary<long, double>();
             Dictionary<long, double> fileSizeTimeSD = new Dictionary<long, double>();
 
-            TransferTestFiles(true, fileSizeTime, fileSizeTimeSD, blobType, bMax);
+            TransferTestFiles(fileSizeTime, fileSizeTimeSD, operation, bMax);
 
             //print the results
             string sizes = string.Empty;
@@ -169,45 +199,6 @@ namespace Management.Storage.ScenarioTest
             {
                 sds += d.Value + " ";
             }
-
-            Test.Info("[file_sizes] {0}", sizes);
-            Test.Info("[file_times] {0}", times);
-            Test.Info("[file_timeSDs] {0}", sds);
-
-            Helper.writePerfLog(TestContext.FullyQualifiedTestClassName + "." + TestContext.TestName);
-            Helper.writePerfLog(sizes.Replace(' ', ','));
-            Helper.writePerfLog(times.Replace(' ', ','));
-            Helper.writePerfLog(sds.Replace(' ', ','));
-        }
-
-        /// <summary>
-        /// download blob files
-        /// the following two parameters are only useful for download blob file with maximum size
-        /// <param name="blobType"></param>
-        /// <param name="bMax">indicates whether download a blob with the maximum size</param>
-        /// </summary>
-        public void Download(BlobType blobType = BlobType.Unspecified, bool bMax = false)
-        {
-            Dictionary<long, double> fileSizeTime = new Dictionary<long, double>();
-            Dictionary<long, double> fileSizeTimeSD = new Dictionary<long, double>();
-            string dest = ".\\downloadtemp";
-            FileUtil.CreateNewFolder(dest);
-
-            TransferTestFiles(false, fileSizeTime, fileSizeTimeSD, blobType, bMax);
-
-            //print the results
-            string sizes = string.Empty;
-            string times = string.Empty;
-            string sds = string.Empty;
-            foreach (KeyValuePair<long, double> d in fileSizeTime)
-            {
-                sizes += d.Key + " ";
-                times += d.Value + " ";
-            }
-            foreach (KeyValuePair<long, double> d in fileSizeTimeSD)
-            {
-                sds += d.Value + " ";
-            }            
 
             Test.Info("[file_sizes] {0}", sizes);
             Test.Info("[file_times] {0}", times);
@@ -225,8 +216,8 @@ namespace Management.Storage.ScenarioTest
         /// <param name="endSize"></param>
         /// <param name="unit">"K", "M", "G", "G_BLOCK", "G_PAGE"</param>
         /// </summary>
-        public void TransferTestFiles(bool upload, int initSize, int endSize, string unit, Dictionary<long, double> fileSizeTime,
-            Dictionary<long, double> fileSizeTimeSD, BlobType blobType = BlobType.Unspecified, bool checkMD5 = true)
+        public void TransferTestFiles(int initSize, int endSize, string unit, Dictionary<long, double> fileSizeTime,
+            Dictionary<long, double> fileSizeTimeSD, ICLIOperation operation)
         {
             for (int i = initSize; i <= endSize; i *= 4)
             {
@@ -240,33 +231,23 @@ namespace Management.Storage.ScenarioTest
 
                 Stopwatch sw = new Stopwatch();
 
-                for (int j = 0; j < 5; j++)
+                for (int j = 0; j < Constants.Iterations; j++)
                 {
-                    if (upload)
-                    {
-                        // we need to clean the blob as we cannot overwrite block blob with page blob file
-                        BlobHelper.DeleteBlob(ContainerName, fileName);
-                    }
+                    operation.Before(ContainerName, fileName);
 
                     sw.Reset(); sw.Start();
-                    if (upload)
-                    {
-                        bool bSuccess = agent.SetAzureStorageBlobContent(fileName, ContainerName, blobType, Force: true);
-                        Test.Assert(bSuccess, "Set-AzureStorageBlobContent should succeed");
-                    }
-                    else
-                    {
-                        bool bSuccess = agent.GetAzureStorageBlobContent(fileName, fileName, ContainerName, Force: true);
-                        Test.Assert(bSuccess, "Get-AzureStorageBlobContent should succeed");
-                    }
+                    var bSuccess = operation.Go(
+                                        containerName: ContainerName,
+                                        fileName: fileName);
+                    
+                    Test.Assert(bSuccess, operation.Name + " should succeed");
+
 
                     sw.Stop();
                     fileTimeList.Add(sw.ElapsedMilliseconds);
 
-                    if (checkMD5)
-                    {
-                        CheckMD5(ContainerName, fileName);
-                    }
+                    var error = string.Empty;
+                    Test.Assert(operation.Validate(ContainerName, fileName, out error), error);
 
                     Test.Info("file name : {0} round : {1} time(ms) : {2}", fileName, j + 1, sw.ElapsedMilliseconds);
                 }
@@ -284,30 +265,26 @@ namespace Management.Storage.ScenarioTest
         /// Upload/download blob files
         /// <param name="bMax">indicates whether download a blob with the maximum size</param>
         /// </summary>
-        public void TransferTestFiles(bool upload, Dictionary<long, double> fileSizeTime,
-            Dictionary<long, double> fileSizeTimeSD, BlobType blobType = BlobType.Unspecified, bool bMax = false)
+        public void TransferTestFiles(Dictionary<long, double> fileSizeTime,
+            Dictionary<long, double> fileSizeTimeSD, ICLIOperation operation, bool bMax = false)
         {
             if (!bMax)
             {
-                TransferTestFiles(upload, 2, 512, "K", fileSizeTime, fileSizeTimeSD, blobType);
-                TransferTestFiles(upload, 2, 512, "M", fileSizeTime, fileSizeTimeSD, blobType);
-                TransferTestFiles(upload, 2, 16, "G", fileSizeTime, fileSizeTimeSD, blobType);
+                TransferTestFiles(2, 512, "K", fileSizeTime, fileSizeTimeSD, operation);
+                TransferTestFiles(2, 512, "M", fileSizeTime, fileSizeTimeSD, operation);
+                TransferTestFiles(2, 16, "G", fileSizeTime, fileSizeTimeSD, operation);
             }
             else
             {
-                // Upload/download a blob file with maximum size
-                if (blobType == BlobType.BlockBlob)
-                {
-                    TransferTestFiles(upload, MAX_BLOCK_BLOB_SIZE, MAX_BLOCK_BLOB_SIZE, BLOCK_BLOB_UNIT, fileSizeTime, fileSizeTimeSD, blobType, false);
-                }
-                else if (blobType == BlobType.PageBlob)
-                {
-                    TransferTestFiles(upload, MAX_PAGE_BLOB_SIZE, MAX_PAGE_BLOB_SIZE, PAGE_BLOB_UNIT, fileSizeTime, fileSizeTimeSD, blobType, false);
-                }
-                else
-                {
-                    throw new Exception("No blob type specified for upload blob cmdlet");
-                }
+                operation.CheckMD5 = false;
+
+                TransferTestFiles(
+                    initSize: operation.MaxSize,
+                    endSize: operation.MaxSize,
+                    unit: operation.Unit,
+                    fileSizeTime: fileSizeTime,
+                    fileSizeTimeSD: fileSizeTimeSD,
+                    operation: operation);
             }
         }
 
@@ -336,7 +313,6 @@ namespace Management.Storage.ScenarioTest
                 Test.Info("Generating file: " + fileName);
                 FileUtil.GenerateMediumFile(fileName, i * 1024);
             }
-
         }
 
         internal static void CheckMD5(string containerName, string filePath)
@@ -354,13 +330,13 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         public static void GenerateTestFiles_Max()
         {
-            string filename = "testfile_" + MAX_BLOCK_BLOB_SIZE + BLOCK_BLOB_UNIT;
+            string filename = "testfile_" + Constants.MAX_BLOCK_BLOB_SIZE + Constants.BLOCK_BLOB_UNIT;
             Test.Info("Generating file: " + filename);
-            GenerateBigFile(filename, MAX_BLOCK_BLOB_SIZE);
+            GenerateBigFile(filename, Constants.MAX_BLOCK_BLOB_SIZE);
 
-            filename = "testfile_" + MAX_PAGE_BLOB_SIZE + PAGE_BLOB_UNIT;
+            filename = "testfile_" + Constants.MAX_PAGE_BLOB_SIZE + Constants.PAGE_BLOB_UNIT;
             Test.Info("Generating file: " + filename);
-            GenerateBigFile(filename, MAX_PAGE_BLOB_SIZE);
+            GenerateBigFile(filename, Constants.MAX_PAGE_BLOB_SIZE);
         }
 
         internal static void GenerateBigFile(string filename, int sizeGB)
@@ -383,6 +359,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         public static CloudBlobHelper BlobHelper;
+        public static CloudFileHelper FileHelper;
         public static string ContainerName;
     }
 }

@@ -9,12 +9,17 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using MS.Test.Common.MsTestLib;
 using StorageTestLib;
 using BlobType = Microsoft.WindowsAzure.Storage.Blob.BlobType;
+using Management.Storage.ScenarioTest.Performance.Helper;
+using Management.Storage.ScenarioTest.Util;
 
 namespace Management.Storage.ScenarioTest
 {
     [TestClass]
     public class CLIPerf_2G_N
     {
+        private const int MAX_SIZE_MB = 2048;
+        private const int MAX_FILE_NUM = 4096;
+
         private TestContext testContextInstance;
 
         /// <summary>
@@ -47,9 +52,10 @@ namespace Management.Storage.ScenarioTest
 
             string ConnectionString = Test.Data.Get("StorageConnectionString");
             BlobHelper = new CloudBlobHelper(CloudStorageAccount.Parse(ConnectionString));
+            FileHelper = new CloudFileHelper(CloudStorageAccount.Parse(ConnectionString));
 
-            ContainerName = Utility.GenNameString("perf");
-            BlobHelper.CleanupContainer(ContainerName);
+            ContainerPrefix = Utility.GenNameString("perf");
+
             FileName = Test.Data.Get("FileName");
             FolderName = Test.Data.Get("FolderName");
 
@@ -74,7 +80,6 @@ namespace Management.Storage.ScenarioTest
             Trace.WriteLine("ClasssCleanup");
             
             Helper.DeletePattern(FolderName + "_*");
-            BlobHelper.CleanupContainer(ContainerName);
         }
 
         //Use TestInitialize to run code before running each test
@@ -83,7 +88,6 @@ namespace Management.Storage.ScenarioTest
         {
             Trace.WriteLine("TestInit");
             Test.Start(TestContext.FullyQualifiedTestClassName, TestContext.TestName);
-
         }
 
         //Use TestCleanup to run code after each test has run
@@ -98,86 +102,81 @@ namespace Management.Storage.ScenarioTest
         #endregion
 
         [TestMethod]
-        [TestCategory(PsTag.Perf)]
+        [TestCategory(PsTag.Perf)][Timeout(7200000)]
         public void UploadHttpBlock()
         {
-            Upload(BlobType.BlockBlob);
+            var o = new BlockBlobUploadOperation(new PowerShellAgent(), BlobHelper);
+            Run(o);
         }
 
         [TestMethod]
         [TestCategory(PsTag.Perf)]
         public void DownloadHttpBlock()
         {
-            Download();
+            var o = new BlockBlobDownloadOperation(new PowerShellAgent(), BlobHelper);
+            Run(o);
         }
 
         [TestMethod]
         [TestCategory(PsTag.Perf)]
         public void UploadHttpPage()
         {
-            Upload(BlobType.PageBlob);
+            var o = new PageBlobUploadOperation(new PowerShellAgent(), BlobHelper);
+            Run(o);
         }
 
         [TestMethod]
         [TestCategory(PsTag.Perf)]
         public void DownloadHttpPage()
         {
-            Download();
+            var o = new PageBlobDownloadOperation(new PowerShellAgent(), BlobHelper);
+            Run(o);
         }
 
-        public void Upload(BlobType blobType)
+        [TestMethod]
+        [TestCategory(PsTag.Perf)]
+        [TestCategory(PsTag.FilePerf)]
+        [Timeout(7200000)]
+        public void UploadFile()
         {
-            Dictionary<int, double> fileNumTime = new Dictionary<int, double>();
-            Dictionary<int, double> fileNumTimeSD = new Dictionary<int, double>();
-            string src = ".";
-            string dest = ContainerName;
-
-            int fileNum = 4096;   
-            while (fileNum > 0)
-            {
-                string folderName = FolderName + "-" + fileNum;
-                GenerateTestFiles(fileNum);
-                TransferTestFiles(src + "\\" + folderName, folderName, dest + "-" + folderName, true, fileNum, fileNumTime, fileNumTimeSD, blobType);
-                fileNum /= 4;
-            }
-
-            //print the results
-            string sizes = string.Empty;
-            string times = string.Empty;
-            string sds = string.Empty;
-            foreach (KeyValuePair<int, double> d in fileNumTime)
-            {
-                sizes += d.Key + " ";
-                times += d.Value + " ";
-            }
-
-            foreach (KeyValuePair<int, double> d in fileNumTimeSD)
-            {
-                sds += d.Value + " ";
-            }
-
-            Test.Info("[file_number] {0}", sizes);
-            Test.Info("[file_times] {0}", times);
-            Test.Info("[file_timeSDs] {0}", sds);
-
-            Helper.writePerfLog(TestContext.FullyQualifiedTestClassName + "." + TestContext.TestName);
-            Helper.writePerfLog(sizes.Replace(' ', ','));
-            Helper.writePerfLog(times.Replace(' ', ','));
-            Helper.writePerfLog(sds.Replace(' ', ','));
+            var o = new FileUploadOperation(new PowerShellAgent(), FileHelper);
+            Run(o);
         }
 
-        public void Download()
+        [TestMethod]
+        [TestCategory(PsTag.Perf)]
+        [TestCategory(PsTag.FilePerf)]
+        [Timeout(7200000)]
+        public void DownloadFile()
         {
-            Dictionary<int, double> fileNumTime = new Dictionary<int, double>();
-            Dictionary<int, double> fileNumTimeSD = new Dictionary<int, double>();
-            string src = ContainerName;            
-            string dest = ".";
+            var o = new FileDownloadOperation(new PowerShellAgent(), FileHelper);
+            Run(o);
+        }
 
-            int fileNum = 4096;       
+        public void Run(ICLIOperation operation)
+        {
+            var fileNumTime = new Dictionary<int, double>();
+            var fileNumTimeSD = new Dictionary<int, double>();
+
+            var fileNum = MAX_FILE_NUM; // 4096;       
             while (fileNum > 0)
             {
-                Helper.CreateNewFolder(FolderName + "-" + fileNum);
-                TransferTestFiles(src + "-" + FolderName + "-" + fileNum, "", dest + "\\" + FolderName + "-" + fileNum, false, fileNum, fileNumTime, fileNumTimeSD);
+                var folder = FolderName + "-" + fileNum;
+                var size = MAX_SIZE_MB * 1024 / fileNum;
+
+                if (operation.NeedDataPreparation)
+                {
+                    FileUtil.PrepareData(folder, fileNum, size);
+                }
+
+                TransferTestFiles(
+                    remote: ContainerPrefix + "-" + folder,
+                    local: ".\\" + folder,
+                    fileNum: fileNum,
+                    fileNumTime: fileNumTime,
+                    fileNumTimeSD: fileNumTimeSD,
+                    operation: operation);
+
                 fileNum /= 4;
             }
 
@@ -206,44 +205,26 @@ namespace Management.Storage.ScenarioTest
             Helper.writePerfLog(sds.Replace(' ', ','));
         }
 
-        public static void TransferTestFiles(string src, string virtualFolderName, string dest, bool upload, int fileNum,
-            Dictionary<int, double> fileNumTime, Dictionary<int, double> fileNumTimeSD, BlobType blobType = BlobType.Unspecified)
+        public static void TransferTestFiles(string local, string remote, int fileNum,
+            Dictionary<int, double> fileNumTime, Dictionary<int, double> fileNumTimeSD, ICLIOperation operation)
         {
-            PowerShellAgent agent = new PowerShellAgent();
-
             List<long> fileTimeList = new List<long>();
-
             Stopwatch sw = new Stopwatch();
 
-            for (int j = 0; j < 5; j++)
+            for (int j = 0; j < Constants.Iterations; j++)
             {
-                if (upload)
-                {
-                    BlobHelper.CreateContainer(dest);
-                    BlobHelper.CleanupContainer(dest);
-                }
+                operation.BeforeBatch(local, remote);
 
                 sw.Reset(); sw.Start();
 
-                if (upload)
-                {
-                    agent.AddPipelineScript(string.Format("ls -File -Path {0}", src));
-                    Test.Info("Upload files...");
-                    Test.Assert(agent.SetAzureStorageBlobContent(string.Empty, dest, blobType), "upload multiple files should succeed");
-                    Test.Info("Upload finished...");
-                }
-                else
-                {
-                    agent.AddPipelineScript(string.Format("Get-AzureStorageContainer {0}", src));
-                    agent.AddPipelineScript("Get-AzureStorageBlob");
-                    Test.Assert(agent.GetAzureStorageBlobContent(string.Empty, dest, string.Empty, true), "download blob should be successful");
-                }
+                Test.Assert(operation.GoBatch(local: local, remote: remote), operation.Name + " should succeed");
 
                 sw.Stop();
                 fileTimeList.Add(sw.ElapsedMilliseconds);
                 Test.Info("file number : {0} round : {1} time(ms) : {2}", fileNum, j + 1, sw.ElapsedMilliseconds);
 
-                ValidateBlob(src, dest, upload, fileNum);
+                var error = string.Empty;
+                Test.Assert(operation.ValidateBatch(local, remote, fileNum, out error), error);
             }
 
             double average = fileTimeList.Average();
@@ -255,79 +236,11 @@ namespace Management.Storage.ScenarioTest
             Test.Info("file number : {0} average time : {1}", fileNum, average);
             Test.Info("file number : {0} standard dev : {1}", fileNum, sd);
         }
-
-        internal static void ValidateBlob(string src, string dest, bool upload, int fileNum)
-        {
-            //check blob
-            string folderName = string.Empty;
-            List<ICloudBlob> bloblist;
-            if (upload)
-            {
-                folderName = src;
-                BlobHelper.ListBlobs(dest, out bloblist);
-            }
-            else
-            {
-                folderName = dest;
-                BlobHelper.ListBlobs(src, out bloblist);
-            }
-            // check file num first
-            Test.Assert(bloblist.Count == fileNum, "The copied file count is {0}, it should be {1}.", bloblist.Count, fileNum);
-
-            Test.Info("Begin Compare every blob.");
-            foreach (ICloudBlob blob in bloblist)
-            {
-                string filePath = folderName + "\\" + blob.Name;
-                FileInfo fb = new FileInfo(filePath);
-                if (fb.Exists)
-                {
-                    blob.FetchAttributes();
-                    if (blob.Properties.ContentMD5 != Helper.GetFileContentMD5(filePath))
-                        Test.Error("{3}:{0}=={1}", blob.Properties.ContentMD5, Helper.GetFileContentMD5(filePath), filePath);
-                }
-                else
-                {
-                    Test.Error("The file {0} should exist", filePath);
-                }
-            }
-            Test.Info("End Compare every blob."); 
-        }
-
-        public static void GenerateTestFiles(int fileNum)
-        {
-            int fileSizeKB = 2048 * 1024 / fileNum;
-            Helper.CreateNewFolder(FolderName + "-" + fileNum);
-
-            if (fileSizeKB < 1024)
-            {
-                for (int i = 0; i < fileNum; i++)
-                {
-                    string fileName = string.Format("{0}-{1}\\testfile_{2}K_{3}", FolderName, fileNum, fileSizeKB, i);
-                    if (!File.Exists(fileName))
-                    {
-                        Test.Info("Generating file: " + fileName);
-                        Helper.GenerateSmallFile(fileName, fileSizeKB);
-                    }
-                }
-            }
-            else
-            {
-                for (int i = 0; i < fileNum; i++)
-                {
-                    string fileName = string.Format("{0}-{1}\\testfile_{2}M_{3}", FolderName, fileNum, fileSizeKB/1024, i); 
-                    if (!File.Exists(fileName))
-                    {
-                        Test.Info("Generating file: " + fileName);
-                        Helper.GenerateMediumFile(fileName, fileSizeKB / 1024);
-                    }
-                }
-            }
-        }
+        
         public static CloudBlobHelper BlobHelper;
-        public static string ContainerName;
+        public static CloudFileHelper FileHelper;
+        public static string ContainerPrefix;
         public static string FileName;
         public static string FolderName;
-
-
     }
 }

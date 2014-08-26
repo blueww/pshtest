@@ -280,35 +280,44 @@ namespace Management.Storage.ScenarioTest.Util
         /// <param name="directory">the destination dir</param>
         public static void CleanDirectory(string directory, bool AlwaysOperateOnWindows = false)
         {
-            if (AgentOSType != OSType.Windows)
+            Test.Info("Start to clean directory {0} is done.", directory);
+            try
             {
-                // remove all files & folders under this directory
-                string path = GetLinuxPath(directory);
-                if (path.Last() != '/')
+                if (AgentOSType != OSType.Windows)
                 {
-                    path += '/';
+                    // remove all files & folders under this directory
+                    string path = GetLinuxPath(directory);
+                    if (path.Last() != '/')
+                    {
+                        path += '/';
+                    }
+                    path += "*";
+
+                    RunNodeJSProcess(string.Format("rm -rf '{0}'", path));
                 }
-                path += "*";
 
-                RunNodeJSProcess(string.Format("rm -rf '{0}'", path));
+                if (AgentOSType == OSType.Windows || AlwaysOperateOnWindows)
+                {
+                    DirectoryInfo dir = new DirectoryInfo(directory);
+
+                    foreach (FileInfo file in dir.GetFiles())
+                    {
+                        file.Delete();
+                    }
+
+                    foreach (DirectoryInfo subdir in dir.GetDirectories())
+                    {
+                        CleanDirectory(subdir.FullName);
+                        subdir.Delete();
+                    }
+                }
+
+                Test.Info("Cleaning directory {0} is done.", directory);
             }
-
-            if (AgentOSType == OSType.Windows || AlwaysOperateOnWindows)
+            catch (Exception e)
             {
-                DirectoryInfo dir = new DirectoryInfo(directory);
-
-                foreach (FileInfo file in dir.GetFiles())
-                {
-                    file.Delete();
-                }
-
-                foreach (DirectoryInfo subdir in dir.GetDirectories())
-                {
-                    CleanDirectory(subdir.FullName);
-                    subdir.Delete();
-                }
+                Test.Warn("Exception when cleaning directory {0}. Message: {1}", directory, e);
             }
-            Test.Info("Clean directory {0}", directory);
         }
 
         public static void CreateNewFolder(string foldername, bool AlwaysOperateOnWindows = false)
@@ -414,6 +423,34 @@ namespace Management.Storage.ScenarioTest.Util
         public static void GetOSConfig(TestConfig data)
         {
             Utility.GetOSConfig(data, ref AgentOSType, AgentConfig);
+        }
+
+        public static void PrepareData(string folder, int fileNum, int sizeKB)
+        {
+            Helper.CreateNewFolder(folder);
+
+            if (sizeKB < 1024)
+            {
+                for (int i = 0; i < fileNum; i++)
+                {
+                    string fileName = string.Format("{0}\\testfile_{1}K_{2}", folder, sizeKB, i);
+                    if (!File.Exists(fileName))
+                    {
+                        Helper.GenerateSmallFile(fileName, sizeKB);
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < fileNum; i++)
+                {
+                    string fileName = string.Format("{0}\\testfile_{1}M_{2}", folder, sizeKB / 1024, i);
+                    if (!File.Exists(fileName))
+                    {
+                        Helper.GenerateMediumFile(fileName, sizeKB / 1024);
+                    }
+                }
+            }
         }
     }
 }

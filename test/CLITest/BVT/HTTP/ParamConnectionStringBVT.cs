@@ -22,7 +22,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTP
     /// only for Node.js now
     /// </summary>
     [TestClass]
-    class ParamConnectionStringBVT : CLICommonBVT
+    public class ParamConnectionStringBVT : CLICommonBVT
     {
         [ClassInitialize()]
         public static void ParamConnectionStringBVTClassInitialize(TestContext testContext)

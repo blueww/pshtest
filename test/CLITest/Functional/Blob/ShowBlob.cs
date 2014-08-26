@@ -28,7 +28,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
     /// functional test for show blob (only for NodeJS)
     /// </summary>
     [TestClass]
-    class ShowBlob : TestBase
+    public class ShowBlob : TestBase
     {
         [ClassInitialize()]
         public static void GetBlobClassInit(TestContext testContext)
@@ -129,13 +129,13 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.SetBlobContent)]
         [TestCategory(CLITag.NodeJSFT)]
-        public void ShowBlobWithSpeicialChars()
+        public void ShowBlobWithSpecialChars()
         {
-            ShowBlobWithSpeicialChars(BlobType.BlockBlob);
-            ShowBlobWithSpeicialChars(BlobType.PageBlob);
+            ShowBlobWithSpecialChars(BlobType.BlockBlob);
+            ShowBlobWithSpecialChars(BlobType.PageBlob);
         }
 
-        public void ShowBlobWithSpeicialChars(BlobType blobType)
+        public void ShowBlobWithSpecialChars(BlobType blobType)
         {
             CloudBlobContainer container = blobUtil.CreateContainer();
             string blobName = SpecialChars;

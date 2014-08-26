@@ -19,6 +19,10 @@ namespace Management.Storage.ScenarioTest
     using System.Linq;
     using System.Management.Automation;
     using System.Text;
+    using Management.Storage.ScenarioTest.Util;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.WindowsAzure.Storage;
+    using MS.Test.Common.MsTestLib;
 
     public sealed class PowerShellExecutionError : IExecutionError
     {
@@ -31,6 +35,44 @@ namespace Management.Storage.ScenarioTest
         {
             get;
             private set;
+        }
+
+        public void AssertError(params string[] errorIds)
+        {
+            var record = this.ErrorRecord;
+            string errorCode = record.FullyQualifiedErrorId;
+            if (record.FullyQualifiedErrorId.StartsWith("StorageException"))
+            {
+                var exception = (StorageException)record.Exception;
+                if (exception.RequestInformation != null && exception.RequestInformation.ExtendedErrorInformation != null)
+                {
+                    errorCode = exception.RequestInformation.ExtendedErrorInformation.ErrorCode;
+                }
+            }
+            else if (record.FullyQualifiedErrorId.StartsWith("DirectoryNotFoundException") ||
+                     record.FullyQualifiedErrorId.StartsWith("FileNotFoundException"))
+            {
+                errorCode = AssertUtil.PathNotFoundFullQualifiedErrorId;
+            }
+            else if (record.FullyQualifiedErrorId.StartsWith("ArgumentException"))
+            {
+                errorCode = AssertUtil.InvalidArgumentFullQualifiedErrorId;
+            }
+
+            foreach (var errorId in errorIds)
+            {
+                foreach (var err in errorId.Split('+'))
+                {
+                    bool assertResult = errorCode.StartsWith(err, StringComparison.Ordinal);
+                    if (assertResult)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            Test.Assert(false, "Expecting error id {0} while getting {1}.", string.Join(",", errorIds), errorCode);
+            throw new AssertFailedException();
         }
     }
 }

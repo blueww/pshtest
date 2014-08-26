@@ -23,7 +23,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTP
     /// bvt cases for anonymous storage account
     /// </summary>
     [TestClass]
-    class AnonymousBVT : Management.Storage.ScenarioTest.BVT.HTTPS.AnonymousBVT
+    public class AnonymousBVT : Management.Storage.ScenarioTest.BVT.HTTPS.AnonymousBVT
     {
         [ClassInitialize()]
         public static void AnonymousHTTPBVTClassInitialize(TestContext testContext)

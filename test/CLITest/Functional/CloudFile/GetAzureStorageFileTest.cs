@@ -59,7 +59,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddParameter("Path", directoryName);
             var result = this.agent.Invoke();
             this.agent.AssertNoError();
-            result.AssertPSObjectCollection(obj => obj.AssertCloudFile(fileName, directoryName));
+            result.AssertObjectCollection(obj => obj.AssertCloudFile(fileName, directoryName));
         }
 
         /// <summary>
@@ -68,6 +68,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void GetFilesFromRootTest()
         {
             var fileNames = Enumerable.Range(0, this.randomProvider.Next(5, 20)).Select(x => CloudFileUtil.GenerateUniqueFileName()).ToList();
@@ -78,7 +79,7 @@
             this.agent.ListFiles(this.fileShare);
             var result = this.agent.Invoke();
             this.agent.AssertNoError();
-            result.AssertPSObjectCollection(obj => obj.AssertCloudFile(files), files.Count);
+            result.AssertFileListItems(files, Enumerable.Empty<CloudFileDirectory>());
         }
 
         /// <summary>
@@ -87,6 +88,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void GetFilesFromDirectoryUsingPathTest()
         {
             var fileNames = Enumerable.Range(0, this.randomProvider.Next(5, 20)).Select(x => CloudFileUtil.GenerateUniqueFileName()).ToList();
@@ -98,7 +100,7 @@
             this.agent.ListFiles(this.fileShare, directoryName);
             var result = this.agent.Invoke();
             this.agent.AssertNoError();
-            result.AssertPSObjectCollection(obj => obj.AssertCloudFile(files), files.Count);
+            result.AssertFileListItems(files, Enumerable.Empty<CloudFileDirectory>());
         }
 
         /// <summary>
@@ -118,7 +120,7 @@
             this.agent.ListFiles(dir);
             var result = this.agent.Invoke();
             this.agent.AssertNoError();
-            result.AssertPSObjectCollection(obj => obj.AssertCloudFile(files), files.Count);
+            result.AssertFileListItems(files, Enumerable.Empty<CloudFileDirectory>());
         }
 
         /// <summary>
@@ -127,6 +129,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void GetFilesFromSubDirectoryUsingPathTest()
         {
             var fileNames = Enumerable.Range(0, this.randomProvider.Next(5, 20)).Select(x => CloudFileUtil.GenerateUniqueFileName()).ToList();
@@ -137,7 +140,7 @@
             this.agent.ListFiles(this.fileShare, "/a/b/c");
             var result = this.agent.Invoke();
             this.agent.AssertNoError();
-            result.AssertPSObjectCollection(obj => obj.AssertCloudFile(files), files.Count);
+            result.AssertFileListItems(files, Enumerable.Empty<CloudFileDirectory>());
         }
 
         /// <summary>
@@ -146,6 +149,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void GetFilesFromSubDirectoryUsingRelativePathFromRootTest()
         {
             var fileNames = Enumerable.Range(0, this.randomProvider.Next(5, 20)).Select(x => CloudFileUtil.GenerateUniqueFileName()).ToList();
@@ -156,7 +160,7 @@
             this.agent.ListFiles(this.fileShare, "a/b/.././b/../b/c");
             var result = this.agent.Invoke();
             this.agent.AssertNoError();
-            result.AssertPSObjectCollection(obj => obj.AssertCloudFile(files), files.Count);
+            result.AssertFileListItems(files, Enumerable.Empty<CloudFileDirectory>());
         }
 
         /// <summary>
@@ -175,7 +179,7 @@
             this.agent.ListFiles(dir.Parent, "../b/./c");
             var result = this.agent.Invoke();
             this.agent.AssertNoError();
-            result.AssertPSObjectCollection(obj => obj.AssertCloudFile(files), files.Count);
+            result.AssertFileListItems(files, Enumerable.Empty<CloudFileDirectory>());
         }
 
         /// <summary>
@@ -184,6 +188,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void GetFilesFromEmptyFolderTest()
         {
             var dir = this.fileShare.GetRootDirectoryReference();
@@ -192,7 +197,7 @@
             this.agent.ListFiles(this.fileShare);
             var result = this.agent.Invoke();
             this.agent.AssertNoError();
-            result.AssertNoResult();
+            result.AssertFileListItems(Enumerable.Empty<CloudFile>(), Enumerable.Empty<CloudFileDirectory>());
         }
 
         /// <summary>
@@ -201,6 +206,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void GetFilesUsingInvalidFileShareNameTest()
         {
             var invalidFileShareName = CloudFileUtil.GenerateUniqueFileShareName();
@@ -208,7 +214,7 @@
 
             this.agent.ListFiles(invalidFileShareName);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(
+            this.agent.AssertErrors(err => err.AssertError(
                 AssertUtil.ShareBeingDeletedFullQualifiedErrorId,
                 AssertUtil.ShareNotFoundFullQualifiedErrorId,
                 AssertUtil.ProtocolErrorFullQualifiedErrorId));
@@ -227,7 +233,7 @@
 
             this.agent.ListFiles(fileUtil.Client.GetShareReference(invalidFileShareName));
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(
+            this.agent.AssertErrors(err => err.AssertError(
                 AssertUtil.ShareBeingDeletedFullQualifiedErrorId,
                 AssertUtil.ShareNotFoundFullQualifiedErrorId,
                 AssertUtil.ProtocolErrorFullQualifiedErrorId));
@@ -239,11 +245,12 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void GetFilesFromSubDirectoryOfRootTest()
         {
             this.agent.ListFiles(this.fileShare, "../a");
             this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidResourceFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId, AssertUtil.AuthenticationFailedFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -252,6 +259,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void GetFilesFromRelativePathWhereIntermediatePathMightNotExistTest()
         {
             var fileNames = Enumerable.Range(0, this.randomProvider.Next(5, 20)).Select(x => CloudFileUtil.GenerateUniqueFileName()).ToList();
@@ -262,7 +270,7 @@
             this.agent.ListFiles(this.fileShare, "a/c/./../b/./c/e/..");
             var result = this.agent.Invoke();
             this.agent.AssertNoError();
-            result.AssertPSObjectCollection(obj => obj.AssertCloudFile(files), files.Count);
+            result.AssertFileListItems(files, Enumerable.Empty<CloudFileDirectory>());
         }
     }
 }

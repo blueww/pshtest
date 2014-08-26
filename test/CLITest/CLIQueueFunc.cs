@@ -24,6 +24,7 @@ using Microsoft.WindowsAzure.Storage.Queue.Protocol;
 using MS.Test.Common.MsTestLib;
 using StorageTestLib;
 using Management.Storage.ScenarioTest.Common;
+using System.Reflection;
 
 namespace Management.Storage.ScenarioTest
 {
@@ -31,47 +32,12 @@ namespace Management.Storage.ScenarioTest
     /// this class contains all the functional test cases for PowerShell Queue cmdlets
     /// </summary>
     [TestClass]
-    class CLIQueueFunc
+    public class CLIQueueFunc : TestBase
     {
-        private static CloudStorageAccount _StorageAccount;
-
-        private TestContext testContextInstance;
-        /// <summary>
-        ///Gets or sets the test context which provides
-        ///information about and functionality for the current test run.
-        ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
-                return testContextInstance;
-            }
-            set
-            {
-                testContextInstance = value;
-            }
-        }
-
-        #region Additional test attributes
-        // 
-        //You can use the following additional attributes as you write your tests:
-        //
-        //Use ClassInitialize to run code before running the first test in the class
         [ClassInitialize()]
         public static void MyClassInitialize(TestContext testContext)
         {
-            Trace.WriteLine("ClassInit");
-            Test.FullClassName = testContext.FullyQualifiedTestClassName;
-
-            _StorageAccount = TestBase.GetCloudStorageAccountFromConfig();
-
-            // import module
-            string moduleFilePath = Test.Data.Get("ModuleFilePath");
-            if (moduleFilePath.Length > 0)
-                PowerShellAgent.ImportModule(moduleFilePath);
-
-            // $context = New-AzureStorageContext -ConnectionString ...
-            PowerShellAgent.SetStorageContext(_StorageAccount.ToString(true));
+            TestBase.TestClassInitialize(testContext);
         }
 
         //
@@ -79,83 +45,7 @@ namespace Management.Storage.ScenarioTest
         [ClassCleanup()]
         public static void MyClassCleanup()
         {
-            Trace.WriteLine("ClasssCleanup");
-        }
-
-        //Use TestInitialize to run code before running each test
-        [TestInitialize()]
-        public void MyTestInitialize()
-        {
-            Trace.WriteLine("TestInit");
-            Test.Start(TestContext.FullyQualifiedTestClassName, TestContext.TestName);
-        }
-
-        //Use TestCleanup to run code after each test has run
-        [TestCleanup()]
-        public void MyTestCleanup()
-        {
-            Trace.WriteLine("TestCleanup");
-            // do not clean up the blobs here for investigation
-            // every test case should do cleanup in its init
-            Test.End(TestContext.FullyQualifiedTestClassName, TestContext.TestName);
-        }
-
-        #endregion
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void CreateInvalidQueue()
-        {
-            CreateInvalidQueue(new PowerShellAgent());
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void CreateExistingQueue()
-        {
-            CreateExistingQueue(new PowerShellAgent());
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void QueueListOperations()
-        {
-            QueueListOperations(new PowerShellAgent());
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void GetNonExistingQueue()
-        {
-            GetNonExistingQueue(new PowerShellAgent());
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void EnumerateAllQueues()
-        {
-            EnumerateAllQueues(new PowerShellAgent());
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void RemoveNonExistingQueue()
-        {
-            RemoveNonExistingQueue(new PowerShellAgent());
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void RemoveQueueWithoutForce()
-        {
-            RemoveQueueWithoutForce(new PowerShellAgent());
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void GetMessageCount()
-        {
-            GetMessageCount(new PowerShellAgent());
+            TestBase.TestClassCleanup();
         }
 
         /// <summary>
@@ -165,12 +55,17 @@ namespace Management.Storage.ScenarioTest
         /// 3. Create a list of Queues that some of them already exist (Negative 5)
         /// 
         /// Functional Cases : for Get-AzureStorageQueue
-        /// 4.	Get a list of Queues by using wildcards in the name (Positive 2)
+        /// 4. Get a list of Queues by using wildcards in the name (Positive 2)
         /// 
         /// Functional Cases : for Remove-AzureStorageQueue
-        /// 5.	Remove a list of existing Queues by using pipeline (Positive 3)
+        /// 5. Remove a list of existing Queues by using pipeline (Positive 3)
         /// </summary>
-        internal void QueueListOperations(Agent agent)
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.Queue)]
+        [TestCategory(CLITag.GetQueue)]
+        public void QueueListOperations()
         {
             string PREFIX = Utility.GenNameString("uniqueprefix-") + "-";
             string[] QUEUE_NAMES = new string[] { Utility.GenNameString(PREFIX), Utility.GenNameString(PREFIX), Utility.GenNameString(PREFIX) };
@@ -183,6 +78,8 @@ namespace Management.Storage.ScenarioTest
             string[] MERGED_NAMES = QUEUE_NAMES.Union(PARTLY_EXISTING_NAMES).ToArray();
             Array.Sort(MERGED_NAMES);
 
+            bool multiOutput = lang == Language.PowerShell;
+
             // Generate the comparison data
             Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
             foreach (string name in MERGED_NAMES)
@@ -190,7 +87,7 @@ namespace Management.Storage.ScenarioTest
                 comp.Add(Utility.GenComparisonData(StorageObjectType.Queue, name));
             }
 
-            CloudQueueClient queueClient = _StorageAccount.CreateCloudQueueClient();
+            CloudQueueClient queueClient = StorageAccount.CreateCloudQueueClient();
 
             // Check if all the above Queues have been removed
             foreach (string name in MERGED_NAMES)
@@ -201,8 +98,11 @@ namespace Management.Storage.ScenarioTest
 
             //--------------1. New operation--------------
             Test.Assert(agent.NewAzureStorageQueue(QUEUE_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", true));
-            // Verification for returned values
-            Test.Assert(agent.Output.Count == 3, "3 row returned : {0}", agent.Output.Count);
+            if (multiOutput)
+            {
+                // Verification for returned values
+                Test.Assert(agent.Output.Count == 3, "3 row returned : {0}", agent.Output.Count);
+            }
 
             // Check if all the above queues have been created
             foreach (string name in QUEUE_NAMES)
@@ -214,20 +114,32 @@ namespace Management.Storage.ScenarioTest
             try
             {
                 //--------------2. New operation--------------
-                Test.Assert(!agent.NewAzureStorageQueue(QUEUE_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", false));
-                // Verification for returned values
-                Test.Assert(agent.Output.Count == 0, "0 row returned : {0}", agent.Output.Count);
-                int i = 0;
-                foreach (string name in QUEUE_NAMES)
+                if (multiOutput)
                 {
-                    Test.Assert(agent.ErrorMessages[i].Equals(String.Format("Queue '{0}' already exists.", name)), agent.ErrorMessages[i]);
-                    ++i;
-                }
+                    Test.Assert(!agent.NewAzureStorageQueue(QUEUE_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", false));
+                    // Verification for returned values
+                    Test.Assert(agent.Output.Count == 0, "0 row returned : {0}", agent.Output.Count);
 
-                //--------------3. New operation--------------
-                Test.Assert(!agent.NewAzureStorageQueue(PARTLY_EXISTING_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", false));
-                // Verification for returned values
-                Test.Assert(agent.Output.Count == 1, "1 row returned : {0}", agent.Output.Count);
+                    int i = 0;
+                    foreach (string name in QUEUE_NAMES)
+                    {
+                        Test.Assert(agent.ErrorMessages[i].Equals(String.Format("Queue '{0}' already exists.", name)), agent.ErrorMessages[i]);
+                        ++i;
+                    }
+
+                    //--------------3. New operation--------------
+                    Test.Assert(!agent.NewAzureStorageQueue(PARTLY_EXISTING_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", false));
+                    Test.Assert(agent.Output.Count == 1, "1 row returned : {0}", agent.Output.Count);
+                }
+                else
+                {
+                    // Queue with the same could be created as long as the metadata is the same.
+                    // http://msdn.microsoft.com/en-us/library/azure/dd179342.aspx
+                    Test.Assert(agent.NewAzureStorageQueue(QUEUE_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", true));
+
+                    Test.Assert(agent.NewAzureStorageQueue(PARTLY_EXISTING_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", true));
+                    Test.Assert(agent.Output.Count == 1, "1 row returned : {0}", agent.Output.Count);
+                }
 
                 // Check if all the above queues have been created
                 foreach (string name in QUEUE_NAMES)
@@ -237,16 +149,20 @@ namespace Management.Storage.ScenarioTest
                 }
 
                 //--------------4. Get operation--------------
-                Test.Assert(agent.GetAzureStorageQueue("*" + PREFIX + "*"), Utility.GenComparisonData("GetAzureStorageQueue", true));
-                // Verification for returned values
-                agent.OutputValidation(_StorageAccount.CreateCloudQueueClient().ListQueues(PREFIX, QueueListingDetails.All));
+                if (multiOutput)
+                {
+                    Test.Assert(agent.GetAzureStorageQueue("*" + PREFIX + "*"), Utility.GenComparisonData("GetAzureStorageQueue", true));
+                    // Verification for returned values
+                    agent.OutputValidation(StorageAccount.CreateCloudQueueClient().ListQueues(PREFIX, QueueListingDetails.All));
+                }
 
                 // use Prefix parameter
                 Test.Assert(agent.GetAzureStorageQueueByPrefix(PREFIX), Utility.GenComparisonData("GetAzureStorageQueueByPrefix", true));
                 // Verification for returned values
-                agent.OutputValidation(_StorageAccount.CreateCloudQueueClient().ListQueues(PREFIX, QueueListingDetails.All));
+                agent.OutputValidation(StorageAccount.CreateCloudQueueClient().ListQueues(PREFIX, QueueListingDetails.All));
             }
-            finally {
+            finally
+            {
                 //--------------5. Remove operation--------------
                 Test.Assert(agent.RemoveAzureStorageQueue(MERGED_NAMES), Utility.GenComparisonData("RemoveAzureStorageQueue", true));
                 // Check if all the above queues have been removed
@@ -262,21 +178,38 @@ namespace Management.Storage.ScenarioTest
         /// Negative Functional Cases : for New-AzureStorageQueue 
         /// 1. Create a Queue that already exists (Negative 3)
         /// </summary>
-        internal void CreateExistingQueue(Agent agent)
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.Queue)]
+        [TestCategory(CLITag.NewQueue)]
+        public void CreateExistingQueue()
         {
             string QUEUE_NAME = Utility.GenNameString("existing");
 
             // create queue if not exists
-            CloudQueue queue = _StorageAccount.CreateCloudQueueClient().GetQueueReference(QUEUE_NAME);
+            CloudQueue queue = StorageAccount.CreateCloudQueueClient().GetQueueReference(QUEUE_NAME);
             queue.CreateIfNotExists();
 
             try
             {
-                //--------------New operation--------------
-                Test.Assert(!agent.NewAzureStorageQueue(QUEUE_NAME), Utility.GenComparisonData("NewAzureStorageQueue", false));
-                // Verification for returned values
-                Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-                Test.Assert(agent.ErrorMessages[0].Equals(String.Format("Queue '{0}' already exists.", QUEUE_NAME)), agent.ErrorMessages[0]);
+                // Refer to: http://msdn.microsoft.com/en-us/library/azure/dd179342.aspx
+                bool canCreateWithSameName = lang == Language.NodeJS;
+                if (canCreateWithSameName)
+                {
+                    //--------------New operation--------------
+                    Test.Assert(agent.NewAzureStorageQueue(QUEUE_NAME), Utility.GenComparisonData("NewAzureStorageQueue", true));
+                    // Verification for returned values
+                    Test.Assert(agent.Output.Count == 1, "Only 1 row returned : {0}", agent.Output.Count);
+                }
+                else
+                {
+                    //--------------New operation--------------
+                    Test.Assert(!agent.NewAzureStorageQueue(QUEUE_NAME), Utility.GenComparisonData("NewAzureStorageQueue", false));
+                    // Verification for returned values
+                    Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
+                    agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, QUEUE_NAME);
+                }
             }
             finally
             {
@@ -289,7 +222,12 @@ namespace Management.Storage.ScenarioTest
         /// Negative Functional Cases : for New-AzureStorageQueue 
         /// 1. Create a new queue with an invalid queue name (Negative 1)
         /// </summary>
-        internal void CreateInvalidQueue(Agent agent)
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.Queue)]
+        [TestCategory(CLITag.NewQueue)]
+        public void CreateInvalidQueue()
         {
             string queueName = Utility.GenNameString("abc_");
 
@@ -297,7 +235,7 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(!agent.NewAzureStorageQueue(queueName), Utility.GenComparisonData("NewAzureStorageQueue", false));
             // Verification for returned values
             Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-            Test.Assert(agent.ErrorMessages[0].StartsWith(String.Format("Queue name '{0}' is invalid.", queueName)), agent.ErrorMessages[0]);
+            agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, queueName);
         }
 
 
@@ -305,63 +243,80 @@ namespace Management.Storage.ScenarioTest
         /// Negative Functional Cases : for Get-AzureStorageQueue 
         /// 1. Get a non-existing queue (Negative 1)
         /// </summary>
-        internal void GetNonExistingQueue(Agent agent)
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.Queue)]
+        [TestCategory(CLITag.GetQueue)]
+        public void GetNonExistingQueue()
         {
             string QUEUE_NAME = Utility.GenNameString("nonexisting");
 
             // Delete the queue if it exists
-            CloudQueue queue = _StorageAccount.CreateCloudQueueClient().GetQueueReference(QUEUE_NAME);
+            CloudQueue queue = StorageAccount.CreateCloudQueueClient().GetQueueReference(QUEUE_NAME);
             queue.DeleteIfExists();
 
             //--------------Get operation--------------
             Test.Assert(!agent.GetAzureStorageQueue(QUEUE_NAME), Utility.GenComparisonData("GetAzureStorageQueue", false));
             // Verification for returned values
             Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-            Test.Assert(agent.ErrorMessages[0].Equals(String.Format("Can not find queue '{0}'.", QUEUE_NAME)), agent.ErrorMessages[0]);
+            agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, QUEUE_NAME);
         }
 
         /// <summary>
         /// Functional Cases : for Get-AzureStorageQueue
         /// 1. Validate that all the queues can be enumerated (Positive 5)
         /// </summary>
-        internal void EnumerateAllQueues(Agent agent)
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.Queue)]
+        [TestCategory(CLITag.GetQueue)]
+        public void EnumerateAllQueues()
         {
             //--------------Get operation--------------
             Test.Assert(agent.GetAzureStorageQueue(""), Utility.GenComparisonData("EnumerateAllQueues", false));
 
             // Verification for returned values
-            agent.OutputValidation(_StorageAccount.CreateCloudQueueClient().ListQueues());
+            agent.OutputValidation(StorageAccount.CreateCloudQueueClient().ListQueues());
         }
 
         /// <summary>
         /// Negative Functional Cases : for Remove-AzureStorageQueue 
         /// 1. Remove a non-existing queue (Negative 2)
         /// </summary>
-        internal void RemoveNonExistingQueue(Agent agent)
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.Queue)]
+        [TestCategory(CLITag.RemoveQueue)]
+        public void RemoveNonExistingQueue()
         {
             string QUEUE_NAME = Utility.GenNameString("nonexisting");
 
             // Delete the queue if it exists
-            CloudQueue queue = _StorageAccount.CreateCloudQueueClient().GetQueueReference(QUEUE_NAME);
+            CloudQueue queue = StorageAccount.CreateCloudQueueClient().GetQueueReference(QUEUE_NAME);
             queue.DeleteIfExists();
 
             //--------------Remove operation--------------
             Test.Assert(!agent.RemoveAzureStorageQueue(QUEUE_NAME), Utility.GenComparisonData("RemoveAzureStorageQueue", false));
             // Verification for returned values
             Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-            Test.Assert(agent.ErrorMessages[0].Equals(String.Format("Can not find queue '{0}'.", QUEUE_NAME)), agent.ErrorMessages[0]);
+            agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, QUEUE_NAME);
         }
 
         /// <summary>
         /// Negative Functional Cases : for Remove-AzureStorageQueue 
         /// 1. Remove the queue without by force (Negative 3)
         /// </summary>
-        internal void RemoveQueueWithoutForce(Agent agent)
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void RemoveQueueWithoutForce()
         {
             string QUEUE_NAME = Utility.GenNameString("withoutforce-");
 
             // create queue if not exists
-            CloudQueue queue = _StorageAccount.CreateCloudQueueClient().GetQueueReference(QUEUE_NAME);
+            CloudQueue queue = StorageAccount.CreateCloudQueueClient().GetQueueReference(QUEUE_NAME);
             queue.CreateIfNotExists();
 
             try
@@ -382,13 +337,18 @@ namespace Management.Storage.ScenarioTest
         /// Positive Functional Cases : for Get-AzureStorageQueue 
         /// 1. Get the ApproximateMessageCount of the queue (Positive 5)
         /// </summary>
-        internal void GetMessageCount(Agent agent)
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.Queue)]
+        [TestCategory(CLITag.GetQueue)]
+        public void GetMessageCount()
         {
             const int MAX_SIZE = 32;
             string QUEUE_NAME = Utility.GenNameString("messagecount-");
 
             // create queue if not exists
-            CloudQueue queue = _StorageAccount.CreateCloudQueueClient().GetQueueReference(QUEUE_NAME);
+            CloudQueue queue = StorageAccount.CreateCloudQueueClient().GetQueueReference(QUEUE_NAME);
             queue.CreateIfNotExists();
             // insert random count queues
             Random random = new Random();
@@ -400,14 +360,14 @@ namespace Management.Storage.ScenarioTest
             Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
             var dic = Utility.GenComparisonData(StorageObjectType.Queue, QUEUE_NAME);
             dic["ApproximateMessageCount"] = count;
-            comp.Add(dic);            
+            comp.Add(dic);
 
             try
             {
                 //--------------Get operation--------------
                 Test.Assert(agent.GetAzureStorageQueue(QUEUE_NAME), Utility.GenComparisonData("GetAzureStorageQueue", true));
                 // Verification for returned values
-                agent.OutputValidation(comp);            
+                agent.OutputValidation(comp);
             }
             finally
             {

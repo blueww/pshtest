@@ -32,7 +32,7 @@ namespace Management.Storage.ScenarioTest
     /// this class contains all the functional test cases for PowerShell Blob cmdlets
     /// </summary>
     [TestClass]
-    class CLIBlobFunc : TestBase
+    public class CLIBlobFunc : TestBase
     {
         private static CloudBlobHelper BlobHelper;
         private static string BlockFilePath;
@@ -260,7 +260,8 @@ namespace Management.Storage.ScenarioTest
                 Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
                 //the same error may output different error messages in different environments
                 bool expectedError = agent.ErrorMessages[0].StartsWith(String.Format("Can not find blob '{0}' in container '{1}'.", BLOB_NAME, CONTAINER_NAME))
-                    || agent.ErrorMessages[0].StartsWith("The remote server returned an error: (404) Not Found");
+                    || agent.ErrorMessages[0].StartsWith("The remote server returned an error: (404) Not Found")
+                    || agent.ErrorMessages[0].StartsWith("The specified blob does not exist.");
                 Test.Assert(expectedError, agent.ErrorMessages[0]);
             }
             finally

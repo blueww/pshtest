@@ -12,7 +12,7 @@ using BlobType = Microsoft.WindowsAzure.Storage.Blob.BlobType;
 
 namespace Management.Storage.ScenarioTest
 {
-    [TestClass]
+    //[TestClass]
     public class CLIPerf_BlobCmdlets
     {
         private TestContext testContextInstance;

@@ -79,6 +79,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveFileUnderADirectory()
         {
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
@@ -99,6 +100,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveUsingPath()
         {
             var baseDir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
@@ -117,6 +119,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveUsingRelativePathFromRoot()
         {
             var baseDir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
@@ -155,6 +158,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveFileWithInvalidAccountTest()
         {
             string fileName = CloudFileUtil.GenerateUniqueFileName();
@@ -166,7 +170,7 @@
             object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
             this.agent.RemoveFile(this.fileShare.Name, fileName, invalidStorageContextObject);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertFullQualifiedErrorId(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
+            this.agent.AssertErrors(record => record.AssertError(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
             fileUtil.AssertFileExists(this.fileShare, fileName, "File should not be removed when providing invalid credentials.");
         }
 
@@ -176,6 +180,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveFileWithInvalidKeyValueTest()
         {
             string fileName = CloudFileUtil.GenerateUniqueFileName();
@@ -186,7 +191,7 @@
             object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
             this.agent.RemoveFile(this.fileShare.Name, fileName, invalidStorageContextObject);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertFullQualifiedErrorId(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
+            this.agent.AssertErrors(record => record.AssertError(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
             fileUtil.AssertFileExists(this.fileShare, fileName, "File should not be removed when providing invalid credentials.");
         }
 
@@ -196,6 +201,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveNonExistingFile()
         {
             string fileName = CloudFileUtil.GenerateUniqueFileName();
@@ -203,7 +209,7 @@
 
             this.agent.RemoveFile(this.fileShare, fileName);
             var result = agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ResourceNotFoundFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -212,6 +218,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveNonExistingFileInANonExistingDirectory()
         {
             string directoryName = CloudFileUtil.GenerateUniqueDirectoryName();
@@ -221,7 +228,7 @@
 
             this.agent.RemoveFile(this.fileShare, file.Name);
             var result = agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ParentNotFoundFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ParentNotFoundFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -230,6 +237,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveNonExitingFileWhichMatchingPrefixOfAnExistingOne()
         {
             string fileName = CloudFileUtil.GenerateUniqueFileName();
@@ -239,7 +247,7 @@
 
             this.agent.RemoveFile(this.fileShare, fileName);
             var result = agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ResourceNotFoundFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -248,6 +256,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveDirectoryUsingRemoveFileCmdlet()
         {
             string fileName = CloudFileUtil.GenerateUniqueFileName();
@@ -256,7 +265,7 @@
 
             this.agent.RemoveFile(this.fileShare, fileName);
             var result = agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ResourceNotFoundFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -265,11 +274,12 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveFileFromSubDirectoryOfRootTest()
         {
             this.agent.RemoveFile(this.fileShare, "../a");
             this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidResourceFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId, AssertUtil.AuthenticationFailedFullQualifiedErrorId));
         }
 
         /// <summary>

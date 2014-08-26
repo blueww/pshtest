@@ -11,7 +11,7 @@ using QueueListingDetails = Microsoft.WindowsAzure.Storage.Queue.Protocol.QueueL
 
 namespace Management.Storage.ScenarioTest
 {
-    [TestClass]
+    //[TestClass]
     public class CLIPerf : TestBase
     {
         // Save the perf data of time cost: [operation, count, avg]
@@ -19,6 +19,9 @@ namespace Management.Storage.ScenarioTest
 
         // Save the perf data of time cost standard deviation: [operation, count, sd]
         private static Dictionary<string, Dictionary<int, double>> OperationTimeSDDics = new Dictionary<string, Dictionary<int, double>>();
+
+        //used to store file share name across different cmdlets.
+        private static object sharedObject;
 
         [ClassInitialize()]
         public static void ClassInit(TestContext testContext)
@@ -61,6 +64,18 @@ namespace Management.Storage.ScenarioTest
         {
             string count = Test.Data.Get("ContainerCount");
             string[] operations = new string[] { PsTag.NewContainer, PsTag.GetContainer, PsTag.SetContainerAcl, PsTag.RemoveContainer };
+            InitPerfData(operations);
+            GetPerfData(count, operations);
+            WritePerfData(operations);
+        }
+
+        //[TestMethod]
+        //[TestCategory(PsTag.Perf)]
+        //[TestCategory(PsTag.FilePerf)]
+        public void TestFilePerf()
+        {
+            string count = Test.Data.Get("ShareCount");
+            string[] operations = new string[] { PsTag.NewShare, PsTag.GetShare, PsTag.RemoveShare, PsTag.NewDirectory, PsTag.GetDirectory, PsTag.RemoveDirectory };
             InitPerfData(operations);
             GetPerfData(count, operations);
             WritePerfData(operations);
@@ -167,6 +182,8 @@ namespace Management.Storage.ScenarioTest
         /// <returns>The milliseconds of running the cmdlets</returns>
         private long DoPerfOperation(string methodType, string[] sNames, string prefix)
         {
+            DoInit(methodType, sNames, prefix, ref CLIPerf.sharedObject);
+
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
@@ -187,9 +204,34 @@ namespace Management.Storage.ScenarioTest
                         Test.Assert(agent.NewAzureStorageTable(sNames), Utility.GenComparisonData("NewAzureStorageTable", true));
                     }
                     break;
+                case PsTag.NewShare:
+                    {
+                        Test.Assert(agent.NewFileShares(sNames), Utility.GenComparisonData("NewFileShare", true));
+                    }
+                    break;
+                case PsTag.NewDirectory:
+                    {
+                        Test.Assert(agent.NewDirectories(CLIPerf.sharedObject as string, sNames), Utility.GenComparisonData("NewDirectory", true));
+                    }
+                    break;
+                case PsTag.GetDirectory:
+                    {
+                        Test.Assert(agent.ListDirectories(CLIPerf.sharedObject as string), Utility.GenComparisonData("ListDirectory", true));
+                    }
+                    break;
+                case PsTag.RemoveDirectory:
+                    {
+                        Test.Assert(agent.ListDirectories(CLIPerf.sharedObject as string), Utility.GenComparisonData("ListDirectory", true));
+                    }
+                    break;
                 case PsTag.GetContainer:
                     {
                         Test.Assert(agent.GetAzureStorageContainerByPrefix(prefix), Utility.GenComparisonData("GetAzureStorageContainer", true));
+                    }
+                    break;
+                case PsTag.GetShare:
+                    {
+                        Test.Assert(agent.GetFileSharesByPrefix(prefix), Utility.GenComparisonData("GetFileShare", true));
                     }
                     break;
                 case PsTag.GetQueue:
@@ -206,6 +248,11 @@ namespace Management.Storage.ScenarioTest
                     {
                         // use PowerShellAgent to remove a large number of containers in order to save time
                         Test.Assert((new PowerShellAgent()).RemoveAzureStorageContainer(sNames), Utility.GenComparisonData("RemoveAzureStorageContainer", true));
+                    }
+                    break;
+                case PsTag.RemoveShare:
+                    {
+                        Test.Assert(agent.RemoveFileShares(sNames), Utility.GenComparisonData("RemoveFileShare", true));
                     }
                     break;
                 case PsTag.RemoveQueue:
@@ -230,6 +277,8 @@ namespace Management.Storage.ScenarioTest
 
             sw.Stop();
 
+            DoCleanup(methodType, sNames, prefix, CLIPerf.sharedObject);
+
             // Verification for returned values
             int nCount = sNames.Length;
             switch (methodType)
@@ -237,6 +286,8 @@ namespace Management.Storage.ScenarioTest
                 case PsTag.NewContainer:
                 case PsTag.NewQueue:
                 case PsTag.NewTable:
+                case PsTag.NewShare:
+                case PsTag.NewDirectory:
                 case PsTag.SetContainerAcl:
                     {
                         if (!(agent is NodeJSAgent))
@@ -257,6 +308,18 @@ namespace Management.Storage.ScenarioTest
                         agent.OutputValidation(StorageAccount.CreateCloudBlobClient().ListContainers(prefix, ContainerListingDetails.All));
                     }
                     break;
+                case PsTag.GetShare:
+                    {
+                        agent.OutputValidation(StorageAccount.CreateCloudFileClient().ListShares(
+                            prefix: prefix, 
+                            detailsIncluded: Microsoft.WindowsAzure.Storage.File.ShareListingDetails.All));
+                    }
+                    break;
+                case PsTag.GetDirectory:
+                    {
+                        agent.OutputValidation(StorageAccount.CreateCloudFileClient().GetShareReference(CLIPerf.sharedObject as string).GetRootDirectoryReference().ListFilesAndDirectories());
+                    }
+                    break;
                 case PsTag.GetQueue:
                     {
                         agent.OutputValidation(StorageAccount.CreateCloudQueueClient().ListQueues(prefix, QueueListingDetails.All));
@@ -269,6 +332,8 @@ namespace Management.Storage.ScenarioTest
                     break;
                 case PsTag.RemoveContainer:
                 case PsTag.RemoveQueue:
+                case PsTag.RemoveShare:
+                case PsTag.RemoveDirectory:
                 case PsTag.RemoveTable:                
                     {
                         // No need to check the return object count now as it won't return any object for remove cmdlets
@@ -281,6 +346,43 @@ namespace Management.Storage.ScenarioTest
             }
 
             return sw.ElapsedMilliseconds;
+        }
+
+        private void DoInit(string methodType, string[] sNames, string prefix, ref object obj)
+        {
+            switch (methodType)
+            {
+                case PsTag.NewDirectory:
+                    {
+                        var shareName = "sh" + (new Random()).Next(100000);
+                        if (agent.NewFileShares(new string[] {shareName})) {
+                            obj = shareName;
+                            return;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void DoCleanup(string methodType, string[] sNames, string prefix, object o)
+        {
+
+            switch (methodType)
+            {
+                case PsTag.RemoveDirectory:
+                    {
+                        var shareName = o as string;
+                        if (shareName != null)
+                        {
+                            agent.RemoveFileShares(new string[] { shareName });
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
 
         /// <summary>
