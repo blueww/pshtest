@@ -38,6 +38,7 @@ namespace Management.Storage.ScenarioTest
 {
     class PowerShellAgent : Agent
     {
+        private const string BaseObject = "_baseObject";
         private static bool snapInAdded = false;
         private static string ContextParameterName = "Context";
         private static object AgentContext;
@@ -57,6 +58,14 @@ namespace Management.Storage.ScenarioTest
                 {"RemoveNonExistingBlob", "Can not find blob '{0}' in container '{1}'."},
                 {"SetBlobContentWithInvalidBlobName", "Blob name '{0}' is invalid."},
                 {"SetContainerAclWithInvalidName", "Container name '{0}' is invalid."},
+                {"CreateExistingTable", "Table '{0}' already exists."},
+                {"CreateInvalidTable", "Table name '{0}' is invalid."},
+                {"GetNonExistingTable", "Can not find table '{0}'."},
+                {"RemoveNonExistingTable", "Can not find table '{0}'."},   
+                {"CreateExistingQueue", "Queue '{0}' already exists."},   
+                {"CreateInvalidQueue", "Queue name '{0}' is invalid."},    
+                {"GetNonExistingQueue", "Can not find queue '{0}'."},  
+                {"RemoveNonExistingQueue", "Can not find queue '{0}'."}, 
         };
 
         internal delegate void ParseCollectionFunc(Collection<PSObject> Values);
@@ -450,6 +459,97 @@ namespace Management.Storage.ScenarioTest
             return !ps.HadErrors;
         }
 
+        public override bool NewFileShares(string[] names)
+        {
+            var ps = GetPowerShellInstance();
+            ps.Runspace.SessionStateProxy.SetVariable("context", PowerShellAgent.Context);
+            ps.AddCommand("Foreach-Object");
+            ps.AddParameter("Process", ScriptBlock.Create("New-AzureStorageShare -Name $_ -Context $context"));
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ParseContainerCollection(ps.Invoke(names));
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
+        }
+
+        public override bool GetFileSharesByPrefix(string prefix)
+        {
+            var ps = GetPowerShellInstance();
+            ps.AddCommand("Get-AzureStorageShare");
+            ps.AddParameter("Prefix", prefix);
+            ps.AddParameter("Context", PowerShellAgent.Context);
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ParseContainerCollection(ps.Invoke());
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
+        }
+
+        public override bool RemoveFileShares(string[] names)
+        {
+            var ps = GetPowerShellInstance();
+            ps.Runspace.SessionStateProxy.SetVariable("context", PowerShellAgent.Context);
+            ps.AddCommand("Foreach-Object");
+            ps.AddParameter("Process", ScriptBlock.Create("Remove-AzureStorageShare -Name $_ -Context $context -confirm:$false"));
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
+        }
+
+        public override bool NewDirectories(string fileShareName, string[] directoryNames)
+        {
+            var ps = GetPowerShellInstance();
+            ps.Runspace.SessionStateProxy.SetVariable("context", PowerShellAgent.Context);
+            ps.Runspace.SessionStateProxy.SetVariable("shareName", fileShareName);
+            ps.AddCommand("Foreach-Object");
+            ps.AddParameter("Process", ScriptBlock.Create("New-AzureStorageDirectory -ShareName $shareName -Path $_ -Context $context"));
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ParseCollection(ps.Invoke(directoryNames));
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
+        }
+
+        public override bool ListDirectories(string fileShareName)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            ps.AddCommand("Get-AzureStorageFile");
+            ps.BindParameter("ShareName", fileShareName);
+            ps.BindParameter("Context", PowerShellAgent.Context);
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ParseCollection(ps.Invoke());
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
+        }
+
+        public override bool RemoveDirectories(string fileShareName, string[] directoryNames)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            ps.Runspace.SessionStateProxy.SetVariable("context", PowerShellAgent.Context);
+            ps.Runspace.SessionStateProxy.SetVariable("shareName", fileShareName);
+            ps.AddCommand("Foreach-Object");
+            ps.AddParameter("Process", ScriptBlock.Create("Remove-AzureStorageDirectory -ShareName $shareName -Path $_ -Context $context -confirm:$false"));
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ParseCollection(ps.Invoke(directoryNames));
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
+        }
+
         public override bool GetAzureStorageContainer(string ContainerName)
         {
             PowerShell ps = GetPowerShellInstance();
@@ -741,14 +841,14 @@ namespace Management.Storage.ScenarioTest
             return !ps.HadErrors;
         }
 
-        public override bool GetAzureStorageBlobContent(string Blob, string FileName, string ContainerName,
+        public override bool GetAzureStorageBlobContent(string Blob, string Destination, string ContainerName,
             bool Force = true, int ConcurrentCount = -1)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
             ps.AddCommand("Get-AzureStorageBlobContent");
             ps.BindParameter("Blob", Blob);
-            ps.BindParameter("Destination", FileName);
+            ps.BindParameter("Destination", Destination);
             ps.BindParameter("Container", ContainerName);
 
             if (ConcurrentCount != -1)
@@ -1237,6 +1337,40 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+        public override void OutputValidation(IEnumerable<CloudFileShare> shares)
+        {
+            Test.Info("Validate CloudFileShare objects");
+            Test.Assert(shares.Count() == Output.Count, "Comparison size: {0} = {1} Output size", shares.Count(), Output.Count);
+            if (shares.Count() != Output.Count)
+                return;
+
+            //Note: if this fails for empty secondary URI, please check if the storage account has been created with endpoints. 
+            int count = 0;
+            foreach (var share in shares)
+            {
+                Test.Assert(CompareEntity(share, (CloudFileShare)Output[count][BaseObject]), "fileshare equality checking: {0}", share.Name);
+                ++count;
+            }
+        }
+
+        public override void OutputValidation(IEnumerable<IListFileItem> items)
+        {
+            var directories = items.Where(i => i as CloudFileDirectory != null).Select(i => (CloudFileDirectory)i);
+
+            Test.Info("Validate CloudFileShare objects");
+            Test.Assert(directories.Count() == Output.Count, "Comparison size: {0} = {1} Output size", directories.Count(), Output.Count);
+            if (directories.Count() != Output.Count)
+                return;
+
+            //Note: if this fails for empty secondary URI, please check if the storage account has been created with endpoints. 
+            int count = 0;
+            foreach (var dir in directories)
+            {
+                Test.Assert(CompareEntity(dir, (CloudFileDirectory)Output[count][BaseObject]), "directory equality checking: {0}", dir.Name);
+                ++count;
+            }
+        }
+
         /// <summary>
         /// Compare the output collection data with container permissions
         /// </summary> 
@@ -1596,6 +1730,8 @@ namespace Management.Storage.ScenarioTest
             foreach (PSObject result in values)
             {
                 Dictionary<string, object> dic = new Dictionary<string, object>();
+                dic[BaseObject] = result.BaseObject;
+
                 foreach (PSMemberInfo member in result.Members)
                 {
                     if (member.Value != null)
@@ -1628,6 +1764,8 @@ namespace Management.Storage.ScenarioTest
             foreach (PSObject result in Values)
             {
                 Dictionary<string, object> dic = new Dictionary<string, object>();
+                dic[BaseObject] = result.BaseObject;
+
                 foreach (PSMemberInfo member in result.Members)
                 {
                     if (member.Value != null)
@@ -1645,8 +1783,35 @@ namespace Management.Storage.ScenarioTest
 
                     if (member.Name.Equals("Properties"))
                     {
-                        BlobContainerProperties properties = (BlobContainerProperties)member.Value;
-                        dic.Add("LastModified", properties.LastModified);
+                        var properties = member.Value as BlobContainerProperties;
+
+                        if (properties != null)
+                        {
+                            dic.Add("LastModified", properties.LastModified);
+                            continue;
+                        }
+
+                        var shareProperties = member.Value as FileShareProperties;
+                        if (shareProperties != null)
+                        {
+                            dic.Add("LastModified", shareProperties.LastModified);
+                            continue;
+                        }
+
+                        var dirProperties = member.Value as FileDirectoryProperties;
+                        if (dirProperties != null)
+                        {
+                            dic.Add("LastModified", dirProperties.LastModified);
+                            continue;
+                        }
+
+                        var fileProperties = member.Value as FileProperties;
+                        if (fileProperties != null)
+                        {
+                            dic.Add("LastModified", fileProperties.LastModified);
+                            dic.Add("Length", fileProperties.Length);
+                            continue;
+                        }
                     }
                 }
                 _Output.Add(dic);
@@ -1863,6 +2028,8 @@ namespace Management.Storage.ScenarioTest
         public static bool CompareEntity<T>(T v1, T v2)
         {
             bool bResult = true;
+            var isFile = v1 is CloudFile;
+            var isFileDirectory = v1 is CloudFileDirectory;
 
             if (v1 == null || v2 == null)
             {
@@ -1906,7 +2073,10 @@ namespace Management.Storage.ScenarioTest
                         || v1.GetType() == typeof(CloudBlockBlob)
                         || v1.GetType() == typeof(CloudPageBlob)
                         || v1.GetType() == typeof(CloudQueue)
-                        || v1.GetType() == typeof(CloudTable))
+                        || v1.GetType() == typeof(CloudTable)
+                        || v1.GetType() == typeof(CloudFileShare)
+                        || v1.GetType() == typeof(CloudFileDirectory)
+                        || v1.GetType() == typeof(CloudFile))
                     {
                         bResult = ((IDictionary<string, string>)o1).SequenceEqual((IDictionary<string, string>)o2);
                     }
@@ -1937,6 +2107,14 @@ namespace Management.Storage.ScenarioTest
                     {
                         bResult = o1.Equals(o2);
                     }
+                }
+                else if (propertyInfo.Name.Equals("Parent") && (isFile || isFileDirectory))
+                {
+                    bResult = CompareEntity(o1, o2);
+                }
+                else if (propertyInfo.Name.Equals("Share") && (isFile || isFileDirectory))
+                {
+                    bResult = CompareEntity(o1, o2);
                 }
                 else
                 {
@@ -2093,6 +2271,18 @@ namespace Management.Storage.ScenarioTest
                     "Set-AzureStorageFileContent -ShareName {0} -Source \"{1}\" -Path $_ -Context $context",
                     fileShareName,
                     localFileName)));
+        }
+
+        public override void UploadFilesInFolderFromPipeline(string fileShareName, string folder)
+        {
+            this.shell.Runspace.SessionStateProxy.SetVariable("context", PowerShellAgent.Context);
+            this.shell.AddCommand("Foreach-Object");
+            this.shell.AddParameter("Process", ScriptBlock.Create(
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    @"Set-AzureStorageFileContent -ShareName {0} -Source ""{1}\$_"" -Path $_ -Context $context",
+                    fileShareName,
+                    folder)));
         }
 
         public override void RemoveFileShareFromPipeline()
@@ -2298,6 +2488,21 @@ namespace Management.Storage.ScenarioTest
             this.shell.AddParameter("Context", contextObject ?? PowerShellAgent.Context);
         }
 
+        public override void DownloadFiles(string fileShareName, string path, string destination, bool overwrite = false)
+        {
+            this.shell.AddCommand("Get-AzureStorageFile");
+            this.shell.AddParameter("shareName", fileShareName);
+            this.shell.AddParameter("context", PowerShellAgent.Context);
+
+            this.shell.AddCommand("Get-AzureStorageFileContent");
+            this.shell.AddParameter("Destination", destination);
+
+            if (overwrite)
+            {
+                this.shell.AddParameter("Force");
+            }
+        }
+
         public override void UploadFile(CloudFileShare fileShare, string source, string path, bool overwrite = false, bool passThru = false)
         {
             this.shell.AddCommand("Set-AzureStorageFileContent");
@@ -2406,5 +2611,10 @@ namespace Management.Storage.ScenarioTest
         }
 
         #endregion
+
+        public override bool ShowAzureStorageAccountConnectionString(string accountName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

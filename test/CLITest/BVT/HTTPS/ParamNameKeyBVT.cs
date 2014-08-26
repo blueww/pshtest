@@ -23,7 +23,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
     /// only for Node.js commands
     /// </summary>
     [TestClass]
-    class ParamNameKeyBVT : CLICommonBVT
+    public class ParamNameKeyBVT : CLICommonBVT
     {
         [ClassInitialize()]
         public static void ParamNameKeyBVTClassInitialize(TestContext testContext)

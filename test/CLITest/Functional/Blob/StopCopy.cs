@@ -25,7 +25,7 @@ using System.Text;
 namespace Management.Storage.ScenarioTest.Functional.Blob
 {
     [TestClass]
-    class StopCopy : TestBase
+    public class StopCopy : TestBase
     {
         [ClassInitialize()]
         public static void ClassInit(TestContext testContext)
@@ -48,14 +48,16 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.StopCopyBlob)]
+        [TestCategory(CLITag.StopCopyBlob)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void StopCopyInRootContainerTest()
         {
             CloudBlobContainer rootContainer = blobUtil.CreateContainer("$root");
             string srcBlobName = Utility.GenNameString("src");
             //We could only use block blob to copy from external uri
             ICloudBlob srcBlob = blobUtil.CreateBlockBlob(rootContainer, srcBlobName);
-            CopyBigFileToBlob(srcBlob);
-            AssertStopPendingCopyOperationTest(srcBlob);
+            string copyId = CopyBigFileToBlob(srcBlob);
+            AssertStopPendingCopyOperationTest(srcBlob, lang == Language.NodeJS ? copyId : "*");
         }
 
         /// <summary>
@@ -115,14 +117,26 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.StopCopyBlob)]
+        [TestCategory(CLITag.StopCopyBlob)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void StopCopyWithInvalidNameTest()
         {
             string invalidContainerName = "Invalid";
             int maxBlobNameLength = 1024;
             string invalidBlobName = new string('a', maxBlobNameLength + 1);
-            string invalidContainerErrorMessage = String.Format("Container name '{0}' is invalid.", invalidContainerName);
-            string invalidBlobErrorMessage = String.Format("Blob name '{0}' is invalid.", invalidBlobName);
             string copyId = "*";
+            string invalidContainerErrorMessage;
+            string invalidBlobErrorMessage;
+            if (lang == Language.PowerShell)
+            {
+                invalidContainerErrorMessage = String.Format("Container name '{0}' is invalid.", invalidContainerName);
+                invalidBlobErrorMessage = String.Format("Blob name '{0}' is invalid.", invalidBlobName);
+            }
+            else
+            {
+                invalidContainerErrorMessage = "Container name format is incorrect";
+                invalidBlobErrorMessage = "Value for one of the query parameters specified in the request URI is invalid";
+            }
             Test.Assert(!agent.StopAzureStorageBlobCopy(invalidContainerName, Utility.GenNameString("blob"), copyId, false), "Stop copy should failed with invalid container name");
             ExpectedStartsWithErrorMessage(invalidContainerErrorMessage);
             Test.Assert(!agent.StopAzureStorageBlobCopy(Utility.GenNameString("container"), invalidBlobName, copyId, false), "Start copy should failed with invalid blob name");
@@ -138,22 +152,42 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.StopCopyBlob)]
+        [TestCategory(CLITag.StopCopyBlob)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void StopCopyWithNotExistsContainerAndBlobTest()
         {
             string srcContainerName = Utility.GenNameString("copy");
             string blobName = Utility.GenNameString("blob");
             string copyId = Guid.NewGuid().ToString();
             string errorMessage = string.Empty;
+            Validator validator;
+            if (lang == Language.PowerShell)
+            {
+                errorMessage = string.Format("Can not find blob '{0}' in container '{1}'.", blobName, srcContainerName);
+                validator = ExpectedEqualErrorMessage;
+            }
+            else
+            {
+                errorMessage = "The specified container does not exist";
+                validator = ExpectedStartsWithErrorMessage;
+            }
+
             Test.Assert(!agent.StopAzureStorageBlobCopy(srcContainerName, blobName, copyId, false), "Stop copy should failed with not existing src container");
-            errorMessage = string.Format("Can not find blob '{0}' in container '{1}'.", blobName, srcContainerName);
-            ExpectedEqualErrorMessage(errorMessage);
+            validator(errorMessage);
 
             try
             {
                 CloudBlobContainer srcContainer = blobUtil.CreateContainer(srcContainerName);
                 Test.Assert(!agent.StopAzureStorageBlobCopy(srcContainerName, blobName, copyId, false), "Stop copy should failed with not existing src container");
-                errorMessage = string.Format("Can not find blob '{0}' in container '{1}'.", blobName, srcContainerName);
-                ExpectedEqualErrorMessage(errorMessage);
+                if (lang == Language.PowerShell)
+                {
+                    errorMessage = string.Format("Can not find blob '{0}' in container '{1}'.", blobName, srcContainerName);
+                }
+                else
+                {
+                    errorMessage = "The specified blob does not exist";
+                }
+                validator(errorMessage);
             }
             finally
             {
@@ -161,31 +195,32 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             }
         }
 
-        private void AssertStopPendingCopyOperationTest(ICloudBlob blob)
+        private void AssertStopPendingCopyOperationTest(ICloudBlob blob, string copyId = "*")
         {
             Test.Assert(blob.CopyState.Status == CopyStatus.Pending, String.Format("The copy status should be pending, actually it's {0}", blob.CopyState.Status));
-            string copyId = "*";
             bool force = true;
             Test.Assert(agent.StopAzureStorageBlobCopy(blob.Container.Name, blob.Name, copyId, force), "Stop copy operation should be successed");
             blob.FetchAttributes();
             Test.Assert(blob.CopyState.Status == CopyStatus.Aborted, String.Format("The copy status should be aborted, actually it's {0}", blob.CopyState.Status));
-            int expectedOutputCount = 1;
+            int expectedOutputCount = lang == Language.PowerShell ? 1 : 0;
             Test.Assert(agent.Output.Count == expectedOutputCount, String.Format("Should return {0} message, and actually it's {1}", expectedOutputCount, agent.Output.Count));
         }
 
-        private void CopyBigFileToBlob(ICloudBlob blob)
+        private string CopyBigFileToBlob(ICloudBlob blob)
         {
             string uri = Test.Data.Get("BigFileUri");
             Test.Assert(!String.IsNullOrEmpty(uri), string.Format("Big file uri should be not empty, actually it's {0}", uri));
             
             if (String.IsNullOrEmpty(uri))
             {
-                return;
+                return string.Empty;
             }
             
             Test.Info(String.Format("Copy Big file to blob '{0}'", blob.Name));
             blob.StartCopyFromBlob(new Uri(uri));
             Test.Assert(blob.CopyState.Status == CopyStatus.Pending, String.Format("The copy status should be pending, actually it's {0}", blob.CopyState.Status));
+
+            return blob.CopyState.CopyId;
         }
     }
 }

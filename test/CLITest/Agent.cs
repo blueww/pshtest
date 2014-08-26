@@ -72,6 +72,8 @@ namespace Management.Storage.ScenarioTest
                 expectedErrorMessage, ErrorMessages[0]));
         }
 
+        public abstract bool ShowAzureStorageAccountConnectionString(string accountName);
+
         /// <summary>
         /// Return true if succeed otherwise return false
         /// </summary>   
@@ -193,6 +195,8 @@ namespace Management.Storage.ScenarioTest
 
         public abstract void OutputValidation(Collection<Dictionary<string, object>> comp);
         public abstract void OutputValidation(IEnumerable<CloudBlobContainer> containers);
+        public abstract void OutputValidation(IEnumerable<CloudFileShare> shares);
+        public abstract void OutputValidation(IEnumerable<IListFileItem> items);
         public abstract void OutputValidation(IEnumerable<BlobContainerPermissions> permissions);
         public abstract void OutputValidation(IEnumerable<ICloudBlob> blobs);
         public abstract void OutputValidation(IEnumerable<CloudTable> tables);
@@ -226,11 +230,20 @@ namespace Management.Storage.ScenarioTest
 
         public abstract void NewFileShare(string fileShareName, object contextObject = null);
 
+        public abstract bool NewFileShares(string[] names);
+        public abstract bool GetFileSharesByPrefix(string prefix);
+        public abstract bool RemoveFileShares(string[] names);
+        public abstract bool NewDirectories(string fileShareName, string[] directoryNames);
+        public abstract bool ListDirectories(string fileShareName);
+        public abstract bool RemoveDirectories(string fileShareName, string[] directoryNames);
+
         public abstract void NewFileShareFromPipeline();
 
         public abstract void NewDirectoryFromPipeline(string fileShareName);
 
         public abstract void UploadFilesFromPipeline(string fileShareName, string localFileName);
+
+        public abstract void UploadFilesInFolderFromPipeline(string fileShareName, string folder);
 
         public abstract void RemoveFileShareFromPipeline();
 
@@ -277,6 +290,8 @@ namespace Management.Storage.ScenarioTest
         public abstract void DownloadFile(CloudFileShare fileShare, string path, string destination, bool overwrite = false);
 
         public abstract void DownloadFile(string fileShareName, string path, string destination, bool overwrite = false, object contextObject = null);
+
+        public abstract void DownloadFiles(string fileShareName, string path, string destination, bool overwrite = false);
 
         public abstract void UploadFile(CloudFileShare fileShare, string source, string path, bool overwrite = false, bool passThru = false);
 

@@ -112,7 +112,7 @@
             this.agent.ListFiles(this.fileShare);
             var result = this.agent.Invoke();
             this.agent.AssertNoError();
-            result.AssertPSObjectCollection(obj => obj.AssertCloudFileDirectory(directoryName));
+            result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory(directoryName));
         }
 
         /// <summary>
@@ -156,7 +156,7 @@
             this.agent.ListFiles(this.fileShare);
             var result = this.agent.Invoke();
             this.agent.AssertNoError();
-            result.AssertPSObjectCollection(obj => obj.AssertCloudFile(fileName));
+            result.AssertObjectCollection(obj => obj.AssertCloudFile(fileName));
         }
 
         private static DirectoryInfo MountShare(string shareName)

@@ -15,6 +15,8 @@
 
     public class CloudFileUtil
     {
+        public static readonly char[] PathSeparators = new char[] { '/', '\\' };
+
         private const string FileShareNameFormat = "fileshare{0}";
 
         private const string DirectoryNameForamt = "directory{0}";
@@ -205,7 +207,7 @@
         public CloudFileDirectory EnsureFolderStructure(CloudFileShare share, string directoryPath)
         {
             var directory = share.GetRootDirectoryReference();
-            foreach (var directoryName in directoryPath.Split(AssertUtil.PathSeparators, StringSplitOptions.RemoveEmptyEntries))
+            foreach (var directoryName in directoryPath.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries))
             {
                 directory = directory.GetDirectoryReference(directoryName);
                 directory.CreateIfNotExists();

@@ -23,6 +23,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using MS.Test.Common.MsTestLib;
 using StorageTestLib;
 using Management.Storage.ScenarioTest.Common;
+using System.Reflection;
 
 namespace Management.Storage.ScenarioTest
 {
@@ -30,47 +31,12 @@ namespace Management.Storage.ScenarioTest
     /// this class contains all the functional test cases for PowerShell Table cmdlets
     /// </summary>
     [TestClass]
-    class CLITableFunc
+    public class CLITableFunc : TestBase
     {
-        private static CloudStorageAccount _StorageAccount;
-
-        private TestContext testContextInstance;
-        /// <summary>
-        ///Gets or sets the test context which provides
-        ///information about and functionality for the current test run.
-        ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
-                return testContextInstance;
-            }
-            set
-            {
-                testContextInstance = value;
-            }
-        }
-
-        #region Additional test attributes
-        // 
-        //You can use the following additional attributes as you write your tests:
-        //
-        //Use ClassInitialize to run code before running the first test in the class
         [ClassInitialize()]
         public static void MyClassInitialize(TestContext testContext)
         {
-            Trace.WriteLine("ClassInit");
-            Test.FullClassName = testContext.FullyQualifiedTestClassName;
-
-            _StorageAccount = TestBase.GetCloudStorageAccountFromConfig();
-
-            // import module
-            string moduleFilePath = Test.Data.Get("ModuleFilePath");
-            if (moduleFilePath.Length > 0)
-                PowerShellAgent.ImportModule(moduleFilePath);
-
-            // $context = New-AzureStorageContext -ConnectionString ...
-            PowerShellAgent.SetStorageContext(_StorageAccount.ToString(true));
+            TestBase.TestClassInitialize(testContext);
         }
 
         //
@@ -78,76 +44,7 @@ namespace Management.Storage.ScenarioTest
         [ClassCleanup()]
         public static void MyClassCleanup()
         {
-            Trace.WriteLine("ClasssCleanup");
-        }
-
-        //Use TestInitialize to run code before running each test
-        [TestInitialize()]
-        public void MyTestInitialize()
-        {
-            Trace.WriteLine("TestInit");
-            Test.Start(TestContext.FullyQualifiedTestClassName, TestContext.TestName);
-        }
-
-        //Use TestCleanup to run code after each test has run
-        [TestCleanup()]
-        public void MyTestCleanup()
-        {
-            Trace.WriteLine("TestCleanup");
-            // do not clean up the blobs here for investigation
-            // every test case should do cleanup in its init
-            Test.End(TestContext.FullyQualifiedTestClassName, TestContext.TestName);
-        }
-
-        #endregion
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void CreateInvalidTable()
-        {
-            CreateInvalidTable(new PowerShellAgent());
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void CreateExistingTable()
-        {
-            CreateExistingTable(new PowerShellAgent());
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void TableListOperations()
-        {
-            TableListOperations(new PowerShellAgent());
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void GetNonExistingTable()
-        {
-            GetNonExistingTable(new PowerShellAgent());
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void EnumerateAllTables()
-        {
-            EnumerateAllTables(new PowerShellAgent());
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void RemoveNonExistingTable()
-        {
-            RemoveNonExistingTable(new PowerShellAgent());
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void RemoveTableWithoutForce()
-        {
-            RemoveTableWithoutForce(new PowerShellAgent());
+            TestBase.TestClassCleanup();
         }
 
         /// <summary>
@@ -157,13 +54,17 @@ namespace Management.Storage.ScenarioTest
         /// 3. Create a list of Tables that some of them already exist (Negative 5)
         /// 
         /// Functional Cases : for Get-AzureStorageTable
-        /// 4.	Get a list of Tables by using wildcards in the name (Positive 4)
-        /// 5.	Get a list of tables by using Prefix parameter (Positive 2)
+        /// 4. Get a list of Tables by using wildcards in the name (Positive 4)
+        /// 5. Get a list of tables by using Prefix parameter (Positive 2)
         /// 
         /// Functional Cases : for Remove-AzureStorageTable
-        /// 6.	Remove a list of existing Tables by using pipeline (Positive 4)
+        /// 6. Remove a list of existing Tables by using pipeline (Positive 4)
         /// </summary>
-        internal void TableListOperations(Agent agent)
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.Table)]
+        [TestCategory(CLITag.GetTable)]
+        public void TableListOperations()
         {
             string PREFIX = Utility.GenNameString("uniqueprefix");
             string[] TABLE_NAMES = new string[] { Utility.GenNameString(PREFIX), Utility.GenNameString(PREFIX), Utility.GenNameString(PREFIX) };
@@ -176,6 +77,8 @@ namespace Management.Storage.ScenarioTest
             string[] MERGED_NAMES = TABLE_NAMES.Union(PARTLY_EXISTING_NAMES).ToArray();
             Array.Sort(MERGED_NAMES);
 
+            bool multiOutput = lang == Language.PowerShell;
+
             // Generate the comparison data
             Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
             foreach (string name in MERGED_NAMES)
@@ -183,7 +86,7 @@ namespace Management.Storage.ScenarioTest
                 comp.Add(Utility.GenComparisonData(StorageObjectType.Table, name));
             }
 
-            CloudTableClient tableClient = _StorageAccount.CreateCloudTableClient();
+            CloudTableClient tableClient = StorageAccount.CreateCloudTableClient();
 
             // Check if all the above Tables have been removed
             foreach (string name in MERGED_NAMES)
@@ -195,7 +98,10 @@ namespace Management.Storage.ScenarioTest
             //--------------1. New operation--------------
             Test.Assert(agent.NewAzureStorageTable(TABLE_NAMES), Utility.GenComparisonData("NewAzureStorageTable", true));
             // Verification for returned values
-            Test.Assert(agent.Output.Count == TABLE_NAMES.Count(), "{0} row returned : {1}", TABLE_NAMES.Count(), agent.Output.Count);
+            if (multiOutput)
+            {
+                Test.Assert(agent.Output.Count == TABLE_NAMES.Count(), "{0} row returned : {1}", TABLE_NAMES.Count(), agent.Output.Count);
+            }
 
             // Check if all the above tables have been created
             foreach (string name in TABLE_NAMES)
@@ -209,18 +115,31 @@ namespace Management.Storage.ScenarioTest
                 //--------------2. New operation--------------
                 Test.Assert(!agent.NewAzureStorageTable(TABLE_NAMES), Utility.GenComparisonData("NewAzureStorageTable", false));
                 // Verification for returned values
-                Test.Assert(agent.Output.Count == 0, "0 row returned : {0}", agent.Output.Count);
+                if (multiOutput)
+                {
+                    Test.Assert(agent.Output.Count == 0, "0 row returned : {0}", agent.Output.Count);
+                }
                 int i = 0;
                 foreach (string name in TABLE_NAMES)
                 {
-                    Test.Assert(agent.ErrorMessages[i].Equals(String.Format("Table '{0}' already exists.", name)), agent.ErrorMessages[i]);
+                    if (multiOutput)
+                    {
+                        Test.Assert(agent.ErrorMessages[i].Equals(String.Format("Table '{0}' already exists.", name)), agent.ErrorMessages[i]);
+                    }
+                    else
+                    {
+                        Test.Assert(agent.ErrorMessages[0].StartsWith("The table specified already exists"), agent.ErrorMessages[0]);
+                    }
                     ++i;
                 }
 
                 //--------------3. New operation--------------
                 Test.Assert(!agent.NewAzureStorageTable(PARTLY_EXISTING_NAMES), Utility.GenComparisonData("NewAzureStorageTable", false));
                 // Verification for returned values
-                Test.Assert(agent.Output.Count == 1, "1 row returned : {0}", agent.Output.Count);
+                if (multiOutput)
+                {
+                    Test.Assert(agent.Output.Count == 1, "1 row returned : {0}", agent.Output.Count);
+                }
 
                 // Check if all the above tables have been created
                 foreach (string name in TABLE_NAMES)
@@ -230,16 +149,20 @@ namespace Management.Storage.ScenarioTest
                 }
 
                 //--------------4. Get operation--------------
-                Test.Assert(agent.GetAzureStorageTable("*" + PREFIX + "*"), Utility.GenComparisonData("GetAzureStorageTable", true));
-                // Verification for returned values
-                agent.OutputValidation(_StorageAccount.CreateCloudTableClient().ListTables(PREFIX));
+                if (multiOutput)
+                {
+                    Test.Assert(agent.GetAzureStorageTable("*" + PREFIX + "*"), Utility.GenComparisonData("GetAzureStorageTable", true));
+                    // Verification for returned values
+                    agent.OutputValidation(StorageAccount.CreateCloudTableClient().ListTables(PREFIX));
+                }
 
                 // use Prefix parameter
                 Test.Assert(agent.GetAzureStorageTableByPrefix(PREFIX), Utility.GenComparisonData("GetAzureStorageTableByPrefix", true));
                 // Verification for returned values
-                agent.OutputValidation(_StorageAccount.CreateCloudTableClient().ListTables(PREFIX));
+                agent.OutputValidation(StorageAccount.CreateCloudTableClient().ListTables(PREFIX));
             }
-            finally { 
+            finally
+            {
                 //--------------5. Remove operation--------------
                 Test.Assert(agent.RemoveAzureStorageTable(MERGED_NAMES), Utility.GenComparisonData("RemoveAzureStorageTable", true));
                 // Check if all the above tables have been removed
@@ -255,12 +178,17 @@ namespace Management.Storage.ScenarioTest
         /// Negative Functional Cases : for New-AzureStorageTable 
         /// 1. Create a Table that already exists (Negative 3)
         /// </summary>
-        internal void CreateExistingTable(Agent agent)
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.Table)]
+        [TestCategory(CLITag.NewTable)]
+        public void CreateExistingTable()
         {
             string TABLE_NAME = Utility.GenNameString("existing");
 
             // create table if not exists
-            CloudTable table = _StorageAccount.CreateCloudTableClient().GetTableReference(TABLE_NAME);
+            CloudTable table = StorageAccount.CreateCloudTableClient().GetTableReference(TABLE_NAME);
             table.CreateIfNotExists();
 
             try
@@ -269,7 +197,7 @@ namespace Management.Storage.ScenarioTest
                 Test.Assert(!agent.NewAzureStorageTable(TABLE_NAME), Utility.GenComparisonData("NewAzureStorageTable", false));
                 // Verification for returned values
                 Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-                Test.Assert(agent.ErrorMessages[0].Equals(String.Format("Table '{0}' already exists.", TABLE_NAME)), agent.ErrorMessages[0]);
+                agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, TABLE_NAME);
             }
             finally
             {
@@ -282,7 +210,12 @@ namespace Management.Storage.ScenarioTest
         /// Negative Functional Cases : for New-AzureStorageTable 
         /// 1. Create a new table with an invalid table name (Negative 1)
         /// </summary>
-        internal void CreateInvalidTable(Agent agent)
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.Table)]
+        [TestCategory(CLITag.NewTable)]
+        public void CreateInvalidTable()
         {
             string tableName = Utility.GenNameString("abc_");
 
@@ -290,71 +223,87 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(!agent.NewAzureStorageTable(tableName), Utility.GenComparisonData("NewAzureStorageTable", false));
             // Verification for returned values
             Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-            Test.Assert(agent.ErrorMessages[0].StartsWith(String.Format("Table name '{0}' is invalid.", tableName)), agent.ErrorMessages[0]);
+            agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, tableName);
         }
-
 
         /// <summary>
         /// Negative Functional Cases : for Get-AzureStorageTable 
         /// 1. Get a non-existing table (Negative 1)
         /// </summary>
-        internal void GetNonExistingTable(Agent agent)
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.Table)]
+        [TestCategory(CLITag.GetTable)]
+        public void GetNonExistingTable()
         {
             string TABLE_NAME = Utility.GenNameString("nonexisting");
 
             // Delete the table if it exists
-            CloudTable table = _StorageAccount.CreateCloudTableClient().GetTableReference(TABLE_NAME);
+            CloudTable table = StorageAccount.CreateCloudTableClient().GetTableReference(TABLE_NAME);
             table.DeleteIfExists();
 
             //--------------Get operation--------------
             Test.Assert(!agent.GetAzureStorageTable(TABLE_NAME), Utility.GenComparisonData("GetAzureStorageTable", false));
             // Verification for returned values
             Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-            Test.Assert(agent.ErrorMessages[0].Equals(String.Format("Can not find table '{0}'.", TABLE_NAME)), agent.ErrorMessages[0]);
+            agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, TABLE_NAME);
         }
 
         /// <summary>
         /// Functional Cases : for Get-AzureStorageTable
         /// 1. Validate that all the tables can be enumerated (Positive 5)
         /// </summary>
-        internal void EnumerateAllTables(Agent agent)
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.Table)]
+        [TestCategory(CLITag.GetTable)]
+        public void EnumerateAllTables()
         {
             //--------------Get operation--------------
             Test.Assert(agent.GetAzureStorageTable(""), Utility.GenComparisonData("EnumerateAllTables", false));
 
             // Verification for returned values
-            agent.OutputValidation(_StorageAccount.CreateCloudTableClient().ListTables());
+            agent.OutputValidation(StorageAccount.CreateCloudTableClient().ListTables());
         }
 
         /// <summary>
         /// Negative Functional Cases : for Remove-AzureStorageTable 
         /// 1. Remove a non-existing table (Negative 2)
         /// </summary>
-        internal void RemoveNonExistingTable(Agent agent)
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.Table)]
+        [TestCategory(CLITag.RemoveTable)]
+        public void RemoveNonExistingTable()
         {
             string TABLE_NAME = Utility.GenNameString("nonexisting");
 
             // Delete the table if it exists
-            CloudTable table = _StorageAccount.CreateCloudTableClient().GetTableReference(TABLE_NAME);
+            CloudTable table = StorageAccount.CreateCloudTableClient().GetTableReference(TABLE_NAME);
             table.DeleteIfExists();
 
             //--------------Remove operation--------------
             Test.Assert(!agent.RemoveAzureStorageTable(TABLE_NAME), Utility.GenComparisonData("RemoveAzureStorageTable", false));
             // Verification for returned values
             Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-            Test.Assert(agent.ErrorMessages[0].Equals(String.Format("Can not find table '{0}'.", TABLE_NAME)), agent.ErrorMessages[0]);
+            agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, TABLE_NAME);
         }
 
         /// <summary>
         /// Negative Functional Cases : for Remove-AzureStorageTable 
         /// 1. Remove the table without by force (Negative 3)
         /// </summary>
-        internal void RemoveTableWithoutForce(Agent agent)
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void RemoveTableWithoutForce()
         {
             string TABLE_NAME = Utility.GenNameString("withoutforce");
 
             // create table if not exists
-            CloudTable table = _StorageAccount.CreateCloudTableClient().GetTableReference(TABLE_NAME);
+            CloudTable table = StorageAccount.CreateCloudTableClient().GetTableReference(TABLE_NAME);
             table.CreateIfNotExists();
 
             try

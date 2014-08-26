@@ -29,7 +29,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
     /// bvt cases for anonymous storage account
     /// </summary>
     [TestClass]
-    class AnonymousBVT : TestBase
+    public class AnonymousBVT : TestBase
     {
         protected static string downloadDirRoot;
 

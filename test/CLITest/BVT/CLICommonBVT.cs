@@ -34,8 +34,7 @@ namespace Management.Storage.ScenarioTest.BVT
     /// <summary>
     /// this class contain all the bvt cases for` the full functional storage context such as local/connectionstring/namekey, anonymous and sas token are excluded.
     /// </summary>
-    //TODO use the TestBase as the base class
-    internal abstract partial class CLICommonBVT : TestBase
+    public abstract partial class CLICommonBVT : TestBase
     {
         private static CloudBlobHelper CommonBlobHelper;
         private static CloudStorageAccount CommonStorageAccount;
@@ -144,10 +143,10 @@ namespace Management.Storage.ScenarioTest.BVT
         {
             bool AlwaysOperateOnWindows = (FileUtil.AgentOSType != OSType.Windows);
 
-            CommonBlockFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
-            CommonPageFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
-            CommonSmallFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
-            CommonMediumFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
+            CommonBlockFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName()));
+            CommonPageFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName()));
+            CommonSmallFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName()));
+            CommonMediumFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName()));
 
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonBlockFilePath), AlwaysOperateOnWindows);
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonPageFilePath), AlwaysOperateOnWindows);
@@ -181,7 +180,6 @@ namespace Management.Storage.ScenarioTest.BVT
         {
             Trace.WriteLine("Unit Test Initialize");
             agent = AgentFactory.CreateAgent(TestContext.Properties);
-            Test.Start(TestContext.FullyQualifiedTestClassName, TestContext.TestName);
         }
 
         /// <summary>
@@ -191,7 +189,6 @@ namespace Management.Storage.ScenarioTest.BVT
         public void UnitTestCleanup()
         {
             Trace.WriteLine("Unit Test Cleanup");
-            Test.End(TestContext.FullyQualifiedTestClassName, TestContext.TestName);
         }
 
         #endregion
@@ -246,6 +243,9 @@ namespace Management.Storage.ScenarioTest.BVT
         /// </summary>
         [TestMethod]
         [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.Table)]
+        [TestCategory(CLITag.NewTable)]
         public void NewTableTest()
         {
             NewTableTest(agent);
@@ -256,6 +256,9 @@ namespace Management.Storage.ScenarioTest.BVT
         /// </summary>
         [TestMethod]
         [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.Table)]
+        [TestCategory(CLITag.GetTable)]
         public void GetTableTest()
         {
             GetTableTest(agent);
@@ -266,6 +269,9 @@ namespace Management.Storage.ScenarioTest.BVT
         /// </summary>
         [TestMethod]
         [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.Table)]
+        [TestCategory(CLITag.RemoveTable)]
         public void RemoveTableTest()
         {
             RemoveTableTest(agent);
@@ -276,6 +282,9 @@ namespace Management.Storage.ScenarioTest.BVT
         /// </summary>
         [TestMethod]
         [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.Queue)]
+        [TestCategory(CLITag.NewQueue)]
         public void NewQueueTest()
         {
             NewQueueTest(agent);
@@ -286,6 +295,9 @@ namespace Management.Storage.ScenarioTest.BVT
         /// </summary>
         [TestMethod]
         [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.Queue)]
+        [TestCategory(CLITag.GetQueue)]
         public void GetQueueTest()
         {
             GetQueueTest(agent);
@@ -296,6 +308,9 @@ namespace Management.Storage.ScenarioTest.BVT
         /// </summary>
         [TestMethod]
         [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.Queue)]
+        [TestCategory(CLITag.RemoveQueue)]
         public void RemoveQueueTest()
         {
             RemoveQueueTest(agent);
@@ -333,7 +348,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void DownloadBlobTest()
         {
-            string downloadDirPath = Test.Data.Get("DownloadDir");
+            string downloadDirPath = Path.GetFullPath(Test.Data.Get("DownloadDir"));
             DownloadBlobTest(agent, CommonBlockFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             DownloadBlobTest(agent, CommonPageFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
         }
@@ -355,19 +370,21 @@ namespace Management.Storage.ScenarioTest.BVT
         /// </summary>
         [TestMethod]
         [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
         public void StartCopyBlobUsingName()
         {
-            StartCopyBlobTest(new PowerShellAgent(), false);
+            StartCopyBlobTest(false);
         }
 
         /// <summary>
         /// BVT case : for Start-AzureStorageBlobCopy
         /// </summary>
         [TestMethod]
-        ////[TestCategory(Tag.BVT)]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
         public void StartCopyBlobUsingUri()
         {
-            StartCopyBlobTest(new PowerShellAgent(), true);
+            StartCopyBlobTest(true);
         }
 
         /// <summary>
@@ -482,25 +499,47 @@ namespace Management.Storage.ScenarioTest.BVT
         /// </summary>
         [TestMethod]
         [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
         public void GetBlobCopyStateTest()
         {
             CloudBlobUtil blobUtil = new CloudBlobUtil(CommonStorageAccount);
-            blobUtil.SetupTestContainerAndBlob();
+            if (lang == Language.PowerShell)
+            {
+                blobUtil.SetupTestContainerAndBlob();
+            }
+            else
+            {
+                blobUtil.SetupTestContainerAndBlob(blobNamePrefix: "blob");
+            }
             ICloudBlob destBlob = CopyBlobAndWaitForComplete(blobUtil);
 
             try
             {
                 Test.Assert(destBlob.CopyState.Status == CopyStatus.Success, String.Format("The blob copy using storage client should be success, actually it's {0}", destBlob.CopyState.Status));
 
-                PowerShellAgent agent = new PowerShellAgent();
                 Test.Assert(agent.GetAzureStorageBlobCopyState(blobUtil.ContainerName, destBlob.Name, false), "Get copy state should be success");
                 int expectedStateCount = 1;
                 Test.Assert(agent.Output.Count == expectedStateCount, String.Format("Expected to get {0} copy state, actually it's {1}", expectedStateCount, agent.Output.Count));
-                CopyStatus copyStatus = (CopyStatus)agent.Output[0]["Status"];
-                Test.Assert(copyStatus == CopyStatus.Success, String.Format("The blob copy should be success, actually it's {0}", copyStatus));
-                Uri sourceUri = (Uri)agent.Output[0]["Source"];
-                string expectedUri = CloudBlobUtil.ConvertCopySourceUri(blobUtil.Blob.Uri.ToString());
-                Test.Assert(sourceUri.ToString() == expectedUri, String.Format("Expected source uri is {0}, actully it's {1}", expectedUri, sourceUri.ToString()));
+
+                if (lang == Language.PowerShell)
+                {
+                    CopyStatus copyStatus = (CopyStatus)agent.Output[0]["Status"];
+                    Test.Assert(copyStatus == CopyStatus.Success, String.Format("The blob copy should be success, actually it's {0}", copyStatus));
+
+                    Uri sourceUri = (Uri)agent.Output[0]["Source"];
+                    string expectedUri = CloudBlobUtil.ConvertCopySourceUri(blobUtil.Blob.Uri.ToString());
+                    Test.Assert(sourceUri.ToString() == expectedUri, String.Format("Expected source uri is {0}, actully it's {1}", expectedUri, sourceUri.ToString()));
+                }
+                else
+                {
+                    string copyStatus = (string)agent.Output[0]["copyStatus"];
+                    Test.Assert(copyStatus == "success", String.Format("The blob copy should be success, actually it's {0}", copyStatus));
+
+                    string container = (string)agent.Output[0]["container"];
+                    string blob = (string)agent.Output[0]["blob"];
+                    Test.Assert(container == blobUtil.ContainerName, String.Format("Expected container is {0}, actully it's {1}", blobUtil.ContainerName, container));
+                    Test.Assert(blob == destBlob.Name, String.Format("Expected blob is {0}, actully it's {1}", destBlob.Name, blob));
+                }
 
                 Test.Assert(!agent.GetAzureStorageBlobCopyState(blobUtil.ContainerName, blobUtil.BlobName, false), "Get copy state should be fail since the specified blob don't have any copy operation");
                 Test.Assert(agent.ErrorMessages.Count > 0, "Should return error message");
@@ -518,20 +557,37 @@ namespace Management.Storage.ScenarioTest.BVT
         /// </summary>
         [TestMethod]
         [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
         public void StopCopyBlobTest()
         {
             CloudBlobUtil blobUtil = new CloudBlobUtil(CommonStorageAccount);
-            blobUtil.SetupTestContainerAndBlob();
+            if (lang == Language.PowerShell)
+            {
+                blobUtil.SetupTestContainerAndBlob();
+            }
+            else
+            {
+                blobUtil.SetupTestContainerAndBlob(blobNamePrefix: "blob");
+            }
             ICloudBlob destBlob = CopyBlobAndWaitForComplete(blobUtil);
 
             try
             {
-                PowerShellAgent agent = new PowerShellAgent();
                 string copyId = Guid.NewGuid().ToString();
                 Test.Assert(!agent.StopAzureStorageBlobCopy(blobUtil.ContainerName, blobUtil.BlobName, copyId, true), "Stop copy operation should be fail since the specified blob don't have any copy operation");
                 Test.Assert(agent.ErrorMessages.Count > 0, "Should return error message");
-                string errorMessage = String.Format("Can not find copy task on specified blob '{0}' in container '{1}'", blobUtil.BlobName, blobUtil.ContainerName);
-                Test.Assert(agent.ErrorMessages[0].IndexOf(errorMessage) != -1, String.Format("Error message should contain {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
+
+                string errorMessage;
+                if (lang == Language.PowerShell)
+                {
+                    errorMessage = String.Format("Can not find copy task on specified blob '{0}' in container '{1}'", blobUtil.BlobName, blobUtil.ContainerName);
+                    Test.Assert(agent.ErrorMessages[0].IndexOf(errorMessage) != -1, String.Format("Error message should contain {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
+                }
+                else
+                {
+                    errorMessage = "There is currently no pending copy operation.";
+                    Test.Assert(agent.ErrorMessages[0].IndexOf(errorMessage) != -1, String.Format("Error message should contain {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
+                }
 
                 errorMessage = "There is currently no pending copy operation.";
                 Test.Assert(!agent.StopAzureStorageBlobCopy(blobUtil.ContainerName, destBlob.Name, copyId, true), "Stop copy operation should be fail since the specified copy operation has finished");
@@ -669,10 +725,17 @@ namespace Management.Storage.ScenarioTest.BVT
             return destBlob;
         }
 
-        internal void StartCopyBlobTest(Agent agent, bool useUri)
+        internal void StartCopyBlobTest(bool useUri)
         {
             CloudBlobUtil blobUtil = new CloudBlobUtil(CommonStorageAccount);
-            blobUtil.SetupTestContainerAndBlob();
+            if (lang == Language.PowerShell)
+            {
+                blobUtil.SetupTestContainerAndBlob();
+            }
+            else
+            {
+                blobUtil.SetupTestContainerAndBlob(blobNamePrefix: "blob");
+            }
             string copiedName = Utility.GenNameString("copied");
 
             if (useUri)

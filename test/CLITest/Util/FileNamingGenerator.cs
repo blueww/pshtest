@@ -9,6 +9,7 @@
     using System.Reflection;
     using System.Text;
     using Management.Storage.ScenarioTest.Util.Globalization;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using MS.Test.Common.MsTestLib;
 
     /// <summary>
@@ -97,10 +98,16 @@
             int numberOfInavlidCharacters = r.Next(1, length);
             int numberOfValidCharacters = length - numberOfInavlidCharacters;
             StringBuilder sb = new StringBuilder(GenerateNameFromRange(numberOfValidCharacters, ValidASCIIRange));
+            var invalidCharList = new List<char>(InvalidFileNameCharacters);
+            if (AgentFactory.GetLanguage() == Language.NodeJS)
+            {
+                invalidCharList.Remove('"');
+            }
+
             for (int i = 0; i < numberOfInavlidCharacters; i++)
             {
                 int position = r.Next(sb.Length);
-                char invalidCharacter = InvalidFileNameCharacters[r.Next(InvalidFileNameCharacters.Length)];
+                char invalidCharacter = invalidCharList[r.Next(invalidCharList.Count)];
                 sb.Insert(position, invalidCharacter);
             }
 

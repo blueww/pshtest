@@ -12,7 +12,7 @@
     using StorageTestLib;
 
     [TestClass]
-    internal class NewAzureStorageFileShareTest : TestBase
+    public class NewAzureStorageFileShareTest : TestBase
     {
         private Random randomProvider = new Random();
 
@@ -65,7 +65,7 @@
                 var result = this.agent.Invoke(names);
 
                 this.agent.AssertNoError();
-                result.AssertPSObjectCollection(obj => obj.AssertCloudFileContainer(new List<string>(names)), numberOfShares);
+                result.AssertObjectCollection(obj => result.AssertCloudFileContainer(obj, new List<string>(names)), numberOfShares);
             }
             finally
             {
@@ -82,6 +82,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateShareWhichHasBeenDeletedAndGCed()
         {
             const int CreateShareInterval = 10000;
@@ -109,7 +110,7 @@
                         return;
                     }
 
-                    this.agent.AssertErrors(errorRecord => errorRecord.AssertFullQualifiedErrorId(AssertUtil.ShareBeingDeletedFullQualifiedErrorId));
+                    this.agent.AssertErrors(errorRecord => errorRecord.AssertError(AssertUtil.ShareBeingDeletedFullQualifiedErrorId));
                     this.agent.Clear();
                 }
 
@@ -127,6 +128,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateShareWith63CharactersTest()
         {
             this.CreateShareInternal(
@@ -134,7 +136,7 @@
                 (results, shareName) =>
                 {
                     this.agent.AssertNoError();
-                    (results).AssertPSObjectCollection(obj => obj.AssertCloudFileContainer(shareName));
+                    results.AssertObjectCollection(obj => results.AssertCloudFileContainer(obj, shareName));
                 });
         }
 
@@ -144,6 +146,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateShareWith3CharactersTest()
         {
             this.CreateShareInternal(
@@ -151,7 +154,7 @@
                 (results, shareName) =>
                 {
                     this.agent.AssertNoError();
-                    (results).AssertPSObjectCollection(obj => obj.AssertCloudFileContainer(shareName));
+                    results.AssertObjectCollection(obj => results.AssertCloudFileContainer(obj, shareName));
                 });
         }
 
@@ -161,6 +164,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateShareWithInvalidCharactersTest_DoubleDash()
         {
             int length = this.randomProvider.Next(10, 60);
@@ -168,7 +172,7 @@
                 () => FileNamingGenerator.GenerateInvalidShareName_DoubleDash(length),
                 (results, shareName) =>
                 {
-                    this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+                    this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
                 },
                 false);
         }
@@ -179,6 +183,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateShareWithInvalidCharactersTest_StartsWithDash()
         {
             int length = this.randomProvider.Next(10, 60);
@@ -186,7 +191,7 @@
                 () => FileNamingGenerator.GenerateInvalidShareName_StartsWithDash(length),
                 (results, shareName) =>
                 {
-                    this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+                    this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
                 },
                 false);
         }
@@ -197,6 +202,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateShareWithInvalidCharactersTest_EndsWithDash()
         {
             int length = this.randomProvider.Next(10, 60);
@@ -204,7 +210,7 @@
                 () => FileNamingGenerator.GenerateInvalidShareName_EndsWithDash(length),
                 (results, shareName) =>
                 {
-                    this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+                    this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
                 },
                 false);
         }
@@ -215,13 +221,14 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateShareWithInvalidCharactersTest_TooShort()
         {
             this.CreateShareInternal(
                 () => FileNamingGenerator.GenerateValidShareName(2),
                 (results, shareName) =>
                 {
-                    this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+                    this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
                 },
                 false);
         }
@@ -232,6 +239,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateAlreadyExistsShareTest()
         {
             string shareName = CloudFileUtil.GenerateUniqueFileShareName();
@@ -240,7 +248,7 @@
                 () => shareName,
                 (results, fileShareName) =>
                 {
-                    this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ShareAlreadyExistsFullQualifiedErrorId));
+                    this.agent.AssertErrors(err => err.AssertError(AssertUtil.ShareAlreadyExistsFullQualifiedErrorId));
                 },
                 false);
         }
@@ -268,7 +276,7 @@
                 this.agent.NewFileShareFromPipeline();
                 var result = this.agent.Invoke(shareNames);
                 this.agent.AssertErrors(
-                    err => err.AssertFullQualifiedErrorId(AssertUtil.ShareAlreadyExistsFullQualifiedErrorId),
+                    err => err.AssertError(AssertUtil.ShareAlreadyExistsFullQualifiedErrorId),
                     numberOfSharesAlreadyExists);
 
                 foreach (string shareName in shareNames)
@@ -291,6 +299,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateShareWithInvalidCharactersTest_UpperCase()
         {
             int length = this.randomProvider.Next(10, 60);
@@ -298,7 +307,7 @@
                 () => FileNamingGenerator.GenerateInvalidShareName_UpperCase(length),
                 (results, shareName) =>
                 {
-                    this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+                    this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
                 },
                 false);
         }
@@ -309,13 +318,14 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateShareWithInvalidCharactersTest_TooLong()
         {
             this.CreateShareInternal(
                 () => FileNamingGenerator.GenerateValidShareName(64),
                 (results, shareName) =>
                 {
-                    this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+                    this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
                 },
                 false);
         }
@@ -326,6 +336,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateShareWhichHasJustBeenDeletd()
         {
             string shareName = CloudFileUtil.GenerateUniqueFileShareName();
@@ -335,7 +346,7 @@
                 () => shareName,
                 (results, fileShareName) =>
                 {
-                    this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ShareBeingDeletedFullQualifiedErrorId));
+                    this.agent.AssertErrors(err => err.AssertError(AssertUtil.ShareBeingDeletedFullQualifiedErrorId));
                 },
                 false);
         }
@@ -346,13 +357,14 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateShareOnOldTestAcountWhichDoesNotSupportFileService()
         {
             string shareName = CloudFileUtil.GenerateUniqueFileShareName();
             object contextObject = this.agent.CreateStorageContextObject(Test.Data.Get("Pre42StorageConnectionString"));
             this.agent.NewFileShare(shareName, contextObject);
             this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(
+            this.agent.AssertErrors(err => err.AssertError(
                 AssertUtil.NameResolutionFailureFullQualifiedErrorId,
                 AssertUtil.ProtocolErrorFullQualifiedErrorId));
         }

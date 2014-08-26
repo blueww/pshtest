@@ -49,11 +49,12 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void UploadAndOverwrite()
         {
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             fileUtil.CreateFile(this.fileShare, cloudFileName);
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName, true);
             var result = agent.Invoke();
@@ -70,12 +71,12 @@
         public void UploadWithPassThru()
         {
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName, false, true);
             var result = agent.Invoke();
             this.agent.AssertNoError();
-            result.AssertPSObjectCollection(obj => obj.AssertCloudFile(cloudFileName));
+            result.AssertObjectCollection(obj => obj.AssertCloudFile(cloudFileName));
         }
 
         /// <summary>
@@ -89,7 +90,7 @@
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             string cloudDirectoryName = CloudFileUtil.GenerateUniqueDirectoryName();
             var directory = fileUtil.EnsureDirectoryExists(this.fileShare, cloudDirectoryName);
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             this.agent.UploadFile(directory, localFilePath, cloudFileName, true);
             var result = agent.Invoke();
@@ -103,12 +104,13 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void UploadUsingPath()
         {
             var baseDir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             string cloudPath = "/a/b/c/" + cloudFileName;
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             this.agent.UploadFile(this.fileShare, localFilePath, cloudPath);
             this.agent.Invoke();
@@ -122,12 +124,13 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
-        public void DownloadUsingRelativePathFromRoot()
+        [TestCategory(CLITag.NodeJSFT)]
+        public void UploadUsingRelativePathFromRoot()
         {
             var baseDir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             string relativeCloudPath = "a/b/../b/./c/" + cloudFileName;
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             this.agent.UploadFile(this.fileShare, localFilePath, relativeCloudPath);
             this.agent.Invoke();
@@ -141,13 +144,13 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
-        public void DownloadUsingRelativePathFromDirectoryObject()
+        public void UploadUsingRelativePathFromDirectoryObject()
         {
             var baseDir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             string cloudPath = "a/b/c/" + cloudFileName;
             string relativeCloudPath = "../../b/./c/" + cloudFileName;
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             this.agent.UploadFile(baseDir, localFilePath, relativeCloudPath);
             this.agent.Invoke();
@@ -164,7 +167,7 @@
         public void UploadLocalFileUsingRelativePathAfterChangedDefaultLocation()
         {
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), cloudFileName);
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), cloudFileName));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             this.agent.ChangeLocation(Test.Data.Get("TempDir"));
             this.agent.UploadFile(this.fileShare, cloudFileName, cloudFileName, true);
@@ -180,15 +183,16 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void UploadWithInvalidFileName_TooLong()
         {
             string cloudFileName = FileNamingGenerator.GenerateValidateASCIIName(256);
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName, true);
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -197,15 +201,16 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void UploadWithInvalidFileName_InvalidCharacters()
         {
             string cloudFileName = FileNamingGenerator.GenerateASCIINameWithInvalidCharacters(25);
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName, true);
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -214,10 +219,11 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void UploadWithInvalidAccountTest()
         {
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
 
             // Creates an storage context object with invalid account
@@ -226,7 +232,7 @@
             object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
             this.agent.UploadFile(this.fileShare.Name, localFilePath, cloudFileName, false, false, invalidStorageContextObject);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertFullQualifiedErrorId(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
+            this.agent.AssertErrors(record => record.AssertError(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -235,10 +241,11 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void UploadWithInvalidKeyValueTest()
         {
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
 
             // Creates an storage context object with invalid key value
@@ -246,7 +253,7 @@
             object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
             this.agent.UploadFile(this.fileShare.Name, localFilePath, cloudFileName, false, false, invalidStorageContextObject);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertFullQualifiedErrorId(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
+            this.agent.AssertErrors(record => record.AssertError(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -260,11 +267,11 @@
             var file = fileUtil.CreateFile(this.fileShare, cloudFileName);
             file.FetchAttributes();
             var etag = file.Properties.ETag;
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName, false);
             var result = agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId));
             file.FetchAttributes();
             Test.Assert(etag == file.Properties.ETag, "File should not be overwritten without overwrite flag.");
         }
@@ -302,9 +309,10 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void UploadingToNonExistingDirectory()
         {
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
 
             string cloudDirectoryName = CloudFileUtil.GenerateUniqueDirectoryName();
@@ -313,7 +321,7 @@
             var file = this.fileShare.GetRootDirectoryReference().GetDirectoryReference(cloudDirectoryName).GetFileReference(cloudFileName);
             this.agent.UploadFile(this.fileShare, localFilePath, CloudFileUtil.GetFullPath(file));
             this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ParentNotFoundFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ParentNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -323,14 +331,14 @@
         ////[TestCategory(PsTag.File)]
         public void UploadingToExistingFileWithNoOverwriteOption()
         {
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             fileUtil.CreateFile(this.fileShare, cloudFileName);
 
             this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName);
             this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -339,9 +347,10 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void UploadAnNonExistingLocalFile()
         {
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             if (File.Exists(localFilePath))
             {
                 File.Delete(localFilePath);
@@ -351,7 +360,7 @@
 
             this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName);
             this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.PathNotFoundFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.PathNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -360,9 +369,10 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void UploadToAFileWhichHasJustBeenRemoved()
         {
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
 
@@ -383,15 +393,16 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void UploadAFileWithInvalidSpecialName()
         {
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             string cloudFileName = "CLOCK$";
 
             this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName);
             this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -400,15 +411,16 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void UploadToADeletedFolder()
         {
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             var dir = fileUtil.EnsureDirectoryExists(this.fileShare, CloudFileUtil.GenerateUniqueDirectoryName());
             dir.Delete();
-            this.agent.UploadFile(dir, localFilePath, ".");
+            this.agent.UploadFile(this.fileShare, localFilePath, CloudFileUtil.GetFullPath(dir) + "/");
             this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ParentNotFoundFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ParentNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -417,13 +429,14 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void UploadFileFromSubDirectoryOfRootTest()
         {
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             this.agent.UploadFile(this.fileShare, localFilePath, "../a");
             this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidResourceFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId, AssertUtil.AuthenticationFailedFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -437,7 +450,7 @@
             var baseDir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             string relativeCloudPath = "../../ddd/../b/./c/" + cloudFileName;
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             this.agent.UploadFile(baseDir, localFilePath, relativeCloudPath);
             this.agent.Invoke();
@@ -447,7 +460,7 @@
 
         private void UploadMultipleThroughPipeline(int numberOfFiles, int numberOfExistingFiles)
         {
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
 
             int[] indexes = Enumerable.Range(0, numberOfFiles).ToArray();

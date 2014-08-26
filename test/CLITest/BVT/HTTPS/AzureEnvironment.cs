@@ -17,36 +17,45 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
     using Management.Storage.ScenarioTest.Common;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using MS.Test.Common.MsTestLib;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
 
-    // Temp block test cases for azure environment
     [TestClass]
-    class AzureEnvironment : NameKeyContextBVT
+    public class AzureEnvironment : NameKeyContextBVT
     {
         [ClassInitialize()]
         public static void AzureEnvironmentBVTClassInitialize(TestContext testContext)
         {
-            //first set the storage account
-            //second init common bvt
-            //third set storage context in powershell
             useHttps = true;
-            isSecondary = true;
-            SetUpStorageAccount = TestBase.GetCloudStorageAccountFromConfig("Secondary", useHttps);
-            StorageAccountName = SetUpStorageAccount.Credentials.AccountName;
-            string StorageEndpoint = Test.Data.Get("SecondaryStorageEndPoint");
-            string StorageAccountKey = Test.Data.Get("SecondaryStorageAccountKey");
-            CLICommonBVT.CLICommonBVTInitialize(testContext);
-            string azureEnvironmentName = PowerShellAgent.AddRandomAzureEnvironment(StorageEndpoint, "bvt");
-            PowerShellAgent.SetStorageContextWithAzureEnvironment(StorageAccountName, StorageAccountKey, useHttps, azureEnvironmentName);
+            Initialize(testContext, useHttps);
         }
 
         [ClassCleanup()]
         public static void AzureEnvironmentBVTCleanup()
         {
             CLICommonBVT.CLICommonBVTCleanup();
+        }
+
+        public static void Initialize(TestContext testContext, bool useHttps)
+        {
+            //first set the storage account
+            //second init common bvt
+            //third set storage context in powershell
+            isSecondary = true;
+            SetUpStorageAccount = TestBase.GetCloudStorageAccountFromConfig("Secondary", useHttps);
+            StorageAccountName = SetUpStorageAccount.Credentials.AccountName;
+            string StorageEndpoint = Test.Data.Get("SecondaryStorageEndPoint");
+            string StorageAccountKey = Test.Data.Get("SecondaryStorageAccountKey");
+            CLICommonBVT.CLICommonBVTInitialize(testContext);
+            if (lang == Language.PowerShell)
+            {
+                string azureEnvironmentName = PowerShellAgent.AddRandomAzureEnvironment(StorageEndpoint, "bvt");
+                PowerShellAgent.SetStorageContextWithAzureEnvironment(StorageAccountName, StorageAccountKey, useHttps, azureEnvironmentName);
+            }
+            else
+            {
+                NodeJSAgent.AgentConfig.UseEnvVar = false;
+                NodeJSAgent.AgentConfig.AccountName = StorageAccountName;
+                NodeJSAgent.AgentConfig.AccountKey = StorageAccountKey;
+            }
         }
     }
 }

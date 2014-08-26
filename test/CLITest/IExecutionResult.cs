@@ -13,10 +13,31 @@
 // ----------------------------------------------------------------------------------
 namespace Management.Storage.ScenarioTest
 {
+    using System;
+    using System.Collections.Generic;
+    using Microsoft.WindowsAzure.Storage.File;
+
     /// <summary>
     /// Provides an interface for execution result of CLI.
     /// </summary>
     public interface IExecutionResult
     {
+        void AssertNoResult();
+
+        void AssertObjectCollection(Action<object> assertAction, int assertNumber = 1);
+
+        void AssertFileListItems(IEnumerable<CloudFile> files, IEnumerable<CloudFileDirectory> directories);
+
+        void AssertCloudFileContainer(object containerObj, string fileShareName);
+
+        void AssertCloudFileContainer(object containerObj, List<string> fileShareNames, bool failIfNotInGivenList = true);
+
+        void AssertCloudFileDirectory(object directoryObj, string directoryPath);
+
+        void AssertCloudFileDirectory(object directoryObj, List<string> directoryPathes);
+
+        void AssertCloudFile(object fileObj, string fileName, string path = null);
+
+        void AssertCloudFile(object fileObj, List<CloudFile> files);
     }
 }

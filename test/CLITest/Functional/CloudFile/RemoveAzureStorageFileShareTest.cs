@@ -1,4 +1,18 @@
-﻿namespace Management.Storage.ScenarioTest.Functional.CloudFile
+﻿// ----------------------------------------------------------------------------------
+//
+// Copyright Microsoft Corporation
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// ----------------------------------------------------------------------------------
+
+namespace Management.Storage.ScenarioTest.Functional.CloudFile
 {
     using System;
     using System.Collections.Generic;
@@ -75,6 +89,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveFileShareWithInvalidAccountTest()
         {
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
@@ -87,7 +102,7 @@
                 object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
                 this.agent.RemoveFileShareByName(fileShareName, false, invalidStorageContextObject);
                 var result = this.agent.Invoke();
-                this.agent.AssertErrors(record => record.AssertFullQualifiedErrorId(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
+                this.agent.AssertErrors(record => record.AssertError(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
                 fileUtil.AssertFileShareExists(fileShareName, "File share should not be removed when providing invalid credentials.");
             }
             finally
@@ -102,6 +117,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveFileShareWithInvalidKeyValueTest()
         {
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
@@ -113,7 +129,7 @@
                 object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
                 this.agent.RemoveFileShareByName(fileShareName, false, invalidStorageContextObject);
                 var result = this.agent.Invoke();
-                this.agent.AssertErrors(record => record.AssertFullQualifiedErrorId(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
+                this.agent.AssertErrors(record => record.AssertError(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
                 fileUtil.AssertFileShareExists(fileShareName, "File share should not be removed when providing invalid credentials.");
             }
             finally
@@ -128,6 +144,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveNonExistingFileShareTest()
         {
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
@@ -137,7 +154,7 @@
             {
                 this.agent.RemoveFileShareByName(fileShareName);
                 var result = this.agent.Invoke();
-                this.agent.AssertErrors(record => record.AssertFullQualifiedErrorId(AssertUtil.ShareNotFoundFullQualifiedErrorId));
+                this.agent.AssertErrors(record => record.AssertError(AssertUtil.ShareNotFoundFullQualifiedErrorId));
             }
             finally
             {
@@ -151,6 +168,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void RemoveFileShareWhileAFileIsUploading()
         {
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();

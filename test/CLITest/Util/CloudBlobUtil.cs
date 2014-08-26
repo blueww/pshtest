@@ -24,6 +24,7 @@ using MS.Test.Common.MsTestLib;
 using StorageTestLib;
 using StorageBlobType = Microsoft.WindowsAzure.Storage.Blob.BlobType;
 using StorageBlob = Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 
 namespace Management.Storage.ScenarioTest.Util
 {
@@ -70,6 +71,12 @@ namespace Management.Storage.ScenarioTest.Util
         {
             this.account = account;
             client = account.CreateCloudBlobClient();
+
+            // Enable logging for blob service and enable $logs container
+            ServiceProperties properties = client.GetServiceProperties();
+            properties.Logging.LoggingOperations = LoggingOperations.All;
+            client.SetServiceProperties(properties);
+
             random = new Random();
         }
 

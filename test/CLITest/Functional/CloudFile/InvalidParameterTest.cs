@@ -45,7 +45,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddScript("New-AzureStorageShare -Name $null");
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -59,7 +59,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddScript("New-AzureStorageShare -Name \"\"");
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -73,7 +73,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddScript("New-AzureStorageDirectory -Share $null -Path dir");
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -87,7 +87,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Get-AzureStorageFile -Directory $null");
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -101,7 +101,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Get-AzureStorageFileContent -File $null -Destination .");
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -120,7 +120,7 @@
                 this.agent.DownloadFile(file, Test.Data.Get("TempDir"), true);
                 var result = this.agent.Invoke();
                 result.AssertNoResult();
-                this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.InvalidOperationExceptionFullQualifiedErrorId));
+                this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.InvalidOperationExceptionFullQualifiedErrorId));
             }
             finally
             {

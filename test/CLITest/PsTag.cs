@@ -23,6 +23,7 @@ namespace Management.Storage.ScenarioTest
         public const string Perf = "perf";
         public const string Scale = "scale";
         public const string GB18030 = "GB18030";
+        public const string FilePerf = "fileperf";
 
         public const string Container = "container";
         public const string GetContainer = "getcontainer";
@@ -45,6 +46,14 @@ namespace Management.Storage.ScenarioTest
         public const string StartCopyBlob = "startcopyblob";
         public const string GetBlobCopyState = "getblobcopystate";
         public const string StopCopyBlob = "stopcopyblob";
+
+        public const string NewShare = "newshare";
+        public const string RemoveShare = "removeshare";
+        public const string GetShare = "getshare";
+
+        public const string NewDirectory = "newdirectory";
+        public const string RemoveDirectory = "removedirectory";
+        public const string GetDirectory = "getdirectory";
 
         public const string Queue = "queue";
         public const string GetQueue = "getqueue";
@@ -75,5 +84,19 @@ namespace Management.Storage.ScenarioTest
         public const string NodeJSFT= "nodejsft";
         public const string NodeJSPerf= "nodejsperf";
         public const string NodeJSScale= "nodejsscale";
+
+        public const string StartCopyBlob = "nodestartcopyblob";
+        public const string GetBlobCopyState = "nodegetblobcopystate";
+        public const string StopCopyBlob = "nodestopcopyblob";
+
+        public const string Table = "nodejstable";
+        public const string GetTable = "nodejsgettable";
+        public const string NewTable = "nodejsnewtable";
+        public const string RemoveTable = "nodejsremovetable";
+
+        public const string Queue = "nodejsqueue";
+        public const string GetQueue = "nodejsgetqueue";
+        public const string NewQueue = "nodejsnewqueue";
+        public const string RemoveQueue = "nodejsremovequeue";
     }
 }

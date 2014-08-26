@@ -63,7 +63,7 @@
             var result = this.agent.Invoke(names);
 
             this.agent.AssertNoError();
-            result.AssertPSObjectCollection(obj => obj.AssertCloudFileDirectory(new List<string>(names)), numberOfDirectories);
+            result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory(new List<string>(names)), numberOfDirectories);
         }
 
         /// <summary>
@@ -72,6 +72,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryWhichHasJustBeenDeleted()
         {
             string dirName = CloudFileUtil.GenerateUniqueDirectoryName();
@@ -103,6 +104,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryWith255Unicodes()
         {
             foreach (var dirName in FileNamingGenerator.GenerateValidateUnicodeName(FileNamingGenerator.MaxFileNameLength))
@@ -118,6 +120,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryWith255ASCIIChars()
         {
             string dirName = FileNamingGenerator.GenerateValidateASCIIName(FileNamingGenerator.MaxFileNameLength);
@@ -140,7 +143,7 @@
             ((PowerShellAgent)this.agent).PowerShellSession.AddParameter("Path", dir2);
             var result = this.agent.Invoke();
             this.agent.AssertNoError();
-            result.AssertPSObjectCollection(obj => obj.AssertCloudFileDirectory(fullPathForDir2));
+            result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory(fullPathForDir2));
             fileUtil.AssertDirectoryExists(this.fileShare, dir1, "Base directory should be created.");
             fileUtil.AssertDirectoryExists(this.fileShare, fullPathForDir2, "Sub directory should be created.");
         }
@@ -164,7 +167,7 @@
 
             var result = this.agent.Invoke();
             this.agent.AssertNoError();
-            result.AssertPSObjectCollection(obj => obj.AssertCloudFileDirectory(expectedPathBuilder.ToString()));
+            result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory(expectedPathBuilder.ToString()));
         }
 
         /// <summary>
@@ -173,6 +176,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryWithPathStartsWithSlash()
         {
             string dir1 = CloudFileUtil.GenerateUniqueDirectoryName();
@@ -260,6 +264,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryUnderNonExistingShare()
         {
             string shareName = CloudFileUtil.GenerateUniqueFileShareName();
@@ -269,7 +274,7 @@
                 () => this.agent.NewDirectory(shareName, dirName),
                 dirName,
                 false);
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ShareNotFoundFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ShareNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -278,6 +283,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void NewDirectoryWithInvalidAccountTest()
         {
             string dir = CloudFileUtil.GenerateUniqueDirectoryName();
@@ -290,7 +296,7 @@
             object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
             this.agent.NewDirectory(this.fileShare.Name, dir, invalidStorageContextObject);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertFullQualifiedErrorId(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
+            this.agent.AssertErrors(record => record.AssertError(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
             fileUtil.AssertDirectoryNotExists(this.fileShare, dir, "Directory should not be created when providing invalid credentials.");
         }
 
@@ -300,6 +306,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void NewDirectoryWithInvalidKeyValueTest()
         {
             string dir = CloudFileUtil.GenerateUniqueDirectoryName();
@@ -311,7 +318,7 @@
             object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
             this.agent.NewDirectory(this.fileShare.Name, dir, invalidStorageContextObject);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertFullQualifiedErrorId(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
+            this.agent.AssertErrors(record => record.AssertError(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
             fileUtil.AssertDirectoryNotExists(this.fileShare, dir, "Directory should not be created when providing invalid credentials.");
         }
 
@@ -321,13 +328,14 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateExistingDirectoryTest()
         {
             string dirName = CloudFileUtil.GenerateUniqueDirectoryName();
             var directory = fileUtil.EnsureDirectoryExists(this.fileShare, dirName);
             this.agent.NewDirectory(this.fileShare, dirName);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -355,7 +363,7 @@
             var result = this.agent.Invoke(names);
 
             // A total number of "numberOfExistingDirectories" errors should throw while others should success.
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId), numberOfExistingDirectories);
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId), numberOfExistingDirectories);
 
             // Assert all directories are created
             foreach (string name in names)
@@ -370,6 +378,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryUnderNonExistingFileShareTest()
         {
             string nonExistingFileShareName = CloudFileUtil.GenerateUniqueFileShareName();
@@ -377,7 +386,7 @@
             string dirName = CloudFileUtil.GenerateUniqueDirectoryName();
             this.agent.NewDirectory(nonExistingFileShareName, dirName);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ShareNotFoundFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ShareNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -386,11 +395,12 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryWith256Chars()
         {
             string dirName = FileNamingGenerator.GenerateValidateASCIIName(FileNamingGenerator.MaxFileNameLength + 1);
             this.CreateDirectoryInternal(dirName, false);
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -399,11 +409,12 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryWithInvalidCharacters()
         {
             string dirName = FileNamingGenerator.GenerateASCIINameWithInvalidCharacters(this.randomProvider.Next(3, FileNamingGenerator.MaxFileNameLength + 1));
             this.CreateDirectoryInternal(dirName, false);
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -412,6 +423,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateCasePreservingExistingDirectoryTest()
         {
             int length = this.randomProvider.Next(5, 50);
@@ -434,7 +446,7 @@
             Test.Info("Original dir name: {0}. New dir name: {1}.", dirName, newDirName);
             this.agent.NewDirectory(this.fileShare, newDirName);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -462,7 +474,7 @@
             Test.Assert(expectedPath.Length == 1024, "Generated path should be 1024 while it is {0}.", expectedPath.Length);
             var result = this.agent.Invoke();
             this.agent.AssertNoError();
-            result.AssertPSObjectCollection(obj => obj.AssertCloudFileDirectory(expectedPath));
+            result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory(expectedPath));
         }
 
         /// <summary>
@@ -484,7 +496,7 @@
 
             var result = this.agent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidFileOrDirectoryPathNameFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidFileOrDirectoryPathNameFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -493,11 +505,12 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryUnderRootsParent()
         {
             string dirName = CloudFileUtil.GenerateUniqueDirectoryName();
             this.CreateDirectoryInternal("../" + dirName, false);
-            this.agent.AssertErrors(err => err.AssertFullQualifiedErrorId(AssertUtil.InvalidResourceFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId, AssertUtil.AuthenticationFailedFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -526,8 +539,8 @@
             if (assertForSuccess)
             {
                 this.agent.AssertNoError();
-                result.AssertPSObjectCollection(obj => obj.AssertCloudFileDirectory(dirName), 1);
-                fileUtil.AssertDirectoryExists(this.fileShare, dirName.Trim(AssertUtil.PathSeparators), "Directory should exist after creation.");
+                result.AssertObjectCollection(obj => result.AssertCloudFileDirectory(obj, dirName), 1);
+                fileUtil.AssertDirectoryExists(this.fileShare, dirName.Trim(CloudFileUtil.PathSeparators), "Directory should exist after creation.");
             }
         }
     }

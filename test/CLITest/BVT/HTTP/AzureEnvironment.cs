@@ -14,38 +14,23 @@
 
 namespace Management.Storage.ScenarioTest.BVT.HTTP
 {
-    using Management.Storage.ScenarioTest.Common;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using MS.Test.Common.MsTestLib;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
+    using HTTPSAzureEnvironment = Management.Storage.ScenarioTest.BVT.HTTPS.AzureEnvironment;
 
     [TestClass]
-    class AzureEnvironment : Management.Storage.ScenarioTest.BVT.HTTPS.AzureEnvironment
+    public class AzureEnvironment : HTTPSAzureEnvironment
     {
         [ClassInitialize()]
         public static void AzureEnvironmentHTTPBVTClassInitialize(TestContext testContext)
         {
-            //first set the storage account
-            //second init common bvt
-            //third set storage context in powershell
             useHttps = false;
-            isSecondary = true;
-            SetUpStorageAccount = TestBase.GetCloudStorageAccountFromConfig("Secondary", useHttps);
-            StorageAccountName = SetUpStorageAccount.Credentials.AccountName;
-            string StorageEndpoint = Test.Data.Get("SecondaryStorageEndPoint");
-            string StorageAccountKey = Test.Data.Get("SecondaryStorageAccountKey");
-            CLICommonBVT.CLICommonBVTInitialize(testContext);
-            string azureEnvironmentName = PowerShellAgent.AddRandomAzureEnvironment(StorageEndpoint, "bvt");
-            PowerShellAgent.SetStorageContextWithAzureEnvironment(StorageAccountName, StorageAccountKey, useHttps, azureEnvironmentName);
+            HTTPSAzureEnvironment.Initialize(testContext, useHttps);
         }
 
         [ClassCleanup()]
         public static void AzureEnvironmentHTTPBVTCleanup()
         {
-            CLICommonBVT.CLICommonBVTCleanup();
+            HTTPSAzureEnvironment.AzureEnvironmentBVTCleanup();
         }
     }
 }
