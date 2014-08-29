@@ -125,7 +125,10 @@
                 {
                     ch = Convert.ToChar(r.Next(range.Item1, range.Item2));
                 }
-                while (InvalidFileNameCharacters.Contains(ch));
+                while (
+                    InvalidFileNameCharacters.Contains(ch) ||
+                    i == length - 1 && ch == '.');
+
                 sb.Append(ch);
             }
 
