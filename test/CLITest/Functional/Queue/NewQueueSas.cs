@@ -14,7 +14,7 @@
     using System.Threading;
 
     [TestClass]
-    public class NewQueueSas : TestBase
+    class NewQueueSas : TestBase
     {
         [ClassInitialize()]
         public static void NewQueueSasClassInit(TestContext testContext)
