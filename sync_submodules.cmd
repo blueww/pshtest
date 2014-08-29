@@ -13,5 +13,6 @@ cd Xplat
 git fetch
 git reset origin/dev --hard
 cd ..
+
 git add -A
 git commit -m "sync submodules to latest"
