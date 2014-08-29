@@ -137,7 +137,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
         public void ShowBlobWithSpecialChars(BlobType blobType)
         {
-            CloudBlobContainer container = blobUtil.CreateContainer();
+            CloudBlobContainer container = blobUtil.CreateContainer("xytest");
             string blobName = SpecialChars;
             ICloudBlob blob = blobUtil.CreateBlob(container, blobName, blobType);
 
