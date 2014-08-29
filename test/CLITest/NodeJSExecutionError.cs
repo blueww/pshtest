@@ -30,7 +30,7 @@ namespace Management.Storage.ScenarioTest
         private static readonly Dictionary<string, string> ErrorCodeTranslateDictionary = new Dictionary<string, string>()
         {
             {"ShareBeingDeleted","The specified share is being deleted."},
-            {"InvalidArgument","Share name format is incorrect+Share name must be between 3 and 63 characters long.+The specifed resource name contains invalid characters.+BadRequest"},
+            {"InvalidArgument","Share name format is incorrect+Share name must be between 3 and 63 characters long.+The specifed resource name contains invalid characters.+BadRequest+@The given prefix '[^']{1,}' is not a valid prefix of a share name"},
             {"ShareAlreadyExists","The specified share already exists."},
             {"NameResolutionFailure","getaddrinfo ENOTFOUND"},
             {"AuthenticationFailed","Server failed to authenticate the request.+Forbidden"},
@@ -41,7 +41,10 @@ namespace Management.Storage.ScenarioTest
             {"ResourceNotFound","Can not find directory+Can not find file"},
             {"DirectoryNotEmpty","The specified directory is not empty."},
             {"ParentNotFound","@Path '[^']{1,}' is neither an existing file nor under an existing directory+The specified parent path does not exist"},
-            {"InvalidResource","Cannot delete root directory. A path to a subdirectory is mandatory"}
+            {"InvalidResource","Cannot delete root directory. A path to a subdirectory is mandatory"},
+            {"OutOfRangeInput","The specified resource name length is not within the permissible limits.+BadRequest"},
+            {"InvalidUri","The requested URI does not represent any resource on the server."},
+            {"UnsupportedHttpVerb","The resource doesn't support specified Http Verb."}
         };
 
         public NodeJSExecutionError(string errorMessage)

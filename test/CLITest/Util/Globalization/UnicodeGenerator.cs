@@ -40,7 +40,10 @@
                 for (int i = 0; i < str.Length; i++)
                 {
                     int ch = (int)str[i];
-                    if (ch < 0xE000 && ch >= 0x20 && !this.ExcludedCharacters.Contains(str[i]))
+                    if (ch < 0xE000 &&
+                        ch >= 0x20 &&
+                        !this.ExcludedCharacters.Contains(str[i]) &&
+                        (i != str.Length - 1 || str[i] != '.'))
                     {
                         result.Append(str[i]);
                     }
