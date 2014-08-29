@@ -13,7 +13,7 @@
     using System.Threading;
 
     [TestClass]
-    class NewBlobSas : TestBase
+    public class NewBlobSas : TestBase
     {
         [ClassInitialize()]
         public static void NewBlobSasClassInit(TestContext testContext)
