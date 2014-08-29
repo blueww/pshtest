@@ -98,11 +98,5 @@ namespace Management.Storage.ScenarioTest
         public const string GetQueue = "nodejsgetqueue";
         public const string NewQueue = "nodejsnewqueue";
         public const string RemoveQueue = "nodejsremovequeue";
-
-        public const string NewContainerSas = "nodejsnewcontainersas";
-        public const string NewBlobSas = "nodejsnewblobsas";
-        public const string NewQueueSas = "nodejsnewqueuesas";
-        public const string NewTableSas = "nodejsnewtablesas";
-        public const string SASInterop = "nodejssasinterop";
     }
 }

@@ -12,7 +12,7 @@
     using StorageTestLib;
 
     [TestClass]
-    public class NewTableSas : TestBase
+    class NewTableSas : TestBase
     {
         [ClassInitialize()]
         public static void NewTableSasClassInit(TestContext testContext)

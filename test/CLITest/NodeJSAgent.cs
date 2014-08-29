@@ -1304,44 +1304,6 @@ namespace Management.Storage.ScenarioTest
         {
             throw new NotImplementedException();
         }
-
-        ///-------------------------------------
-        /// SAS token APIs
-        ///-------------------------------------
-        public override bool NewAzureStorageContainerSAS(string container, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false)
-        {
-            string command = string.Format(
-                "container sas create {0} {1} {2}", 
-                container, 
-                permission,
-                expiryTime.HasValue ? expiryTime.Value.ToUniversalTime().ToString() : DateTime.UtcNow.AddHours(1).ToString("yyyy-MM-ddTHH:mm:ssZ"));
-
-            if (startTime.HasValue)
-            {
-                command += " --start " + expiryTime.Value.ToUniversalTime().ToString();
-            }
-
-            return RunNodeJSProcess(command);
-        }
-
-        public override bool NewAzureStorageBlobSAS(string container, string blob, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool NewAzureStorageTableSAS(string name, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, string startpk = "", string startrk = "", string endpk = "", string endrk = "")
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool NewAzureStorageQueueSAS(string name, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false)
-        {
-            throw new NotImplementedException();
-        }
     }
 
     public enum OSType
