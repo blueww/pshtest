@@ -16,7 +16,7 @@
     /// Functional test case for new-azurestoragecontainersas
     /// </summary>
     [TestClass]
-    class NewContainerSas : TestBase
+    public class NewContainerSas : TestBase
     {
         [ClassInitialize()]
         public static void NewContainerSasClassInit(TestContext testContext)

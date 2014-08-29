@@ -27,7 +27,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
     /// functional test for Get-AzureStorageBlob
     /// </summary>
     [TestClass]
-    class GetBlob : TestBase
+    public class GetBlob : TestBase
     {
         [ClassInitialize()]
         public static void GetBlobClassInit(TestContext testContext)

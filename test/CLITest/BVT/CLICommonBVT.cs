@@ -1255,10 +1255,11 @@ namespace Management.Storage.ScenarioTest.BVT
 
             try
             {
+                string key = lang == Language.PowerShell ? Constants.SASTokenKey : "sas";
                 string fullContainerPermission = "rwdl";
                 Test.Assert(agent.NewAzureStorageContainerSAS(blobUtil.Container.Name, string.Empty, fullContainerPermission),
                     "Generate container sas token should succeed");
-                string sastoken = agent.Output[0][Constants.SASTokenKey].ToString();
+                string sastoken = agent.Output[0][key].ToString();
                 Test.Info("Generated sas token:{0}", sastoken);
                 blobUtil.ValidateContainerListableWithSasToken(blobUtil.Container, sastoken);
             }
