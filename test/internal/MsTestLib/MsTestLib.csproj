@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{AC39B50F-DC27-4411-9ED4-A4A137190ACB}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>MS.Test.Common.MsTestLib</RootNamespace>
+    <AssemblyName>MsTestLib</AssemblyName>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\..\..\azcopy\dmlib\internal\tools\strongnamekeys\fake\windows.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>true</DelaySign>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>...\..\..\azcopy\dmlib\internal\imports\VisualStudio\VS10RTM\MsTest\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Wtt.Log, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8a96d095ee9fe264">
+      <HintPath>..\..\..\azcopy\dmlib\internal\imports\WTT\2.6\Logger\amd64\Microsoft.Wtt.Log.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\ClassConfig.cs">
+      <Link>ClassConfig.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\ConsoleLogger.cs">
+      <Link>ConsoleLogger.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\DumpHelper.cs">
+      <Link>DumpHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\Exceptions.cs">
+      <Link>Exceptions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\FileLogger.cs">
+      <Link>FileLogger.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\ILogger.cs">
+      <Link>ILogger.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\MessageBuilder.cs">
+      <Link>MessageBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\MethodConfig.cs">
+      <Link>MethodConfig.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\Test.cs">
+      <Link>Test.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\TestConfig.cs">
+      <Link>TestConfig.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\TestHelper.cs">
+      <Link>TestHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\TestLogger.cs">
+      <Link>TestLogger.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\WTTLogger.cs">
+      <Link>WTTLogger.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
