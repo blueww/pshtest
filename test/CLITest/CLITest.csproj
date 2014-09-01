@@ -38,15 +38,12 @@
   <ItemGroup>
     <Reference Include="Microsoft.Data.Edm, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Data.Edm.5.6.0\lib\net40\Microsoft.Data.Edm.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Data.OData, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Data.OData.5.6.0\lib\net40\Microsoft.Data.OData.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Data.Services.Client, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Data.Services.Client.5.6.0\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\AzCopy\dmlib\internal\imports\VisualStudio\VS10RTM\MsTest\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
@@ -55,8 +52,8 @@
     <Reference Include="Microsoft.WindowsAzure.Configuration, Version=1.8.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.WindowsAzure.ConfigurationManager.1.8.0.0\lib\net35-full\Microsoft.WindowsAzure.Configuration.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Storage, Version=4.2.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\WindowsAzure.Storage.4.2.1\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
+    <Reference Include="Microsoft.WindowsAzure.Storage, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAzure.Storage.4.0.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Wtt.Log, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8a96d095ee9fe264">
       <SpecificVersion>False</SpecificVersion>
@@ -84,10 +81,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\AzCopy\dmlib\internal\test\StorageTestLib\StorageTestLib.csproj">
-      <Project>{4f2832dd-e6c6-48b7-819a-ae06bfcafa7c}</Project>
-      <Name>StorageTestLib</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTest2\MsTest2.csproj">
       <Project>{a7edcc64-0549-4c78-aced-0ca7b605d8fb}</Project>
       <Name>MsTest2</Name>
@@ -95,6 +88,10 @@
     <ProjectReference Include="..\..\AzCopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\MsTestLib.csproj">
       <Project>{ac39b50f-dc27-4411-9ed4-a4a137190acb}</Project>
       <Name>MsTestLib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\StorageTestLib\StorageTestLib.csproj">
+      <Project>{4f2832dd-e6c6-48b7-819a-ae06bfcafa7c}</Project>
+      <Name>StorageTestLib</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
