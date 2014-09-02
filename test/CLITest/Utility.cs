@@ -32,7 +32,8 @@ namespace Management.Storage.ScenarioTest
         public static List<string> LoggingOperationList = new List<string>() { "Read", "Write", "Delete" };
         public static List<string> ContainerPermission = new List<string>() { "r", "w", "d", "l" };
         public static List<string> BlobPermission = new List<string>() { "r", "w", "d" };
-        public static List<string> TablePermission = new List<string>() { "r", "q", "a", "u", "d" };
+        public static List<string> TablePermissionPS = new List<string>() { "r", "q", "a", "u", "d" };
+        public static List<string> TablePermissionNode = new List<string>() { "r", "a", "u", "d" };
         public static List<string> QueuePermission = new List<string>() { "r", "a", "u", "p" };
 
         /// <summary>
@@ -450,7 +451,7 @@ namespace Management.Storage.ScenarioTest
                 case StorageObjectType.Blob:
                     return Utility.GenRandomCombination(BlobPermission);
                 case StorageObjectType.Table:
-                    return Utility.GenRandomCombination(TablePermission);
+                    return Utility.GenRandomCombination(TablePermissionNode);
                 case StorageObjectType.Queue:
                     return Utility.GenRandomCombination(QueuePermission);
 
