@@ -183,7 +183,6 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
         public void CreateShareWithInvalidCharactersTest_StartsWithDash()
         {
             int length = this.randomProvider.Next(10, 60);
