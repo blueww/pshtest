@@ -12,11 +12,13 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using MS.Test.Common.MsTestLib;
-
 namespace DataMovementTest
 {
+    using System;
+    using System.IO;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using MS.Test.Common.MsTestLib;
+
     [TestClass]
     public class AssemblyInitCleanup
     {
@@ -25,19 +27,62 @@ namespace DataMovementTest
         {
             // init loggers and load test config data
             Test.Init();
+
             // set the assertfail delegate to report failure in VS
             Test.AssertFail = new AssertFailDelegate(Assert.Fail);
 
+            CleanupTempFolder();
         }
 
         [AssemblyCleanup]
         public static void TestCleanup()
         {
-            
+            CleanupTempFolder();
+
             //close loggers
             Test.Close();
+        }
 
+        private static void CleanupTempFolder()
+        {
+            string tempDir = Test.Data.Get("TempDir");
+            if (!string.IsNullOrEmpty(tempDir))
+            {
+                try
+                {
+                    Test.Verbose("Cleanup temp folder...");
+                    var tempDirInfo = new DirectoryInfo(tempDir);
+                    foreach (var file in tempDirInfo.EnumerateFiles())
+                    {
+                        try
+                        {
+                            Test.Verbose("Deleting file {0}...", file);
+                            file.Delete();
+                        }
+                        catch (Exception e)
+                        {
+                            Test.Warn("Failed to delete file {0}: {1}", file, e);
+                        }
+                    }
 
+                    foreach (var dir in tempDirInfo.EnumerateDirectories())
+                    {
+                        try
+                        {
+                            Test.Verbose("Deleting file {0}...", dir);
+                            dir.Delete(true);
+                        }
+                        catch (Exception e)
+                        {
+                            Test.Warn("Failed to delete file {0}: {1}", dir, e);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Test.Error("Failed to cleanup temp folder {0}: {1}", tempDir, e);
+                }
+            }
         }
     }
 }
