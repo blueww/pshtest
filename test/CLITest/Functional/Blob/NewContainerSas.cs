@@ -16,7 +16,7 @@
     /// Functional test case for new-azurestoragecontainersas
     /// </summary>
     [TestClass]
-    class NewContainerSas : TestBase
+    public class NewContainerSas : TestBase
     {
         [ClassInitialize()]
         public static void NewContainerSasClassInit(TestContext testContext)
@@ -37,6 +37,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.NewContainerSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewContainerSas)]
         public void NewContainerSasWithPermission()
         {
             //Container read permission
@@ -73,6 +75,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.NewContainerSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewContainerSas)]
         public void NewContainerSasWithLifeTime()
         { 
             blobUtil.SetupTestContainerAndBlob();
@@ -128,6 +132,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.NewContainerSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewContainerSas)]
         public void NewContainerSasWithPolicy()
         {
             blobUtil.SetupTestContainerAndBlob();
@@ -189,6 +195,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.NewContainerSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewContainerSas)]
         public void NewContainerSasWithInvalidLifeTime()
         {
             blobUtil.SetupTestContainerAndBlob();
@@ -198,7 +206,7 @@
                 DateTime end = start.AddHours(1.0);
                 Test.Assert(!agent.NewAzureStorageContainerSAS(blobUtil.Container.Name, string.Empty, "l", end, start),
                         "Generate container sas token with invalid should fail");
-                ExpectedStartsWithErrorMessage("The expiry time of the specified access policy should be greater than start time.");
+                ExpectedStartsWithErrorMessage("The expiry time of the specified access policy should be greater than start time");
             }
             finally
             {
@@ -213,6 +221,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.NewContainerSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewContainerSas)]
         public void NewContainerSasWithFullUri()
         {
             blobUtil.SetupTestContainerAndBlob();
@@ -220,7 +230,7 @@
             {
                 string containerPermission = Utility.GenRandomCombination(Utility.ContainerPermission);
                 string fullUri = agent.GetContainerSasFromCmd(blobUtil.Container.Name, string.Empty, containerPermission);
-                string sasToken = fullUri.Substring(fullUri.IndexOf("?"));
+                string sasToken = (lang == Language.PowerShell ? fullUri.Substring(fullUri.IndexOf("?")) : fullUri);
                 ValidateSasToken(blobUtil.Container, containerPermission, sasToken);
             }
             finally
@@ -237,6 +247,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.NewContainerSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewContainerSas)]
         public void NewContainerSasWithLimitedPermission()
         {
             blobUtil.SetupTestContainerAndBlob();

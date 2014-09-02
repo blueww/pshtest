@@ -11,6 +11,7 @@ namespace Management.Storage.ScenarioTest
         /// Used for retrieve SAS token value in agent.Output
         /// </summary>
         public const string SASTokenKey = "";
+        public const string SASTokenKeyNode = "sas";
 
         /// <summary>
         /// used for Set/Get Service Properties

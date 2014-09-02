@@ -1241,7 +1241,9 @@ namespace Management.Storage.ScenarioTest.BVT
 
         [TestMethod]
         [TestCategory(Tag.BVT)]
-        [TestCategory(PsTag.NewContainerSas)]
+        [TestCategory(PsTag.NewContainerSas)] 
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.NewContainerSas)]
         public void NewContainerSasTest()
         {
             if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
@@ -1255,10 +1257,11 @@ namespace Management.Storage.ScenarioTest.BVT
 
             try
             {
+                string key = lang == Language.PowerShell ? Constants.SASTokenKey : Constants.SASTokenKeyNode;
                 string fullContainerPermission = "rwdl";
                 Test.Assert(agent.NewAzureStorageContainerSAS(blobUtil.Container.Name, string.Empty, fullContainerPermission),
                     "Generate container sas token should succeed");
-                string sastoken = agent.Output[0][Constants.SASTokenKey].ToString();
+                string sastoken = agent.Output[0][key].ToString();
                 Test.Info("Generated sas token:{0}", sastoken);
                 blobUtil.ValidateContainerListableWithSasToken(blobUtil.Container, sastoken);
             }
@@ -1271,6 +1274,8 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.NewBlobSas)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.NewBlobSas)]
         public void NewBlobSasTest()
         {
             if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
@@ -1284,10 +1289,11 @@ namespace Management.Storage.ScenarioTest.BVT
 
             try
             {
+                string key = lang == Language.PowerShell ? Constants.SASTokenKey : Constants.SASTokenKeyNode;
                 string fullBlobPermission = "rwd";
                 Test.Assert(agent.NewAzureStorageBlobSAS(blobUtil.Container.Name, blobUtil.Blob.Name, string.Empty, fullBlobPermission),
                     "Generate container sas token should succeed");
-                string sastoken = agent.Output[0][Constants.SASTokenKey].ToString();
+                string sastoken = agent.Output[0][key].ToString();
                 Test.Info("Generated sas token:{0}", sastoken);
                 blobUtil.ValidateBlobReadableWithSasToken(blobUtil.Blob, sastoken);
             }
@@ -1300,6 +1306,8 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.NewQueueSas)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.NewQueueSas)]
         public void NewQueueSasTest()
         {
             if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
@@ -1313,10 +1321,11 @@ namespace Management.Storage.ScenarioTest.BVT
 
             try
             {
+                string key = lang == Language.PowerShell ? Constants.SASTokenKey : Constants.SASTokenKeyNode;
                 string permission = "raup";
                 Test.Assert(agent.NewAzureStorageQueueSAS(queue.Name, string.Empty, permission),
                     "Generate queue sas token should succeed");
-                string sastoken = agent.Output[0][Constants.SASTokenKey].ToString();
+                string sastoken = agent.Output[0][key].ToString();
                 Test.Info("Generated sas token:{0}", sastoken);
                 queueUtil.ValidateQueueAddableWithSasToken(queue, sastoken);
             }
@@ -1329,6 +1338,8 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.NewTableSas)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.NewTableSas)]
         public void NewTableSasTest()
         {
             if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
@@ -1342,10 +1353,11 @@ namespace Management.Storage.ScenarioTest.BVT
 
             try
             {
+                string key = lang == Language.PowerShell ? Constants.SASTokenKey : Constants.SASTokenKeyNode;
                 string permission = "raud";
                 Test.Assert(agent.NewAzureStorageTableSAS(table.Name, string.Empty, permission),
                     "Generate table sas token should succeed");
-                string sastoken = agent.Output[0][Constants.SASTokenKey].ToString();
+                string sastoken = agent.Output[0][key].ToString();
                 Test.Info("Generated sas token:{0}", sastoken);
                 tableUtil.ValidateTableAddableWithSasToken(table, sastoken);
             }

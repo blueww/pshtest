@@ -24,7 +24,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
     /// functional test for NewContainer
     /// </summary>
     [TestClass]
-    class NewContainer : TestBase
+    public class NewContainer : TestBase
     {
         [ClassInitialize()]
         public static void ClassInit(TestContext testContext)

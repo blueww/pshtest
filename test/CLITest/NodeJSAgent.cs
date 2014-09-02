@@ -187,7 +187,10 @@ namespace Management.Storage.ScenarioTest
             string output = outputBuilder.ToString();
             string error = p.StandardError.ReadToEnd();
 
-            Test.Verbose("Error:\n{0}", error);
+            if (!string.IsNullOrEmpty(error))
+            {
+                Test.Verbose("Error:\n{0}", error);
+            }
 
             if (!p.HasExited)
             {
@@ -1303,6 +1306,168 @@ namespace Management.Storage.ScenarioTest
         public override void OutputValidation(IEnumerable<IListFileItem> items)
         {
             throw new NotImplementedException();
+        }
+
+        ///-------------------------------------
+        /// SAS token APIs
+        ///-------------------------------------
+        public override bool NewAzureStorageContainerSAS(string container, string policy, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false)
+        {
+            string command = string.Format("container sas create {0}", container);
+
+            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy);
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override bool NewAzureStorageBlobSAS(string container, string blob, string policy, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false)
+        {
+            string command = string.Format("blob sas create {0} \"{1}\"", container, blob);
+
+            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy);
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override bool NewAzureStorageTableSAS(string name, string policy, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, string startpk = "", string startrk = "", string endpk = "", string endrk = "")
+        {
+            string command = string.Format("table sas create {0}", name);
+
+            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy);
+
+            if (!string.IsNullOrEmpty(startpk))
+            {
+                if (!string.IsNullOrEmpty(startrk))
+                {
+                    command += " --start-rk " + startrk; 
+                }
+                command += " --start-pk " + startpk;
+            }
+
+            if (!string.IsNullOrEmpty(endpk))
+            {
+                if (!string.IsNullOrEmpty(endrk))
+                {
+                    command += " --end-rk " + endrk;
+                }
+                command += " --end-pk " + endpk;
+            }
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override bool NewAzureStorageQueueSAS(string name, string policy, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false)
+        {
+            string command = string.Format("queue sas create {0}", name);
+
+            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy);
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override string GetBlobSasFromCmd(string containerName, string blobName, string policy, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            Test.Assert(NewAzureStorageBlobSAS(containerName, blobName, policy, permission, startTime, expiryTime, fulluri),
+                    "Generate blob sas token should succeed");
+            if (Output.Count != 0)
+            {
+                string sasToken = Output[0][Constants.SASTokenKeyNode].ToString();
+                Test.Info("Generated sas token: {0}", sasToken);
+                return sasToken;
+            }
+            else
+            {
+                throw new ArgumentException("Fail to generate sas token.");
+            }
+        }
+
+        public override string GetBlobSasFromCmd(ICloudBlob blob, string policy, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            return GetBlobSasFromCmd(blob.Container.Name, blob.Name, policy, permission, startTime, expiryTime, fulluri);
+        }
+
+        public override string GetContainerSasFromCmd(string containerName, string policy, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            Test.Assert(NewAzureStorageContainerSAS(containerName, policy, permission, startTime, expiryTime, fulluri),
+                    "Generate container sas token should succeed");
+            if (Output.Count != 0)
+            {
+                string sasToken = Output[0][Constants.SASTokenKeyNode].ToString();
+                Test.Info("Generated sas token: {0}", sasToken);
+                return sasToken;
+            }
+            else
+            {
+                throw new ArgumentException("Fail to generate sas token.");
+            }
+        }
+
+        public override string GetQueueSasFromCmd(string queueName, string policy, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            Test.Assert(NewAzureStorageQueueSAS(queueName, policy, permission, startTime, expiryTime, fulluri),
+                    "Generate queue sas token should succeed");
+            if (Output.Count != 0)
+            {
+                string sasToken = Output[0][Constants.SASTokenKeyNode].ToString();
+                Test.Info("Generated sas token: {0}", sasToken);
+                return sasToken;
+            }
+            else
+            {
+                throw new ArgumentException("Fail to generate sas token.");
+            }
+        }
+
+        public override string GetTableSasFromCmd(string tableName, string policy, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false,
+            string startpk = "", string startrk = "", string endpk = "", string endrk = "")
+        {
+            Test.Assert(NewAzureStorageTableSAS(tableName, policy, permission, startTime, expiryTime, fulluri,
+                startpk, startrk, endpk, endrk),
+                    "Generate table sas token should succeed");
+            if (Output.Count != 0)
+            {
+                string sasToken = Output[0][Constants.SASTokenKeyNode].ToString();
+                Test.Info("Generated sas token: {0}", sasToken);
+                return sasToken;
+            }
+            else
+            {
+                throw new ArgumentException("Fail to generate sas token.");
+            }
+        }
+
+        internal string GetGeneralSASCmd(string command, string permission, DateTime? startTime, DateTime? expiryTime, string policy)
+        {
+            if (string.IsNullOrEmpty(policy))
+            {
+                if (string.IsNullOrEmpty(permission))
+                {
+                    permission = "r";
+                }
+
+                command += " --permissions " + permission +
+                    " --expiry " + (expiryTime.HasValue ? expiryTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ") : DateTime.UtcNow.AddHours(1).ToString("yyyy-MM-ddTHH:mm:ssZ"));
+            }
+            else
+            {
+                command += " --policy " + policy;
+            }
+
+            if (startTime.HasValue)
+            {
+                command += " --start " + startTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ");
+            }
+
+            return command;
         }
     }
 

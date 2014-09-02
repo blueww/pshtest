@@ -13,7 +13,7 @@
     using System.Threading;
 
     [TestClass]
-    class NewBlobSas : TestBase
+    public class NewBlobSas : TestBase
     {
         [ClassInitialize()]
         public static void NewBlobSasClassInit(TestContext testContext)
@@ -34,6 +34,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.NewBlobSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewBlobSas)]
         public void NewBlobSasWithPermission()
         {
             //Blob read permission
@@ -66,6 +68,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.NewBlobSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewBlobSas)]
         public void NewBlobSasWithLifeTime()
         {
             blobUtil.SetupTestContainerAndBlob();
@@ -125,6 +129,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.NewBlobSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewBlobSas)]
         public void NewBlobSasWithPolicy()
         {
             blobUtil.SetupTestContainerAndBlob();
@@ -138,6 +144,7 @@
                 permission.SharedAccessPolicies.Add(policyName, new SharedAccessBlobPolicy
                 {
                     Permissions = SharedAccessBlobPermissions.Read,
+                    SharedAccessExpiryTime = DateTimeOffset.UtcNow.Add(sasLifeTime)
                 });
 
                 blobUtil.Container.SetPermissions(permission);
@@ -185,6 +192,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.NewBlobSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewBlobSas)]
         public void NewBlobSasWithInvalidLifeTime()
         {
             string containerName = Utility.GenNameString("container");
@@ -193,7 +202,7 @@
             DateTime end = start.AddHours(1.0);
             Test.Assert(!agent.NewAzureStorageBlobSAS(containerName, blobName, string.Empty, string.Empty, end, start),
                     "Generate Blob sas token with invalid should fail");
-            ExpectedStartsWithErrorMessage("The expiry time of the specified access policy should be greater than start time.");
+            ExpectedStartsWithErrorMessage("The expiry time of the specified access policy should be greater than start time");
         }
 
         /// <summary>
@@ -227,6 +236,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.NewBlobSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewBlobSas)]
         public void NewBlobSasWithLimitedPermission()
         {
             blobUtil.SetupTestContainerAndBlob();
@@ -269,6 +280,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.NewBlobSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewBlobSas)]
         public void NewBlobSasWithSpecialCharacters()
         {
             blobUtil.SetupTestContainerAndBlob();
@@ -279,7 +292,7 @@
                 ICloudBlob blob = blobUtil.CreateRandomBlob(blobUtil.Container, specialBlobName);
                 string permisson = "r";
                 string fullUri = agent.GetBlobSasFromCmd(blob, string.Empty, permisson, null, null, true);
-                string sasToken = fullUri.Substring(fullUri.IndexOf("?"));
+                string sasToken = (lang == Language.PowerShell ? fullUri.Substring(fullUri.IndexOf("?")) : fullUri);
                 blobUtil.ValidateBlobReadableWithSasToken(blob, sasToken);
             }
             finally
@@ -295,6 +308,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.NewBlobSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewBlobSas)]
         public void NewBlobSasWithNotExistBlob()
         {           
             string containerName = Utility.GenNameString("container");
