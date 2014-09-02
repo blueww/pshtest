@@ -621,7 +621,7 @@ namespace Management.Storage.ScenarioTest.Util
             CloudBlobClient sasBlobClient = sasAccount.CreateCloudBlobClient();
             CloudBlobContainer sasContainer = sasBlobClient.GetContainerReference(container.Name);
             ICloudBlob retrievedBlob = sasContainer.GetBlobReferenceFromServer(blob.Name);
-            long buffSize = blob.Properties.Length;
+            long buffSize = retrievedBlob.Properties.Length;
             byte[] buffer = new byte[buffSize];
             MemoryStream ms = new MemoryStream(buffer);
             retrievedBlob.DownloadRangeToStream(ms, 0, buffSize);

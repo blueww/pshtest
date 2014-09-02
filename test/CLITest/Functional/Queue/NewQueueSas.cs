@@ -14,7 +14,7 @@
     using System.Threading;
 
     [TestClass]
-    class NewQueueSas : TestBase
+    public class NewQueueSas : TestBase
     {
         [ClassInitialize()]
         public static void NewQueueSasClassInit(TestContext testContext)
@@ -35,6 +35,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Queue)]
         [TestCategory(PsTag.NewQueueSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewQueueSas)]
         public void NewQueueSasWithPermission()
         {
             //queue read permission
@@ -71,6 +73,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Queue)]
         [TestCategory(PsTag.NewQueueSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewQueueSas)]
         public void NewQueueSasWithLifeTime()
         {
             CloudQueue queue = queueUtil.CreateQueue();
@@ -127,6 +131,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Queue)]
         [TestCategory(PsTag.NewQueueSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewQueueSas)]
         public void NewQueueSasWithPolicy()
         {
             CloudQueue queue = queueUtil.CreateQueue();
@@ -189,6 +195,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Queue)]
         [TestCategory(PsTag.NewQueueSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewQueueSas)]
         public void NewQueueSasWithInvalidLifeTime()
         {
             CloudQueue queue = queueUtil.CreateQueue();
@@ -196,9 +204,9 @@
             {
                 DateTime start = DateTime.UtcNow;
                 DateTime end = start.AddHours(1.0);
-                Test.Assert(!agent.NewAzureStorageQueueSAS(queue.Name, string.Empty, "d", end, start),
+                Test.Assert(!agent.NewAzureStorageQueueSAS(queue.Name, string.Empty, "r", end, start),
                         "Generate queue sas token with invalid should fail");
-                ExpectedStartsWithErrorMessage("The expiry time of the specified access policy should be greater than start time.");
+                ExpectedStartsWithErrorMessage("The expiry time of the specified access policy should be greater than start time");
             }
             finally
             {
@@ -213,6 +221,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Queue)]
         [TestCategory(PsTag.NewQueueSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewQueueSas)]
         public void NewQueueSasWithFullUri()
         {
             CloudQueue queue = queueUtil.CreateQueue();
@@ -220,7 +230,7 @@
             {
                 string queuePermission = Utility.GenRandomCombination(Utility.QueuePermission);
                 string fullUri = agent.GetQueueSasFromCmd(queue.Name, string.Empty, queuePermission);
-                string sasToken = fullUri.Substring(fullUri.IndexOf("?"));
+                string sasToken = (lang == Language.PowerShell ? fullUri.Substring(fullUri.IndexOf("?")) : fullUri);
                 ValidateSasToken(queue, queuePermission, sasToken);
             }
             finally
@@ -237,6 +247,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Queue)]
         [TestCategory(PsTag.NewQueueSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewQueueSas)]
         public void NewQueueSasWithLimitedPermission()
         {
             CloudQueue queue = queueUtil.CreateQueue();
@@ -280,6 +292,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Queue)]
         [TestCategory(PsTag.NewQueueSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewQueueSas)]
         public void NewQueueSasWithNotExistQueue()
         {
             string queueName = Utility.GenNameString("queue");

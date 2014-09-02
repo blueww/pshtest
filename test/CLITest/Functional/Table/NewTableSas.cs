@@ -12,8 +12,10 @@
     using StorageTestLib;
 
     [TestClass]
-    class NewTableSas : TestBase
+    public class NewTableSas : TestBase
     {
+        public static List<string> TablePermission = (lang == Language.PowerShell ? Utility.TablePermissionPS : Utility.TablePermissionNode);
+
         [ClassInitialize()]
         public static void NewTableSasClassInit(TestContext testContext)
         {
@@ -33,6 +35,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Table)]
         [TestCategory(PsTag.NewTableSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewTableSas)]
         public void NewTableSasWithPermission()
         {
             //table read permission
@@ -40,8 +44,11 @@
             GenerateSasTokenAndValidate(tablePermission);
 
             //table read permission
-            tablePermission = "q";
-            GenerateSasTokenAndValidate(tablePermission);
+            if (lang == Language.PowerShell)
+            {
+                tablePermission = "q";
+                GenerateSasTokenAndValidate(tablePermission);
+            }
 
             //table add permission
             tablePermission = "a";
@@ -65,7 +72,7 @@
             GenerateSasTokenAndValidate(tablePermission);
 
             //Random combination
-            tablePermission = Utility.GenRandomCombination(Utility.TablePermission);
+            tablePermission = Utility.GenRandomCombination(NewTableSas.TablePermission);
             GenerateSasTokenAndValidate(tablePermission);
         }
 
@@ -77,6 +84,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Table)]
         [TestCategory(PsTag.NewTableSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewTableSas)]
         public void NewTableSasWithLifeTime()
         {
             CloudTable table = tableUtil.CreateTable();
@@ -87,7 +96,7 @@
 
             try
             {
-                string tablePermission = Utility.GenRandomCombination(Utility.TablePermission);
+                string tablePermission = Utility.GenRandomCombination(NewTableSas.TablePermission);
                 string sastoken = agent.GetTableSasFromCmd(table.Name, string.Empty, tablePermission, startTime, expiryTime);
                 try
                 {
@@ -132,6 +141,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Table)]
         [TestCategory(PsTag.NewTableSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewTableSas)]
         public void NewTableSasWithPolicy()
         {
             CloudTable table = tableUtil.CreateTable();
@@ -194,6 +205,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Table)]
         [TestCategory(PsTag.NewTableSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewTableSas)]
         public void NewTableSasWithInvalidLifeTime()
         {
             CloudTable table = tableUtil.CreateTable();
@@ -204,7 +217,7 @@
                 DateTime end = start.AddHours(1.0);
                 Test.Assert(!agent.NewAzureStorageTableSAS(table.Name, string.Empty, "d", end, start),
                         "Generate table sas token with invalid should fail");
-                ExpectedStartsWithErrorMessage("The expiry time of the specified access policy should be greater than start time.");
+                ExpectedStartsWithErrorMessage("The expiry time of the specified access policy should be greater than start time");
             }
             finally
             {
@@ -220,15 +233,17 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Table)]
         [TestCategory(PsTag.NewTableSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewTableSas)]
         public void NewTableSasWithFullUri()
         {
             CloudTable table = tableUtil.CreateTable();
 
             try
             {
-                string tablePermission = Utility.GenRandomCombination(Utility.TablePermission);
+                string tablePermission = Utility.GenRandomCombination(NewTableSas.TablePermission);
                 string fullUri = agent.GetTableSasFromCmd(table.Name, string.Empty, tablePermission);
-                string sasToken = fullUri.Substring(fullUri.IndexOf("?"));
+                string sasToken = (lang == Language.PowerShell ? fullUri.Substring(fullUri.IndexOf("?")) : fullUri);
                 ValidateSasToken(table, tablePermission, sasToken);
             }
             finally
@@ -245,6 +260,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Table)]
         [TestCategory(PsTag.NewTableSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewTableSas)]
         public void NewTableSasWithLimitedPermission()
         {
             CloudTable table = tableUtil.CreateTable();
@@ -288,6 +305,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Table)]
         [TestCategory(PsTag.NewTableSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewTableSas)]
         public void NewTableSasWithNotExistTable()
         {
             string tableName = Utility.GenNameString("table");
@@ -298,6 +317,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Table)]
         [TestCategory(PsTag.NewTableSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewTableSas)]
         public void NewTableSasWithRangePK()
         {
             CloudTable table = tableUtil.CreateTable();
@@ -335,6 +356,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Table)]
         [TestCategory(PsTag.NewTableSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewTableSas)]
         public void NewTableSasWithRangeRK()
         {
             CloudTable table = tableUtil.CreateTable();
@@ -372,6 +395,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Table)]
         [TestCategory(PsTag.NewTableSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewTableSas)]
         public void NewTableSasWithInvalidRangePK()
         {
             CloudTable table = tableUtil.CreateTable();
@@ -407,6 +432,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Table)]
         [TestCategory(PsTag.NewTableSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewTableSas)]
         public void NewTableSasWithInvalidRangeRK()
         {
             CloudTable table = tableUtil.CreateTable();
