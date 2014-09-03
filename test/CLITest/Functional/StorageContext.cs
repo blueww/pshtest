@@ -127,7 +127,7 @@ namespace Management.Storage.ScenarioTest.Functional
                 //the same error may output different error messages in different environments
                 bool expectedError = agent.ErrorMessages[0].StartsWith("The remote server returned an error: (502) Bad Gateway") ||
                     agent.ErrorMessages[0].StartsWith("The remote name could not be resolved") || agent.ErrorMessages[0].StartsWith("The operation has timed out");
-                Test.Assert(expectedError, "use invalid storage account should return 502 or could not be resolved exception or The operation has timed out, actully {0}", agent.ErrorMessages[0]);
+                Test.Assert(expectedError, "use invalid storage account should return 502 or could not be resolved exception or The operation has timed out, actually {0}", agent.ErrorMessages[0]);
             }
             finally
             {

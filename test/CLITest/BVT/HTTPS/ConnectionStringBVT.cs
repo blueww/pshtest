@@ -12,20 +12,14 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using StorageTestLib;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using MS.Test.Common.MsTestLib;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using Management.Storage.ScenarioTest.Common;
-
 namespace Management.Storage.ScenarioTest.BVT.HTTPS
 {
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.WindowsAzure.Storage;
+    using Microsoft.WindowsAzure.Storage.Blob;
+    using MS.Test.Common.MsTestLib;
+    using StorageTestLib;
+
     /// <summary>
     /// bvt tests using connection string
     /// </summary>
@@ -36,14 +30,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
         public static void ConnectionStringBVTClassInitialize(TestContext testContext)
         {
             useHttps = true;
-
-            //first set the storage account
-            //second init common bvt
-            //third set storage context in powershell
-            SetUpStorageAccount = CloudStorageAccount.Parse(Test.Data.Get("StorageConnectionString"));
-
-            CLICommonBVT.CLICommonBVTInitialize(testContext);
-            PowerShellAgent.SetStorageContext(Test.Data.Get("StorageConnectionString"));
+            Initialize(testContext, useHttps);
         }
 
         [ClassCleanup()]
@@ -75,6 +62,21 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             }
 
             Test.Assert(uri.ToString().StartsWith(uriPrefix), string.Format("The prefix of container uri should be {0}, actually it's {1}", uriPrefix, uri));
+        }
+
+        public static void Initialize(TestContext testContext, bool useHttps)
+        {
+            //first set the storage account
+            //second init common bvt
+            //third set storage context in powershell
+            SetUpStorageAccount = CloudStorageAccount.Parse(Test.Data.Get("StorageConnectionString"));
+
+            CLICommonBVT.CLICommonBVTInitialize(testContext);
+
+            if (lang == Language.PowerShell)
+            {
+                PowerShellAgent.SetStorageContext(Test.Data.Get("StorageConnectionString"));
+            }
         }
     }
 }

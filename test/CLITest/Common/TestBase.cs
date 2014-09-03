@@ -257,7 +257,7 @@ namespace Management.Storage.ScenarioTest.Common
                 return;
             }
 
-            Test.Assert(agent.ErrorMessages[0].StartsWith(errorMessage), String.Format("Expected error message should start with {0}, and actully it's {1}", errorMessage, agent.ErrorMessages[0]));
+            Test.Assert(agent.ErrorMessages[0].StartsWith(errorMessage), String.Format("Expected error message should start with {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
         }
 
         /// <summary>
@@ -273,7 +273,7 @@ namespace Management.Storage.ScenarioTest.Common
                 return;
             }
 
-            Test.Assert(agent.ErrorMessages[0].IndexOf(errorMessage) != -1, String.Format("Expected error message should contain '{0}', and actully it's '{1}'", errorMessage, agent.ErrorMessages[0]));
+            Test.Assert(agent.ErrorMessages[0].IndexOf(errorMessage) != -1, String.Format("Expected error message should contain '{0}', and actually it's '{1}'", errorMessage, agent.ErrorMessages[0]));
         }
 
         /// <summary>
@@ -309,7 +309,7 @@ namespace Management.Storage.ScenarioTest.Common
         /// <param name="name">Compare name</param>
         public static void ExpectEqual(string expect, string actually, string name)
         {
-            Test.Assert(expect == actually, string.Format("{0} should be {1}, and actully it's {2}", name, expect, actually));
+            Test.Assert(expect == actually, string.Format("{0} should be {1}, and actually it's {2}", name, expect, actually));
         }
 
         /// <summary>
@@ -320,7 +320,7 @@ namespace Management.Storage.ScenarioTest.Common
         /// <param name="name">Compare name</param>
         public static void ExpectEqual(double expect, double actually, string name)
         {
-            Test.Assert(expect == actually, string.Format("{0} should be {1}, and actully it's {2}", name, expect, actually));
+            Test.Assert(expect == actually, string.Format("{0} should be {1}, and actually it's {2}", name, expect, actually));
         }
 
         /// <summary>
@@ -331,7 +331,7 @@ namespace Management.Storage.ScenarioTest.Common
         /// <param name="name">Compare name</param>
         public static void ExpectNotEqual(string expect, string actually, string name)
         {
-            Test.Assert(expect != actually, string.Format("{0} should not be {1}, and actully it's {2}", name, expect, actually));
+            Test.Assert(expect != actually, string.Format("{0} should not be {1}, and actually it's {2}", name, expect, actually));
         }
 
         /// <summary>
@@ -342,7 +342,7 @@ namespace Management.Storage.ScenarioTest.Common
         /// <param name="name">Compare name</param>
         public static void ExpectNotEqual(double expect, double actually, string name)
         {
-            Test.Assert(expect != actually, string.Format("{0} should not be {1}, and actully it's {2}", name, expect, actually));
+            Test.Assert(expect != actually, string.Format("{0} should not be {1}, and actually it's {2}", name, expect, actually));
         }
 
         public static CloudStorageAccount GetStorageAccountWithSasToken(string accountName, string sastoken,

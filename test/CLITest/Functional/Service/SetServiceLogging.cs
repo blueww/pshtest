@@ -224,7 +224,7 @@
         internal void GenericSetLoggingVersion(ServiceType serviceType, Func<ServiceProperties> getServiceProperties)
         {
             Test.Info("Enable/Disable service logging for {0}", serviceType);
-            //Actully, it's the the only one valid version.
+            //Actually, it's the the only one valid version.
             double version = 1.0;
             Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, string.Empty, string.Empty, version.ToString()), "Set service logging version should succeed");
             ServiceProperties retrievedProperties = getServiceProperties();

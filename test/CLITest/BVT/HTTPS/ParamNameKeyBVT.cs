@@ -12,12 +12,12 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using Management.Storage.ScenarioTest.Common;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using MS.Test.Common.MsTestLib;
-
 namespace Management.Storage.ScenarioTest.BVT.HTTPS
 {
+    using Management.Storage.ScenarioTest.Common;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using MS.Test.Common.MsTestLib;
+
     /// <summary>
     /// bvt tests using parameter settings: account-name, account-key
     /// only for Node.js commands

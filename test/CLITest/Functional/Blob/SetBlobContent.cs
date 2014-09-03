@@ -114,7 +114,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                         Test.AssertFail("blob can't be null");
                     }
 
-                    Test.Assert(rootFiles[i].Name == blob.Name, string.Format("blob name should be {0}, and actully it's {1}", rootFiles[i].Name, blob.Name));
+                    Test.Assert(rootFiles[i].Name == blob.Name, string.Format("blob name should be {0}, and actually it's {1}", rootFiles[i].Name, blob.Name));
                     string localMd5 = FileUtil.GetFileContentMD5(Path.Combine(uploadDirRoot, rootFiles[i].Name));
                     Test.Assert(blob.BlobType == blobType, string.Format("blob type should be equal {0} = {1}", blob.BlobType, blobType));
 
@@ -182,7 +182,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                         }
 
                         string convertedName = blobUtil.ConvertBlobNameToFileName(blob.Name, dir.Name);
-                        Test.Assert(dirFiles[i] == convertedName, string.Format("blob name should be {0}, and actully it's {1}", dirFiles[i], convertedName));
+                        Test.Assert(dirFiles[i] == convertedName, string.Format("blob name should be {0}, and actually it's {1}", dirFiles[i], convertedName));
                         string localMd5 = Helper.GetFileContentMD5(Path.Combine(uploadDirRoot, dirFiles[i]));
                         Test.Assert(blob.BlobType == blobType, "blob type should be block blob");
 

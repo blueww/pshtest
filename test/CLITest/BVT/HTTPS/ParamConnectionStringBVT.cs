@@ -12,11 +12,11 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using Management.Storage.ScenarioTest.Common;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace Management.Storage.ScenarioTest.BVT.HTTPS
 {
+    using Management.Storage.ScenarioTest.Common;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+
     /// <summary>
     /// bvt tests using parameter setting: connection-string
     /// only for Node.js now
@@ -28,17 +28,22 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
         public static void ParamConnectionStringBVTClassInitialize(TestContext testContext)
         {
             useHttps = true;
-            SetUpStorageAccount = TestBase.GetCloudStorageAccountFromConfig(useHttps: useHttps);
-            CLICommonBVT.CLICommonBVTInitialize(testContext);
-
-            NodeJSAgent.AgentConfig.ConnectionString = SetUpStorageAccount.ToString(true);
-            NodeJSAgent.AgentConfig.UseEnvVar = false;
+            Initialize(testContext, useHttps);
         }
 
         [ClassCleanup()]
         public static void ParamConnectionStringBVTCleanUp()
         {
             CLICommonBVT.CLICommonBVTCleanup();
+        }
+
+        public static void Initialize(TestContext testContext, bool useHttps)
+        {
+            SetUpStorageAccount = TestBase.GetCloudStorageAccountFromConfig(useHttps: useHttps);
+            CLICommonBVT.CLICommonBVTInitialize(testContext);
+
+            NodeJSAgent.AgentConfig.ConnectionString = SetUpStorageAccount.ToString(true);
+            NodeJSAgent.AgentConfig.UseEnvVar = false;
         }
     }
 }

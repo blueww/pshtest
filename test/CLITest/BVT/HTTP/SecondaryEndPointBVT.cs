@@ -14,39 +14,26 @@
 
 namespace Management.Storage.ScenarioTest.BVT.HTTP
 {
-    using Management.Storage.ScenarioTest.Common;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using MS.Test.Common.MsTestLib;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
+    using HTTPSSecondaryEndPointBVT = Management.Storage.ScenarioTest.BVT.HTTPS.SecondaryEndPointBVT;
 
     /// <summary>
     /// BVT test case for secondary end point with http protocol
     /// </summary>
     [TestClass]
-    class SecondaryEndPointBVT : Management.Storage.ScenarioTest.BVT.HTTPS.SecondaryEndPointBVT
+    public class SecondaryEndPointBVT : HTTPSSecondaryEndPointBVT
     {
         [ClassInitialize()]
         public static void SecondaryEndPointHTTPBVTClassInitialize(TestContext testContext)
         {
-            //first set the storage account
-            //second init common bvt
-            //third set storage context in powershell
             useHttps = false;
-            isSecondary = true;
-            SetUpStorageAccount = TestBase.GetCloudStorageAccountFromConfig("Secondary", useHttps);
-            StorageAccountName = SetUpStorageAccount.Credentials.AccountName;
-            string StorageEndPoint = Test.Data.Get("SecondaryStorageEndPoint");
-            CLICommonBVT.CLICommonBVTInitialize(testContext);
-            PowerShellAgent.SetStorageContext(SetUpStorageAccount.ToString(true));
+            HTTPSSecondaryEndPointBVT.Initialize(testContext, useHttps);
         }
 
         [ClassCleanup()]
         public static void SecondaryEndPointHTTPBVTCleanup()
         {
-            CLICommonBVT.CLICommonBVTCleanup();
+            HTTPSSecondaryEndPointBVT.SecondaryEndPointBVTCleanup();
         }
     }
 }

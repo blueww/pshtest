@@ -12,19 +12,15 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using StorageTestLib;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using MS.Test.Common.MsTestLib;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Management.Storage.ScenarioTest.Common;
-
 namespace Management.Storage.ScenarioTest.BVT.HTTPS
 {
+    using System;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.WindowsAzure.Storage;
+    using Microsoft.WindowsAzure.Storage.Blob;
+    using MS.Test.Common.MsTestLib;
+    using StorageTestLib;
+
     /// <summary>
     /// bvt tests using  environment variable "AZURE_STORAGE_CONNECTION_STRING"
     /// </summary>
@@ -35,28 +31,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
         public static void EnvConnectionStringBVTClassInitialize(TestContext testContext)
         {
             useHttps = true;
-            SetUpStorageAccount = CloudStorageAccount.Parse(Test.Data.Get("StorageConnectionString"));
-            CLICommonBVT.CLICommonBVTInitialize(testContext);
-
-            if (lang == Language.PowerShell)
-            {
-                Environment.SetEnvironmentVariable(EnvKey, SetUpStorageAccount.ToString(true));
-            }
-            else if (lang == Language.NodeJS)
-            {
-                switch (NodeJSAgent.AgentOSType)
-                {
-                    case OSType.Windows:
-                        Environment.SetEnvironmentVariable(EnvKey, SetUpStorageAccount.ToString(true));
-                        break;
-                    case OSType.Linux:
-                    case OSType.Mac:
-                        NodeJSAgent.AgentConfig.ConnectionString = SetUpStorageAccount.ToString(true);
-                        break;
-                }
-                NodeJSAgent.AgentConfig.UseEnvVar = true;
-            }
-            Test.Info("set env var {0} = {1}", EnvKey, SetUpStorageAccount.ToString(true));
+            Initialize(testContext, useHttps);
         }
 
         [ClassCleanup()]
@@ -89,6 +64,32 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             }
 
             Test.Assert(uri.ToString().StartsWith(uriPrefix), string.Format("The prefix of container uri should be {0}, actually it's {1}", uriPrefix, uri));
+        }
+
+        public static void Initialize(TestContext testContext, bool useHttps)
+        {
+            SetUpStorageAccount = CloudStorageAccount.Parse(Test.Data.Get("StorageConnectionString"));
+            CLICommonBVT.CLICommonBVTInitialize(testContext);
+
+            if (lang == Language.PowerShell)
+            {
+                Environment.SetEnvironmentVariable(EnvKey, SetUpStorageAccount.ToString(true));
+            }
+            else if (lang == Language.NodeJS)
+            {
+                switch (NodeJSAgent.AgentOSType)
+                {
+                    case OSType.Windows:
+                        Environment.SetEnvironmentVariable(EnvKey, SetUpStorageAccount.ToString(true));
+                        break;
+                    case OSType.Linux:
+                    case OSType.Mac:
+                        NodeJSAgent.AgentConfig.ConnectionString = SetUpStorageAccount.ToString(true);
+                        break;
+                }
+                NodeJSAgent.AgentConfig.UseEnvVar = true;
+            }
+            Test.Info("set env var {0} = {1}", EnvKey, SetUpStorageAccount.ToString(true));
         }
     }
 }
