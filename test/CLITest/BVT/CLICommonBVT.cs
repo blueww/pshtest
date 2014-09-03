@@ -528,7 +528,7 @@ namespace Management.Storage.ScenarioTest.BVT
 
                     Uri sourceUri = (Uri)agent.Output[0]["Source"];
                     string expectedUri = CloudBlobUtil.ConvertCopySourceUri(blobUtil.Blob.Uri.ToString());
-                    Test.Assert(sourceUri.ToString() == expectedUri, String.Format("Expected source uri is {0}, actully it's {1}", expectedUri, sourceUri.ToString()));
+                    Test.Assert(sourceUri.ToString() == expectedUri, String.Format("Expected source uri is {0}, actually it's {1}", expectedUri, sourceUri.ToString()));
                 }
                 else
                 {
@@ -537,8 +537,8 @@ namespace Management.Storage.ScenarioTest.BVT
 
                     string container = (string)agent.Output[0]["container"];
                     string blob = (string)agent.Output[0]["blob"];
-                    Test.Assert(container == blobUtil.ContainerName, String.Format("Expected container is {0}, actully it's {1}", blobUtil.ContainerName, container));
-                    Test.Assert(blob == destBlob.Name, String.Format("Expected blob is {0}, actully it's {1}", destBlob.Name, blob));
+                    Test.Assert(container == blobUtil.ContainerName, String.Format("Expected container is {0}, actually it's {1}", blobUtil.ContainerName, container));
+                    Test.Assert(blob == destBlob.Name, String.Format("Expected blob is {0}, actually it's {1}", destBlob.Name, blob));
                 }
 
                 Test.Assert(!agent.GetAzureStorageBlobCopyState(blobUtil.ContainerName, blobUtil.BlobName, false), "Get copy state should be fail since the specified blob don't have any copy operation");
@@ -1229,7 +1229,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 PowerShellAgent agent = new PowerShellAgent();
                 Test.Assert(agent.GetAzureStorageContainer(containerName), Utility.GenComparisonData("GetAzureStorageContainer", true));
                 int count = 1;
-                Test.Assert(agent.Output.Count == count, string.Format("get container should return only 1 container, actully it's {0}", agent.Output.Count));
+                Test.Assert(agent.Output.Count == count, string.Format("get container should return only 1 container, actually it's {0}", agent.Output.Count));
                 return (CloudBlobContainer)agent.Output[0]["CloudBlobContainer"];
             }
             finally

@@ -214,7 +214,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 FileUtil.CleanDirectory(downloadDirRoot);
 
                 Test.Assert(agent.DownloadBlobFiles(downloadDirRoot, ContainerName, true), "download blob should be successful");
-                Test.Assert(agent.Output.Count == files.Count, "Get-AzureStroageBlobContent should download {0} blobs, and actully it's {1}", files.Count, agent.Output.Count);
+                Test.Assert(agent.Output.Count == files.Count, "Get-AzureStroageBlobContent should download {0} blobs, and actually it's {1}", files.Count, agent.Output.Count);
 
                 for (int i = 0, count = files.Count(); i < count; i++)
                 {

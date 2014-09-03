@@ -12,19 +12,19 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using Management.Storage.ScenarioTest.Common;
-using Management.Storage.ScenarioTest.Util;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.WindowsAzure.Storage.Blob;
-using MS.Test.Common.MsTestLib;
-using StorageTestLib;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using StorageBlob = Microsoft.WindowsAzure.Storage.Blob;
-
 namespace Management.Storage.ScenarioTest.BVT.HTTPS
 {
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.IO;
+    using Management.Storage.ScenarioTest.Common;
+    using Management.Storage.ScenarioTest.Util;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.WindowsAzure.Storage.Blob;
+    using MS.Test.Common.MsTestLib;
+    using StorageTestLib;
+    using StorageBlob = Microsoft.WindowsAzure.Storage.Blob;
+
     /// <summary>
     /// bvt cases for anonymous storage account
     /// </summary>
@@ -41,14 +41,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
         public static void AnonymousBVTClassInitialize(TestContext testContext)
         {
             useHttps = true;
-            StorageAccount = null;
-            TestBase.TestClassInitialize(testContext);
-            CLICommonBVT.SaveAndCleanSubScriptionAndEnvConnectionString();
-            StorageAccountName = Test.Data.Get("StorageAccountName");
-            StorageEndPoint = Test.Data.Get("StorageEndPoint").Trim();
-            PowerShellAgent.SetAnonymousStorageContext(StorageAccountName, useHttps, StorageEndPoint);
-            downloadDirRoot = Test.Data.Get("DownloadDir");
-            SetupDownloadDir();
+            Initialize(testContext, useHttps);
         }
 
         [ClassCleanup()]
@@ -255,6 +248,22 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             {
                 blobUtil.RemoveContainer(containerName);
             }
+        }
+        public static void Initialize(TestContext testContext, bool useHttps)
+        {
+            StorageAccount = null;
+            TestBase.TestClassInitialize(testContext);
+            CLICommonBVT.SaveAndCleanSubScriptionAndEnvConnectionString();
+            StorageAccountName = Test.Data.Get("StorageAccountName");
+            StorageEndPoint = Test.Data.Get("StorageEndPoint").Trim();
+
+            if (lang == Language.PowerShell)
+            {
+                PowerShellAgent.SetAnonymousStorageContext(StorageAccountName, useHttps, StorageEndPoint);
+            }
+
+            downloadDirRoot = Test.Data.Get("DownloadDir");
+            SetupDownloadDir();
         }
     }
 }

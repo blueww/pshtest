@@ -12,47 +12,28 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using StorageTestLib;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using MS.Test.Common.MsTestLib;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-
 namespace Management.Storage.ScenarioTest.BVT.HTTP
 {
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using HTTPSNameKeyContextBVT = Management.Storage.ScenarioTest.BVT.HTTPS.NameKeyContextBVT;
+
     /// <summary>
     /// Bvt test using name and key context in http mode
     /// </summary>
     [TestClass]
-    public class NameKeyContextBVT : Management.Storage.ScenarioTest.BVT.HTTPS.NameKeyContextBVT
+    public class NameKeyContextBVT : HTTPSNameKeyContextBVT
     {
         [ClassInitialize()]
         public static void NameKeyContextHTTPBVTClassInitialize(TestContext testContext)
         {
-            //first set the storage account
-            //second init common bvt
-            //third set storage context in powershell
-            StorageAccountName = Test.Data.Get("StorageAccountName");
-            string StorageAccountKey = Test.Data.Get("StorageAccountKey");
-            string StorageEndPoint = Test.Data.Get("StorageEndPoint");
-            StorageCredentials credential = new StorageCredentials(StorageAccountName, StorageAccountKey);
             useHttps = false;
-            isSecondary = false;
-            SetUpStorageAccount = Utility.GetStorageAccountWithEndPoint(credential, useHttps, StorageEndPoint);
-
-            CLICommonBVT.CLICommonBVTInitialize(testContext);
-            PowerShellAgent.SetStorageContext(StorageAccountName, StorageAccountKey, useHttps, StorageEndPoint);
+            HTTPSNameKeyContextBVT.Initialize(testContext, useHttps);
         }
 
         [ClassCleanup()]
         public static void NameKeyContextHTTPBVTCleanup()
         {
-            CLICommonBVT.CLICommonBVTCleanup();
+            HTTPSNameKeyContextBVT.NameKeyContextBVTCleanup();
         }
     }
 }

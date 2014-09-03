@@ -17,36 +17,41 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
     using Management.Storage.ScenarioTest.Common;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using MS.Test.Common.MsTestLib;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
 
     /// <summary>
     /// BVT test case for secondary end point with https protocol
     /// </summary>
     [TestClass]
-    class SecondaryEndPointBVT : NameKeyContextBVT
+    public class SecondaryEndPointBVT : NameKeyContextBVT
     {
         [ClassInitialize()]
         public static void SecondaryEndPointBVTClassInitialize(TestContext testContext)
         {
-            //first set the storage account
-            //second init common bvt
-            //third set storage context in powershell
             useHttps = true;
-            isSecondary = true;
-            SetUpStorageAccount = TestBase.GetCloudStorageAccountFromConfig("Secondary", useHttps);
-            StorageAccountName = SetUpStorageAccount.Credentials.AccountName;
-            string StorageEndPoint = Test.Data.Get("SecondaryStorageEndPoint");
-            CLICommonBVT.CLICommonBVTInitialize(testContext);
-            PowerShellAgent.SetStorageContext(SetUpStorageAccount.ToString(true));
+            Initialize(testContext, useHttps);
         }
 
         [ClassCleanup()]
         public static void SecondaryEndPointBVTCleanup()
         {
             CLICommonBVT.CLICommonBVTCleanup();
+        }
+
+        public static void ClassInitialize(TestContext testContext, bool useHttps)
+        {
+            //first set the storage account
+            //second init common bvt
+            //third set storage context in powershell
+            isSecondary = true;
+            SetUpStorageAccount = TestBase.GetCloudStorageAccountFromConfig("Secondary", useHttps);
+            StorageAccountName = SetUpStorageAccount.Credentials.AccountName;
+            string StorageEndPoint = Test.Data.Get("SecondaryStorageEndPoint");
+            CLICommonBVT.CLICommonBVTInitialize(testContext);
+
+            if (lang == Language.PowerShell)
+            {
+                PowerShellAgent.SetStorageContext(SetUpStorageAccount.ToString(true));
+            }
         }
     }
 }

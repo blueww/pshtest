@@ -12,13 +12,13 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using System;
-using Management.Storage.ScenarioTest.Common;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using MS.Test.Common.MsTestLib;
-
 namespace Management.Storage.ScenarioTest.BVT.HTTPS
 {
+    using System;
+    using Management.Storage.ScenarioTest.Common;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using MS.Test.Common.MsTestLib;
+
     /// <summary>
     /// bvt tests using environment variables: AZURE_STORAGE_ACCOUNT, AZURE_STORAGE_ACCESS_KEY
     /// only for Node.js commands

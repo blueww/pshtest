@@ -12,21 +12,15 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using StorageTestLib;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
-using MS.Test.Common.MsTestLib;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using Management.Storage.ScenarioTest.Common;
-
 namespace Management.Storage.ScenarioTest.BVT.HTTPS
 {
+    using Management.Storage.ScenarioTest.Common;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.WindowsAzure.Storage.Auth;
+    using Microsoft.WindowsAzure.Storage.Blob;
+    using MS.Test.Common.MsTestLib;
+    using StorageTestLib;
+
     /// <summary>
     /// bvt test using name and key context in https mode
     /// </summary>
@@ -39,19 +33,8 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
         [ClassInitialize()]
         public static void NameKeyContextBVTClassInitialize(TestContext testContext)
         {
-            //first set the storage account
-            //second init common bvt
-            //third set storage context in powershell
-            StorageAccountName = Test.Data.Get("StorageAccountName");
-            string StorageAccountKey = Test.Data.Get("StorageAccountKey");
-            string StorageEndPoint = Test.Data.Get("StorageEndPoint");
-            StorageCredentials credential = new StorageCredentials(StorageAccountName, StorageAccountKey);
             useHttps = true;
-            isSecondary = false;
-            SetUpStorageAccount = Utility.GetStorageAccountWithEndPoint(credential, useHttps, StorageEndPoint);
-
-            CLICommonBVT.CLICommonBVTInitialize(testContext);
-            PowerShellAgent.SetStorageContext(StorageAccountName, StorageAccountKey, useHttps, StorageEndPoint);
+            Initialize(testContext, useHttps);
         }
 
         [ClassCleanup()]
@@ -106,6 +89,26 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             TestBase.ExpectEqual(endpoints[0], SetUpStorageAccount.BlobEndpoint.ToString(), "blob endpoint");
             TestBase.ExpectEqual(endpoints[1], SetUpStorageAccount.QueueEndpoint.ToString(), "queue endpoint");
             TestBase.ExpectEqual(endpoints[2], SetUpStorageAccount.TableEndpoint.ToString(), "table endpoint");
+        }
+
+        public static void Initialize(TestContext testContext, bool useHttps)
+        {
+            //first set the storage account
+            //second init common bvt
+            //third set storage context in powershell
+            StorageAccountName = Test.Data.Get("StorageAccountName");
+            string StorageAccountKey = Test.Data.Get("StorageAccountKey");
+            string StorageEndPoint = Test.Data.Get("StorageEndPoint");
+            StorageCredentials credential = new StorageCredentials(StorageAccountName, StorageAccountKey);
+            isSecondary = false;
+            SetUpStorageAccount = Utility.GetStorageAccountWithEndPoint(credential, useHttps, StorageEndPoint);
+
+            CLICommonBVT.CLICommonBVTInitialize(testContext);
+
+            if (lang == Language.PowerShell)
+            {
+                PowerShellAgent.SetStorageContext(StorageAccountName, StorageAccountKey, useHttps, StorageEndPoint);
+            }
         }
     }
 }

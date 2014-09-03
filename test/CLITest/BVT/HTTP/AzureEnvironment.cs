@@ -24,7 +24,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTP
         public static void AzureEnvironmentHTTPBVTClassInitialize(TestContext testContext)
         {
             useHttps = false;
-            HTTPSAzureEnvironment.Initialize(testContext, useHttps);
+            HTTPSAzureEnvironment.ClassInitialize(testContext, useHttps);
         }
 
         [ClassCleanup()]

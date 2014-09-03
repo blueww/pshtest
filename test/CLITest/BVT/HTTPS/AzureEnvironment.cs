@@ -25,7 +25,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
         public static void AzureEnvironmentBVTClassInitialize(TestContext testContext)
         {
             useHttps = true;
-            Initialize(testContext, useHttps);
+            ClassInitialize(testContext, useHttps);
         }
 
         [ClassCleanup()]
@@ -34,7 +34,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             CLICommonBVT.CLICommonBVTCleanup();
         }
 
-        public static void Initialize(TestContext testContext, bool useHttps)
+        public static void ClassInitialize(TestContext testContext, bool useHttps)
         {
             //first set the storage account
             //second init common bvt

@@ -12,38 +12,28 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using Management.Storage.ScenarioTest.Common;
-using Management.Storage.ScenarioTest.Util;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using MS.Test.Common.MsTestLib;
-
 namespace Management.Storage.ScenarioTest.BVT.HTTP
 {
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using HTTPSAnonymousBVT = Management.Storage.ScenarioTest.BVT.HTTPS.AnonymousBVT;
+
     /// <summary>
     /// bvt cases for anonymous storage account
     /// </summary>
     [TestClass]
-    public class AnonymousBVT : Management.Storage.ScenarioTest.BVT.HTTPS.AnonymousBVT
+    public class AnonymousBVT : HTTPSAnonymousBVT
     {
         [ClassInitialize()]
         public static void AnonymousHTTPBVTClassInitialize(TestContext testContext)
         {
             useHttps = false;
-            StorageAccount = null;
-            TestBase.TestClassInitialize(testContext);
-            CLICommonBVT.SaveAndCleanSubScriptionAndEnvConnectionString();
-            StorageAccountName = Test.Data.Get("StorageAccountName");
-            StorageEndPoint = Test.Data.Get("StorageEndPoint").Trim();            
-            PowerShellAgent.SetAnonymousStorageContext(StorageAccountName, useHttps, StorageEndPoint);
-            downloadDirRoot = Test.Data.Get("DownloadDir");
-            SetupDownloadDir();
+            HTTPSAnonymousBVT.Initialize(testContext, useHttps);
         }
 
         [ClassCleanup()]
         public static void AnonymousHTTPBVTClassCleanup()
         {
-            FileUtil.CleanDirectory(downloadDirRoot);
-            TestBase.TestClassCleanup();
+            HTTPSAnonymousBVT.AnonymousBVTClassCleanup();
         }
     }
 }

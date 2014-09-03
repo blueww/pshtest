@@ -12,55 +12,28 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using Management.Storage.ScenarioTest.Common;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.WindowsAzure.Storage;
-using MS.Test.Common.MsTestLib;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 namespace Management.Storage.ScenarioTest.BVT.HTTP
 {
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using HTTPSEnvConnectionStringBVT = Management.Storage.ScenarioTest.BVT.HTTPS.EnvConnectionStringBVT;
+
     /// <summary>
     /// bvt tests using  environment variable "AZURE_STORAGE_CONNECTION_STRING"
     /// </summary>
     [TestClass]
-    public class EnvConnectionStringBVT : Management.Storage.ScenarioTest.BVT.HTTPS.EnvConnectionStringBVT
+    public class EnvConnectionStringBVT : HTTPSEnvConnectionStringBVT
     {
         [ClassInitialize()]
         public static void EnvConnectionStringHTTPBVTClassInitialize(TestContext testContext)
         {
             useHttps = false;
-            SetUpStorageAccount = CloudStorageAccount.Parse(Test.Data.Get("StorageConnectionString"));
-            CLICommonBVT.CLICommonBVTInitialize(testContext);
-
-            if (lang == Language.PowerShell)
-            {
-                Environment.SetEnvironmentVariable(EnvKey, SetUpStorageAccount.ToString(true));
-            }
-            else if (lang == Language.NodeJS)
-            {
-                switch (NodeJSAgent.AgentOSType)
-                {
-                    case OSType.Windows:
-                        Environment.SetEnvironmentVariable(EnvKey, SetUpStorageAccount.ToString(true));
-                        break;
-                    case OSType.Linux:
-                    case OSType.Mac:
-                        NodeJSAgent.AgentConfig.ConnectionString = SetUpStorageAccount.ToString(true);
-                        break;
-                }
-
-                NodeJSAgent.AgentConfig.UseEnvVar = true;
-            }
+            HTTPSEnvConnectionStringBVT.Initialize(testContext, useHttps);
         }
 
         [ClassCleanup()]
         public static void EnvConnectionStringHTTPBVTCleanUp()
         {
-            CLICommonBVT.CLICommonBVTCleanup();
+            HTTPSEnvConnectionStringBVT.EnvConnectionStringBVTCleanUp();
         }
     }
 }
