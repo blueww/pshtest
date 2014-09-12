@@ -85,6 +85,8 @@ namespace Management.Storage.ScenarioTest
         public const string NodeJSPerf= "nodejsperf";
         public const string NodeJSScale= "nodejsscale";
 
+        public const string NodeJSConString = "nodejsconnectionstring";
+
         public const string StartCopyBlob = "nodestartcopyblob";
         public const string GetBlobCopyState = "nodegetblobcopystate";
         public const string StopCopyBlob = "nodestopcopyblob";
