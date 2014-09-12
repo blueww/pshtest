@@ -31,11 +31,10 @@ namespace Management.Storage.ScenarioTest
             BlobHelper.CleanupContainer(ContainerName);
 
             FileHelper.CreateShare(ContainerName);
+            FileHelper.CleanupShare(ContainerName);
 
             //set the ConcurrentTaskCount field
             PowerShellAgent.ConcurrentTaskCount = Environment.ProcessorCount * 8;
-
-            GenerateTestFiles();
         }
 
         //
@@ -75,6 +74,7 @@ namespace Management.Storage.ScenarioTest
         public void UploadHttpBlock()
         {
             BlobHelper.CleanupContainer(ContainerName);
+            GenerateTestFiles();
             var o = new BlockBlobUploadOperation(this.agent, BlobHelper);
             Run(o);
         }
@@ -96,6 +96,7 @@ namespace Management.Storage.ScenarioTest
         public void UploadHttpPage()
         {
             BlobHelper.CleanupContainer(ContainerName);
+            GenerateTestFiles();
             var o = new PageBlobUploadOperation(this.agent, BlobHelper);
             Run(o);
         }
@@ -106,6 +107,7 @@ namespace Management.Storage.ScenarioTest
         [Timeout(14400000)]
         public void DownloadHttpPage()
         {
+            GenerateTestFiles();
             var o = new PageBlobDownloadOperation(this.agent, BlobHelper);
             Run(o);
         }
@@ -113,19 +115,21 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(PsTag.Scale)]
         [TestCategory(CLITag.NodeJSScale)]
+        [Timeout(144000000)]
         public void UploadHttpBlock_Max()
         {
             BlobHelper.CleanupContainer(ContainerName);
 
             //put the generating files here, because it will cost a few hours to generate very big files
-            GenerateTestFiles_Max();
             var o = new BlockBlobUploadOperation(this.agent, BlobHelper);
+            GenerateTestFiles_Max(o);
             Run(o, true);
         }
 
         [TestMethod]
         [TestCategory(PsTag.Scale)]
         [TestCategory(CLITag.NodeJSScale)]
+        [Timeout(144000000)]
         public void DownloadHttpBlock_Max()
         {
             var o = new BlockBlobDownloadOperation(this.agent, BlobHelper);
@@ -135,20 +139,21 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(PsTag.Scale)]
         [TestCategory(CLITag.NodeJSScale)]
+        [Timeout(144000000)]
         public void UploadHttpPage_Max()
         {
             BlobHelper.CleanupContainer(ContainerName);
-            GenerateTestFiles_Max();
             var o = new PageBlobUploadOperation(this.agent, BlobHelper);
+            GenerateTestFiles_Max(o);
             Run(o, true);
         }
 
         [TestMethod]
         [TestCategory(PsTag.Scale)]
         [TestCategory(CLITag.NodeJSScale)]
+        [Timeout(144000000)]
         public void DownloadHttpPage_Max()
         {
-            GenerateTestFiles_Max();
             var o = new PageBlobDownloadOperation(this.agent, BlobHelper);
             Run(o, true);
         }
@@ -156,9 +161,11 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(PsTag.Perf)]
         [TestCategory(PsTag.FilePerf)]
+        [TestCategory(CLITag.NodeJSPerf)]
         [Timeout(14400000)]
         public void UploadFile()
         {
+            GenerateTestFiles();
             var o = new FileUploadOperation(this.agent, FileHelper);
             Run(o);
         }
@@ -166,11 +173,34 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(PsTag.Perf)]
         [TestCategory(PsTag.FilePerf)]
+        [TestCategory(CLITag.NodeJSPerf)]
         [Timeout(14400000)]
         public void DownloadFile()
         {
             var o = new FileDownloadOperation(this.agent, FileHelper);
             Run(o);
+        }
+
+
+        [TestMethod]
+        [TestCategory(PsTag.Scale)]
+        [TestCategory(CLITag.NodeJSScale)]
+        [Timeout(200000000)]
+        public void UploadFile_Max()
+        {
+            var o = new FileUploadOperation(this.agent, FileHelper);
+            GenerateTestFiles_Max(o);
+            Run(o, true);
+        }
+
+        [TestMethod]
+        [TestCategory(PsTag.Scale)]
+        [TestCategory(CLITag.NodeJSScale)]
+        [Timeout(200000000)]
+        public void DownloadFile_Max()
+        {
+            var o = new FileDownloadOperation(this.agent, FileHelper);
+            Run(o, true);
         }
 
         /// <summary>
@@ -217,7 +247,7 @@ namespace Management.Storage.ScenarioTest
         /// <param name="unit">"K", "M", "G", "G_BLOCK", "G_PAGE"</param>
         /// </summary>
         public void TransferTestFiles(int initSize, int endSize, string unit, Dictionary<long, double> fileSizeTime,
-            Dictionary<long, double> fileSizeTimeSD, ICLIOperation operation)
+            Dictionary<long, double> fileSizeTimeSD, ICLIOperation operation, int? iteration = null)
         {
             for (int i = initSize; i <= endSize; i *= 4)
             {
@@ -231,7 +261,8 @@ namespace Management.Storage.ScenarioTest
 
                 Stopwatch sw = new Stopwatch();
 
-                for (int j = 0; j < Constants.Iterations; j++)
+                var iterations = iteration.HasValue ? iteration.Value : Constants.Iterations;
+                for (int j = 0; j < iterations; j++)
                 {
                     operation.Before(ContainerName, fileName);
 
@@ -284,7 +315,8 @@ namespace Management.Storage.ScenarioTest
                     unit: operation.Unit,
                     fileSizeTime: fileSizeTime,
                     fileSizeTimeSD: fileSizeTimeSD,
-                    operation: operation);
+                    operation: operation,
+                    iteration: 1); //for large scale testing, we only needs 1 iteration
             }
         }
 
@@ -328,15 +360,11 @@ namespace Management.Storage.ScenarioTest
         /// Generate blob file with maximum size
         /// <param name="bMax">indicates whether download a blob with the maximum size</param>
         /// </summary>
-        public static void GenerateTestFiles_Max()
+        public static void GenerateTestFiles_Max(ICLIOperation o)
         {
-            string filename = "testfile_" + Constants.MAX_BLOCK_BLOB_SIZE + Constants.BLOCK_BLOB_UNIT;
+            string filename = "testfile_" + o.MaxSize + o.Unit;
             Test.Info("Generating file: " + filename);
-            GenerateBigFile(filename, Constants.MAX_BLOCK_BLOB_SIZE);
-
-            filename = "testfile_" + Constants.MAX_PAGE_BLOB_SIZE + Constants.PAGE_BLOB_UNIT;
-            Test.Info("Generating file: " + filename);
-            GenerateBigFile(filename, Constants.MAX_PAGE_BLOB_SIZE);
+            GenerateBigFile(filename, o.MaxSize);
         }
 
         internal static void GenerateBigFile(string filename, int sizeGB)
