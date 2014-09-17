@@ -13,7 +13,7 @@
     using StorageTestLib;
 
     [TestClass]
-    internal class GetAzureStorageFileContentTest : TestBase
+    public class GetAzureStorageFileContentTest : TestBase
     {
         private Random randomProvider = new Random();
 
