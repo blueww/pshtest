@@ -13,7 +13,7 @@
     using StorageTestLib;
 
     [TestClass]
-    internal class SetAzureStorageFileContentTest : TestBase
+    public class SetAzureStorageFileContentTest : TestBase
     {
         private Random randomProvider = new Random();
 
@@ -205,6 +205,8 @@
         public void UploadWithInvalidFileName_InvalidCharacters()
         {
             string cloudFileName = FileNamingGenerator.GenerateASCIINameWithInvalidCharacters(25);
+            cloudFileName = cloudFileName.Replace(@"\", "*");
+            cloudFileName = cloudFileName.Replace(@"/", "*");
             string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName, true);
