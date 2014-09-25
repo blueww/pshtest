@@ -217,6 +217,8 @@ namespace Management.Storage.ScenarioTest.Util
             TableOperation insertOp = TableOperation.Insert(entity);
             table.Execute(insertOp);
             CloudTable sasTable = GetTableBySasToken(table, sasToken);
+            TableOperation del = TableOperation.Delete(entity);
+            sasTable.Execute(del);
         }
 
         /// <summary>
