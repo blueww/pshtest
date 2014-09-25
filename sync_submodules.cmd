@@ -1,7 +1,7 @@
 echo "update submodule azcopy"
 cd azcopy
 git fetch
-git reset origin/v3.0 --hard
+git reset origin/v4.0-pr --hard
 cd ..
 echo "update submodule Powershell"
 cd PowerShell
