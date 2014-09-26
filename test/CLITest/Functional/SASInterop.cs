@@ -102,7 +102,7 @@
 
         public void BlobOrContainerWithReadPermission(StorageObjectType objectType, BlobType blobType)
         {
-            blobUtil.SetupTestContainerAndBlob(blobType, SpecialCharsPrefix);
+            blobUtil.SetupTestContainerAndBlob(SpecialCharsPrefix, blobType);
 
             try
             {
