@@ -18,6 +18,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
+
 using MS.Test.Common.MsTestLib;
 using StorageTestLib;
 
@@ -63,7 +65,7 @@ namespace Management.Storage.ScenarioTest.Util
 
         internal static string GetLinuxPath(string filepath)
         {
-            return filepath.Replace('\\', '/');
+            return Regex.Replace(filepath.Replace('\\', '/'), "^[a-zA-Z]:", "");
         }
 
         internal static void RunNodeJSProcess(string argument, bool ignoreError = false)
