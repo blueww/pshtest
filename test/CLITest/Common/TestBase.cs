@@ -44,7 +44,29 @@ namespace Management.Storage.ScenarioTest.Common
 
         private TestContext testContextInstance;
 
-        public const string SpecialChars = @"~!@#$%^&*()_+[]'";
+        private static string specialChars = null;
+        public static string SpecialChars
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(specialChars))
+                {
+                    try
+                    {
+                        specialChars = Test.Data.Get("SpecialChars");
+                    }
+                    catch (ArgumentException)
+                    {
+                        // nothing to do if cannot find it
+                    }
+                    if (string.IsNullOrEmpty(specialChars))
+                    {
+                        specialChars = @"~!@#$%^&*()_+[]'";
+                    }
+                }
+                return specialChars;
+            }
+        }
 
         /// <summary>
         ///Gets or sets the test context which provides

@@ -1199,7 +1199,12 @@ namespace Management.Storage.ScenarioTest
         {
             bool needAccountParam = true;
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("file download \"{0}\" \"{1}\" \"{2}\"", fileShareName, path, Path.GetFullPath(destination).TrimEnd(CloudFileUtil.PathSeparators));
+            string dest = Path.GetFullPath(destination).TrimEnd(CloudFileUtil.PathSeparators);
+            if (AgentOSType != OSType.Windows)
+            {
+                dest = FileUtil.GetLinuxPath(dest);
+            }
+            sb.AppendFormat("file download \"{0}\" \"{1}\" \"{2}\"", fileShareName, path, dest);
             if (contextObject != null)
             {
                 sb.AppendFormat(" -c \"{0}\"", contextObject);
@@ -1223,6 +1228,10 @@ namespace Management.Storage.ScenarioTest
         {
             bool needAccountParam = true;
             StringBuilder sb = new StringBuilder();
+            if (AgentOSType != OSType.Windows)
+            {
+                source = FileUtil.GetLinuxPath(source);
+            }
             sb.AppendFormat("file upload \"{0}\" \"{1}\" \"{2}\"", source, fileShareName, path);
             if (contextObject != null)
             {

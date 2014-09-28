@@ -85,13 +85,22 @@ namespace Management.Storage.ScenarioTest.Util
         /// </summary>
         /// <param name="type"></param>
         /// <param name="blobNamePrefix">prefix of the blob name</param>
-        public void SetupTestContainerAndBlob(StorageBlobType type = StorageBlobType.Unspecified, string blobNamePrefix = TestBase.SpecialChars)
+        public void SetupTestContainerAndBlob(string blobNamePrefix, StorageBlobType type = StorageBlobType.Unspecified)
         {
             ContainerName = Utility.GenNameString("container");
             BlobName = Utility.GenNameString(blobNamePrefix);
             CloudBlobContainer container = CreateContainer(ContainerName);
             Blob = CreateRandomBlob(container, BlobName, type);
             Container = container;
+        }
+
+        /// <summary>
+        /// Create a random container with a random blob
+        /// </summary>
+        /// <param name="blobNamePrefix">prefix of the blob name</param>
+        public void SetupTestContainerAndBlob(StorageBlobType type = StorageBlobType.Unspecified)
+        {
+            SetupTestContainerAndBlob(TestBase.SpecialChars);
         }
 
         /// <summary>
