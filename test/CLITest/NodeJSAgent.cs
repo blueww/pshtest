@@ -182,21 +182,29 @@ namespace Management.Storage.ScenarioTest
             StringBuilder outputBuilder = new StringBuilder();
             p.Start();
 
-            var t = Task.Factory.StartNew(() =>
+            StringBuilder outputBuffer = new StringBuilder();
+            p.OutputDataReceived += (sendingProcess, outLine) =>
             {
-                while (!p.StandardOutput.EndOfStream)
+                if (!String.IsNullOrEmpty(outLine.Data))
                 {
-                    string line = p.StandardOutput.ReadLine();
-                    Test.Verbose(line);
-                    outputBuilder.AppendLine(line);
+                    outputBuffer.Append(outLine.Data + "\n");
                 }
-            });
+            };
+            StringBuilder errorBuffer = new StringBuilder();
+            p.ErrorDataReceived += (sendingProcess, outLine) =>
+            {
+                if (!String.IsNullOrEmpty(outLine.Data))
+                {
+                    errorBuffer.Append(outLine.Data + "\n");
+                }
+            };
 
+            p.BeginOutputReadLine();
+            p.BeginErrorReadLine();
             p.WaitForExit(MaxWaitingTime);
 
-            t.Wait(10000);
-            string output = outputBuilder.ToString();
-            string error = p.StandardError.ReadToEnd();
+            string output = outputBuffer.ToString();
+            string error = errorBuffer.ToString();
 
             if (!string.IsNullOrEmpty(error))
             {
@@ -1507,6 +1515,7 @@ namespace Management.Storage.ScenarioTest
         public string ConnectionStr;
         public string Name;
         public string Key;
+        public string Sas;
 
         public OSConfig()
         {
@@ -1540,6 +1549,16 @@ namespace Management.Storage.ScenarioTest
             set
             {
                 Key = value;
+                ConnectionStr = string.Empty;
+            }
+        }
+
+        public string SAS
+        {
+            get { return Sas; }
+            set
+            {
+                Sas = value;
                 ConnectionStr = string.Empty;
             }
         }
