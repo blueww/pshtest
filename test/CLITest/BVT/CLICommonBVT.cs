@@ -143,10 +143,10 @@ namespace Management.Storage.ScenarioTest.BVT
         {
             bool AlwaysOperateOnWindows = (FileUtil.AgentOSType != OSType.Windows);
 
-            CommonBlockFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName()));
-            CommonPageFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName()));
-            CommonSmallFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName()));
-            CommonMediumFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName()));
+            CommonBlockFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
+            CommonPageFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
+            CommonSmallFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
+            CommonMediumFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
 
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonBlockFilePath), AlwaysOperateOnWindows);
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonPageFilePath), AlwaysOperateOnWindows);
