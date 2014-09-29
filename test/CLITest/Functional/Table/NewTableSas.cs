@@ -14,12 +14,13 @@
     [TestClass]
     public class NewTableSas : TestBase
     {
-        public static List<string> TablePermission = (lang == Language.PowerShell ? Utility.TablePermissionPS : Utility.TablePermissionNode);
+        public static List<string> TablePermission;
 
         [ClassInitialize()]
         public static void NewTableSasClassInit(TestContext testContext)
         {
             TestBase.TestClassInitialize(testContext);
+            TablePermission = (lang == Language.PowerShell ? Utility.TablePermissionPS : Utility.TablePermissionNode);
         }
 
         [ClassCleanup()]
