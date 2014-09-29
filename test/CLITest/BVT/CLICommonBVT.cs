@@ -348,7 +348,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void DownloadBlobTest()
         {
-            string downloadDirPath = Path.GetFullPath(Test.Data.Get("DownloadDir"));
+            string downloadDirPath = Test.Data.Get("DownloadDir");
             DownloadBlobTest(agent, CommonBlockFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             DownloadBlobTest(agent, CommonPageFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
         }
