@@ -65,7 +65,7 @@ namespace Management.Storage.ScenarioTest.Util
 
         internal static string GetLinuxPath(string filepath)
         {
-            return Regex.Replace(filepath.Replace('\\', '/'), "^[a-zA-Z]:", "");
+            return Regex.Replace(filepath.Replace('\\', '/'), "^[a-zA-Z]:", ".");
         }
 
         internal static void RunNodeJSProcess(string argument, bool ignoreError = false)
