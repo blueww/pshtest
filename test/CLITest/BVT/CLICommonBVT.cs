@@ -153,6 +153,9 @@ namespace Management.Storage.ScenarioTest.BVT
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonSmallFilePath), AlwaysOperateOnWindows);
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonMediumFilePath), AlwaysOperateOnWindows);
 
+            FileUtil.CreateDirIfNotExits(Test.Data.Get("DownloadDir"), AlwaysOperateOnWindows);
+            FileUtil.CreateDirIfNotExits(Test.Data.Get("UploadDir"), AlwaysOperateOnWindows);
+
             // Generate block file and page file which are used for uploading
             FileUtil.GenerateMediumFile(CommonBlockFilePath, Utility.GetRandomTestCount(1, 5), AlwaysOperateOnWindows);
             FileUtil.GenerateMediumFile(CommonPageFilePath, Utility.GetRandomTestCount(1, 5), AlwaysOperateOnWindows);
