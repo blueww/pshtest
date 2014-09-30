@@ -106,5 +106,7 @@ namespace Management.Storage.ScenarioTest
         public const string NewQueueSas = "nodejsnewqueuesas";
         public const string NewTableSas = "nodejsnewtablesas";
         public const string SASInterop = "nodejssasinterop";
+
+        public const string File = "nodejsfile";
     }
 }

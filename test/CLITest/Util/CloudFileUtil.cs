@@ -322,6 +322,7 @@
             }
             else
             {
+                Test.Info("Upload source file {0} to destination {1}.", source, file.Uri.OriginalString);
                 file.Create(FileUtil.GetFileSize(source));
                 file.UploadFromFile(source, FileMode.Open);
             }

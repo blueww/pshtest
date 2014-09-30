@@ -272,7 +272,10 @@ namespace Management.Storage.ScenarioTest.Util
 
             if (AgentOSType == OSType.Windows || AlwaysOperateOnWindows)
             {
-                Directory.CreateDirectory(dirPath);
+                if (!Directory.Exists(dirPath))
+                {
+                    Directory.CreateDirectory(dirPath);
+                }
             }
         }
 

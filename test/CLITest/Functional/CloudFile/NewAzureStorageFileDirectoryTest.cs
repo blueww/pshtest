@@ -15,7 +15,7 @@
     using StorageTestLib;
 
     [TestClass]
-    internal class NewAzureStorageFileDirectoryTest : TestBase
+    public class NewAzureStorageFileDirectoryTest : TestBase
     {
         private Random randomProvider = new Random();
 
@@ -72,6 +72,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryWhichHasJustBeenDeleted()
         {
@@ -104,6 +105,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryWith255Unicodes()
         {
@@ -120,6 +122,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryWith255ASCIIChars()
         {
@@ -176,6 +179,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryWithPathStartsWithSlash()
         {
@@ -264,6 +268,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryUnderNonExistingShare()
         {
@@ -283,6 +288,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void NewDirectoryWithInvalidAccountTest()
         {
@@ -306,6 +312,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void NewDirectoryWithInvalidKeyValueTest()
         {
@@ -328,6 +335,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void CreateExistingDirectoryTest()
         {
@@ -378,6 +386,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryUnderNonExistingFileShareTest()
         {
@@ -395,6 +404,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryWith256Chars()
         {
@@ -409,6 +419,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryWithInvalidCharacters()
         {
@@ -423,6 +434,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void CreateCasePreservingExistingDirectoryTest()
         {
@@ -505,6 +517,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryUnderRootsParent()
         {

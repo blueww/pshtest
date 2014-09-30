@@ -102,6 +102,7 @@
             if (AgentFactory.GetLanguage() == Language.NodeJS)
             {
                 invalidCharList.Remove('"');
+                invalidCharList.Remove('\'');
             }
 
             for (int i = 0; i < numberOfInavlidCharacters; i++)

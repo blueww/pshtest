@@ -96,11 +96,12 @@
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void DownloadFileUsingFileShareNameParameterSet()
         {
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
-            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
+            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             var sourceFile = fileUtil.CreateFile(this.fileShare, cloudFileName, localFilePath);
             UploadAndDownloadFileInternal(
@@ -153,12 +154,13 @@
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void DownloadFileInASubDirectory()
         {
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             string directoryName = CloudFileUtil.GenerateUniqueDirectoryName();
-            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
+            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             var subDirectory = fileUtil.EnsureDirectoryExists(this.fileShare, directoryName);
             var sourceFile = fileUtil.CreateFile(subDirectory, cloudFileName, localFilePath);
@@ -174,12 +176,13 @@
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void DownloadToAFolderAndOverwrite()
         {
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
-            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
-            string localExistingPath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
+            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localExistingPath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             FileUtil.GenerateSmallFile(localExistingPath, Utility.GetRandomTestCount(5, 10), true);
             var sourceFile = fileUtil.CreateFile(this.fileShare, cloudFileName, localFilePath);
@@ -196,12 +199,13 @@
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void DownloadToAFilePathAndOverwrite()
         {
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
-            string localFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
-            string localExistingPath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
+            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localExistingPath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             FileUtil.GenerateSmallFile(localExistingPath, Utility.GetRandomTestCount(5, 10), true);
             var sourceFile = fileUtil.CreateFile(this.fileShare, cloudFileName, localFilePath);
@@ -218,6 +222,7 @@
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void DownloadUsingPath()
         {
@@ -239,6 +244,7 @@
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void DownloadUsingRelativePathFromRoot()
         {
@@ -304,12 +310,13 @@
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void DownloadingNonExistingFile()
         {
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             var file = fileUtil.DeleteFileIfExists(this.fileShare, cloudFileName);
-            this.agent.DownloadFile(file, Path.GetFullPath(Test.Data.Get("TempDir")));
+            this.agent.DownloadFile(file, Test.Data.Get("TempDir"));
             var result = this.agent.Invoke();
             this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.PathNotFoundFullQualifiedErrorId));
         }
@@ -320,6 +327,7 @@
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void DownloadWithInvalidAccountTest()
         {
@@ -341,6 +349,7 @@
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void DownloadWithInvalidKeyValueTest()
         {
@@ -361,6 +370,7 @@
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void DownloadingFromNonExistingFileShare()
         {
@@ -379,6 +389,7 @@
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void DownloadingFromNonExistingDirectory()
         {
@@ -443,6 +454,7 @@
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void DownloadToAnNonExistingFilePath()
         {
@@ -473,6 +485,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void DownloadFileFromSubDirectoryOfRootTest()
         {
@@ -487,6 +500,7 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
         public void DownloadFileFromRelativePathWhereIntermediatePathMightNotExistTest()
         {
@@ -505,11 +519,11 @@
 
         private void UploadAndDownloadFileInternal(CloudFile sourceFile, string md5Checksum, Action<string> getContentAction, Func<string> getDestination = null, bool assertNoError = true)
         {
-            var destination = getDestination == null ? Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName())) : getDestination();
+            var destination = getDestination == null ? Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()) : getDestination();
 
             try
             {
-                Test.Info("Download source file {0} to destination {1}.", sourceFile, destination);
+                Test.Info("Download source file {0} to destination {1}.", sourceFile.Uri.OriginalString, destination);
                 getContentAction(destination);
                 var result = this.agent.Invoke();
 
