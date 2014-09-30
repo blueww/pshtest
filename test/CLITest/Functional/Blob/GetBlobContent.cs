@@ -69,11 +69,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         /// </summary>
         private static void SetupDownloadDir()
         {
-            if (!Directory.Exists(downloadDirRoot))
-            {
-                Directory.CreateDirectory(downloadDirRoot);
-            }
-
+            FileUtil.CreateDirIfNotExits(downloadDirRoot);
             FileUtil.CleanDirectory(downloadDirRoot);
         }
 

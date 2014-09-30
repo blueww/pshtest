@@ -1207,7 +1207,7 @@ namespace Management.Storage.ScenarioTest
         {
             bool needAccountParam = true;
             StringBuilder sb = new StringBuilder();
-            string dest = Path.GetFullPath(destination).TrimEnd(CloudFileUtil.PathSeparators);
+            string dest = destination.TrimEnd(CloudFileUtil.PathSeparators);
             if (AgentOSType != OSType.Windows)
             {
                 dest = FileUtil.GetLinuxPath(dest);
