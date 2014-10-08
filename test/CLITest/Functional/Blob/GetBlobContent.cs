@@ -31,7 +31,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
     /// functional tests for Set-ContainerAcl
     /// </summary>
     [TestClass]
-    class GetBlobContent: TestBase
+    public class GetBlobContent: TestBase
     {
         //TODO add invalid md5sum for page blob
         private static string downloadDirRoot;

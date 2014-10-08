@@ -58,11 +58,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
         //TODO remove code redundancy
         protected static void SetupDownloadDir()
         {
-            if (!Directory.Exists(downloadDirRoot))
-            {
-                Directory.CreateDirectory(downloadDirRoot);
-            }
-
+            FileUtil.CreateDirIfNotExits(downloadDirRoot);
             FileUtil.CleanDirectory(downloadDirRoot);
         }
 

@@ -100,7 +100,7 @@ namespace Management.Storage.ScenarioTest.Util
         /// <param name="blobNamePrefix">prefix of the blob name</param>
         public void SetupTestContainerAndBlob(StorageBlobType type = StorageBlobType.Unspecified)
         {
-            SetupTestContainerAndBlob(TestBase.SpecialChars);
+            SetupTestContainerAndBlob(TestBase.SpecialChars, type);
         }
 
         /// <summary>
