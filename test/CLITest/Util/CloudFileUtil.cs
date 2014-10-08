@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -13,7 +14,7 @@
     using Microsoft.WindowsAzure.Storage.File;
     using MS.Test.Common.MsTestLib;
 
-    public class CloudFileUtil
+    public class CloudFileUtil : UtilBase
     {
         public static readonly char[] PathSeparators = new char[] { '/', '\\' };
 
@@ -323,8 +324,35 @@
             else
             {
                 Test.Info("Upload source file {0} to destination {1}.", source, file.Uri.OriginalString);
-                file.Create(FileUtil.GetFileSize(source));
-                file.UploadFromFile(source, FileMode.Open);
+                
+                if (AgentOSType != OSType.Windows)
+                {
+                    string argument;
+                    string directory = string.Empty;
+                    var parent = file.Parent;
+                    while (parent != null && !string.IsNullOrEmpty(parent.Name))
+                    {
+                        directory += parent.Name + "/";
+                        parent = parent.Parent;
+                    }
+
+                    if (!string.IsNullOrEmpty(directory))
+                    {
+                        argument = string.Format("azure storage directory create '{0}' '{1}'", file.Share.Name, directory);
+                        argument = AddAccountParameters(argument, AgentConfig);
+                        RunNodeJSProcess(argument, true);
+                    }
+
+                    argument = string.Format("azure storage file upload '{0}' {1} {2} -q", source, file.Share.Name, directory + file.Name);
+                    argument = AddAccountParameters(argument, AgentConfig);
+                    RunNodeJSProcess(argument, true);
+                }
+
+                if (AgentOSType == OSType.Windows)
+                {
+                    file.Create(FileUtil.GetFileSize(source));
+                    file.UploadFromFile(source, FileMode.Open);
+                }
             }
         }
     }

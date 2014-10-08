@@ -44,7 +44,7 @@ namespace Management.Storage.ScenarioTest
         private const string NotImplemented = "Not implemented in NodeJS Agent!";
         private const string ExportPathCommand = "export PATH=$PATH:/usr/local/bin/;";
 
-        private static int DefaultMaxWaitingTime = 30000;  // in miliseconds
+        private static int DefaultMaxWaitingTime = 600000;  // in miliseconds
 
         private static Hashtable ExpectedErrorMsgTableNodeJS = new Hashtable() {
                 {"GetBlobContentWithNotExistsBlob", "Can not find blob '{0}' in container '{1}'"},
@@ -137,23 +137,6 @@ namespace Management.Storage.ScenarioTest
             Test.Info("NodeJS command: {0} {1}", p.StartInfo.FileName, p.StartInfo.Arguments);
         }
 
-        internal string AddAccountParameters(string argument)
-        {
-            string ret = argument;
-            if (!string.IsNullOrEmpty(AgentConfig.ConnectionString))
-            {
-                ret += string.Format(" -c \"{0}\"", AgentConfig.ConnectionString);
-            }
-
-            if (!string.IsNullOrEmpty(AgentConfig.AccountName))
-            {
-                ret += string.Format(" -a \"{0}\" -k \"{1}\"", AgentConfig.AccountName, AgentConfig.AccountKey);
-            }
-
-            // if no account param set, then we would use the env var
-            return ret;
-        }
-
         internal void ImportAzureSubscription()
         {
             string settingFile = Test.Data.Get("AzureSubscriptionPath");
@@ -174,7 +157,7 @@ namespace Management.Storage.ScenarioTest
 
             if (!AgentConfig.UseEnvVar && needAccountParam)
             {
-                argument = AddAccountParameters(argument);
+                argument = UtilBase.AddAccountParameters(argument, AgentConfig);
             }
 
             Process p = new Process();
@@ -1497,72 +1480,5 @@ namespace Management.Storage.ScenarioTest
 
             return command;
         }
-    }
-
-    public enum OSType
-    {
-        Windows, Linux, Mac
-    }
-
-    public class OSConfig
-    {
-        public string PLinkPath;
-        public string UserName;
-        public string HostName;
-        public string Port = "22";
-        public string PrivateKeyPath;
-
-        public string ConnectionStr;
-        public string Name;
-        public string Key;
-        public string Sas;
-
-        public OSConfig()
-        {
-            UseEnvVar = false;
-        }
-
-        public string ConnectionString
-        {
-            get { return ConnectionStr; }
-            set
-            {
-                ConnectionStr = value;
-                Name = string.Empty;
-                Key = string.Empty;
-            }
-        }
-
-        public string AccountName
-        {
-            get { return Name; }
-            set
-            {
-                Name = value;
-                ConnectionStr = string.Empty;
-            }
-        }
-
-        public string AccountKey
-        {
-            get { return Key; }
-            set
-            {
-                Key = value;
-                ConnectionStr = string.Empty;
-            }
-        }
-
-        public string SAS
-        {
-            get { return Sas; }
-            set
-            {
-                Sas = value;
-                ConnectionStr = string.Empty;
-            }
-        }
-
-        public bool UseEnvVar { get; set; }
     }
 }

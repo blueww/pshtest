@@ -262,7 +262,7 @@ namespace Management.Storage.ScenarioTest
         public void EnumerateAllTables()
         {
             //--------------Get operation--------------
-            Test.Assert(agent.GetAzureStorageTable(""), Utility.GenComparisonData("EnumerateAllTables", false));
+            Test.Assert(agent.GetAzureStorageTable(""), Utility.GenComparisonData("EnumerateAllTables", true));
 
             // Verification for returned values
             agent.OutputValidation(StorageAccount.CreateCloudTableClient().ListTables());

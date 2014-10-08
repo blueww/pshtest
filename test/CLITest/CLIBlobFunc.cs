@@ -72,7 +72,7 @@ namespace Management.Storage.ScenarioTest
         public void RootBlobOperations()
         {
             string DownloadDirPath = Test.Data.Get("DownloadDir");
-
+            FileUtil.CreateDirIfNotExits(DownloadDirPath);
             RootBlobOperations(agent, BlockFilePath, DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             RootBlobOperations(agent, PageFilePath, DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
         }

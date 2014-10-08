@@ -28,66 +28,17 @@ namespace Management.Storage.ScenarioTest.Util
     /// <summary>
     /// This class could perform file operations across different platforms(Windows, Linux, Mac)
     /// </summary>
-    public class FileUtil
+    public class FileUtil : UtilBase
     {
         private static string[] specialNames = { "pageabc", "blockabc ", "pagea b", "block abc", "page中文", 
             "block中 文", "page 中文", "block中文 ", "page.abc", "block.a bc", "page .abc", "block .abc ", string.Empty };
         private static Random random = new Random();
 
         public static string BinaryFileName { get; set; }
-        public static int MaxWaitingTime = 600000;  // in miliseconds
-        public static string WorkingDirectory = ".";
-        public static string Output { get; set; }
-        public static string Error { get; set; }
-
-        public static OSType AgentOSType = OSType.Windows;
-        public static OSConfig AgentConfig = new OSConfig();
-
-        internal static void SetProcessInfo(Process p, string command)
-        {
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.RedirectStandardError = true;
-            p.StartInfo.StandardOutputEncoding = Encoding.UTF8;
-            p.StartInfo.StandardErrorEncoding = Encoding.UTF8;
-            p.StartInfo.WorkingDirectory = WorkingDirectory;
-
-            p.StartInfo.FileName = AgentConfig.PLinkPath;
-            p.StartInfo.Arguments = string.Format("-l {0} -i \"{1}\" {2} -P {3} ",
-                AgentConfig.UserName, AgentConfig.PrivateKeyPath, AgentConfig.HostName, AgentConfig.Port);
-
-            // replace all " with ' in command for linux
-            command = command.Replace('"', '\'');
-            p.StartInfo.Arguments += command;
-
-            Test.Info("plink command: {0} {1}", p.StartInfo.FileName, p.StartInfo.Arguments);
-        }
 
         internal static string GetLinuxPath(string filepath)
         {
             return Regex.Replace(filepath.Replace('\\', '/'), "^[a-zA-Z]:", ".");
-        }
-
-        internal static void RunNodeJSProcess(string argument, bool ignoreError = false)
-        {
-            Process p = new Process();
-            SetProcessInfo(p, argument);
-            p.Start();
-
-            Output = p.StandardOutput.ReadToEnd();
-            Error = p.StandardError.ReadToEnd();
-
-            p.WaitForExit(MaxWaitingTime);
-            if (!p.HasExited)
-            {
-                p.Kill();
-                throw new Exception(string.Format("NodeJS command timeout: cost time > {0}s !", MaxWaitingTime / 1000));
-            }
-
-            if (!string.IsNullOrEmpty(Error) && !ignoreError)
-            {
-                Test.Error("Error msg: " + Error);
-            }
         }
 
         public static void GenerateMediumFile(string filename, int sizeMB, bool AlwaysOperateOnWindows = false)
@@ -108,7 +59,6 @@ namespace Management.Storage.ScenarioTest.Util
             if (AgentOSType != OSType.Windows)
             {
                 RunNodeJSProcess(string.Format("dd if=/dev/urandom of='{0}' bs=1024 count={1}", GetLinuxPath(filename), sizeKB), true);
-                Helper.GenerateSmallFile(filename, sizeKB);
             }
 
             if (AgentOSType == OSType.Windows || AlwaysOperateOnWindows)
@@ -126,6 +76,10 @@ namespace Management.Storage.ScenarioTest.Util
 
             if (AgentOSType == OSType.Windows || AlwaysOperateOnWindows)
             {
+                if (AgentOSType != OSType.Windows)
+                {
+                    filename = Path.GetFullPath(filename);
+                }
                 Helper.GenerateRandomTestFile(filename, sizeKB);
             }
         }
@@ -230,6 +184,7 @@ namespace Management.Storage.ScenarioTest.Util
             int maxFileSize = 10; //KB
 
             int fileCount = random.Next(minEntityCount, maxEntityCount);
+            bool AlwaysOperateOnWindows = AgentOSType != OSType.Windows;
 
             for (int i = 0; i < fileCount; i++)
             {
@@ -237,7 +192,7 @@ namespace Management.Storage.ScenarioTest.Util
                 string fileName = Path.Combine(relativePath, GetSpecialFileName());
                 string filePath = Path.Combine(rootPath, fileName);
                 files.Add(fileName);
-                GenerateRandomTestFile(filePath, fileSize);
+                GenerateRandomTestFile(filePath, fileSize, AlwaysOperateOnWindows);
                 Test.Info("Create a {0}kb test file '{1}'", fileSize, filePath);
             }
 
@@ -249,7 +204,7 @@ namespace Management.Storage.ScenarioTest.Util
                 //TODO dir name should contain space
                 dirName = dirName.Replace(" ", "");
                 string absolutePath = Path.Combine(rootPath, dirName);
-                CreateDirIfNotExits(absolutePath);
+                CreateDirIfNotExits(absolutePath, AlwaysOperateOnWindows);
                 Test.Info("Create directory '{0}'", absolutePath);
 
                 if (depth >= 1)
