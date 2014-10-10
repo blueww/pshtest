@@ -31,7 +31,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
     /// functional tests for Set-ContainerAcl
     /// </summary>
     [TestClass]
-    class GetBlobContent: TestBase
+    public class GetBlobContent: TestBase
     {
         //TODO add invalid md5sum for page blob
         private static string downloadDirRoot;
@@ -69,11 +69,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         /// </summary>
         private static void SetupDownloadDir()
         {
-            if (!Directory.Exists(downloadDirRoot))
-            {
-                Directory.CreateDirectory(downloadDirRoot);
-            }
-
+            FileUtil.CreateDirIfNotExits(downloadDirRoot);
             FileUtil.CleanDirectory(downloadDirRoot);
         }
 

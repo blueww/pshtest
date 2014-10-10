@@ -143,15 +143,18 @@ namespace Management.Storage.ScenarioTest.BVT
         {
             bool AlwaysOperateOnWindows = (FileUtil.AgentOSType != OSType.Windows);
 
-            CommonBlockFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName()));
-            CommonPageFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName()));
-            CommonSmallFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName()));
-            CommonMediumFilePath = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName()));
+            CommonBlockFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
+            CommonPageFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
+            CommonSmallFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
+            CommonMediumFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
 
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonBlockFilePath), AlwaysOperateOnWindows);
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonPageFilePath), AlwaysOperateOnWindows);
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonSmallFilePath), AlwaysOperateOnWindows);
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonMediumFilePath), AlwaysOperateOnWindows);
+
+            FileUtil.CreateDirIfNotExits(Test.Data.Get("DownloadDir"), AlwaysOperateOnWindows);
+            FileUtil.CreateDirIfNotExits(Test.Data.Get("UploadDir"), AlwaysOperateOnWindows);
 
             // Generate block file and page file which are used for uploading
             FileUtil.GenerateMediumFile(CommonBlockFilePath, Utility.GetRandomTestCount(1, 5), AlwaysOperateOnWindows);
@@ -348,7 +351,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void DownloadBlobTest()
         {
-            string downloadDirPath = Path.GetFullPath(Test.Data.Get("DownloadDir"));
+            string downloadDirPath = Test.Data.Get("DownloadDir");
             DownloadBlobTest(agent, CommonBlockFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             DownloadBlobTest(agent, CommonPageFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
         }
