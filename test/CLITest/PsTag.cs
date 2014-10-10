@@ -87,6 +87,10 @@ namespace Management.Storage.ScenarioTest
 
         public const string NodeJSConString = "nodejsconnectionstring";
 
+        public const string Blob = "nodejsblob";
+        public const string GetBlob = "nodejsgetblob";
+        public const string RemoveBlob = "nodejsremoveblob";
+
         public const string StartCopyBlob = "nodestartcopyblob";
         public const string GetBlobCopyState = "nodegetblobcopystate";
         public const string StopCopyBlob = "nodestopcopyblob";
@@ -108,5 +112,8 @@ namespace Management.Storage.ScenarioTest
         public const string SASInterop = "nodejssasinterop";
 
         public const string File = "nodejsfile";
+
+        public const string ServiceLogging = "nodejsservicelogging";
+        public const string ServiceMetrics = "nodejsservicemetrics";
     }
 }

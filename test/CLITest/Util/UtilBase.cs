@@ -60,7 +60,11 @@
         public static string AddAccountParameters(string argument, OSConfig AgentConfig)
         {
             string ret = argument;
-            if (!string.IsNullOrEmpty(AgentConfig.ConnectionString))
+            if (!string.IsNullOrEmpty(AgentConfig.SAS) && !string.IsNullOrEmpty(AgentConfig.AccountName))
+            {
+                ret += string.Format(" -a \"{0}\" --sas \"{1}\"", AgentConfig.AccountName, AgentConfig.SAS); 
+            }
+            else if (!string.IsNullOrEmpty(AgentConfig.ConnectionString))
             {
                 ret += string.Format(" -c \"{0}\"", AgentConfig.ConnectionString);
             }

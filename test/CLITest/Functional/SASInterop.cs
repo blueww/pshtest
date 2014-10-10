@@ -50,6 +50,33 @@
             OnTestSetup();
         }
 
+        public override void OnTestSetup()
+        {
+            if (!accountImported)
+            {
+                NodeJSAgent nodeAgent = (NodeJSAgent)agent;
+                nodeAgent.ImportAzureSubscription();
+
+                string subscriptionID = Test.Data.Get("AzureSubscriptionID");
+                if (!string.IsNullOrEmpty(subscriptionID))
+                {
+                    nodeAgent.SetActiveSubscription(subscriptionID);
+                }
+                else
+                {
+                    string subscriptionName = Test.Data.Get("AzureSubscriptionName");
+                    if (!string.IsNullOrEmpty(subscriptionName))
+                    {
+                        nodeAgent.SetActiveSubscription(subscriptionName);
+                    }
+                }
+
+                accountImported = true;
+            }
+        }
+
+        private bool accountImported = false;
+
         /// <summary>
         /// Generate temp files
         /// </summary>
@@ -61,6 +88,11 @@
             commonPageFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(commonBlockFilePath), AlwaysOperateOnWindows);
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(commonPageFilePath), AlwaysOperateOnWindows);
+
+            FileUtil.CreateDirIfNotExits(Test.Data.Get("UploadDir"));
+            FileUtil.CreateDirIfNotExits(Test.Data.Get("DownloadDir"));
+            FileUtil.CreateDirIfNotExits(Test.Data.Get("TempDir"));
+
             // Generate block file and page file which are used for uploading
             FileUtil.GenerateMediumFile(commonBlockFilePath, Utility.GetRandomTestCount(1, 5), AlwaysOperateOnWindows);
             FileUtil.GenerateMediumFile(commonPageFilePath, Utility.GetRandomTestCount(1, 5), AlwaysOperateOnWindows);
@@ -76,6 +108,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.SASInterop)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.SASInterop)]
         public void BlobWithReadPermission()
         {
             BlobOrContainerWithReadPermission(StorageObjectType.Container, BlobType.BlockBlob);
@@ -93,6 +127,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Container)]
         [TestCategory(PsTag.SASInterop)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.SASInterop)]
         public void ContainerWithReadPermission()
         {
             BlobOrContainerWithReadPermission(StorageObjectType.Container, BlobType.BlockBlob);
@@ -106,7 +142,7 @@
 
             try
             {
-                ((PowerShellAgent)agent).SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, string.Empty, "r");
+                agent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, string.Empty, "r");
 
                 // Get blob with the generated SAS token
                 Test.Assert(agent.GetAzureStorageBlob(blobUtil.Blob.Name, blobUtil.ContainerName),
@@ -119,7 +155,16 @@
 
                 // Copy blob with the generated SAS token(as source)
                 string copiedName = Utility.GenNameString("copied");
-                object destContext = PowerShellAgent.GetStorageContext(StorageAccount.ToString(true));
+                object destContext = null;
+                if (lang == Language.PowerShell)
+                {
+                    destContext = PowerShellAgent.GetStorageContext(StorageAccount.ToString(true));
+                }
+                else
+                {
+                    destContext = StorageAccount;
+                }
+
                 Test.Assert(agent.StartAzureStorageBlobCopy(blobUtil.ContainerName, blobUtil.Blob.Name, blobUtil.ContainerName, copiedName, destContext),
                     string.Format("Copy blob {0} in container {1} to blob {2} in container {3} should succeed",
                     blobUtil.Blob.Name, blobUtil.ContainerName, blobUtil.ContainerName, copiedName));
@@ -138,6 +183,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Container)]
         [TestCategory(PsTag.SASInterop)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.SASInterop)]
         public void ContainerWithWritePermission()
         {
             BlobOrContainerWithWritePermission(commonBlockFilePath, StorageObjectType.Container, BlobType.BlockBlob);
@@ -153,6 +200,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.SASInterop)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.SASInterop)]
         public void BlobWithWritePermission()
         {
             BlobOrContainerWithWritePermission(commonBlockFilePath, StorageObjectType.Blob, BlobType.BlockBlob);
@@ -165,7 +214,7 @@
             blobUtil.SetupTestContainerAndBlob(type);
             try
             {
-                ((PowerShellAgent)agent).SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, string.Empty, "w");
+                agent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, string.Empty, "w");
 
                 // Upload blob with the generated SAS token
                 Test.Assert(agent.SetAzureStorageBlobContent(uploadFilePath, blobUtil.ContainerName, type, blobUtil.Blob.Name),
@@ -185,6 +234,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Container)]
         [TestCategory(PsTag.SASInterop)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.SASInterop)]
         public void ContainerWithDeletePermission()
         {
             BlobOrContainerWithDeletePermission(StorageObjectType.Container);
@@ -198,6 +249,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.SASInterop)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.SASInterop)]
         public void BlobWithDeletePermission()
         {
             BlobOrContainerWithDeletePermission(StorageObjectType.Blob);
@@ -208,7 +261,7 @@
             blobUtil.SetupTestContainerAndBlob();
             try
             {
-                ((PowerShellAgent)agent).SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, string.Empty, "d");
+                agent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, string.Empty, "d");
 
                 // Delete blob with the generated SAS token
                 Test.Assert(agent.RemoveAzureStorageBlob(blobUtil.Blob.Name, blobUtil.ContainerName),
@@ -228,13 +281,15 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Container)]
         [TestCategory(PsTag.SASInterop)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.SASInterop)]
         public void ContainerWithListPermission()
         {
             blobUtil.SetupTestContainerAndBlob();
             try
             {
                 string sastoken = agent.GetContainerSasFromCmd(blobUtil.ContainerName, string.Empty, "l");
-                PowerShellAgent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sastoken);
+                agent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sastoken);
 
                 // List blobs with the generated SAS token
                 Test.Assert(agent.GetAzureStorageBlob(string.Empty, blobUtil.ContainerName),
@@ -254,13 +309,15 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Queue)]
         [TestCategory(PsTag.SASInterop)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.SASInterop)]
         public void QueueWithReadPermission()
         {
             CloudQueue queue = queueUtil.CreateQueue();
             try
             {
                 string sastoken = agent.GetQueueSasFromCmd(queue.Name, string.Empty, "r");
-                PowerShellAgent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sastoken);
+                agent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sastoken);
 
                 //list specified queue with properties and meta data
                 Test.Assert(agent.GetAzureStorageQueue(queue.Name), Utility.GenComparisonData("GetAzureStorageQueue", true));

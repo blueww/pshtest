@@ -395,6 +395,8 @@ namespace Management.Storage.ScenarioTest.BVT
         /// </summary>
         [TestMethod]
         [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.ServiceLogging)]
         public void SetServiceLoggingTest()
         {
             if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
@@ -414,7 +416,23 @@ namespace Management.Storage.ScenarioTest.BVT
                 Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, loggingOperations, retentionDays.ToString()),
                     Utility.GenComparisonData("SetAzureStorageServiceLogging", true));
 
-                Utility.ValidateLoggingProperties(CommonStorageAccount, serviceType, retentionDays, loggingOperations);
+                if (lang == Language.PowerShell)
+                {
+                    Utility.ValidateLoggingProperties(CommonStorageAccount, serviceType, retentionDays, loggingOperations);
+                }
+                else
+                {
+                    dynamic retention = agent.Output[0]["RetentionPolicy"];
+                    Test.Assert((bool)retention.Enabled, "service logging retention should be turned on");
+                    int days = retention.Days ?? 0;
+                    ExpectEqual(retentionDays, days, "logging retention days");
+
+                    bool? read = agent.Output[0]["Read"] as bool?;
+                    bool? write = agent.Output[0]["Write"] as bool?;
+                    bool? delete = agent.Output[0]["Delete"] as bool?;
+                    Utility.ValidateLoggingOperationProperty(loggingOperations, read, write, delete);
+                }
+
                 Utility.ValidateMetricsProperties(CommonStorageAccount, serviceType, Constants.MetricsType.Hour, propertiesBeforeSet.HourMetrics.RetentionDays,
                     propertiesBeforeSet.HourMetrics.MetricsLevel.ToString());
             }
@@ -425,6 +443,8 @@ namespace Management.Storage.ScenarioTest.BVT
         /// </summary>
         [TestMethod]
         [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.ServiceMetrics)]
         public void SetServiceMetricsTest()
         {
             if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
@@ -443,10 +463,22 @@ namespace Management.Storage.ScenarioTest.BVT
                     // set ServiceProperties(metrics)
                     Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, metricsType, metricsLevel, retentionDays.ToString()),
                         Utility.GenComparisonData("SetAzureStorageServiceHourMetrics", true));
-
-                    Utility.ValidateMetricsProperties(CommonStorageAccount, serviceType, metricsType, retentionDays, metricsLevel);
+                    
                     Utility.ValidateLoggingProperties(CommonStorageAccount, serviceType, propertiesBeforeSet.Logging.RetentionDays,
                         propertiesBeforeSet.Logging.LoggingOperations.ToString());
+
+                    if (lang == Language.PowerShell)
+                    {
+                        Utility.ValidateMetricsProperties(CommonStorageAccount, serviceType, metricsType, retentionDays, metricsLevel);
+                    }
+                    else
+                    {
+                        string tag = metricsType.ToString() + "Metrics";
+                        dynamic metrics = agent.Output[0][tag];
+                        Test.Assert((bool)metrics[0].RetentionPolicy.Enabled, string.Format("service {0} retention should be turned on", tag));
+                        int retention = metrics[0].RetentionPolicy.Days ?? 0;
+                        ExpectEqual(retentionDays, retention, "metrics retention days");
+                    }
                 }
             }
         }
@@ -456,6 +488,8 @@ namespace Management.Storage.ScenarioTest.BVT
         /// </summary>
         [TestMethod]
         [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.ServiceLogging)]
         public void GetServiceLoggingTest()
         {
             if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
@@ -477,6 +511,8 @@ namespace Management.Storage.ScenarioTest.BVT
         /// </summary>
         [TestMethod]
         [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.ServiceMetrics)]
         public void GetServiceMetricsTest()
         {
             if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))

@@ -380,6 +380,47 @@ namespace Management.Storage.ScenarioTest
             return ret;
         }
 
+        public static void ValidateLoggingOperationProperty(string loggingOperations, bool? read, bool? write, bool? delete)
+        {
+            if (string.Compare(loggingOperations, "All", true) == 0)
+            {
+                loggingOperations = "read,write,delete";
+            }
+
+            if (loggingOperations.ToLower().Contains("read"))
+            {
+                Test.Assert((read.HasValue && read.Value),
+                string.Format("expected LoggingOperations for reading is true, actually it's '{0}'", read));
+            }
+            else
+            {
+                Test.Assert((read.HasValue && !read.Value),
+                string.Format("expected LoggingOperations for reading is false, actually it's '{0}'", read));
+            }
+
+            if (loggingOperations.ToLower().Contains("write"))
+            {
+                Test.Assert((write.HasValue && write.Value),
+                string.Format("expected LoggingOperations for writing is true, actually it's '{0}'", write));
+            }
+            else
+            {
+                Test.Assert((write.HasValue && !write.Value),
+                string.Format("expected LoggingOperations for writing is false, actually it's '{0}'", write));
+            }
+
+            if (loggingOperations.ToLower().Contains("delete"))
+            {
+                Test.Assert((delete.HasValue && delete.Value),
+                string.Format("expected LoggingOperations for deleting is true, actually it's '{0}'", delete));
+            }
+            else
+            {
+                Test.Assert((delete.HasValue && !delete.Value),
+                string.Format("expected LoggingOperations for deleting is false, actually it's '{0}'", delete));
+            }
+        }
+
         public static void ValidateLoggingProperties(CloudStorageAccount account, Constants.ServiceType serviceType, int? retentionDays, string loggingOperations)
         {
             ServiceProperties properties = GetServiceProperties(account, serviceType);

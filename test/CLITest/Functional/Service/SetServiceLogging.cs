@@ -16,7 +16,7 @@
     using ServiceType = Management.Storage.ScenarioTest.Constants.ServiceType;
 
     [TestClass]
-    class SetServiceLogging : TestBase
+    public class SetServiceLogging : TestBase
     {
         [ClassInitialize()]
         public static void SetServiceLoggingClassInit(TestContext testContext)
@@ -33,6 +33,8 @@
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.ServiceLogging)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.ServiceLogging)]
         public void EnableDisableServiceLogging()
         {
             //Blob service
@@ -53,17 +55,46 @@
             Test.Info("Enable/Disable service logging for {0}", serviceType);
             int retentionDays = 10;
             Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Enable service logging should succeed");
-            ServiceProperties retrievedProperties = getServiceProperties();
-            ExpectEqual(retentionDays, retrievedProperties.Logging.RetentionDays.Value, "logging retention days");
-            retentionDays = -1;
-            Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Enable blob service logging should succeed");
-            retrievedProperties = getServiceProperties();
-            Test.Assert(!retrievedProperties.Logging.RetentionDays.HasValue, "service logging retention days should be null");
+            ServiceProperties retrievedProperties;
+            if (lang == Language.PowerShell)
+            {
+                retrievedProperties = getServiceProperties();
+                ExpectEqual(retentionDays, retrievedProperties.Logging.RetentionDays.Value, "logging retention days");
+            }
+            else
+            {
+                // getServiceProperties() takes several seconds to get the correct properties when retention is turned off by nodejs
+                // because the .net and node xscl may connect to different frontend and take some time to sync 
+                dynamic retention = agent.Output[0]["RetentionPolicy"];
+                Test.Assert((bool)retention.Enabled, "service logging retention should be turned on");
+                int days = retention.Days ?? 0;
+                ExpectEqual(retentionDays, days, "logging retention days");
+            }
+            
+            if (lang == Language.PowerShell)
+            {
+                retentionDays = -1;
+                Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Enable blob service logging should succeed");
+
+                retrievedProperties = getServiceProperties();
+                Test.Assert(!retrievedProperties.Logging.RetentionDays.HasValue, "service logging retention days should be null");
+            }
+            else
+            {
+                retentionDays = 0;
+                Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Enable blob service logging should succeed");
+
+                dynamic retention = agent.Output[0]["RetentionPolicy"];
+                Test.Assert(!(bool)retention.Enabled, "service logging retention should be turned off");
+                Test.Assert(retention.Days == null, "service logging retention days should be null");
+            }
         }
 
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.ServiceLogging)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.ServiceLogging)]
         public void SetLoggingOperation()
         {
             //Blob service
@@ -104,14 +135,28 @@
         {
             int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
             Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, operations, retentionDays.ToString(), string.Empty), "Set logging operation should succeed");
-            ServiceProperties retrievedProperties = getServiceProperties();
-            LoggingOperations expectOperation = (LoggingOperations) Enum.Parse(typeof(LoggingOperations), operations, true);
-            ExpectEqual(expectOperation.ToString(), retrievedProperties.Logging.LoggingOperations.ToString(), "logging operation");
+
+            if (lang == Language.PowerShell)
+            {
+                ServiceProperties retrievedProperties = getServiceProperties();
+                LoggingOperations expectOperation = (LoggingOperations)Enum.Parse(typeof(LoggingOperations), operations, true);
+                ExpectEqual(expectOperation.ToString(), retrievedProperties.Logging.LoggingOperations.ToString(), "logging operation");
+            }
+            else
+            {
+                bool? read = agent.Output[0]["Read"] as bool?;
+                bool? write = agent.Output[0]["Write"] as bool?;
+                bool? delete = agent.Output[0]["Delete"] as bool?;
+
+                Utility.ValidateLoggingOperationProperty(operations, read, write, delete);
+            }
         }
 
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.ServiceLogging)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.ServiceLogging)]
         public void SetInvalidLoggingOperation()
         {
             //Blob service
@@ -131,14 +176,23 @@
         {
             Test.Info("Set invalid service logging operation for {0}", serviceType);
 
-            LoggingOperations[] loggingOperations = {LoggingOperations.All, LoggingOperations.Read};
-            ExpectInvalidLoggingOperation(serviceType, loggingOperations, getServiceProperties);
+            if (lang == Language.PowerShell)
+            {
+                LoggingOperations[] loggingOperations = { LoggingOperations.All, LoggingOperations.Read };
+                ExpectInvalidLoggingOperation(serviceType, loggingOperations, getServiceProperties);
 
-            loggingOperations = new LoggingOperations[] { LoggingOperations.Delete, LoggingOperations.None };
-            ExpectInvalidLoggingOperation(serviceType, loggingOperations, getServiceProperties);
+                loggingOperations = new LoggingOperations[] { LoggingOperations.Delete, LoggingOperations.None };
+                ExpectInvalidLoggingOperation(serviceType, loggingOperations, getServiceProperties);
 
-            string operation = "delete,xxx";
-            ExpectInvalidLoggingOperation(serviceType, operation, getServiceProperties);
+                string operation = "delete,xxx";
+                ExpectInvalidLoggingOperation(serviceType, operation, getServiceProperties, "Cannot bind parameter 'LoggingOperations'. Cannot convert value");
+            }
+            else
+            {
+                string operation = " --read --read-off ";
+                string expectedError = "--read and --read-off cannot be both defined";
+                ExpectInvalidLoggingOperation(serviceType, operation, getServiceProperties, expectedError);
+            }       
         }
 
         internal void ExpectInvalidLoggingOperation(Constants.ServiceType serviceType, LoggingOperations[] operations,
@@ -150,16 +204,18 @@
         }
 
         internal void ExpectInvalidLoggingOperation(Constants.ServiceType serviceType, string operations,
-            Func<ServiceProperties> getServiceProperties)
+            Func<ServiceProperties> getServiceProperties, string expectedMessage)
         {
             int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
             Test.Assert(!agent.SetAzureStorageServiceLogging(serviceType, operations, retentionDays.ToString(), string.Empty), "Set invalid logging operation should fail");
-            ExpectedStartsWithErrorMessage("Cannot bind parameter 'LoggingOperations'. Cannot convert value");
+            ExpectedStartsWithErrorMessage(expectedMessage);
         }
 
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.ServiceLogging)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.ServiceLogging)]
         public void SetLoggingRetentionDay()
         {
             //Blob service
@@ -184,23 +240,37 @@
             ServiceProperties retrievedProperties = getServiceProperties();
             ExpectEqual(retentionDays, retrievedProperties.Logging.RetentionDays.Value, "Logging retention days");
 
-            retentionDays = -1;
-            Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Set service logging retention days should succeed");
-            retrievedProperties = getServiceProperties();
-            Test.Assert(!retrievedProperties.Logging.RetentionDays.HasValue, "Service logging retention days should be null");
+            if (lang == Language.PowerShell)
+            {
+                retentionDays = -1;
+                Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Set service logging retention days should succeed");
+                retrievedProperties = getServiceProperties();
+                Test.Assert(!retrievedProperties.Logging.RetentionDays.HasValue, "Service logging retention days should be null");
 
-            // invalid values for RetentionDay
-            retentionDays = 0;
-            Test.Assert(!agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Set service logging retention days for invalid retention days should fail");
-            ExpectedStartsWithErrorMessage("The minimum value of retention days is 1, the largest value is 365 (one year).");
+                // invalid values for RetentionDay
+                retentionDays = 0;
+                Test.Assert(!agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Set service logging retention days for invalid retention days should fail");
+                ExpectedStartsWithErrorMessage("The minimum value of retention days is 1, the largest value is 365 (one year).");
 
-            retentionDays = -1 * Utility.GetRandomTestCount(2, 365 + 1);
-            Test.Assert(!agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Set service logging retention days for invalid retention days should fail");
-            ExpectedStartsWithErrorMessage("Cannot validate argument on parameter 'RetentionDays'");
+                retentionDays = -1 * Utility.GetRandomTestCount(2, 365 + 1);
+                Test.Assert(!agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Set service logging retention days for invalid retention days should fail");
+                ExpectedStartsWithErrorMessage("Cannot validate argument on parameter 'RetentionDays'");
 
-            retentionDays = Utility.GetRandomTestCount(366, 365 + 100);
-            Test.Assert(!agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Set service logging retention days for invalid retention days should fail");
-            ExpectedStartsWithErrorMessage("Cannot validate argument on parameter 'RetentionDays'");
+                retentionDays = Utility.GetRandomTestCount(366, 365 + 100);
+                Test.Assert(!agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Set service logging retention days for invalid retention days should fail");
+                ExpectedStartsWithErrorMessage("Cannot validate argument on parameter 'RetentionDays'");
+            }
+            else
+            {
+                retentionDays = 0;
+                Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Set service logging retention days for 0 retention days should succeed");
+
+                retentionDays = Utility.GetRandomTestCount(366, 365 + 100);
+                Test.Assert(!agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Set service logging retention days for invalid retention days should fail");
+
+                string[] errMessages = {"XML specified is not syntactically valid" , "Error"};
+                ExpectedContainErrorMessage(errMessages);
+            }
         }
 
         [TestMethod]

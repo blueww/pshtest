@@ -222,6 +222,15 @@ namespace Management.Storage.ScenarioTest.Common
         /// </summary>
         public virtual void OnTestCleanUp()
         {
+            if (lang == Language.NodeJS)
+            {
+                NodeJSAgent.AgentConfig.SAS = string.Empty;
+
+                if (string.IsNullOrEmpty(NodeJSAgent.AgentConfig.AccountKey))
+                {
+                    NodeJSAgent.AgentConfig.AccountName = string.Empty;
+                }
+            }
         }
 
         /// <summary>
