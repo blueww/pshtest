@@ -33,6 +33,8 @@
 
         private static readonly char[] InvalidFileNameCharacters = new char[] { '\\', '/', ':', '|', '<', '>', '*', '?', '"' };
 
+        private static readonly char[] BashControllers = (AgentFactory.GetOSType() != OSType.Windows) ? new char[] { '(', ')', '$', '\''} : new char[] {};
+
         private static readonly char[] ValidShareNameCharactersExceptDash =
             Enumerable.Range(0, 26).Select(x => (char)('a' + x)).Concat(
             Enumerable.Range(0, 10).Select(x => (char)('0' + x))).ToArray();
@@ -102,6 +104,14 @@
             if (AgentFactory.GetLanguage() == Language.NodeJS)
             {
                 invalidCharList.Remove('"');
+                invalidCharList.Remove('\'');
+            }
+
+            if (AgentFactory.GetOSType() != OSType.Windows)
+            {
+                // remove bash control characters
+                invalidCharList.Remove('(');
+                invalidCharList.Remove('$');
             }
 
             for (int i = 0; i < numberOfInavlidCharacters; i++)
@@ -127,6 +137,7 @@
                 }
                 while (
                     InvalidFileNameCharacters.Contains(ch) ||
+                    BashControllers.Contains(ch) ||
                     i == length - 1 && ch == '.');
 
                 sb.Append(ch);

@@ -212,6 +212,8 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.NewBlobSas)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NewBlobSas)]
         public void NewBlobSasWithFullUri()
         {
             blobUtil.SetupTestContainerAndBlob();
@@ -219,7 +221,7 @@
             {
                 string blobPermission = Utility.GenRandomCombination(Utility.BlobPermission);
                 string fullUri = agent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
-                string sasToken = fullUri.Substring(fullUri.IndexOf("?"));
+                string sasToken = (lang == Language.PowerShell ? fullUri.Substring(fullUri.IndexOf("?")) : fullUri);
                 ValidateSasToken(blobUtil.Blob, blobPermission, sasToken);
             }
             finally

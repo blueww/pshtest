@@ -44,7 +44,7 @@ namespace Management.Storage.ScenarioTest
         private const string NotImplemented = "Not implemented in NodeJS Agent!";
         private const string ExportPathCommand = "export PATH=$PATH:/usr/local/bin/;";
 
-        private static int DefaultMaxWaitingTime = 30000;  // in miliseconds
+        private static int DefaultMaxWaitingTime = 600000;  // in miliseconds
 
         private static Hashtable ExpectedErrorMsgTableNodeJS = new Hashtable() {
                 {"GetBlobContentWithNotExistsBlob", "Can not find blob '{0}' in container '{1}'"},
@@ -90,7 +90,7 @@ namespace Management.Storage.ScenarioTest
             ExpectedErrorMsgTable = ExpectedErrorMsgTableNodeJS;
         }
 
-        internal static void SetProcessInfo(Process p, string argument)
+        internal static void SetProcessInfo(Process p, string category, string argument)
         {
             p.StartInfo.UseShellExecute = false;
             p.StartInfo.RedirectStandardOutput = true;
@@ -132,29 +132,23 @@ namespace Management.Storage.ScenarioTest
                 // replace all " with ' in argument for linux
                 argument = argument.Replace('"', '\'');
             }
-            p.StartInfo.Arguments += string.Format(" azure storage {0} --json", argument);
+            p.StartInfo.Arguments += string.Format(" azure {0} {1} --json", category, argument);
 
             Test.Info("NodeJS command: {0} {1}", p.StartInfo.FileName, p.StartInfo.Arguments);
         }
 
-        internal string AddAccountParameters(string argument)
+        internal void ImportAzureSubscription()
         {
-            string ret = argument;
-            if (!string.IsNullOrEmpty(AgentConfig.ConnectionString))
-            {
-                ret += string.Format(" -c \"{0}\"", AgentConfig.ConnectionString);
-            }
+            string settingFile = Test.Data.Get("AzureSubscriptionPath");
+            RunNodeJSProcess(string.Format("import \"{0}\"", settingFile), needAccountParam: false, category: "account");
+        }               
 
-            if (!string.IsNullOrEmpty(AgentConfig.AccountName))
-            {
-                ret += string.Format(" -a \"{0}\" -k \"{1}\"", AgentConfig.AccountName, AgentConfig.AccountKey);
-            }
-
-            // if no account param set, then we would use the env var
-            return ret;
+        internal void SetActiveSubscription(string nameOrID)
+        {
+            RunNodeJSProcess(string.Format("set \"{0}\"", nameOrID), needAccountParam: false, category: "account");
         }
 
-        internal bool RunNodeJSProcess(string argument, bool force = false, bool needAccountParam = true)
+        internal bool RunNodeJSProcess(string argument, bool force = false, bool needAccountParam = true, string category = "storage")
         {
             if (force)
             {
@@ -163,29 +157,37 @@ namespace Management.Storage.ScenarioTest
 
             if (!AgentConfig.UseEnvVar && needAccountParam)
             {
-                argument = AddAccountParameters(argument);
+                argument = UtilBase.AddAccountParameters(argument, AgentConfig);
             }
 
             Process p = new Process();
-            SetProcessInfo(p, argument);
+            SetProcessInfo(p, category, argument);
             StringBuilder outputBuilder = new StringBuilder();
             p.Start();
 
-            var t = Task.Factory.StartNew(() =>
+            StringBuilder outputBuffer = new StringBuilder();
+            p.OutputDataReceived += (sendingProcess, outLine) =>
             {
-                while (!p.StandardOutput.EndOfStream)
+                if (!String.IsNullOrEmpty(outLine.Data))
                 {
-                    string line = p.StandardOutput.ReadLine();
-                    Test.Verbose(line);
-                    outputBuilder.AppendLine(line);
+                    outputBuffer.Append(outLine.Data + "\n");
                 }
-            });
+            };
+            StringBuilder errorBuffer = new StringBuilder();
+            p.ErrorDataReceived += (sendingProcess, outLine) =>
+            {
+                if (!String.IsNullOrEmpty(outLine.Data))
+                {
+                    errorBuffer.Append(outLine.Data + "\n");
+                }
+            };
 
+            p.BeginOutputReadLine();
+            p.BeginErrorReadLine();
             p.WaitForExit(MaxWaitingTime);
 
-            t.Wait(10000);
-            string output = outputBuilder.ToString();
-            string error = p.StandardError.ReadToEnd();
+            string output = outputBuffer.ToString();
+            string error = errorBuffer.ToString();
 
             if (!string.IsNullOrEmpty(error))
             {
@@ -1188,7 +1190,7 @@ namespace Management.Storage.ScenarioTest
         {
             bool needAccountParam = true;
             StringBuilder sb = new StringBuilder();
-            string dest = Path.GetFullPath(destination).TrimEnd(CloudFileUtil.PathSeparators);
+            string dest = destination.TrimEnd(CloudFileUtil.PathSeparators);
             if (AgentOSType != OSType.Windows)
             {
                 dest = FileUtil.GetLinuxPath(dest);
@@ -1478,61 +1480,5 @@ namespace Management.Storage.ScenarioTest
 
             return command;
         }
-    }
-
-    public enum OSType
-    {
-        Windows, Linux, Mac
-    }
-
-    public class OSConfig
-    {
-        public string PLinkPath;
-        public string UserName;
-        public string HostName;
-        public string Port = "22";
-        public string PrivateKeyPath;
-
-        public string ConnectionStr;
-        public string Name;
-        public string Key;
-
-        public OSConfig()
-        {
-            UseEnvVar = false;
-        }
-
-        public string ConnectionString
-        {
-            get { return ConnectionStr; }
-            set
-            {
-                ConnectionStr = value;
-                Name = string.Empty;
-                Key = string.Empty;
-            }
-        }
-
-        public string AccountName
-        {
-            get { return Name; }
-            set
-            {
-                Name = value;
-                ConnectionStr = string.Empty;
-            }
-        }
-
-        public string AccountKey
-        {
-            get { return Key; }
-            set
-            {
-                Key = value;
-                ConnectionStr = string.Empty;
-            }
-        }
-
-        public bool UseEnvVar { get; set; }
     }
 }

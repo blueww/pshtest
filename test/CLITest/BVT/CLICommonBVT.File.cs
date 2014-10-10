@@ -625,7 +625,7 @@
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             var fileShare = fileUtil.EnsureFileShareExists(fileShareName);
             var cloudFile = fileUtil.CreateFile(fileShare, cloudFileName, localFileName);
-            var destination = Path.GetFullPath(Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName()));
+            var destination = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
 
             try
             {

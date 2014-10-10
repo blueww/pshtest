@@ -10,6 +10,7 @@
     public class AgentFactory
     {
         private static Language? agentLanguage;
+        private static OSType? agentOS;
 
         public static Language GetLanguage(IDictionary properties = null)
         {
@@ -52,9 +53,46 @@
             return agentLanguage.Value;
         }
 
+        public static OSType GetOSType()
+        {
+            if (agentOS.HasValue)
+            {
+                return agentOS.Value;
+            }
+
+            string os =  Test.Data.Get("AgentOS");
+
+            if (!String.IsNullOrEmpty(os))
+            {
+                if (String.Compare(OSType.Windows.ToString(), os, StringComparison.InvariantCultureIgnoreCase) == 0)
+                {
+                    agentOS = OSType.Windows;
+                }
+                else if (String.Compare(OSType.Linux.ToString(), os, StringComparison.InvariantCultureIgnoreCase) == 0)
+                {
+                    agentOS = OSType.Linux;
+                }
+                else if (String.Compare(OSType.Mac.ToString(), os, StringComparison.InvariantCultureIgnoreCase) == 0)
+                {
+                    agentOS = OSType.Mac;
+                }
+                else
+                {
+                    throw new Exception(String.Format("Unsupported AgentOS value: {0}", os));
+                }
+            }
+            else
+            {
+                throw new Exception(String.Format("Please specify AgentOS parameter value!"));
+            }
+
+            return agentOS.Value;
+        }
+
         public static Agent CreateAgent(IDictionary properties)
         {
             Language lang = GetLanguage(properties);
+            GetOSType();
 
             switch (lang)
             {
@@ -68,5 +106,14 @@
         }
     }
 
-    public enum Language { PowerShell, NodeJS };
+    public enum Language 
+    { 
+        PowerShell, NodeJS 
+    };
+
+    public enum OSType
+    {
+        Windows, Linux, Mac
+    }
+
 }

@@ -41,6 +41,33 @@ namespace Management.Storage.ScenarioTest
             TestBase.TestClassCleanup();
         }
 
+        public override void OnTestSetup()
+        {
+            if (!accountImported)
+            {
+                NodeJSAgent nodeAgent = (NodeJSAgent)agent;
+                nodeAgent.ImportAzureSubscription();
+
+                string subscriptionID = Test.Data.Get("AzureSubscriptionID");
+                if (!string.IsNullOrEmpty(subscriptionID))
+                {
+                    nodeAgent.SetActiveSubscription(subscriptionID);
+                }
+                else
+                {
+                    string subscriptionName = Test.Data.Get("AzureSubscriptionName");
+                    if (!string.IsNullOrEmpty(subscriptionName))
+                    {
+                        nodeAgent.SetActiveSubscription(subscriptionName);
+                    }
+                }
+
+                accountImported = true;
+            }
+        }
+
+        private bool accountImported = false;
+
         #endregion
 
         /// <summary>
@@ -48,6 +75,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount001_ConnectionStringShowHelp()
         {
             // Arrange
@@ -77,6 +105,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount002_ConnectionStringShow_NoSubscriptionID()
         {
             // Arrange
@@ -99,6 +128,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount003_ConnectionStringShow_EmptySubscriptionID()
         {
             // Arrange
@@ -120,6 +150,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount004_ConnectionStringShow_WithSubscriptionID()
         {
             // Arrange
@@ -143,6 +174,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount005_ConnectionStringShow_WithSubscriptionName()
         {
             // Arrange
@@ -166,6 +198,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount006_ConnectionStringShow_InvalidSubscriptionIDOrName()
         {
             // Arrange
@@ -188,6 +221,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount007_ConnectionStringShow_UseHttp()
         {
             // Arrange
@@ -210,6 +244,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount008_ConnectionStringShow_UseHttps()
         {
             // Arrange
@@ -232,6 +267,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount009_ConnectionStringShow_BlobEndpoint_Empty()
         {
             this.ErrorEndpoint(ServiceType.Blob, ErrorType.Empty);
@@ -242,6 +278,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount010_ConnectionStringShow_BlobEndpoint_Invalid()
         {
             this.ErrorEndpoint(ServiceType.Blob, ErrorType.Invalid);
@@ -252,6 +289,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount011_ConnectionStringShow_BlobEndpoint_URL_Protocol()
         {
             string endpoint = "https://myBlobEndpoint.core.windows.net";
@@ -263,6 +301,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount012_ConnectionStringShow_BlobEndpoint_IP_Protocol()
         {
             string endpoint = "https://10.0.0.172";
@@ -274,6 +313,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount013_ConnectionStringShow_BlobEndpoint_URL_NoProtocol()
         {
             string endpoint = "myBlobEndpoint.core.windows.net";
@@ -285,6 +325,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount014_ConnectionStringShow_BlobEndpoint_IP_NoProtocol()
         {
             string endpoint = "10.0.0.172";
@@ -296,6 +337,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount015_ConnectionStringShow_QueueEndpoint_Empty()
         {
             this.ErrorEndpoint(ServiceType.Queue, ErrorType.Empty);
@@ -306,6 +348,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount016_ConnectionStringShow_QueueEndpoint_Invalid()
         {
             this.ErrorEndpoint(ServiceType.Queue, ErrorType.Invalid);
@@ -316,6 +359,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount017_ConnectionStringShow_QueueEndpoint_URL_Protocol()
         {
             string endpoint = "https://myQueueEndpoint.core.windows.net";
@@ -327,6 +371,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount018_ConnectionStringShow_QueueEndpoint_IP_Protocol()
         {
             string endpoint = "https://10.0.0.172";
@@ -338,6 +383,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount019_ConnectionStringShow_QueueEndpoint_URL_NoProtocol()
         {
             string endpoint = "myQueueEndpoint.core.windows.net";
@@ -349,6 +395,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount020_ConnectionStringShow_QueueEndpoint_IP_NoProtocol()
         {
             string endpoint = "10.0.0.172";
@@ -360,6 +407,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount021_ConnectionStringShow_TableEndpoint_Empty()
         {
             this.ErrorEndpoint(ServiceType.Table, ErrorType.Empty);
@@ -370,6 +418,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount022_ConnectionStringShow_TableEndpoint_Unsupported()
         {
             this.ErrorEndpoint(ServiceType.Table, ErrorType.Unsupported);
@@ -380,6 +429,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount023_ConnectionStringShow_TableEndpoint_URL_Protocol()
         {
             string endpoint = "https://myTableEndpoint.core.windows.net";
@@ -391,6 +441,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount024_ConnectionStringShow_TableEndpoint_IP_Protocol()
         {
             string endpoint = "https://10.0.0.172";
@@ -402,6 +453,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount025_ConnectionStringShow_TableEndpoint_URL_NoProtocol()
         {
             string endpoint = "myTableEndpoint.core.windows.net";
@@ -413,6 +465,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount026_ConnectionStringShow_TableEndpoint_IP_NoProtocol()
         {
             string endpoint = "10.0.0.172";
@@ -424,6 +477,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount027_ConnectionStringShow_FileEndpoint_Empty()
         {
             this.ErrorEndpoint(ServiceType.File, ErrorType.Empty);
@@ -434,6 +488,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount028_ConnectionStringShow_FileEndpoint_Invalid()
         {
             this.ErrorEndpoint(ServiceType.File, ErrorType.Invalid);
@@ -444,6 +499,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount029_ConnectionStringShow_FileEndpoint_URL_Protocol()
         {
             string endpoint = "https://myFileEndpoint.core.windows.net";
@@ -455,6 +511,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount030_ConnectionStringShow_FileEndpoint_IP_Protocol()
         {
             string endpoint = "https://10.0.0.172";
@@ -466,6 +523,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount031_ConnectionStringShow_FileEndpoint_URL_NoProtocol()
         {
             string endpoint = "myFileEndpoint.core.windows.net";
@@ -477,6 +535,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount032_ConnectionStringShow_FileEndpoint_IP_NoProtocol()
         {
             string endpoint = "10.0.0.172";
@@ -488,6 +547,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount033_ConnectionStringShow_NoAccount()
         {
             // Arrange
@@ -508,6 +568,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount034_ConnectionStringShow_NonExistingAccount()
         {
             // Arrange
@@ -528,6 +589,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount035_ConnectionStringShow_InvalidAccountFormat()
         {
             // Arrange
@@ -548,6 +610,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount036_ConnectionStringShow_MixParams()
         {
             // Arrange
@@ -570,6 +633,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSConString)]
         public void FTAccount037_ConnectionStringShow_FullParams()
         {
             // Arrange
