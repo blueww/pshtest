@@ -191,6 +191,7 @@
     <Compile Include="PsTag.cs" />
     <Compile Include="StorageObjectType.cs" />
     <Compile Include="Utility.cs" />
+    <Compile Include="Util\UtilBase.cs" />
     <Compile Include="Util\CloudFileUtil.cs" />
     <Compile Include="Util\FileNamingGenerator.cs" />
     <Compile Include="Util\Globalization\Big5Generator.cs" />
