@@ -16,7 +16,7 @@
     using ServiceType = Management.Storage.ScenarioTest.Constants.ServiceType;
 
     [TestClass]
-    class SetServiceMetrics : SetServiceLogging
+    public class SetServiceMetrics : SetServiceLogging
     {
         [ClassInitialize()]
         public static void SetServiceMetricsClassInit(TestContext testContext)
@@ -33,6 +33,8 @@
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.ServiceMetrics)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.ServiceMetrics)]
         public void EnableDisableServiceMetrics()
         {
             //Blob service
@@ -53,27 +55,74 @@
             Test.Info("Enable/Disable service hour metrics for {0}", serviceType);
             int retentionDays = 10;
             Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, string.Empty, retentionDays.ToString(), string.Empty), "Enable service hour metrics should succeed");
-            ServiceProperties retrievedProperties = getServiceProperties();
-            ExpectEqual(retentionDays, retrievedProperties.HourMetrics.RetentionDays.Value, "metrics retention days");
+            ServiceProperties retrievedProperties;
+            if (lang == Language.PowerShell)
+            {
+                retrievedProperties = getServiceProperties();
+                ExpectEqual(retentionDays, retrievedProperties.HourMetrics.RetentionDays.Value, "metrics retention days");
+            }
+            else
+            {
+                // getServiceProperties() takes several seconds to get the correct properties when retention is turned off by nodejs
+                // because the .net and node xscl may connect to different frontend and take some time to sync 
+                dynamic metrics = agent.Output[0]["HourMetrics"];
+                Test.Assert((bool)metrics[0].RetentionPolicy.Enabled, "service minute metrics retention should be turned on");
+                int retention = metrics[0].RetentionPolicy.Days ?? 0;
+                ExpectEqual(retentionDays, retention, "metrics retention days");
+            }
             retentionDays = -1;
             Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, string.Empty, retentionDays.ToString(), string.Empty), "Disable blob service hour metrics should succeed");
-            retrievedProperties = getServiceProperties();
-            Test.Assert(!retrievedProperties.HourMetrics.RetentionDays.HasValue, "service hour metrics retention days should be null");
+            if (lang == Language.PowerShell)
+            {
+                retrievedProperties = getServiceProperties();
+                Test.Assert(!retrievedProperties.HourMetrics.RetentionDays.HasValue, "service hour metrics retention days should be null");
+            }
+            else
+            {
+                dynamic metrics = agent.Output[0]["HourMetrics"];
+                Test.Assert(!(bool)metrics[0].RetentionPolicy.Enabled, "service hourly metrics retention should be turned off");
+                Test.Assert(metrics[0].RetentionPolicy.Days == null, "service hourly metrics retention days should be null");
+            }
 
             Test.Info("Enable/Disable service minute metrics for {0}", serviceType);
             retentionDays = 10;
             Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Enable service minute metrics should succeed");
-            retrievedProperties = getServiceProperties();
-            ExpectEqual(retentionDays, retrievedProperties.MinuteMetrics.RetentionDays.Value, "metrics retention days");
-            retentionDays = -1;
-            Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Disable blob service minute metrics should succeed");
-            retrievedProperties = getServiceProperties();
-            Test.Assert(!retrievedProperties.MinuteMetrics.RetentionDays.HasValue, "service minute metrics retention days should be null");
+            if (lang == Language.PowerShell)
+            {
+                retrievedProperties = getServiceProperties();
+                ExpectEqual(retentionDays, retrievedProperties.MinuteMetrics.RetentionDays.Value, "metrics retention days");
+            }
+            else
+            {
+                dynamic metrics = agent.Output[0]["MinuteMetrics"];
+                Test.Assert((bool)metrics[0].RetentionPolicy.Enabled, "service minute metrics retention should be turned on");
+                int retention = metrics[0].RetentionPolicy.Days ?? 0;
+                ExpectEqual(retentionDays, retention, "metrics retention days");
+            }
+            if (lang == Language.PowerShell)
+            {
+                retentionDays = -1;
+                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Disable blob service minute metrics should succeed");
+
+                retrievedProperties = getServiceProperties();
+                Test.Assert(!retrievedProperties.MinuteMetrics.RetentionDays.HasValue, "service minute metrics retention days should be null");
+            }
+            else
+            {
+                retentionDays = 0;
+                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Disable blob service minute metrics should succeed");
+
+                dynamic metrics = agent.Output[0]["MinuteMetrics"];
+                Test.Assert(!(bool)metrics[0].RetentionPolicy.Enabled, "service minute metrics retention should be turned off");
+                Test.Assert(metrics[0].RetentionPolicy.Days == null, "service minute metrics retention days should be null");
+            }
         }
 
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.ServiceMetrics)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.ServiceMetrics)]
         public void SetMetricsOperation()
         {
             //Blob service
@@ -103,21 +152,53 @@
             string operations, Func<ServiceProperties> getServiceProperties)
         {
             int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
-            Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, operations, retentionDays.ToString(), string.Empty), "Set hour metrics level should succeed");
-            ServiceProperties retrievedProperties = getServiceProperties();
-            MetricsLevel expectOperation = (MetricsLevel)Enum.Parse(typeof(MetricsLevel), operations, true);
-            ExpectEqual(expectOperation.ToString(), retrievedProperties.HourMetrics.MetricsLevel.ToString(), "hour metrics level");
+            if (lang == Language.PowerShell)
+            {
+                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, operations, retentionDays.ToString(), string.Empty), "Set hour metrics level should succeed");
+                ServiceProperties retrievedProperties = getServiceProperties();
+                MetricsLevel expectOperation = (MetricsLevel)Enum.Parse(typeof(MetricsLevel), operations, true);
+                ExpectEqual(expectOperation.ToString(), retrievedProperties.HourMetrics.MetricsLevel.ToString(), "hour metrics level");
 
-            retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
-            Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, operations, retentionDays.ToString(), string.Empty), "Set minute metrics level should succeed");
-            retrievedProperties = getServiceProperties();
-            expectOperation = (MetricsLevel)Enum.Parse(typeof(MetricsLevel), operations, true);
-            ExpectEqual(expectOperation.ToString(), retrievedProperties.MinuteMetrics.MetricsLevel.ToString(), "minute metrics level");
+                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, operations, retentionDays.ToString(), string.Empty), "Set minute metrics level should succeed");
+                retrievedProperties = getServiceProperties();
+                expectOperation = (MetricsLevel)Enum.Parse(typeof(MetricsLevel), operations, true);
+                ExpectEqual(expectOperation.ToString(), retrievedProperties.MinuteMetrics.MetricsLevel.ToString(), "minute metrics level");
+            }
+            else
+            {
+                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, operations, retentionDays.ToString(), string.Empty), "Set hour metrics level should succeed");
+                dynamic metrics = agent.Output[0]["HourMetrics"];
+                bool api = metrics[0].IncludeAPIs;
+
+                if (string.Compare(operations, "ServiceAndApi", true) == 0)
+                {
+                    Test.Assert(api, string.Format("expected metrics for api is true, actually it's '{0}'", api));
+                }
+                else
+                {
+                    Test.Assert(!api, string.Format("expected metrics for api is false, actually it's '{0}'", api));
+                }
+
+                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, operations, retentionDays.ToString(), string.Empty), "Set minute metrics level should succeed");
+                metrics = agent.Output[0]["MinuteMetrics"];
+                api = metrics[0].IncludeAPIs;
+
+                if (string.Compare(operations, "ServiceAndApi", true) == 0)
+                {
+                    Test.Assert(api, string.Format("expected metrics for api is true, actually it's '{0}'", api));
+                }
+                else
+                {
+                    Test.Assert(!api, string.Format("expected metrics for api is false, actually it's '{0}'", api));
+                }
+            }
         }
 
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.ServiceMetrics)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.ServiceMetrics)]
         public void SetInvalidMetricsOperation()
         {
             //Blob service
@@ -146,17 +227,27 @@
             Func<ServiceProperties> getServiceProperties, bool invalidEnum = false)
         {
             int retentionDays = 1;
-            Test.Assert(!agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, operations, retentionDays.ToString(), string.Empty), "Set invalid hour metrics operation should fail");
-            ExpectedStartsWithErrorMessage("Cannot bind parameter 'MetricsLevel'. Cannot convert value");
 
-            retentionDays = 1;
-            Test.Assert(!agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, operations, retentionDays.ToString(), string.Empty), "Set invalid minute metrics operation should fail");
-            ExpectedStartsWithErrorMessage("Cannot bind parameter 'MetricsLevel'. Cannot convert value");
+            if (lang == Language.PowerShell)
+            {
+                Test.Assert(!agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, operations, retentionDays.ToString(), string.Empty), "Set invalid hour metrics operation should fail");
+                ExpectedStartsWithErrorMessage("Cannot bind parameter 'MetricsLevel'. Cannot convert value");
+
+                Test.Assert(!agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, operations, retentionDays.ToString(), string.Empty), "Set invalid minute metrics operation should fail");
+                ExpectedStartsWithErrorMessage("Cannot bind parameter 'MetricsLevel'. Cannot convert value");
+            }
+            else
+            {
+                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, operations, retentionDays.ToString(), string.Empty), "Set any value with hour metrics switch operation should succeed");
+                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, operations, retentionDays.ToString(), string.Empty), "Set any value with  minute metrics operation should succeed");
+            }
         }
 
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.ServiceMetrics)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.ServiceMetrics)]
         public void SetMetricsRetentionDay()
         {
             //Blob service
@@ -175,53 +266,67 @@
         internal void GenericSetMetricsRetentionDays(ServiceType serviceType, Func<ServiceProperties> getServiceProperties)
         {
             Test.Info("Set service metrics retention days for {0}", serviceType);
-            // valid values for RetentionDay
-            int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
-            Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, string.Empty, retentionDays.ToString(), string.Empty), "Set service hour metrics retention days should succeed");
-            ServiceProperties retrievedProperties = getServiceProperties();
-            ExpectEqual(retentionDays, retrievedProperties.HourMetrics.RetentionDays.Value, "metrics retention days");
 
-            retentionDays = -1;
-            Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, string.Empty, retentionDays.ToString(), string.Empty), "Set service hour metrics retention days should succeed");
-            retrievedProperties = getServiceProperties();
-            Test.Assert(!retrievedProperties.HourMetrics.RetentionDays.HasValue, "Service metrics retention days should be null");
+            if (lang == Language.PowerShell)
+            {
+                // valid values for RetentionDay
+                int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
+                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, string.Empty, retentionDays.ToString(), string.Empty), "Set service hour metrics retention days should succeed");
+                ServiceProperties retrievedProperties = getServiceProperties();
+                ExpectEqual(retentionDays, retrievedProperties.HourMetrics.RetentionDays.Value, "metrics retention days");
 
-            // valid values for RetentionDay
-            retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
-            Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Set service minute metrics retention days should succeed");
-            retrievedProperties = getServiceProperties();
-            ExpectEqual(retentionDays, retrievedProperties.MinuteMetrics.RetentionDays.Value, "metrics retention days");
+                retentionDays = -1;
+                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, string.Empty, retentionDays.ToString(), string.Empty), "Set service hour metrics retention days should succeed");
+                retrievedProperties = getServiceProperties();
+                Test.Assert(!retrievedProperties.HourMetrics.RetentionDays.HasValue, "Service metrics retention days should be null");
 
-            retentionDays = -1;
-            Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Set service minute metrics retention days should succeed");
-            retrievedProperties = getServiceProperties();
-            Test.Assert(!retrievedProperties.MinuteMetrics.RetentionDays.HasValue, "Service metrics retention days should be null");
+                // valid values for RetentionDay
+                retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
+                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Set service minute metrics retention days should succeed");
+                retrievedProperties = getServiceProperties();
+                ExpectEqual(retentionDays, retrievedProperties.MinuteMetrics.RetentionDays.Value, "metrics retention days");
 
-            // invalid values for RetentionDay
-            retentionDays = 0;
-            Test.Assert(!agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, string.Empty, retentionDays.ToString(), string.Empty), "Set service hour metrics retention days for invalid retention days should fail");
-            ExpectedStartsWithErrorMessage("The minimum value of retention days is 1, the largest value is 365 (one year).");
+                retentionDays = -1;
+                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Set service minute metrics retention days should succeed");
+                retrievedProperties = getServiceProperties();
+                Test.Assert(!retrievedProperties.MinuteMetrics.RetentionDays.HasValue, "Service metrics retention days should be null");
 
-            retentionDays = -1 * Utility.GetRandomTestCount(2, 365 + 1);
-            Test.Assert(!agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, string.Empty, retentionDays.ToString(), string.Empty), "Set service hour metrics retention days for invalid retention days should fail");
-            ExpectedStartsWithErrorMessage("Cannot validate argument on parameter 'RetentionDays'");
+                // invalid values for RetentionDay
+                retentionDays = 0;
+                Test.Assert(!agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, string.Empty, retentionDays.ToString(), string.Empty), "Set service hour metrics retention days for invalid retention days should fail");
+                ExpectedStartsWithErrorMessage("The minimum value of retention days is 1, the largest value is 365 (one year).");
 
-            retentionDays = Utility.GetRandomTestCount(366, 365 + 100);
-            Test.Assert(!agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, string.Empty, retentionDays.ToString(), string.Empty), "Set service hour metrics retention days for invalid retention days should fail");
-            ExpectedStartsWithErrorMessage("Cannot validate argument on parameter 'RetentionDays'");
+                retentionDays = -1 * Utility.GetRandomTestCount(2, 365 + 1);
+                Test.Assert(!agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, string.Empty, retentionDays.ToString(), string.Empty), "Set service hour metrics retention days for invalid retention days should fail");
+                ExpectedStartsWithErrorMessage("Cannot validate argument on parameter 'RetentionDays'");
 
-            // invalid values for RetentionDay
-            retentionDays = 0;
-            Test.Assert(!agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Set service minute metrics retention days for invalid retention days should fail");
-            ExpectedStartsWithErrorMessage("The minimum value of retention days is 1, the largest value is 365 (one year).");
+                retentionDays = Utility.GetRandomTestCount(366, 365 + 100);
+                Test.Assert(!agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, string.Empty, retentionDays.ToString(), string.Empty), "Set service hour metrics retention days for invalid retention days should fail");
+                ExpectedStartsWithErrorMessage("Cannot validate argument on parameter 'RetentionDays'");
 
-            retentionDays = -1 * Utility.GetRandomTestCount(2, 365 + 1);
-            Test.Assert(!agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Set service minute metrics retention days for invalid retention days should fail");
-            ExpectedStartsWithErrorMessage("Cannot validate argument on parameter 'RetentionDays'");
+                // invalid values for RetentionDay
+                retentionDays = 0;
+                Test.Assert(!agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Set service minute metrics retention days for invalid retention days should fail");
+                ExpectedStartsWithErrorMessage("The minimum value of retention days is 1, the largest value is 365 (one year).");
 
-            retentionDays = Utility.GetRandomTestCount(366, 365 + 100);
-            Test.Assert(!agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Set service minute metrics retention days for invalid retention days should fail");
-            ExpectedStartsWithErrorMessage("Cannot validate argument on parameter 'RetentionDays'");
+                retentionDays = -1 * Utility.GetRandomTestCount(2, 365 + 1);
+                Test.Assert(!agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Set service minute metrics retention days for invalid retention days should fail");
+                ExpectedStartsWithErrorMessage("Cannot validate argument on parameter 'RetentionDays'");
+
+                retentionDays = Utility.GetRandomTestCount(366, 365 + 100);
+                Test.Assert(!agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Set service minute metrics retention days for invalid retention days should fail");
+                ExpectedStartsWithErrorMessage("Cannot validate argument on parameter 'RetentionDays'");
+            }
+            else
+            {
+                int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
+                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, string.Empty, retentionDays.ToString(), string.Empty), "Set service hour metrics retention days should succeed");
+                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Set service minute metrics retention days should succeed");
+
+                retentionDays = 0;
+                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, string.Empty, retentionDays.ToString(), string.Empty), "Set service hour metrics retention days for 0 retention days should succeed");
+                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Set service minute metrics retention days for 0 retention days should succeed");
+            }
         }
 
         [TestMethod]
