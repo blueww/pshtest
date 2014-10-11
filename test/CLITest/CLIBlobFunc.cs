@@ -116,10 +116,10 @@ namespace Management.Storage.ScenarioTest
                     blob.DeleteIfExists();
 
                 //--------------Get operation--------------
-                Test.Assert(agent.GetAzureStorageBlob(BlobName, ContainerName), Utility.GenComparisonData("get blob", true));
+                Test.Assert(!agent.GetAzureStorageBlob(BlobName, ContainerName), Utility.GenComparisonData("get blob", true));
                 // Verification for returned values
                 Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-                Test.Assert(agent.ErrorMessages.Count == 0, "0 error message returned : {0}", agent.ErrorMessages.Count);
+                Test.Assert(agent.ErrorMessages.Count == 1, "1 error message returned : {0}", agent.ErrorMessages.Count);
             }
             finally
             {
