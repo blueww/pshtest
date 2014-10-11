@@ -1376,7 +1376,7 @@ namespace Management.Storage.ScenarioTest
 
             if (metricsType == Constants.MetricsType.Hour)
             {
-                command += " --hourly ";
+                command += " --hour ";
             }
             else if (metricsType == Constants.MetricsType.Minute)
             {
@@ -1502,13 +1502,13 @@ namespace Management.Storage.ScenarioTest
                 if ((operations & LoggingOperations.Write) != 0)
                 {
                     Test.Assert((write.HasValue && write.Value),
-                    string.Format("expected LoggingOperations '{0}' for wrting, actually write is '{1}'", serviceProperties.Logging.LoggingOperations.ToString(),
+                    string.Format("expected LoggingOperations '{0}' for writing, actually write is '{1}'", serviceProperties.Logging.LoggingOperations.ToString(),
                     write));
                 }
                 else
                 {
                     Test.Assert((write.HasValue && !write.Value),
-                    string.Format("expected LoggingOperations '{0}' for wrting, actually write is '{1}'", serviceProperties.Logging.LoggingOperations.ToString(),
+                    string.Format("expected LoggingOperations '{0}' for writing, actually write is '{1}'", serviceProperties.Logging.LoggingOperations.ToString(),
                     write));
                 } 
 
