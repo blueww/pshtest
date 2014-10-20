@@ -52,7 +52,7 @@
 
         public override void OnTestSetup()
         {
-            if (!accountImported)
+            if (!accountImported && lang == Language.NodeJS)
             {
                 NodeJSAgent nodeAgent = (NodeJSAgent)agent;
                 nodeAgent.ImportAzureSubscription();
@@ -70,9 +70,9 @@
                         nodeAgent.SetActiveSubscription(subscriptionName);
                     }
                 }
-
-                accountImported = true;
             }
+
+            accountImported = true;
         }
 
         private bool accountImported = false;
