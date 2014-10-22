@@ -16,6 +16,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Management.Storage.ScenarioTest.Util;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.File;
 using Microsoft.WindowsAzure.Storage.Queue;
@@ -217,6 +218,11 @@ namespace Management.Storage.ScenarioTest
         public virtual string GetTableSasFromCmd(string tableName, string policy, string permission,
                     DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false,
                     string startpk = "", string startrk = "", string endpk = "", string endrk = "") { return string.Empty; }
+
+        public abstract string SetContextWithSASToken(string accountName, CloudBlobUtil blobUtil, StorageObjectType objectType,
+            string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null);
+
+        public abstract void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, bool useHttps = true);
 
         #region xSMB operations
 

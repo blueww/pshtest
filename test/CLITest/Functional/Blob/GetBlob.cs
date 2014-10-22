@@ -51,6 +51,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.GetBlob)]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.GetBlob)]
         public void GetMultipleBlobByName()
         {
             string containerName = Utility.GenNameString("container");
@@ -87,6 +88,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.GetBlob)]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.GetBlob)]
         public void GetBlobByName()
         {
             string containerName = Utility.GenNameString("container");
@@ -174,6 +176,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.GetBlob)]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.GetBlob)]
         public void GetAllBlobsInSpecifiedContainer()
         {
             string containerName = Utility.GenNameString("container");
@@ -212,6 +215,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.GetBlob)]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.GetBlob)]
         public void GetBlobsByPrefix()
         {
             string containerName = Utility.GenNameString("container");
@@ -250,6 +254,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.GetBlob)]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.GetBlob)]
         public void GetBlobByWildCard()
         {
             string containerName = Utility.GenNameString("container");
@@ -296,6 +301,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.GetBlob)]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.GetBlob)]
         public void GetSnapshotBlobs()
         {
             string containerName = Utility.GenNameString("container");
@@ -359,6 +365,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.GetBlob)]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.GetBlob)]
         public void GetBlobWithLease()
         {
             string containerName = Utility.GenNameString("container");
@@ -397,6 +404,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.GetBlob)]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.GetBlob)]
         public void GetBlobWithMetadata()
         {
             string containerName = Utility.GenNameString("container");
@@ -442,6 +450,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.GetBlob)]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.GetBlob)]
         public void GetBlobInSubdirectory()
         {
             //TODO add test cases for special characters
@@ -480,6 +489,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.GetBlob)]
+        [TestCategory(CLITag.GetBlob)]
         public void GetNonExistingBlob()
         {
             string containerName = Utility.GenNameString("container");
@@ -496,7 +506,8 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 Test.Assert(agent.ErrorMessages.Count == 1, "only throw an exception");
                 //the same error may output different error messages in different environments
                 bool expectedError = agent.ErrorMessages[0].StartsWith(String.Format("Can not find blob '{0}' in container '{1}'.", notExistingBlobName, containerName)) 
-                    || agent.ErrorMessages[0].StartsWith("The remote server returned an error: (404) Not Found");
+                    || agent.ErrorMessages[0].StartsWith("The remote server returned an error: (404) Not Found")
+                    || agent.ErrorMessages[0].StartsWith(String.Format("Blob {0} in Container {1} doesn't exist", notExistingBlobName, containerName));
                 Test.Assert(expectedError, agent.ErrorMessages[0]);
             }
             finally

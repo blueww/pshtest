@@ -280,7 +280,7 @@ namespace Management.Storage.ScenarioTest
             SetStorageContext(ps);
         }
 
-        public static void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, bool useHttps = true)
+        public override void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, bool useHttps = true)
         {
             PowerShell ps = PowerShell.Create(_InitState);
             ps.AddCommand("New-AzureStorageContext");
@@ -1596,7 +1596,7 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        public void SetContextWithSASToken(string accountName, CloudBlobUtil blobUtil, StorageObjectType objectType,
+        public override string SetContextWithSASToken(string accountName, CloudBlobUtil blobUtil, StorageObjectType objectType,
             string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null)
         {
             string sastoken = string.Empty;
@@ -1612,7 +1612,8 @@ namespace Management.Storage.ScenarioTest
                     throw new Exception("unsupported object type : " + objectType.ToString());
             }
 
-            PowerShellAgent.SetStorageContextWithSASToken(accountName, sastoken);
+            this.SetStorageContextWithSASToken(accountName, sastoken);
+            return sastoken;
         }
 
         /// <summary>
