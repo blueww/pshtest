@@ -60,17 +60,27 @@
         public static string AddAccountParameters(string argument, OSConfig AgentConfig)
         {
             string ret = argument;
-            if (!string.IsNullOrEmpty(AgentConfig.ConnectionString))
+
+            if (string.IsNullOrEmpty(AgentConfig.AccountName) && string.IsNullOrEmpty(AgentConfig.AccountKey) && string.IsNullOrEmpty(AgentConfig.ConnectionString))
             {
-                ret += string.Format(" -c \"{0}\"", AgentConfig.ConnectionString);
+                ret += string.Format(" -c \"{0}\"", Test.Data.Get("StorageConnectionString"));
             }
-            else if (!string.IsNullOrEmpty(AgentConfig.AccountName))
+            else if (!string.IsNullOrEmpty(AgentConfig.SAS) && !string.IsNullOrEmpty(AgentConfig.AccountName))
             {
-                ret += string.Format(" -a \"{0}\" -k \"{1}\"", AgentConfig.AccountName, AgentConfig.AccountKey);
+                ret += string.Format(" -a \"{0}\" --sas \"{1}\"", AgentConfig.AccountName, AgentConfig.SAS);
             }
             else
             {
-                ret += string.Format(" -c \"{0}\"", Test.Data.Get("StorageConnectionString"));
+                // Use whatever account info given from the parameters to cover the negative cases for account
+                if (!string.IsNullOrEmpty(AgentConfig.ConnectionString))
+                {
+                    ret += string.Format(" -c \"{0}\"", AgentConfig.ConnectionString);
+                }
+                
+                if (!string.IsNullOrEmpty(AgentConfig.AccountName))
+                {
+                    ret += string.Format(" -a \"{0}\" -k \"{1}\"", AgentConfig.AccountName, AgentConfig.AccountKey);
+                }
             }
 
             // if no account param set, then we would use the env var

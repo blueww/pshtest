@@ -33,6 +33,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.File;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 
 namespace Management.Storage.ScenarioTest
 {
@@ -452,7 +453,14 @@ namespace Management.Storage.ScenarioTest
 
         public override bool GetAzureStorageBlob(string blobName, string containerName)
         {
-            return RunNodeJSProcess(string.Format("blob list \"{0}\" \"{1}\"", containerName, blobName));
+            if (string.IsNullOrEmpty(blobName) || (blobName.Contains("*") || blobName.Contains("?")))
+            {
+                return RunNodeJSProcess(string.Format("blob list \"{0}\" \"{1}\"", containerName, blobName));
+            }
+            else
+            {
+                return RunNodeJSProcess(string.Format("blob show \"{0}\" \"{1}\"", containerName, blobName));
+            }             
         }
 
         // this command is nodejs specific
@@ -1320,8 +1328,271 @@ namespace Management.Storage.ScenarioTest
         }
 
         ///-------------------------------------
+        /// Logging & Metrics APIs
+        ///-------------------------------------
+        public override bool GetAzureStorageServiceLogging(Constants.ServiceType serviceType)
+        {
+            string command = string.Format("logging show --{0}", serviceType.ToString().ToLower());
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override bool GetAzureStorageServiceMetrics(Constants.ServiceType serviceType, Constants.MetricsType metricsType)
+        {
+            string command = string.Format("metrics show --{0}", serviceType.ToString().ToLower());
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override bool SetAzureStorageServiceLogging(Constants.ServiceType serviceType, string loggingOperations = "", string loggingRetentionDays = "",
+            string loggingVersion = "", bool passThru = false)
+        {
+            string command = string.Format("logging set --{0} ", serviceType.ToString().ToLower());
+            command += GetLoggingOptions(loggingOperations);
+
+            if (!string.IsNullOrEmpty(loggingRetentionDays))
+            {
+                command += string.Format(" --retention {0} ", loggingRetentionDays);
+            }
+
+            if (!string.IsNullOrEmpty(loggingVersion))
+            {
+                command += string.Format(" --version {0} ", loggingVersion);
+            }
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override bool SetAzureStorageServiceLogging(Constants.ServiceType serviceType, LoggingOperations[] loggingOperations, string loggingRetentionDays = "",
+            string loggingVersion = "", bool passThru = false)
+        {
+            return this.SetAzureStorageServiceLogging(serviceType, GetLoggingOptions(loggingOperations), loggingRetentionDays, loggingVersion,passThru);
+        }
+
+        public override bool SetAzureStorageServiceMetrics(Constants.ServiceType serviceType, Constants.MetricsType metricsType, string metricsLevel = "", string metricsRetentionDays = "",
+            string metricsVersion = "", bool passThru = false)
+        {
+            string command = string.Format("metrics set --{0} ", serviceType.ToString().ToLower());
+
+            if (metricsType == Constants.MetricsType.Hour)
+            {
+                command += " --hour ";
+            }
+            else if (metricsType == Constants.MetricsType.Minute)
+            {
+                command += " --minute ";
+            }
+
+            if (!string.IsNullOrEmpty(metricsLevel))
+            {
+                if (string.Compare(metricsLevel, "ServiceAndApi", true) == 0)
+                {
+                    command += string.Format(" --api ");
+                }
+                else
+                {
+                    command += string.Format(" --api-off ");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(metricsRetentionDays))
+            {
+                int retention = 0;
+                if (int.TryParse(metricsRetentionDays, out retention))
+                {
+                    if (retention > 0)
+                    {
+                        command += string.Format(" --retention {0} ", metricsRetentionDays);
+                    }
+                    else
+                    {
+                        command += " --retention 0 ";
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(metricsVersion))
+            {
+                command += string.Format(" --version {0} ", metricsVersion);
+            }
+
+            return RunNodeJSProcess(command);
+        }
+
+        internal string GetLoggingOptions(string loggingOperations)
+        {
+            string[] separator = {","};
+            string[] operations = loggingOperations.Split(separator, StringSplitOptions.RemoveEmptyEntries);
+            string options = string.Empty;
+
+            List<LoggingOperations> ops = new List<LoggingOperations>();
+            foreach (string operation in operations)
+            {
+                LoggingOperations op = LoggingOperations.None;
+                if (Enum.TryParse<LoggingOperations>(loggingOperations, true, out op))
+                {
+                    ops.Add(op);
+                }
+                else
+                {
+                    options += string.Format(" {0} ", operation);
+                }
+            }
+            
+            options += GetLoggingOptions(ops.ToArray());
+            return options;
+        }
+
+        internal string GetLoggingOptions(LoggingOperations[] loggingOperations)
+        {
+            bool read = false;
+            bool write = false;
+            bool delete = false;
+
+            string loggingOption = string.Empty;
+            foreach (LoggingOperations operation in loggingOperations)
+            {
+                if ((operation & LoggingOperations.Read) != 0)
+                {
+                    read = true;
+                }
+
+                if ((operation & LoggingOperations.Write) != 0)
+                {
+                    write = true;
+                }
+
+                if ((operation & LoggingOperations.Delete) != 0)
+                {
+                    delete = true;
+                }
+            }
+
+            loggingOption += read ? " --read " : " --read-off ";
+            loggingOption += write ? " --write " : " --write-off ";
+            loggingOption += delete ? " --delete " : " --delete-off ";
+
+            return loggingOption;
+        }
+
+        public override void OutputValidation(ServiceProperties serviceProperties, string propertiesType)
+        {
+            Test.Info("Validate ServiceProperties");
+            Test.Assert(1 == Output.Count, "Output count should be {0} = 1", Output.Count);
+
+            if (propertiesType.ToLower() == "logging")
+            {
+                LoggingOperations operations = serviceProperties.Logging.LoggingOperations;
+
+                bool? read = Output[0]["Read"] as bool?;
+                if ((operations & LoggingOperations.Read) != 0)
+                {
+                    Test.Assert((read.HasValue && read.Value),
+                    string.Format("expected LoggingOperations '{0}' for reading, actually read is '{1}'", serviceProperties.Logging.LoggingOperations.ToString(),
+                    read));
+                }
+                else
+                {
+                    Test.Assert((read.HasValue && !read.Value),
+                    string.Format("expected LoggingOperations '{0}' for reading, actually read is '{1}'", serviceProperties.Logging.LoggingOperations.ToString(),
+                    read));
+                }
+
+                bool? write = Output[0]["Write"] as bool?;
+                if ((operations & LoggingOperations.Write) != 0)
+                {
+                    Test.Assert((write.HasValue && write.Value),
+                    string.Format("expected LoggingOperations '{0}' for writing, actually write is '{1}'", serviceProperties.Logging.LoggingOperations.ToString(),
+                    write));
+                }
+                else
+                {
+                    Test.Assert((write.HasValue && !write.Value),
+                    string.Format("expected LoggingOperations '{0}' for writing, actually write is '{1}'", serviceProperties.Logging.LoggingOperations.ToString(),
+                    write));
+                } 
+
+                bool? delete = Output[0]["Delete"] as bool?;
+                if ((operations & LoggingOperations.Delete) != 0)
+                {
+                    Test.Assert((delete.HasValue && delete.Value),
+                    string.Format("expected LoggingOperations '{0}' for deleting, actually delete '{1}'", serviceProperties.Logging.LoggingOperations.ToString(),
+                    delete));
+                }
+                else
+                {
+                    Test.Assert((delete.HasValue && !delete.Value),
+                    string.Format("expected LoggingOperations '{0}' for deleting, actually delete is '{1}'", serviceProperties.Logging.LoggingOperations.ToString(),
+                    delete));
+                }
+
+                dynamic retention = Output[0]["RetentionPolicy"];
+                int? days = retention.Days;
+                Test.Assert(serviceProperties.Logging.RetentionDays.Equals(days),
+                    string.Format("expected RetentionDays {0}, actually it's {1}", serviceProperties.Logging.RetentionDays, days));
+
+                Test.Assert(serviceProperties.Logging.Version.Equals(Output[0]["Version"]),
+                    string.Format("expected Version {0}, actually it's {1}", serviceProperties.Logging.Version, Output[0]["Version"]));
+            }
+            else if (propertiesType.ToLower() == "hourmetrics")
+            {
+                dynamic metrics = Output[0]["HourMetrics"];
+                int retention = metrics[0].RetentionPolicy.Days ?? 0;
+                int expected = serviceProperties.HourMetrics.RetentionDays ?? 0;
+                Test.Assert(expected == retention, string.Format("expected RetentionDays to be {0}, actually it's {1}", expected, retention));
+
+                string version = metrics[0].Version.ToString();
+                Test.Assert(serviceProperties.HourMetrics.Version.Equals(version),
+                    string.Format("expected Version to be {0}, actually it's {1}", serviceProperties.HourMetrics.Version, version));
+            }
+            else if (propertiesType.ToLower() == "minutemetrics")
+            {                                   
+                dynamic metrics = Output[0]["MinuteMetrics"];
+                int retention = metrics[0].RetentionPolicy.Days ?? 0;
+                int expected = serviceProperties.MinuteMetrics.RetentionDays ?? 0;
+
+                Test.Assert(expected == retention, string.Format("expected RetentionDays to be {0}, actually it's {1}", expected, retention));
+
+                string version = metrics[0].Version.ToString();
+                Test.Assert(serviceProperties.MinuteMetrics.Version.Equals(version),
+                    string.Format("expected Version to be {0}, actually it's {1}", serviceProperties.MinuteMetrics.Version, version));
+            }
+            else
+            {
+                throw new Exception("unknown properties type : " + propertiesType);
+            }
+        }
+
+        ///-------------------------------------
         /// SAS token APIs
         ///-------------------------------------
+        public override void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, bool useHttps = true)
+        {
+            AgentConfig.AccountName = StorageAccountName;
+            AgentConfig.SAS = sasToken;
+        }
+
+        public override string SetContextWithSASToken(string accountName, CloudBlobUtil blobUtil, StorageObjectType objectType,
+            string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null)
+        {
+            string sastoken = string.Empty;
+            switch (objectType)
+            {
+                case StorageObjectType.Blob:
+                    sastoken = GetBlobSasFromCmd(blobUtil.Blob, policy, permission);
+                    break;
+                case StorageObjectType.Container:
+                    sastoken = GetContainerSasFromCmd(blobUtil.ContainerName, policy, permission);
+                    break;
+                default:
+                    throw new Exception("unsupported object type : " + objectType.ToString());
+            }
+            AgentConfig.AccountName = accountName;
+            AgentConfig.SAS = sastoken;
+
+            return sastoken;
+        }
+
         public override bool NewAzureStorageContainerSAS(string container, string policy, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false)
         {
