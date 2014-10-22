@@ -22,7 +22,7 @@
   <StorageEndPoint>core.windows.net</StorageEndPoint>
   <SecondaryStorageAccountName></SecondaryStorageAccountName>
   <SecondaryStorageAccountKey></SecondaryStorageAccountKey>
-  <SecondaryStorageEndPoint></SecondaryStorageEndPoint>
+  <SecondaryStorageEndPoint>core.windows.net</SecondaryStorageEndPoint>
 
   <PSSnapInName></PSSnapInName>
   <NodeWorkingDirectory>.</NodeWorkingDirectory>
