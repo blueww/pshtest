@@ -112,7 +112,7 @@
             set
             {
                 ConnectionStr = value;
-                if (!string.IsNullOrEmpty(value) && !UseEnvVar)
+                if (!string.IsNullOrEmpty(value))
                 {
                     Name = string.Empty;
                     Key = string.Empty;
@@ -127,7 +127,7 @@
             set
             {
                 Name = value;
-                if (!string.IsNullOrEmpty(value) && !UseEnvVar)
+                if (!string.IsNullOrEmpty(value))
                 {
                     ConnectionStr = string.Empty;
                 }
@@ -140,7 +140,7 @@
             set
             {
                 Key = value;
-                if (!string.IsNullOrEmpty(value) && !UseEnvVar)
+                if (!string.IsNullOrEmpty(value))
                 {
                     ConnectionStr = string.Empty;
                     Sas = string.Empty;
@@ -154,7 +154,7 @@
             set
             {
                 Sas = value;
-                if (!string.IsNullOrEmpty(value) && !UseEnvVar)
+                if (!string.IsNullOrEmpty(value))
                 {
                     ConnectionStr = string.Empty;
                     Key = string.Empty;
