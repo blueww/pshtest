@@ -85,7 +85,7 @@ namespace Management.Storage.ScenarioTest
         {
             NodeJSAgent.AgentConfig.AccountName = InvalidAccountName;
             NodeJSAgent.AgentConfig.AccountKey = StorageAccountKey;
-            NodeJSAgent.AgentConfig.ConnectionStr = StorageAccount.ToString(true);
+            NodeJSAgent.AgentConfig.ConnectionString = StorageAccount.ToString(true);
 
             StorageTest(MethodBase.GetCurrentMethod().Name);
         }

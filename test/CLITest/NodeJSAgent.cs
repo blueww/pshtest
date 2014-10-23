@@ -43,7 +43,7 @@ namespace Management.Storage.ScenarioTest
     public class NodeJSAgent : Agent
     {
         private const string NotImplemented = "Not implemented in NodeJS Agent!";
-        private const string ExportPathCommand = "export PATH=$PATH:/usr/local/bin/;";
+        private const string ExportPathCommand = " export PATH=$PATH:/usr/local/bin/;";
 
         private static int DefaultMaxWaitingTime = 600000;  // in miliseconds
 
@@ -135,7 +135,7 @@ namespace Management.Storage.ScenarioTest
             }
             p.StartInfo.Arguments += string.Format(" azure {0} {1} --json", category, argument);
 
-            Test.Info("NodeJS command: {0} {1}", p.StartInfo.FileName, p.StartInfo.Arguments);
+            Test.Info("NodeJS command: \"{0}\" {1}", p.StartInfo.FileName, p.StartInfo.Arguments);
         }
 
         internal void ImportAzureSubscription()
