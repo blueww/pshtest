@@ -32,7 +32,7 @@
             command = command.Replace('"', '\'');
             p.StartInfo.Arguments += command;
 
-            Test.Info("plink command: {0} {1}", p.StartInfo.FileName, p.StartInfo.Arguments);
+            Test.Info("plink command: \"{0}\" {1}", p.StartInfo.FileName, p.StartInfo.Arguments);
         }
 
         internal static void RunNodeJSProcess(string argument, bool ignoreError = false)
@@ -96,10 +96,10 @@
         public string Port = "22";
         public string PrivateKeyPath;
 
-        public string ConnectionStr;
-        public string Name;
-        public string Key;
-        public string Sas;
+        private string ConnectionStr;
+        private string Name;
+        private string Key;
+        private string Sas;
 
         public OSConfig()
         {
@@ -112,8 +112,12 @@
             set
             {
                 ConnectionStr = value;
-                Name = string.Empty;
-                Key = string.Empty;
+                if (!string.IsNullOrEmpty(value) && !UseEnvVar)
+                {
+                    Name = string.Empty;
+                    Key = string.Empty;
+                    Sas = string.Empty;
+                }
             }
         }
 
@@ -123,7 +127,10 @@
             set
             {
                 Name = value;
-                ConnectionStr = string.Empty;
+                if (!string.IsNullOrEmpty(value) && !UseEnvVar)
+                {
+                    ConnectionStr = string.Empty;
+                }
             }
         }
 
@@ -133,7 +140,11 @@
             set
             {
                 Key = value;
-                ConnectionStr = string.Empty;
+                if (!string.IsNullOrEmpty(value) && !UseEnvVar)
+                {
+                    ConnectionStr = string.Empty;
+                    Sas = string.Empty;
+                }
             }
         }
 
@@ -143,7 +154,11 @@
             set
             {
                 Sas = value;
-                ConnectionStr = string.Empty;
+                if (!string.IsNullOrEmpty(value) && !UseEnvVar)
+                {
+                    ConnectionStr = string.Empty;
+                    Key = string.Empty;
+                }
             }
         }
 
