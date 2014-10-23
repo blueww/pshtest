@@ -96,7 +96,7 @@
         public string Port = "22";
         public string PrivateKeyPath;
 
-        private string ConnectionStr;
+        public string ConnectionStr;
         private string Name;
         private string Key;
         private string Sas;
