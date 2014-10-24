@@ -336,14 +336,21 @@
                         parent = parent.Parent;
                     }
 
+                    string fileName = file.Name;
                     if (!string.IsNullOrEmpty(directory))
                     {
                         argument = string.Format("azure storage directory create '{0}' '{1}'", file.Share.Name, directory);
                         argument = AddAccountParameters(argument, AgentConfig);
                         RunNodeJSProcess(argument, true);
+
+                        // when CloudFile is referenced from root directory
+                        if (!fileName.Contains("/") || !fileName.StartsWith(directory))
+                        {
+                            fileName = directory.Trim('/') + '/' + fileName;
+                        }
                     }
 
-                    argument = string.Format("azure storage file upload '{0}' {1} {2} -q", source, file.Share.Name, file.Name);
+                    argument = string.Format("azure storage file upload '{0}' {1} {2} -q", source, file.Share.Name, fileName);
                     argument = AddAccountParameters(argument, AgentConfig);
                     RunNodeJSProcess(argument, true);
                 }
