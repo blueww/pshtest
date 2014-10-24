@@ -332,7 +332,7 @@
                     var parent = file.Parent;
                     while (parent != null && !string.IsNullOrEmpty(parent.Name))
                     {
-                        directory += parent.Name + "/";
+                        directory = parent.Name + "/" + directory;
                         parent = parent.Parent;
                     }
 
@@ -343,7 +343,7 @@
                         RunNodeJSProcess(argument, true);
                     }
 
-                    argument = string.Format("azure storage file upload '{0}' {1} {2} -q", source, file.Share.Name, directory + file.Name);
+                    argument = string.Format("azure storage file upload '{0}' {1} {2} -q", source, file.Share.Name, file.Name);
                     argument = AddAccountParameters(argument, AgentConfig);
                     RunNodeJSProcess(argument, true);
                 }

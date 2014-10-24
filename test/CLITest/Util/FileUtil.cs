@@ -30,8 +30,8 @@ namespace Management.Storage.ScenarioTest.Util
     /// </summary>
     public class FileUtil : UtilBase
     {
-        private static string[] specialNames = { "pageabc", "blockabc ", "pagea b", "block abc", "page中文", 
-            "block中 文", "page 中文", "block中文 ", "page.abc", "block.a bc", "page .abc", "block .abc ", string.Empty };
+        private static string[] specialNames = { "pageabc", "blockabc ", "pagea b", "block abc", "page.cn", 
+            "block.c n", "page. cn", "blockcn", "page.abc", "block.a bc", "page .abc", "block .abc ", string.Empty };
         private static Random random = new Random();
 
         public static string BinaryFileName { get; set; }
