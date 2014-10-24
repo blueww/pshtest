@@ -183,8 +183,6 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Container)]
         [TestCategory(PsTag.SASInterop)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.SASInterop)]
         public void ContainerWithWritePermission()
         {
             BlobOrContainerWithWritePermission(commonBlockFilePath, StorageObjectType.Container, BlobType.BlockBlob);
@@ -200,8 +198,6 @@
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.SASInterop)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.SASInterop)]
         public void BlobWithWritePermission()
         {
             BlobOrContainerWithWritePermission(commonBlockFilePath, StorageObjectType.Blob, BlobType.BlockBlob);

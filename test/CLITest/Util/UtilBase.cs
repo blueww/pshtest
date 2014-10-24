@@ -67,7 +67,14 @@
             }
             else if (!string.IsNullOrEmpty(AgentConfig.SAS) && !string.IsNullOrEmpty(AgentConfig.AccountName))
             {
-                ret += string.Format(" -a \"{0}\" --sas \"{1}\"", AgentConfig.AccountName, AgentConfig.SAS);
+                if (argument.Contains("blob copy"))
+                {
+                    ret += string.Format(" -a \"{0}\" --source-sas \"{1}\"", AgentConfig.AccountName, AgentConfig.SAS);
+                }
+                else
+                {
+                    ret += string.Format(" -a \"{0}\" --sas \"{1}\"", AgentConfig.AccountName, AgentConfig.SAS);
+                }
             }
             else
             {
