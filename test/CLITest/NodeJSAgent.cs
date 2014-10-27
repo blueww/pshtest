@@ -256,7 +256,10 @@ namespace Management.Storage.ScenarioTest
             else
             {
                 ErrorMessages.Add(error);
-                Test.Info(error);
+
+                string errFile = "Azure.err";
+                Test.Info(string.Format("Error details created on {0}:", File.GetLastWriteTime(errFile)));
+                Test.Info(File.ReadAllText(errFile));
             }
 
             return bSuccess;
