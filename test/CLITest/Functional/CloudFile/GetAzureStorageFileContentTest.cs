@@ -338,7 +338,7 @@
             // name.
             var invalidAccount = CloudFileUtil.MockupStorageAccount(StorageAccount, mockupAccountName: true);
             object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
-            this.agent.DownloadFile(this.fileShare.Name, file.Name, Test.Data.Get("TempDir"), false, invalidStorageContextObject);
+            this.agent.DownloadFile(this.fileShare.Name, file.Name, Test.Data.Get("TempDir"), true, invalidStorageContextObject);
             var result = this.agent.Invoke();
             this.agent.AssertErrors(record => record.AssertError(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
         }
@@ -489,7 +489,7 @@
         [TestCategory(CLITag.NodeJSFT)]
         public void DownloadFileFromSubDirectoryOfRootTest()
         {
-            this.agent.DownloadFile(this.fileShare, "../a", Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()));
+            this.agent.DownloadFile(this.fileShare, "../a", Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()), true);
             this.agent.Invoke();
             this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId));
         }
