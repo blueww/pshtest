@@ -30,6 +30,8 @@
             TestBase.TestClassCleanup();
         }
 
+        public delegate TResult GetMetricsProperty<out TResult>(Constants.MetricsType metricsType, int? retentionDays, string metricsLevel);
+
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.ServiceMetrics)]
@@ -38,84 +40,45 @@
         public void EnableDisableServiceMetrics()
         {
             //Blob service
-            CloudBlobClient blobClient = StorageAccount.CreateCloudBlobClient();
-            GenericEnableDisableServiceMetrics(ServiceType.Blob, () => blobClient.GetServiceProperties());
+            GenericEnableDisableServiceMetrics(ServiceType.Blob,
+                (metricsType, retentionDays, metricsLevel) => Utility.WaitForMetricsPropertyTakingEffect(StorageAccount, ServiceType.Blob, metricsType, retentionDays, metricsLevel));
 
             //Queue service
-            CloudQueueClient queueClient = StorageAccount.CreateCloudQueueClient();
-            GenericEnableDisableServiceMetrics(ServiceType.Queue, () => queueClient.GetServiceProperties());
+            GenericEnableDisableServiceMetrics(ServiceType.Queue,
+                (metricsType, retentionDays, metricsLevel) => Utility.WaitForMetricsPropertyTakingEffect(StorageAccount, ServiceType.Queue, metricsType, retentionDays, metricsLevel));
 
             //Table service
-            CloudTableClient tableClient = StorageAccount.CreateCloudTableClient();
-            GenericEnableDisableServiceMetrics(ServiceType.Table, () => tableClient.GetServiceProperties());
+            GenericEnableDisableServiceMetrics(ServiceType.Table,
+                (metricsType, retentionDays, metricsLevel) => Utility.WaitForMetricsPropertyTakingEffect(StorageAccount, ServiceType.Table, metricsType, retentionDays, metricsLevel));
         }
 
-        internal void GenericEnableDisableServiceMetrics(ServiceType serviceType, Func<ServiceProperties> getServiceProperties)
+        internal void GenericEnableDisableServiceMetrics(ServiceType serviceType, GetMetricsProperty<ServiceProperties> getServiceProperties)
         {
             Test.Info("Enable/Disable service hour metrics for {0}", serviceType);
             int retentionDays = 10;
-            Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, string.Empty, retentionDays.ToString(), string.Empty), "Enable service hour metrics should succeed");
+            Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, MetricsLevel.Service.ToString(), retentionDays.ToString(), string.Empty), "Enable service hour metrics should succeed");
             ServiceProperties retrievedProperties;
-            if (lang == Language.PowerShell)
-            {
-                retrievedProperties = getServiceProperties();
-                ExpectEqual(retentionDays, retrievedProperties.HourMetrics.RetentionDays.Value, "metrics retention days");
-            }
-            else
-            {
-                // getServiceProperties() takes several seconds to get the correct properties when retention is turned off by nodejs
-                // because the .net and node xscl may connect to different frontend and take some time to sync 
-                dynamic metrics = agent.Output[0]["HourMetrics"];
-                Test.Assert((bool)metrics[0].RetentionPolicy.Enabled, "service minute metrics retention should be turned on");
-                int retention = metrics[0].RetentionPolicy.Days ?? 0;
-                ExpectEqual(retentionDays, retention, "metrics retention days");
-            }
-            retentionDays = -1;
-            Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, string.Empty, retentionDays.ToString(), string.Empty), "Disable blob service hour metrics should succeed");
-            if (lang == Language.PowerShell)
-            {
-                retrievedProperties = getServiceProperties();
-                Test.Assert(!retrievedProperties.HourMetrics.RetentionDays.HasValue, "service hour metrics retention days should be null");
-            }
-            else
-            {
-                dynamic metrics = agent.Output[0]["HourMetrics"];
-                Test.Assert(!(bool)metrics[0].RetentionPolicy.Enabled, "service hourly metrics retention should be turned off");
-                Test.Assert(metrics[0].RetentionPolicy.Days == null, "service hourly metrics retention days should be null");
-            }
+
+            retrievedProperties = getServiceProperties(Constants.MetricsType.Hour, retentionDays, MetricsLevel.Service.ToString());
+            ExpectEqual(retentionDays, retrievedProperties.HourMetrics.RetentionDays.Value, "metrics retention days");
+
+            retentionDays = lang == Language.PowerShell ? - 1 : 0;
+            Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, MetricsLevel.Service.ToString(), retentionDays.ToString(), string.Empty), "Disable blob service hour metrics should succeed");
+
+            retrievedProperties = getServiceProperties(Constants.MetricsType.Hour, retentionDays, MetricsLevel.Service.ToString());
+            Test.Assert(!retrievedProperties.HourMetrics.RetentionDays.HasValue, "service hour metrics retention days should be null");
 
             Test.Info("Enable/Disable service minute metrics for {0}", serviceType);
             retentionDays = 10;
-            Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Enable service minute metrics should succeed");
-            if (lang == Language.PowerShell)
-            {
-                retrievedProperties = getServiceProperties();
-                ExpectEqual(retentionDays, retrievedProperties.MinuteMetrics.RetentionDays.Value, "metrics retention days");
-            }
-            else
-            {
-                dynamic metrics = agent.Output[0]["MinuteMetrics"];
-                Test.Assert((bool)metrics[0].RetentionPolicy.Enabled, "service minute metrics retention should be turned on");
-                int retention = metrics[0].RetentionPolicy.Days ?? 0;
-                ExpectEqual(retentionDays, retention, "metrics retention days");
-            }
-            if (lang == Language.PowerShell)
-            {
-                retentionDays = -1;
-                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Disable blob service minute metrics should succeed");
+            Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, MetricsLevel.ServiceAndApi.ToString(), retentionDays.ToString(), string.Empty), "Enable service minute metrics should succeed");
+            retrievedProperties = getServiceProperties(Constants.MetricsType.Minute, retentionDays, string.Empty);
+            ExpectEqual(retentionDays, retrievedProperties.MinuteMetrics.RetentionDays.Value, "metrics retention days");
 
-                retrievedProperties = getServiceProperties();
-                Test.Assert(!retrievedProperties.MinuteMetrics.RetentionDays.HasValue, "service minute metrics retention days should be null");
-            }
-            else
-            {
-                retentionDays = 0;
-                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, string.Empty, retentionDays.ToString(), string.Empty), "Disable blob service minute metrics should succeed");
+            retentionDays = lang == Language.PowerShell ? -1 : 0;
+            Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, MetricsLevel.ServiceAndApi.ToString(), retentionDays.ToString(), string.Empty), "Disable blob service minute metrics should succeed");
 
-                dynamic metrics = agent.Output[0]["MinuteMetrics"];
-                Test.Assert(!(bool)metrics[0].RetentionPolicy.Enabled, "service minute metrics retention should be turned off");
-                Test.Assert(metrics[0].RetentionPolicy.Days == null, "service minute metrics retention days should be null");
-            }
+            retrievedProperties = getServiceProperties(Constants.MetricsType.Minute, retentionDays, string.Empty);
+            Test.Assert(!retrievedProperties.MinuteMetrics.RetentionDays.HasValue, "service minute metrics retention days should be null");
         }
 
         [TestMethod]
@@ -126,19 +89,19 @@
         public void SetMetricsOperation()
         {
             //Blob service
-            CloudBlobClient blobClient = StorageAccount.CreateCloudBlobClient();
-            GenericSetMetricsOperation(ServiceType.Blob, () => blobClient.GetServiceProperties());
+            GenericSetMetricsOperation(ServiceType.Blob,
+                (metricsType, retentionDays, metricsLevel) => Utility.WaitForMetricsPropertyTakingEffect(StorageAccount, ServiceType.Blob, metricsType, retentionDays, metricsLevel));
 
             //Queue service
-            CloudQueueClient queueClient = StorageAccount.CreateCloudQueueClient();
-            GenericSetMetricsOperation(ServiceType.Queue, () => queueClient.GetServiceProperties());
+            GenericSetMetricsOperation(ServiceType.Queue,
+                (metricsType, retentionDays, metricsLevel) => Utility.WaitForMetricsPropertyTakingEffect(StorageAccount, ServiceType.Queue, metricsType, retentionDays, metricsLevel));
 
             //Table service
-            CloudTableClient tableClient = StorageAccount.CreateCloudTableClient();
-            GenericSetMetricsOperation(ServiceType.Table, () => tableClient.GetServiceProperties());
+            GenericSetMetricsOperation(ServiceType.Table,
+                (metricsType, retentionDays, metricsLevel) => Utility.WaitForMetricsPropertyTakingEffect(StorageAccount, ServiceType.Table, metricsType, retentionDays, metricsLevel));
         }
 
-        internal void GenericSetMetricsOperation(ServiceType serviceType, Func<ServiceProperties> getServiceProperties)
+        internal void GenericSetMetricsOperation(ServiceType serviceType, GetMetricsProperty<ServiceProperties> getServiceProperties)
         {
             Test.Info("Set service metrics operation for {0}", serviceType);
             string[] operations = { "None", "Service", "ServiceAndApi"};
@@ -148,50 +111,20 @@
             }
         }
 
-        internal void ExpectValidmetricsOperation(Constants.ServiceType serviceType, 
-            string operations, Func<ServiceProperties> getServiceProperties)
+        internal void ExpectValidmetricsOperation(Constants.ServiceType serviceType,
+            string operations, GetMetricsProperty<ServiceProperties> getServiceProperties)
         {
             int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
-            if (lang == Language.PowerShell)
-            {
-                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, operations, retentionDays.ToString(), string.Empty), "Set hour metrics level should succeed");
-                ServiceProperties retrievedProperties = getServiceProperties();
-                MetricsLevel expectOperation = (MetricsLevel)Enum.Parse(typeof(MetricsLevel), operations, true);
-                ExpectEqual(expectOperation.ToString(), retrievedProperties.HourMetrics.MetricsLevel.ToString(), "hour metrics level");
 
-                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, operations, retentionDays.ToString(), string.Empty), "Set minute metrics level should succeed");
-                retrievedProperties = getServiceProperties();
-                expectOperation = (MetricsLevel)Enum.Parse(typeof(MetricsLevel), operations, true);
-                ExpectEqual(expectOperation.ToString(), retrievedProperties.MinuteMetrics.MetricsLevel.ToString(), "minute metrics level");
-            }
-            else
-            {
-                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, operations, retentionDays.ToString(), string.Empty), "Set hour metrics level should succeed");
-                dynamic metrics = agent.Output[0]["HourMetrics"];
-                bool api = metrics[0].IncludeAPIs;
+            Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour, operations, retentionDays.ToString(), string.Empty), "Set hour metrics level should succeed");
+            ServiceProperties retrievedProperties = getServiceProperties(Constants.MetricsType.Hour, retentionDays, operations);
+            MetricsLevel expectOperation = (MetricsLevel)Enum.Parse(typeof(MetricsLevel), operations, true);
+            ExpectEqual(expectOperation.ToString(), retrievedProperties.HourMetrics.MetricsLevel.ToString(), "hour metrics level");
 
-                if (string.Compare(operations, "ServiceAndApi", true) == 0)
-                {
-                    Test.Assert(api, string.Format("expected metrics for api is true, actually it's '{0}'", api));
-                }
-                else
-                {
-                    Test.Assert(!api, string.Format("expected metrics for api is false, actually it's '{0}'", api));
-                }
-
-                Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, operations, retentionDays.ToString(), string.Empty), "Set minute metrics level should succeed");
-                metrics = agent.Output[0]["MinuteMetrics"];
-                api = metrics[0].IncludeAPIs;
-
-                if (string.Compare(operations, "ServiceAndApi", true) == 0)
-                {
-                    Test.Assert(api, string.Format("expected metrics for api is true, actually it's '{0}'", api));
-                }
-                else
-                {
-                    Test.Assert(!api, string.Format("expected metrics for api is false, actually it's '{0}'", api));
-                }
-            }
+            Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, operations, retentionDays.ToString(), string.Empty), "Set minute metrics level should succeed");
+            retrievedProperties = getServiceProperties(Constants.MetricsType.Minute, retentionDays, operations);
+            expectOperation = (MetricsLevel)Enum.Parse(typeof(MetricsLevel), operations, true);
+            ExpectEqual(expectOperation.ToString(), retrievedProperties.MinuteMetrics.MetricsLevel.ToString(), "minute metrics level");
         }
 
         [TestMethod]
