@@ -107,7 +107,7 @@
             UploadAndDownloadFileInternal(
                 sourceFile,
                 FileUtil.GetFileContentMD5(localFilePath),
-                destination => this.agent.DownloadFile(this.fileShare.Name, cloudFileName, destination));
+                destination => this.agent.DownloadFile(this.fileShare.Name, cloudFileName, destination, true));
         }
 
         /// <summary>
@@ -316,7 +316,7 @@
         {
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             var file = fileUtil.DeleteFileIfExists(this.fileShare, cloudFileName);
-            this.agent.DownloadFile(file, Test.Data.Get("TempDir"));
+            this.agent.DownloadFile(file, Test.Data.Get("TempDir"), true);
             var result = this.agent.Invoke();
             this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.PathNotFoundFullQualifiedErrorId));
         }
