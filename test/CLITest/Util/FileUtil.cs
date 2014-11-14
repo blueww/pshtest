@@ -12,19 +12,16 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-
-using MS.Test.Common.MsTestLib;
-using StorageTestLib;
-
 namespace Management.Storage.ScenarioTest.Util
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text.RegularExpressions;
+    using MS.Test.Common.MsTestLib;
+    using StorageTestLib;
+
     /// <summary>
     /// This class could perform file operations across different platforms(Windows, Linux, Mac)
     /// </summary>
@@ -167,6 +164,19 @@ namespace Management.Storage.ScenarioTest.Util
             int specialIndex = random.Next(0, nameCount);
             string prefix = specialNames[specialIndex];
             return Utility.GenNameString(prefix);
+        }
+
+        public static string ReadFileToText(string path)
+        {
+            if (AgentOSType == OSType.Windows)
+            {
+                return File.ReadAllText(path);
+            }
+            else 
+            {
+                RunNodeJSProcess(string.Format("cat '{0}'", GetLinuxPath(path)), true);
+                return Output;
+            }
         }
 
         /// <summary>
