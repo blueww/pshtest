@@ -359,7 +359,7 @@
             // Creates an storage context object with invalid key value
             var invalidAccount = CloudFileUtil.MockupStorageAccount(StorageAccount, mockupAccountKey: true);
             object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
-            this.agent.DownloadFile(this.fileShare.Name, file.Name, Test.Data.Get("TempDir"), false, invalidStorageContextObject);
+            this.agent.DownloadFile(this.fileShare.Name, file.Name, Test.Data.Get("TempDir"), true, invalidStorageContextObject);
             var result = this.agent.Invoke();
             this.agent.AssertErrors(record => record.AssertError(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
         }
@@ -378,7 +378,7 @@
             fileUtil.DeleteFileShareIfExists(fileShareName);
 
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
-            this.agent.DownloadFile(fileShareName, cloudFileName, Test.Data.Get("TempDir"));
+            this.agent.DownloadFile(fileShareName, cloudFileName, Test.Data.Get("TempDir"), true);
             var result = this.agent.Invoke();
             this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.PathNotFoundFullQualifiedErrorId));
         }

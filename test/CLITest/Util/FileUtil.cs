@@ -369,7 +369,10 @@ namespace Management.Storage.ScenarioTest.Util
 
             if (AgentOSType == OSType.Windows || AlwaysOperateOnWindows)
             {
-                File.Delete(filePath);
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                }
             }
         }
 
