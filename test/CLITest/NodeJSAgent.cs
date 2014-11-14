@@ -195,6 +195,8 @@ namespace Management.Storage.ScenarioTest
                 Test.Verbose("Error:\n{0}", error);
             }
 
+            Test.Verbose("Node Output:\n{0}", output);
+
             if (!p.HasExited)
             {
                 p.Kill();
@@ -258,8 +260,8 @@ namespace Management.Storage.ScenarioTest
                 ErrorMessages.Add(error);
 
                 string errFile = "Azure.err";
-                Test.Info(string.Format("Error details created on {0}:", File.GetLastWriteTime(errFile)));
-                Test.Info(File.ReadAllText(errFile));
+                Test.Info(string.Format("Error details in {0}:"), errFile);
+                Test.Info(FileUtil.ReadFileToText(errFile));
             }
 
             return bSuccess;
