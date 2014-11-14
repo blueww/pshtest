@@ -362,10 +362,7 @@
         public void UploadAnNonExistingLocalFile()
         {
             string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
-            if (File.Exists(localFilePath))
-            {
-                File.Delete(localFilePath);
-            }
+            FileUtil.RemoveFile(localFilePath);
 
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
 
