@@ -109,6 +109,11 @@
         [TestCategory(CLITag.NodeJSFT)]
         public void CreateDirectoryWith255Unicodes()
         {
+            if (OSType.Windows != AgentFactory.GetOSType())
+            {
+                return;
+            }
+
             foreach (var dirName in FileNamingGenerator.GenerateValidateUnicodeName(FileNamingGenerator.MaxFileNameLength))
             {
                 this.CreateDirectoryInternal(dirName, traceCommand: false);
