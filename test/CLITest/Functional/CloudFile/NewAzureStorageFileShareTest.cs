@@ -263,11 +263,18 @@
             int numberOfSharesToBeCreated = this.randomProvider.Next(5, 20);
             List<string> shareNames = Enumerable.Range(0, numberOfSharesToBeCreated).Select(x => CloudFileUtil.GenerateUniqueFileShareName()).ToList();
             int numberOfSharesAlreadyExists = this.randomProvider.Next(1, numberOfSharesToBeCreated - 1);
-            List<string> existsShareNames = shareNames.RandomlySelect(numberOfSharesAlreadyExists, this.randomProvider).ToList();
+            List<string> existingShareNames = shareNames.RandomlySelect(numberOfSharesAlreadyExists, this.randomProvider).ToList();
+            foreach (string shareName in shareNames)
+            {
+                if (fileUtil.FileShareExists(shareName) && (!existingShareNames.Contains(shareName)))
+                {
+                    existingShareNames.Add(shareName);
+                }
+            }
 
             try
             {
-                foreach (string shareName in existsShareNames)
+                foreach (string shareName in existingShareNames)
                 {
                     fileUtil.EnsureFileShareExists(shareName);
                 }
