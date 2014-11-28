@@ -125,6 +125,7 @@
     <Compile Include="CLIBlobFunc.cs" />
     <Compile Include="Common\TestBase.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Functional\Blob\ContainerStoredAccessPolicy.cs" />
     <Compile Include="Functional\Blob\NewBlobSas.cs" />
     <Compile Include="Functional\Blob\NewContainerSas.cs" />
     <Compile Include="Functional\Blob\ShowContainer.cs" />

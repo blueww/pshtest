@@ -1380,5 +1380,503 @@ namespace Management.Storage.ScenarioTest.BVT
                 tableUtil.RemoveTable(table);
             }
         }
+
+        /// <summary>
+        /// Test Plan 8.38 BVT
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
+        public void NewTableStoredPolicyTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip NewTableStoredPolicyTest as Azure emulator does not support stored access policy");
+                return;
+            }
+
+            CloudTableUtil tableUtil = new CloudTableUtil(CommonStorageAccount);
+            CloudTable table = tableUtil.CreateTable();
+            Utility.ClearStoredAccessPolicy<CloudTable>(table);
+            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>()[0];
+
+            try
+            {                
+                Test.Assert(agent.NewAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                    "Create stored access policy in table should succeed");
+                Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
+
+                SharedAccessTablePolicies expectedPolicies = new SharedAccessTablePolicies();
+                expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessTablePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission));
+                Utility.ValidateStoredAccessPolicies<SharedAccessTablePolicy>(table.GetPermissions().SharedAccessPolicies, expectedPolicies);
+            }
+            finally
+            {
+                tableUtil.RemoveTable(table);
+            }
+        }
+
+
+        /// <summary>
+        /// Test Plan 8.39 BVT
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
+        public void GetTableStoredPolicyTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip GetTableStoredPolicyTest as Azure emulator does not support stored access policy");
+                return;
+            }
+
+            CloudTableUtil tableUtil = new CloudTableUtil(CommonStorageAccount);
+            CloudTable table = tableUtil.CreateTable();
+            Utility.ClearStoredAccessPolicy<CloudTable>(table);
+            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>()[0];
+
+            try
+            {
+                Test.Assert(agent.NewAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                    "Create stored access policy in table should succeed");
+                Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
+                Test.Assert(agent.GetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName),
+                "Get stored access policy in table should succeed");
+                Test.Info("Get stored access policy:{0}", samplePolicy.PolicyName);
+
+                SharedAccessTablePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessTablePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission);
+                Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
+                comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessTablePolicy>(policy, samplePolicy.PolicyName));
+                agent.OutputValidation(comp);
+            }
+            finally
+            {
+                tableUtil.RemoveTable(table);
+            }
+        }
+
+        /// <summary>
+        /// Test plan, BVT 8.40.1
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
+        public void RemoveTableStoredPolicyTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip RemoveTableStoredPolicyTest as Azure emulator does not support stored access policy");
+                return;
+            }
+
+            CloudTableUtil tableUtil = new CloudTableUtil(CommonStorageAccount);
+            CloudTable table = tableUtil.CreateTable();
+            Utility.ClearStoredAccessPolicy<CloudTable>(table);
+            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>()[0];
+
+            try
+            {
+                Test.Assert(agent.NewAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                    "Create stored access policy in table should succeed");
+                Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
+
+                Test.Assert(agent.RemoveAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName),
+                    "Remove stored access policy in table should succeed");
+                Test.Info("Remove stored access policy:{0}", samplePolicy.PolicyName); 
+                Test.Assert(table.GetPermissions().SharedAccessPolicies.Count == 0, "Policy should be removed");
+            }
+            finally
+            {
+                tableUtil.RemoveTable(table);
+            }
+        }
+
+        /// <summary>
+        /// Test plan, BVT 8.41.1
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
+        public void SetTableStoredPolicyTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip SetTableStoredPolicyTest as Azure emulator does not support stored access policy");
+                return;
+            }
+
+            CloudTableUtil tableUtil = new CloudTableUtil(CommonStorageAccount);
+            CloudTable table = tableUtil.CreateTable();
+            Utility.ClearStoredAccessPolicy<CloudTable>(table);
+            List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>();
+            Utility.RawStoredAccessPolicy samplePolicy1 = samplePolicies[0];
+            Utility.RawStoredAccessPolicy samplePolicy2 = samplePolicies[1];
+            samplePolicy2.PolicyName = samplePolicy1.PolicyName;
+            samplePolicy2.ExpiryTime = DateTime.Today.AddDays(3);
+
+            try
+            {
+                Test.Assert(agent.NewAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy1.PolicyName, samplePolicy1.Permission, samplePolicy1.StartTime, samplePolicy1.ExpiryTime),
+                    "Create stored access policy in table should succeed");
+                Test.Info("Created stored access policy:{0}", samplePolicy1.PolicyName);
+                Test.Assert(agent.SetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy2.PolicyName, samplePolicy2.Permission, samplePolicy2.StartTime, samplePolicy2.ExpiryTime),
+                "Set stored access policy in table should succeed");
+                Test.Info("Set stored access policy:{0}", samplePolicy2.PolicyName);
+
+                //get the policy and validate
+                SharedAccessTablePolicies expectedPolicies = new SharedAccessTablePolicies();
+                expectedPolicies.Add(samplePolicy2.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessTablePolicy>(samplePolicy2.StartTime, samplePolicy2.ExpiryTime, samplePolicy2.Permission));
+                Utility.ValidateStoredAccessPolicies<SharedAccessTablePolicy>(table.GetPermissions().SharedAccessPolicies, expectedPolicies);
+
+                //validate the output
+                SharedAccessTablePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessTablePolicy>(samplePolicy2.StartTime, samplePolicy2.ExpiryTime, samplePolicy2.Permission);
+                Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
+                comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessTablePolicy>(policy, samplePolicy2.PolicyName));
+                agent.OutputValidation(comp);
+            }
+            finally
+            {
+                tableUtil.RemoveTable(table);
+            }
+        }
+
+        /// <summary>
+        /// test plan BVT 8.42
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
+        public void NewQueueStoredPolicyTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip NewQueueStoredPolicyTest as Azure emulator does not support stored access policy");
+                return;
+            }
+
+            CloudQueueUtil queueUtil = new CloudQueueUtil(CommonStorageAccount);
+            CloudQueue queue = queueUtil.CreateQueue();
+            Utility.ClearStoredAccessPolicy<CloudQueue>(queue);
+            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessQueuePolicy>()[0];
+
+            try
+            {
+                Test.Assert(agent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                    "Create stored access policy in queue should succeed");
+                Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
+
+                SharedAccessQueuePolicies expectedPolicies = new SharedAccessQueuePolicies();
+                expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessQueuePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission));
+                Utility.ValidateStoredAccessPolicies<SharedAccessQueuePolicy>(queue.GetPermissions().SharedAccessPolicies, expectedPolicies);
+            }
+            finally
+            {
+                queueUtil.RemoveQueue(queue);
+            }
+        }
+
+
+        /// <summary>
+        /// Test Plan 8.43 BVT
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
+        public void GetQueueStoredPolicyTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip GetQueueStoredPolicyTest as Azure emulator does not support stored access policy");
+                return;
+            }
+
+            CloudQueueUtil queueUtil = new CloudQueueUtil(CommonStorageAccount);
+            CloudQueue queue = queueUtil.CreateQueue();
+            Utility.ClearStoredAccessPolicy<CloudQueue>(queue);
+            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessQueuePolicy>()[0];
+
+            try
+            {
+                Test.Assert(agent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                    "Create stored access policy in queue should succeed");
+                Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
+
+                Test.Assert(agent.GetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName),
+                "Get stored access policy in queue should succeed");
+                Test.Info("Get stored access policy:{0}", samplePolicy.PolicyName);
+
+                SharedAccessQueuePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessQueuePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission);
+                Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
+                comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessQueuePolicy>(policy, samplePolicy.PolicyName));
+                agent.OutputValidation(comp);
+            }
+            finally
+            {
+                queueUtil.RemoveQueue(queue);
+            }
+        }
+
+        /// <summary>
+        /// Test plan, BVT 8.44.1
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
+        public void RemoveQueueStoredPolicyTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip RemoveQueueStoredPolicyTest as Azure emulator does not support stored access policy");
+                return;
+            }
+
+            CloudQueueUtil queueUtil = new CloudQueueUtil(CommonStorageAccount);
+            CloudQueue queue = queueUtil.CreateQueue();
+            Utility.ClearStoredAccessPolicy<CloudQueue>(queue);
+            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessQueuePolicy>()[0];
+
+            try
+            {
+                Test.Assert(agent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                    "Create stored access policy in queue should succeed");
+                Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
+
+                Test.Assert(agent.RemoveAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName),
+                    "Remove stored access policy in queue should succeed");
+                Test.Info("Remove stored access policy:{0}", samplePolicy.PolicyName); ;
+                Test.Assert(queue.GetPermissions().SharedAccessPolicies.Count == 0, "Policy should be removed");
+            }
+            finally
+            {
+                queueUtil.RemoveQueue(queue);
+            }
+        }
+
+        /// <summary>
+        /// Test plan, BVT 8.45.1
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
+        public void SetQueueStoredPolicyTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip SetQueueStoredPolicyTest as Azure emulator does not support stored access policy");
+                return;
+            }
+
+            CloudQueueUtil queueUtil = new CloudQueueUtil(CommonStorageAccount);
+            CloudQueue queue = queueUtil.CreateQueue();
+            Utility.ClearStoredAccessPolicy<CloudQueue>(queue); ;
+            List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessQueuePolicy>();
+            Utility.RawStoredAccessPolicy samplePolicy1 = samplePolicies[0];
+            Utility.RawStoredAccessPolicy samplePolicy2 = samplePolicies[1];
+            samplePolicy2.PolicyName = samplePolicy1.PolicyName;
+            samplePolicy2.ExpiryTime = DateTime.Today.AddDays(3);
+
+            try
+            {
+                Test.Assert(agent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy1.PolicyName, samplePolicy1.Permission, samplePolicy1.StartTime, samplePolicy1.ExpiryTime),
+                    "Create stored access policy in queue should succeed");
+                Test.Info("Created stored access policy:{0}", samplePolicy1.PolicyName);
+
+                Test.Assert(agent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy2.PolicyName, samplePolicy2.Permission, samplePolicy2.StartTime, samplePolicy2.ExpiryTime),
+                "Set stored access policy in queue should succeed");
+                Test.Info("Set stored access policy:{0}", samplePolicy2.PolicyName);
+
+                //get the policy and validate
+                SharedAccessQueuePolicies expectedPolicies = new SharedAccessQueuePolicies();
+                expectedPolicies.Add(samplePolicy2.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessQueuePolicy>(samplePolicy2.StartTime, samplePolicy2.ExpiryTime, samplePolicy2.Permission));
+                Utility.ValidateStoredAccessPolicies<SharedAccessQueuePolicy>(queue.GetPermissions().SharedAccessPolicies, expectedPolicies);
+
+                //validate the output
+                SharedAccessQueuePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessQueuePolicy>(samplePolicy2.StartTime, samplePolicy2.ExpiryTime, samplePolicy2.Permission);
+                Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
+                comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessQueuePolicy>(policy, samplePolicy2.PolicyName));
+                agent.OutputValidation(comp);
+            }
+            finally
+            {
+                queueUtil.RemoveQueue(queue);
+            }
+        }
+
+
+        /// <summary>
+        /// Test Plan 8.34 BVT
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
+        public void NewContainerStoredPolicyTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip NewContainerStoredPolicyTest as Azure emulator does not support stored access policy");
+                return;
+            }
+
+            CloudBlobUtil blobUtil = new CloudBlobUtil(CommonStorageAccount);
+            CloudBlobContainer container = blobUtil.CreateContainer();
+            Utility.ClearStoredAccessPolicy<CloudBlobContainer>(container);
+            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessBlobPolicy>()[0];
+
+            try
+            {
+                Test.Assert(agent.NewAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                    "Create stored access policy in container should succeed");
+                Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
+
+                //get the policy and validate
+                SharedAccessBlobPolicies expectedPolicies = new SharedAccessBlobPolicies();
+                expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessBlobPolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission));
+                Utility.ValidateStoredAccessPolicies<SharedAccessBlobPolicy>(container.GetPermissions().SharedAccessPolicies, expectedPolicies);
+            }
+            finally
+            {
+                blobUtil.RemoveContainer(container);
+            }
+        }
+
+        /// <summary>
+        /// Test Plan 8.35 BVT
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
+        public void GetContainerStoredPolicyTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip GetContainerStoredPolicyTest as Azure emulator does not support stored access policy");
+                return;
+            }
+
+            CloudBlobUtil blobUtil = new CloudBlobUtil(CommonStorageAccount);
+            CloudBlobContainer container = blobUtil.CreateContainer();
+            Utility.ClearStoredAccessPolicy<CloudBlobContainer>(container);
+            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessBlobPolicy>()[0];
+
+            try
+            {
+                Test.Assert(agent.NewAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                    "Create stored access policy in container should succeed");
+                Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
+
+                Test.Assert(agent.GetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName),
+                "Get stored access policy in container should succeed");
+                Test.Info("Get stored access policy:{0}", samplePolicy.PolicyName);
+
+                SharedAccessBlobPolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessBlobPolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission);
+                Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
+                comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessBlobPolicy>(policy, samplePolicy.PolicyName));
+                agent.OutputValidation(comp);
+            }
+            finally
+            {
+                blobUtil.RemoveContainer(container);
+            }
+        }
+
+        /// <summary>
+        /// Test plan, BVT 8.36.1
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
+        public void RemoveContainerStoredPolicyTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip RemoveContainerStoredPolicyTest as Azure emulator does not support stored access policy");
+                return;
+            }
+
+            CloudBlobUtil blobUtil = new CloudBlobUtil(CommonStorageAccount);
+            CloudBlobContainer container = blobUtil.CreateContainer();
+            Utility.ClearStoredAccessPolicy<CloudBlobContainer>(container);
+            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessBlobPolicy>()[0];
+
+            try
+            {
+                Test.Assert(agent.NewAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                    "Create stored access policy in container should succeed");
+                Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
+
+                Test.Assert(agent.RemoveAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName),
+                    "Remove stored access policy in container should succeed");
+                Test.Info("Remove stored access policy:{0}", samplePolicy.PolicyName); ;
+                Test.Assert(container.GetPermissions().SharedAccessPolicies.Count == 0, "Policy should be removed");
+            }
+            finally
+            {
+                blobUtil.RemoveContainer(container);
+            }
+        }
+
+        /// <summary>
+        /// Test plan, BVT 8.37.1
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
+        public void SetContainerStoredPolicyTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip SetContainerStoredPolicyTest as Azure emulator does not support stored access policy");
+                return;
+            }
+
+            CloudBlobUtil blobUtil = new CloudBlobUtil(CommonStorageAccount);
+            CloudBlobContainer container = blobUtil.CreateContainer();
+            Utility.ClearStoredAccessPolicy<CloudBlobContainer>(container);
+            List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessBlobPolicy>();
+            Utility.RawStoredAccessPolicy samplePolicy1 = samplePolicies[0];
+            Utility.RawStoredAccessPolicy samplePolicy2 = samplePolicies[1];
+            samplePolicy2.PolicyName = samplePolicy1.PolicyName;
+            samplePolicy2.ExpiryTime = DateTime.Today.AddDays(3);
+
+            try
+            {
+                Test.Assert(agent.NewAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy1.PolicyName, samplePolicy1.Permission, samplePolicy1.StartTime, samplePolicy1.ExpiryTime),
+                    "Create stored access policy in container should succeed");
+                Test.Info("Created stored access policy:{0}", samplePolicy1.PolicyName);
+
+                Test.Assert(agent.SetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy2.PolicyName, samplePolicy2.Permission, samplePolicy2.StartTime, samplePolicy2.ExpiryTime),
+                "Set stored access policy in container should succeed");
+                Test.Info("Set stored access policy:{0}", samplePolicy2.PolicyName);
+
+                //get the policy and validate
+                SharedAccessBlobPolicies expectedPolicies = new SharedAccessBlobPolicies();
+                expectedPolicies.Add(samplePolicy2.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessBlobPolicy>(samplePolicy2.StartTime, samplePolicy2.ExpiryTime, samplePolicy2.Permission));
+                Utility.ValidateStoredAccessPolicies<SharedAccessBlobPolicy>(container.GetPermissions().SharedAccessPolicies, expectedPolicies);
+
+                //validate the output
+                SharedAccessBlobPolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessBlobPolicy>(samplePolicy2.StartTime, samplePolicy2.ExpiryTime, samplePolicy2.Permission);
+                Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
+                comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessBlobPolicy>(policy, samplePolicy2.PolicyName));
+                agent.OutputValidation(comp);
+            }
+            finally
+            {
+                blobUtil.RemoveContainer(container);
+            }
+        }
+
     }
 }
