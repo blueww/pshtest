@@ -36,6 +36,8 @@ namespace Management.Storage.ScenarioTest
         public const string NewTableSas = "newtablesas";
         public const string SASInterop = "sasinterop";
 
+        public const string StoredAccessPolicy = "storedaccesspolicy";
+
         public const string Blob = "blob";
         public const string GetBlob = "getblob";
         public const string RemoveBlob = "removeblob";
@@ -110,6 +112,8 @@ namespace Management.Storage.ScenarioTest
         public const string NewQueueSas = "nodejsnewqueuesas";
         public const string NewTableSas = "nodejsnewtablesas";
         public const string SASInterop = "nodejssasinterop";
+
+        public const string StoredAccessPolicy = "storedaccesspolicy";
 
         public const string File = "nodejsfile";
 

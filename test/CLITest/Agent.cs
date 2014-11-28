@@ -194,6 +194,40 @@ namespace Management.Storage.ScenarioTest
         public virtual bool NewAzureStorageQueueSAS(string name, string policy, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false) { return false; }
 
+        ///-------------------------------------
+        /// Stored Access Policy APIs
+        ///-------------------------------------
+        public virtual bool GetAzureStorageTableStoredAccessPolicy(string tableName, string policyName) { return false; }
+
+        public virtual bool NewAzureStorageTableStoredAccessPolicy(string tableName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null) { return false; }
+
+        public virtual bool RemoveAzureStorageTableStoredAccessPolicy(string tableName, string policyName, bool Force = true) { return false; }
+
+        public virtual bool SetAzureStorageTableStoredAccessPolicy(string tableName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null) { return false; }
+
+        public virtual bool GetAzureStorageQueueStoredAccessPolicy(string queueName, string policyName) { return false; }
+
+        public virtual bool NewAzureStorageQueueStoredAccessPolicy(string queueName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null) { return false; }
+
+        public virtual bool RemoveAzureStorageQueueStoredAccessPolicy(string queueName, string policyName, bool Force = true) { return false; }
+
+        public virtual bool SetAzureStorageQueueStoredAccessPolicy(string queueName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null) { return false; }
+
+        public virtual bool GetAzureStorageContainerStoredAccessPolicy(string containerName, string policyName) { return false; }
+
+        public virtual bool NewAzureStorageContainerStoredAccessPolicy(string containerName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null) { return false; }
+
+        public virtual bool RemoveAzureStorageContainerStoredAccessPolicy(string containerName, string policyName, bool Force = true) { return false; }
+
+        public virtual bool SetAzureStorageContainerStoredAccessPolicy(string containerName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool NoStartTime = false, bool NoExpiryTime = false) { return false; }
+
+
         public abstract void OutputValidation(Collection<Dictionary<string, object>> comp);
         public abstract void OutputValidation(IEnumerable<CloudBlobContainer> containers);
         public abstract void OutputValidation(IEnumerable<CloudFileShare> shares);
