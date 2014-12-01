@@ -1271,7 +1271,7 @@ namespace Management.Storage.ScenarioTest
             ps.AddCommand("New-AzureStorageTableStoredAccessPolicy");
             ps.BindParameter("Table", tableName);
             ps.BindParameter("Policy", policyName);
-            ps.BindParameter("Permission", permission);
+            ps.BindParameter("Permission", permission, true);
             ps.BindParameter("StartTime", startTime);
             ps.BindParameter("ExpiryTime", expiryTime);
 
@@ -1294,16 +1294,26 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override bool SetAzureStorageTableStoredAccessPolicy(string tableName, string policyName, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null)
+            DateTime? startTime = null, DateTime? expiryTime = null, bool NoStartTime = false, bool NoExpiryTime = false)
         {
             PowerShell ps = GetPowerShellInstance();
 
             ps.AddCommand("Set-AzureStorageTableStoredAccessPolicy");
             ps.BindParameter("Table", tableName);
             ps.BindParameter("Policy", policyName);
-            ps.BindParameter("Permission", permission);
+            ps.BindParameter("Permission", permission, true);
             ps.BindParameter("StartTime", startTime);
             ps.BindParameter("ExpiryTime", expiryTime);
+
+            if (NoStartTime)
+            {
+                ps.BindParameter("NoStartTime");
+            }
+
+            if (NoExpiryTime)
+            {
+                ps.BindParameter("NoExpiryTime");
+            }
 
             return InvokeStoragePowerShell(ps);
         }
@@ -1327,7 +1337,7 @@ namespace Management.Storage.ScenarioTest
             ps.AddCommand("New-AzureStorageQueueStoredAccessPolicy");
             ps.BindParameter("Queue", queueName);
             ps.BindParameter("Policy", policyName);
-            ps.BindParameter("Permission", permission);
+            ps.BindParameter("Permission", permission, true);
             ps.BindParameter("StartTime", startTime);
             ps.BindParameter("ExpiryTime", expiryTime);
 
@@ -1350,16 +1360,26 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override bool SetAzureStorageQueueStoredAccessPolicy(string queueName, string policyName, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null)
+            DateTime? startTime = null, DateTime? expiryTime = null, bool NoStartTime = false, bool NoExpiryTime = false)
         {
             PowerShell ps = GetPowerShellInstance();
 
             ps.AddCommand("Set-AzureStorageQueueStoredAccessPolicy");
             ps.BindParameter("Queue", queueName);
             ps.BindParameter("Policy", policyName);
-            ps.BindParameter("Permission", permission);
+            ps.BindParameter("Permission", permission, true);
             ps.BindParameter("StartTime", startTime);
             ps.BindParameter("ExpiryTime", expiryTime);
+
+            if (NoStartTime)
+            {
+                ps.BindParameter("NoStartTime");
+            }
+
+            if (NoExpiryTime)
+            {
+                ps.BindParameter("NoExpiryTime");
+            }
 
             return InvokeStoragePowerShell(ps);
         }

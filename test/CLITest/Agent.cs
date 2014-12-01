@@ -205,7 +205,7 @@ namespace Management.Storage.ScenarioTest
         public virtual bool RemoveAzureStorageTableStoredAccessPolicy(string tableName, string policyName, bool Force = true) { return false; }
 
         public virtual bool SetAzureStorageTableStoredAccessPolicy(string tableName, string policyName, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null) { return false; }
+            DateTime? startTime = null, DateTime? expiryTime = null, bool NoStartTime = false, bool NoExpiryTime = false) { return false; }
 
         public virtual bool GetAzureStorageQueueStoredAccessPolicy(string queueName, string policyName) { return false; }
 
@@ -215,7 +215,7 @@ namespace Management.Storage.ScenarioTest
         public virtual bool RemoveAzureStorageQueueStoredAccessPolicy(string queueName, string policyName, bool Force = true) { return false; }
 
         public virtual bool SetAzureStorageQueueStoredAccessPolicy(string queueName, string policyName, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null) { return false; }
+            DateTime? startTime = null, DateTime? expiryTime = null, bool NoStartTime = false, bool NoExpiryTime = false) { return false; }
 
         public virtual bool GetAzureStorageContainerStoredAccessPolicy(string containerName, string policyName) { return false; }
 

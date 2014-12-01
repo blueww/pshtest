@@ -325,24 +325,24 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             try
             {
                 Test.Assert(!agent.RemoveAzureStorageContainerStoredAccessPolicy(container.Name, "policy"),
-                    "Get non-existing stored access policy should fail");
+                    "Remove non-existing stored access policy should fail");
                 ExpectedContainErrorMessage("Can not find policy");
 
                 Test.Assert(!agent.RemoveAzureStorageContainerStoredAccessPolicy(container.Name, FileNamingGenerator.GenerateValidateASCIIName(65)),
-                    "Get stored access policy with name length larger than 64 should fail");
+                    "Remove stored access policy with name length larger than 64 should fail");
                 ExpectedContainErrorMessage("Can not find policy");
 
                 Test.Assert(!agent.RemoveAzureStorageContainerStoredAccessPolicy("CONTAINER", "policy"),
-                    "Get stored access policy from invalid container name should fail");
+                    "Remove stored access policy from invalid container name should fail");
                 ExpectedContainErrorMessage("The specifed resource name contains invalid characters");
 
                 Test.Assert(!agent.RemoveAzureStorageContainerStoredAccessPolicy("$logs", "policy"),
-                    "Get stored access policy from invalid container name should fail");
+                    "Remove stored access policy from invalid container name should fail");
                 ExpectedContainErrorMessage("Can not find policy");
 
                 blobUtil.RemoveContainer(container);
                 Test.Assert(!agent.RemoveAzureStorageContainerStoredAccessPolicy(container.Name, "policy"),
-                    "Get stored access policy from invalid container name should fail");
+                    "Remove stored access policy from invalid container name should fail");
                 ExpectedContainErrorMessage("The specified container does not exist.");
             }
             finally
