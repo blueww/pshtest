@@ -2,8 +2,6 @@
 {
     using System;
     using System.Linq;
-    using System.Collections.Generic;
-    using System.Text;
     using Management.Storage.ScenarioTest.Common;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Microsoft.WindowsAzure.Storage.Blob;
@@ -30,6 +28,8 @@
             TestBase.TestClassCleanup();
         }
 
+        public delegate TResult GetLoggingProperty<out TResult>(int? retentionDays, string loggingOperations);
+
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.ServiceLogging)]
@@ -38,56 +38,32 @@
         public void EnableDisableServiceLogging()
         {
             //Blob service
-            CloudBlobClient blobClient = StorageAccount.CreateCloudBlobClient();
-            GenericEnableDisableServiceLogging(ServiceType.Blob, () => blobClient.GetServiceProperties());
+            GenericEnableDisableServiceLogging(ServiceType.Blob,
+                (retentionDays, loggingOperations) => Utility.WaitForLoggingPropertyTakingEffect(StorageAccount, ServiceType.Blob, retentionDays, loggingOperations));
 
             //Queue service
-            CloudQueueClient queueClient = StorageAccount.CreateCloudQueueClient();
-            GenericEnableDisableServiceLogging(ServiceType.Queue, () => queueClient.GetServiceProperties());
+            GenericEnableDisableServiceLogging(ServiceType.Queue,
+                (retentionDays, loggingOperations) => Utility.WaitForLoggingPropertyTakingEffect(StorageAccount, ServiceType.Queue, retentionDays, loggingOperations));
 
             //Table service
-            CloudTableClient tableClient = StorageAccount.CreateCloudTableClient();
-            GenericEnableDisableServiceLogging(ServiceType.Table, () => tableClient.GetServiceProperties());
+            GenericEnableDisableServiceLogging(ServiceType.Table,
+                (retentionDays, loggingOperations) => Utility.WaitForLoggingPropertyTakingEffect(StorageAccount, ServiceType.Table, retentionDays, loggingOperations));
         }
 
-        internal void GenericEnableDisableServiceLogging(ServiceType serviceType, Func<ServiceProperties> getServiceProperties)
+        internal void GenericEnableDisableServiceLogging(ServiceType serviceType, GetLoggingProperty<ServiceProperties> getServiceProperties)
         {
             Test.Info("Enable/Disable service logging for {0}", serviceType);
             int retentionDays = 10;
             Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Enable service logging should succeed");
             ServiceProperties retrievedProperties;
-            if (lang == Language.PowerShell)
-            {
-                retrievedProperties = getServiceProperties();
-                ExpectEqual(retentionDays, retrievedProperties.Logging.RetentionDays.Value, "logging retention days");
-            }
-            else
-            {
-                // getServiceProperties() takes several seconds to get the correct properties when retention is turned off by nodejs
-                // because the .net and node xscl may connect to different frontend and take some time to sync 
-                dynamic retention = agent.Output[0]["RetentionPolicy"];
-                Test.Assert((bool)retention.Enabled, "service logging retention should be turned on");
-                int days = retention.Days ?? 0;
-                ExpectEqual(retentionDays, days, "logging retention days");
-            }
+            retrievedProperties = getServiceProperties(retentionDays, LoggingOperations.None.ToString());
+            ExpectEqual(retentionDays, retrievedProperties.Logging.RetentionDays.Value, "logging retention days");
             
-            if (lang == Language.PowerShell)
-            {
-                retentionDays = -1;
-                Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Enable blob service logging should succeed");
+            retentionDays = lang == Language.PowerShell ? -1 : 0;
+            Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Enable blob service logging should succeed");
 
-                retrievedProperties = getServiceProperties();
-                Test.Assert(!retrievedProperties.Logging.RetentionDays.HasValue, "service logging retention days should be null");
-            }
-            else
-            {
-                retentionDays = 0;
-                Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Enable blob service logging should succeed");
-
-                dynamic retention = agent.Output[0]["RetentionPolicy"];
-                Test.Assert(!(bool)retention.Enabled, "service logging retention should be turned off");
-                Test.Assert(retention.Days == null, "service logging retention days should be null");
-            }
+            retrievedProperties = getServiceProperties(retentionDays, LoggingOperations.None.ToString());
+            Test.Assert(!retrievedProperties.Logging.RetentionDays.HasValue, "service logging retention days should be null");
         }
 
         [TestMethod]
@@ -98,19 +74,19 @@
         public void SetLoggingOperation()
         {
             //Blob service
-            CloudBlobClient blobClient = StorageAccount.CreateCloudBlobClient();
-            GenericSetLoggingOperation(ServiceType.Blob, () => blobClient.GetServiceProperties());
+            GenericSetLoggingOperation(ServiceType.Blob,
+                (retentionDays, loggingOperations) => Utility.WaitForLoggingPropertyTakingEffect(StorageAccount, ServiceType.Blob, retentionDays, loggingOperations));
 
             //Queue service
-            CloudQueueClient queueClient = StorageAccount.CreateCloudQueueClient();
-            GenericSetLoggingOperation(ServiceType.Queue, () => queueClient.GetServiceProperties());
+            GenericSetLoggingOperation(ServiceType.Queue,
+                (retentionDays, loggingOperations) => Utility.WaitForLoggingPropertyTakingEffect(StorageAccount, ServiceType.Queue, retentionDays, loggingOperations));
 
             //Table service
-            CloudTableClient tableClient = StorageAccount.CreateCloudTableClient();
-            GenericSetLoggingOperation(ServiceType.Table, () => tableClient.GetServiceProperties());
+            GenericSetLoggingOperation(ServiceType.Table,
+                (retentionDays, loggingOperations) => Utility.WaitForLoggingPropertyTakingEffect(StorageAccount, ServiceType.Table, retentionDays, loggingOperations));
         }
 
-        internal void GenericSetLoggingOperation(ServiceType serviceType, Func<ServiceProperties> getServiceProperties)
+        internal void GenericSetLoggingOperation(ServiceType serviceType, GetLoggingProperty<ServiceProperties> getServiceProperties)
         {
             Test.Info("Set service logging operation for {0}", serviceType);
             string[] operations = { "None", "All", "Read", "Write", "Delete" };
@@ -131,25 +107,17 @@
             ExpectValidLoggingOperation(serviceType, combination, getServiceProperties);
         }
 
-        internal void ExpectValidLoggingOperation(ServiceType serviceType, string operations, Func<ServiceProperties> getServiceProperties)
+        internal void ExpectValidLoggingOperation(ServiceType serviceType, string operations, GetLoggingProperty<ServiceProperties> getServiceProperties)
         {
             int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
             Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, operations, retentionDays.ToString(), string.Empty), "Set logging operation should succeed");
 
-            if (lang == Language.PowerShell)
-            {
-                ServiceProperties retrievedProperties = getServiceProperties();
-                LoggingOperations expectOperation = (LoggingOperations)Enum.Parse(typeof(LoggingOperations), operations, true);
-                ExpectEqual(expectOperation.ToString(), retrievedProperties.Logging.LoggingOperations.ToString(), "logging operation");
-            }
-            else
-            {
-                bool? read = agent.Output[0]["Read"] as bool?;
-                bool? write = agent.Output[0]["Write"] as bool?;
-                bool? delete = agent.Output[0]["Delete"] as bool?;
-
-                Utility.ValidateLoggingOperationProperty(operations, read, write, delete);
-            }
+            ServiceProperties retrievedProperties = getServiceProperties(retentionDays, operations);
+            LoggingOperations expectOperation = (LoggingOperations)Enum.Parse(typeof(LoggingOperations), operations, true);
+            bool? read = (expectOperation & LoggingOperations.Read) != 0;
+            bool? write = (expectOperation & LoggingOperations.Write) != 0;
+            bool? delete = (expectOperation & LoggingOperations.Delete) != 0;
+            Utility.ValidateLoggingOperationProperty(operations, read, write, delete);
         }
 
         [TestMethod]

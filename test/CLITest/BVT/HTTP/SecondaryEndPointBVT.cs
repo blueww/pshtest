@@ -27,7 +27,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTP
         public static void SecondaryEndPointHTTPBVTClassInitialize(TestContext testContext)
         {
             useHttps = false;
-            HTTPSSecondaryEndPointBVT.Initialize(testContext, useHttps);
+            HTTPSSecondaryEndPointBVT.ClassInitialize(testContext, useHttps);
         }
 
         [ClassCleanup()]

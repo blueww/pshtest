@@ -195,6 +195,8 @@ namespace Management.Storage.ScenarioTest
                 Test.Verbose("Error:\n{0}", error);
             }
 
+            Test.Verbose("Node Output:\n{0}", output);
+
             if (!p.HasExited)
             {
                 p.Kill();
@@ -258,8 +260,8 @@ namespace Management.Storage.ScenarioTest
                 ErrorMessages.Add(error);
 
                 string errFile = "Azure.err";
-                Test.Info(string.Format("Error details created on {0}:", File.GetLastWriteTime(errFile)));
-                Test.Info(File.ReadAllText(errFile));
+                Test.Info(string.Format("Error details in {0}:", errFile));
+                Test.Info(FileUtil.ReadFileToText(errFile));
             }
 
             return bSuccess;
@@ -1377,17 +1379,28 @@ namespace Management.Storage.ScenarioTest
         {
             string command = string.Format("metrics set --{0} ", serviceType.ToString().ToLower());
 
-            if (metricsType == Constants.MetricsType.Hour)
+            if (string.Compare(metricsLevel, "None", true) == 0)
             {
-                command += " --hour ";
+                if (metricsType == Constants.MetricsType.Hour)
+                {
+                    command += " --hour-off ";
+                }
+                else if (metricsType == Constants.MetricsType.Minute)
+                {
+                    command += " --minute-off ";
+                }
             }
-            else if (metricsType == Constants.MetricsType.Minute)
+            else
             {
-                command += " --minute ";
-            }
+                if (metricsType == Constants.MetricsType.Hour)
+                {
+                    command += " --hour ";
+                }
+                else if (metricsType == Constants.MetricsType.Minute)
+                {
+                    command += " --minute ";
+                }
 
-            if (!string.IsNullOrEmpty(metricsLevel))
-            {
                 if (string.Compare(metricsLevel, "ServiceAndApi", true) == 0)
                 {
                     command += string.Format(" --api ");

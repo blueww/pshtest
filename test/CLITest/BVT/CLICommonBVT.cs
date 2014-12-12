@@ -12,25 +12,26 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.IO;
-using Management.Storage.ScenarioTest.Common;
-using Management.Storage.ScenarioTest.Util;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.Queue;
-using Microsoft.WindowsAzure.Storage.Shared.Protocol;
-using Microsoft.WindowsAzure.Storage.Table;
-using MS.Test.Common.MsTestLib;
-using StorageTestLib;
-using CloudStorageAccount = Microsoft.WindowsAzure.Storage.CloudStorageAccount;
-using StorageBlob = Microsoft.WindowsAzure.Storage.Blob;
-
 namespace Management.Storage.ScenarioTest.BVT
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Diagnostics;
+    using System.IO;
+    using Management.Storage.ScenarioTest.Common;
+    using Management.Storage.ScenarioTest.Util;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.WindowsAzure.Storage.Blob;
+    using Microsoft.WindowsAzure.Storage.Queue;
+    using Microsoft.WindowsAzure.Storage.Shared.Protocol;
+    using Microsoft.WindowsAzure.Storage.Table;
+    using MS.Test.Common.MsTestLib;
+    using StorageTestLib;
+    using CloudStorageAccount = Microsoft.WindowsAzure.Storage.CloudStorageAccount;
+    using Constants = Management.Storage.ScenarioTest.Constants;
+    using StorageBlob = Microsoft.WindowsAzure.Storage.Blob;
+
     /// <summary>
     /// this class contain all the bvt cases for` the full functional storage context such as local/connectionstring/namekey, anonymous and sas token are excluded.
     /// </summary>
@@ -416,22 +417,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, loggingOperations, retentionDays.ToString()),
                     Utility.GenComparisonData("SetAzureStorageServiceLogging", true));
 
-                if (lang == Language.PowerShell)
-                {
-                    Utility.ValidateLoggingProperties(CommonStorageAccount, serviceType, retentionDays, loggingOperations);
-                }
-                else
-                {
-                    dynamic retention = agent.Output[0]["RetentionPolicy"];
-                    Test.Assert((bool)retention.Enabled, "service logging retention should be turned on");
-                    int days = retention.Days ?? 0;
-                    ExpectEqual(retentionDays, days, "logging retention days");
-
-                    bool? read = agent.Output[0]["Read"] as bool?;
-                    bool? write = agent.Output[0]["Write"] as bool?;
-                    bool? delete = agent.Output[0]["Delete"] as bool?;
-                    Utility.ValidateLoggingOperationProperty(loggingOperations, read, write, delete);
-                }
+                Utility.ValidateLoggingProperties(CommonStorageAccount, serviceType, retentionDays, loggingOperations);
 
                 Utility.ValidateMetricsProperties(CommonStorageAccount, serviceType, Constants.MetricsType.Hour, propertiesBeforeSet.HourMetrics.RetentionDays,
                     propertiesBeforeSet.HourMetrics.MetricsLevel.ToString());
@@ -456,29 +442,18 @@ namespace Management.Storage.ScenarioTest.BVT
             foreach (Constants.MetricsType metricsType in Enum.GetValues(typeof(Constants.MetricsType)))
             {
                 foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
-                {
+                {             
                     ServiceProperties propertiesBeforeSet = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
                     int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
                     string metricsLevel = Utility.GenRandomMetricsLevel();
                     // set ServiceProperties(metrics)
                     Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, metricsType, metricsLevel, retentionDays.ToString()),
                         Utility.GenComparisonData("SetAzureStorageServiceHourMetrics", true));
-                    
+
                     Utility.ValidateLoggingProperties(CommonStorageAccount, serviceType, propertiesBeforeSet.Logging.RetentionDays,
                         propertiesBeforeSet.Logging.LoggingOperations.ToString());
 
-                    if (lang == Language.PowerShell)
-                    {
-                        Utility.ValidateMetricsProperties(CommonStorageAccount, serviceType, metricsType, retentionDays, metricsLevel);
-                    }
-                    else
-                    {
-                        string tag = metricsType.ToString() + "Metrics";
-                        dynamic metrics = agent.Output[0][tag];
-                        Test.Assert((bool)metrics[0].RetentionPolicy.Enabled, string.Format("service {0} retention should be turned on", tag));
-                        int retention = metrics[0].RetentionPolicy.Days ?? 0;
-                        ExpectEqual(retentionDays, retention, "metrics retention days");
-                    }
+                    Utility.ValidateMetricsProperties(CommonStorageAccount, serviceType, metricsType, retentionDays, metricsLevel);
                 }
             }
         }
