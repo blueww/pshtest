@@ -12,22 +12,22 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using Management.Storage.ScenarioTest.Util;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.Shared.Protocol;
-using MS.Test.Common.MsTestLib;
-using StorageTestLib;
-
 namespace Management.Storage.ScenarioTest
 {
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading;
+    using Management.Storage.ScenarioTest.Util;
+    using Microsoft.WindowsAzure.Storage;
+    using Microsoft.WindowsAzure.Storage.Auth;
+    using Microsoft.WindowsAzure.Storage.Blob;
+    using Microsoft.WindowsAzure.Storage.Shared.Protocol;
+    using MS.Test.Common.MsTestLib;
+    using StorageTestLib;
+
     internal static class Utility
     {
         public static List<string> LoggingOperationList = new List<string>() { "Read", "Write", "Delete" };
@@ -36,6 +36,8 @@ namespace Management.Storage.ScenarioTest
         public static List<string> TablePermissionPS = new List<string>() { "r", "q", "a", "u", "d" };
         public static List<string> TablePermissionNode = new List<string>() { "r", "a", "u", "d" };
         public static List<string> QueuePermission = new List<string>() { "r", "a", "u", "p" };
+
+        internal static int RetryLimit = 6;
 
         /// <summary>
         /// Generate a random string for azure object name
@@ -423,7 +425,7 @@ namespace Management.Storage.ScenarioTest
 
         public static void ValidateLoggingProperties(CloudStorageAccount account, Constants.ServiceType serviceType, int? retentionDays, string loggingOperations)
         {
-            ServiceProperties properties = GetServiceProperties(account, serviceType);
+            ServiceProperties properties = WaitForLoggingPropertyTakingEffect(account, serviceType, retentionDays, loggingOperations);
             Test.Assert(properties.Logging.RetentionDays == retentionDays,
                 String.Format("expected LoggingRetentionDays {0} = {1}", retentionDays, properties.Logging.RetentionDays));
 
@@ -435,18 +437,26 @@ namespace Management.Storage.ScenarioTest
         public static void ValidateMetricsProperties(CloudStorageAccount account, Constants.ServiceType serviceType,
             Constants.MetricsType metricsType, int? retentionDays, string metricsLevel)
         {
-            ServiceProperties properties = GetServiceProperties(account, serviceType);
+            ServiceProperties properties = WaitForMetricsPropertyTakingEffect(account, serviceType, metricsType, retentionDays, metricsLevel);
             if (metricsType == Constants.MetricsType.Hour)
             {
-                Test.Assert(properties.HourMetrics.RetentionDays == retentionDays,
+                if (!metricsLevel.Equals("None", StringComparison.OrdinalIgnoreCase))
+                {
+                    Test.Assert(properties.HourMetrics.RetentionDays == retentionDays,
                     String.Format("expected MetricsRetentionDays {0} = {1}", retentionDays, properties.HourMetrics.RetentionDays));
+                }
+
                 Test.Assert(metricsLevel.Equals(properties.HourMetrics.MetricsLevel.ToString(), StringComparison.OrdinalIgnoreCase),
                     String.Format("expected MetricsLevel {0} = {1}", metricsLevel, properties.HourMetrics.MetricsLevel.ToString()));
             }
             else if (metricsType == Constants.MetricsType.Minute)
             {
-                Test.Assert(properties.MinuteMetrics.RetentionDays == retentionDays,
-                    String.Format("expected MetricsRetentionDays {0} = {1}", retentionDays, properties.MinuteMetrics.RetentionDays));
+                if (!metricsLevel.Equals("None", StringComparison.OrdinalIgnoreCase))
+                {
+                    Test.Assert(properties.MinuteMetrics.RetentionDays == retentionDays,
+                        String.Format("expected MetricsRetentionDays {0} = {1}", retentionDays, properties.MinuteMetrics.RetentionDays));
+                }
+
                 Test.Assert(metricsLevel.Equals(properties.MinuteMetrics.MetricsLevel.ToString(), StringComparison.OrdinalIgnoreCase),
                     String.Format("expected MetricsLevel {0} = {1}", metricsLevel, properties.MinuteMetrics.MetricsLevel.ToString()));
             }
@@ -467,6 +477,74 @@ namespace Management.Storage.ScenarioTest
                     properties = account.CreateCloudQueueClient().GetServiceProperties();
                     break;
             }
+            return properties;
+        }
+
+        internal static ServiceProperties WaitForLoggingPropertyTakingEffect(CloudStorageAccount account, Constants.ServiceType serviceType, int? retentionDays, string loggingOperations)
+        {
+            int retry = 0;
+            int wait = 1000;
+            ServiceProperties properties;
+
+            do
+            {
+                properties = GetServiceProperties(account, serviceType);
+
+                LoggingOperations current = (LoggingOperations)Enum.Parse(typeof(LoggingOperations), loggingOperations, true);
+                if (properties.Logging.RetentionDays == retentionDays && current.Equals(properties.Logging.LoggingOperations))
+                {
+                    break;
+                }
+                else
+                {
+                    Thread.Sleep(wait);
+                    wait *= 2;
+                    retry++;
+                }
+            }
+            while (retry <= RetryLimit);
+
+            return properties;
+        }
+
+        internal static ServiceProperties WaitForMetricsPropertyTakingEffect(CloudStorageAccount account, Constants.ServiceType serviceType,
+            Constants.MetricsType metricsType, int? retentionDays, string metricsLevel)
+        {
+            int retry = 0;
+            int wait = 1000;
+            ServiceProperties properties;
+
+            do
+            {
+                properties = GetServiceProperties(account, serviceType);
+
+                if ((metricsType == Constants.MetricsType.Hour &&
+                    metricsLevel.Equals("None", StringComparison.OrdinalIgnoreCase) &&
+                    metricsLevel.Equals(properties.HourMetrics.MetricsLevel.ToString(), StringComparison.OrdinalIgnoreCase))
+                    ||
+                    (metricsType == Constants.MetricsType.Hour &&
+                    properties.HourMetrics.RetentionDays == retentionDays &&
+                    metricsLevel.Equals(properties.HourMetrics.MetricsLevel.ToString(), StringComparison.OrdinalIgnoreCase))
+                    ||
+                    (metricsType == Constants.MetricsType.Minute &&
+                    metricsLevel.Equals("None", StringComparison.OrdinalIgnoreCase) &&
+                    metricsLevel.Equals(properties.MinuteMetrics.MetricsLevel.ToString(), StringComparison.OrdinalIgnoreCase))
+                    ||
+                    (metricsType == Constants.MetricsType.Minute &&
+                    properties.MinuteMetrics.RetentionDays == retentionDays &&
+                    metricsLevel.Equals(properties.MinuteMetrics.MetricsLevel.ToString(), StringComparison.OrdinalIgnoreCase)))
+                {
+                    break;
+                }
+                else
+                {
+                    Thread.Sleep(wait);
+                    wait *= 2;
+                    retry++;
+                }
+            }
+            while (retry <= RetryLimit);
+
             return properties;
         }
 

@@ -205,6 +205,12 @@
             return container;
         }
 
+        public bool FileShareExists(string fileShareName)
+        {
+            var container = this.client.GetShareReference(fileShareName);
+            return container.Exists();
+        }
+
         public CloudFileDirectory EnsureFolderStructure(CloudFileShare share, string directoryPath)
         {
             var directory = share.GetRootDirectoryReference();

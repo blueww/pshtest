@@ -28,7 +28,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
         public static void SecondaryEndPointBVTClassInitialize(TestContext testContext)
         {
             useHttps = true;
-            Initialize(testContext, useHttps);
+            ClassInitialize(testContext, useHttps);
         }
 
         [ClassCleanup()]
@@ -51,6 +51,12 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             if (lang == Language.PowerShell)
             {
                 PowerShellAgent.SetStorageContext(SetUpStorageAccount.ToString(true));
+            }
+            else
+            {
+                NodeJSAgent.AgentConfig.UseEnvVar = false;
+                NodeJSAgent.AgentConfig.AccountName = StorageAccountName;
+                NodeJSAgent.AgentConfig.AccountKey = SetUpStorageAccount.Credentials.ExportBase64EncodedKey();
             }
         }
     }
