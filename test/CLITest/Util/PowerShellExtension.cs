@@ -28,9 +28,9 @@ namespace Management.Storage.ScenarioTest.Util
         /// <param name="ps">PowerShell instance</param>
         /// <param name="parameter">Parameter name</param>
         /// <param name="value">Parameter value</param>
-        public static void BindParameter(this PowerShell ps, string parameter, string value)
+        public static void BindParameter(this PowerShell ps, string parameter, string value, bool allowNullEmpty = false)
         {
-            if (!string.IsNullOrEmpty(value))
+            if (!string.IsNullOrEmpty(value) || allowNullEmpty)
             {
                 ps.AddParameter(parameter, value);
             }

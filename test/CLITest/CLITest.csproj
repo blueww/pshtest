@@ -125,6 +125,7 @@
     <Compile Include="CLIBlobFunc.cs" />
     <Compile Include="Common\TestBase.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Functional\Blob\ContainerStoredAccessPolicy.cs" />
     <Compile Include="Functional\Blob\NewBlobSas.cs" />
     <Compile Include="Functional\Blob\NewContainerSas.cs" />
     <Compile Include="Functional\Blob\ShowContainer.cs" />
@@ -152,7 +153,9 @@
     <Compile Include="Functional\CloudFile\NewAzureStorageFileShareTest.cs" />
     <Compile Include="Functional\CloudFile\RemoveAzureStorageFileDirectoryTest.cs" />
     <Compile Include="Functional\CloudFile\RemoveAzureStorageFileShareTest.cs" />
+    <Compile Include="Functional\Queue\QueueStoredAccessPolicy.cs" />
     <Compile Include="Functional\StorageAccount.cs" />
+    <Compile Include="Functional\Table\TableStoredAccessPolicy.cs" />
     <Compile Include="IExecutionError.cs" />
     <Compile Include="IExecutionResult.cs" />
     <Compile Include="Performance\Helper\AbstractBlobUploadOperation.cs" />

@@ -1248,6 +1248,209 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps, parseFunc: ParseSASCollection);
         }
 
+        ///-------------------------------------
+        /// Stored Access Policy APIs
+        ///-------------------------------------     
+        public override bool GetAzureStorageTableStoredAccessPolicy(string tableName, string policyName)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Get-AzureStorageTableStoredAccessPolicy");
+            ps.BindParameter("Table", tableName);
+            ps.BindParameter("Policy", policyName);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        
+        public override bool NewAzureStorageTableStoredAccessPolicy(string tableName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("New-AzureStorageTableStoredAccessPolicy");
+            ps.BindParameter("Table", tableName);
+            ps.BindParameter("Policy", policyName);
+            ps.BindParameter("Permission", permission, true);
+            ps.BindParameter("StartTime", startTime);
+            ps.BindParameter("ExpiryTime", expiryTime);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool RemoveAzureStorageTableStoredAccessPolicy(string tableName, string policyName, bool Force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Remove-AzureStorageTableStoredAccessPolicy");
+            ps.BindParameter("Table", tableName);
+            ps.BindParameter("Policy", policyName);
+            if (Force)
+            {
+                ps.BindParameter("Force");
+            }
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool SetAzureStorageTableStoredAccessPolicy(string tableName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool NoStartTime = false, bool NoExpiryTime = false)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Set-AzureStorageTableStoredAccessPolicy");
+            ps.BindParameter("Table", tableName);
+            ps.BindParameter("Policy", policyName);
+            ps.BindParameter("Permission", permission, true);
+            ps.BindParameter("StartTime", startTime);
+            ps.BindParameter("ExpiryTime", expiryTime);
+
+            if (NoStartTime)
+            {
+                ps.BindParameter("NoStartTime");
+            }
+
+            if (NoExpiryTime)
+            {
+                ps.BindParameter("NoExpiryTime");
+            }
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool GetAzureStorageQueueStoredAccessPolicy(string queueName, string policyName)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Get-AzureStorageQueueStoredAccessPolicy");
+            ps.BindParameter("Queue", queueName);
+            ps.BindParameter("Policy", policyName);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool NewAzureStorageQueueStoredAccessPolicy(string queueName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("New-AzureStorageQueueStoredAccessPolicy");
+            ps.BindParameter("Queue", queueName);
+            ps.BindParameter("Policy", policyName);
+            ps.BindParameter("Permission", permission, true);
+            ps.BindParameter("StartTime", startTime);
+            ps.BindParameter("ExpiryTime", expiryTime);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool RemoveAzureStorageQueueStoredAccessPolicy(string queueName, string policyName, bool Force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Remove-AzureStorageQueueStoredAccessPolicy");
+            ps.BindParameter("Queue", queueName);
+            ps.BindParameter("Policy", policyName);
+            if (Force)
+            {
+                ps.BindParameter("Force");
+            }
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool SetAzureStorageQueueStoredAccessPolicy(string queueName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool NoStartTime = false, bool NoExpiryTime = false)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Set-AzureStorageQueueStoredAccessPolicy");
+            ps.BindParameter("Queue", queueName);
+            ps.BindParameter("Policy", policyName);
+            ps.BindParameter("Permission", permission, true);
+            ps.BindParameter("StartTime", startTime);
+            ps.BindParameter("ExpiryTime", expiryTime);
+
+            if (NoStartTime)
+            {
+                ps.BindParameter("NoStartTime");
+            }
+
+            if (NoExpiryTime)
+            {
+                ps.BindParameter("NoExpiryTime");
+            }
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool GetAzureStorageContainerStoredAccessPolicy(string containerName, string policyName)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Get-AzureStorageContainerStoredAccessPolicy");
+            ps.BindParameter("Container", containerName);
+            ps.BindParameter("Policy", policyName);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool NewAzureStorageContainerStoredAccessPolicy(string containerName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("New-AzureStorageContainerStoredAccessPolicy");
+            ps.BindParameter("Container", containerName);
+            ps.BindParameter("Policy", policyName);
+            ps.BindParameter("Permission", permission, true);
+            ps.BindParameter("StartTime", startTime);
+            ps.BindParameter("ExpiryTime", expiryTime);
+
+            //return InvokeStoragePowerShell(ps);
+            return InvokeStoragePowerShell(ps, parseFunc: ParseSASCollection);
+        }
+
+        public override bool RemoveAzureStorageContainerStoredAccessPolicy(string containerName, string policyName, bool Force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Remove-AzureStorageContainerStoredAccessPolicy");
+            ps.BindParameter("Container", containerName);
+            ps.BindParameter("Policy", policyName);
+            if (Force)
+            {
+                ps.BindParameter("Force");
+            }
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool SetAzureStorageContainerStoredAccessPolicy(string containerName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool NoStartTime = false, bool NoExpiryTime = false)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Set-AzureStorageContainerStoredAccessPolicy");
+            ps.BindParameter("Container", containerName);
+            ps.BindParameter("Policy", policyName);
+            ps.BindParameter("Permission", permission, true);
+            ps.BindParameter("StartTime", startTime);
+            ps.BindParameter("ExpiryTime", expiryTime);
+
+            if (NoStartTime)
+            {
+                ps.BindParameter("NoStartTime");
+            }
+
+            if (NoExpiryTime)
+            {
+                ps.BindParameter("NoExpiryTime");
+            }
+
+            return InvokeStoragePowerShell(ps);
+        }
+
         /// <summary>
         /// Compare the output collection data with comp
         /// 

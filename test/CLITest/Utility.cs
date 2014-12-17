@@ -17,14 +17,19 @@ namespace Management.Storage.ScenarioTest
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Linq;
     using System.Text;
     using System.Threading;
     using Management.Storage.ScenarioTest.Util;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Auth;
     using Microsoft.WindowsAzure.Storage.Blob;
+    using Microsoft.WindowsAzure.Storage.Queue;
+    using Microsoft.WindowsAzure.Storage.Queue.Protocol;
     using Microsoft.WindowsAzure.Storage.Shared.Protocol;
+    using Microsoft.WindowsAzure.Storage.Table;
     using MS.Test.Common.MsTestLib;
     using StorageTestLib;
 
@@ -600,6 +605,358 @@ namespace Management.Storage.ScenarioTest
                 yield return list[index];
                 list.RemoveAt(index);
             }
+        }
+
+        public static List<RawStoredAccessPolicy> SetUpStoredAccessPolicyData<T>()
+        {
+            List<RawStoredAccessPolicy> sampleStordAccessPolicies = new List<RawStoredAccessPolicy>();
+            string permission1 = null;
+            string permission2 = null;
+            string permission3 = null;
+
+            if (typeof(T) == typeof(SharedAccessTablePolicy))
+            {
+                permission1 = "rqaud";
+                permission2 = "aud";
+                permission3 = "ud";
+            }
+            else if (typeof(T) == typeof(SharedAccessBlobPolicy))
+            {
+                permission1 = "rwdl";
+                permission2 = "wdl";
+                permission3 = "dl";
+            }
+            else if (typeof(T) == typeof(SharedAccessQueuePolicy))
+            {
+                permission1 = "raup";
+                permission2 = "aup";
+                permission3 = "up";
+            }
+            else
+            {
+                throw new Exception("Unknown Policy Type!");
+            }
+
+            //normal one
+            string policy1 = GenNameString("p", 1);
+            DateTime? startTime1 = DateTime.Today.AddDays(-1);
+            DateTime? expiryTime1 = DateTime.Today.AddDays(4);
+            sampleStordAccessPolicies.Add(new RawStoredAccessPolicy(policy1, startTime1, expiryTime1, permission1));
+
+            //StartTime in the future, permission is subset, ExpiryTime null
+            string policy2 = GenNameString("p", 2);
+            DateTime? startTime2 = DateTime.Today.AddDays(2);
+            DateTime? expiryTime2 = null;
+            sampleStordAccessPolicies.Add(new RawStoredAccessPolicy(policy2, startTime2, expiryTime2, permission2));
+
+            //StartTime null, permission subset, ExpirtyTime in the past
+            string policy3 = GenNameString("p", 3);
+            DateTime? startTime3 = null;
+            DateTime? expiryTime3 = DateTime.Today.AddDays(-3);
+            sampleStordAccessPolicies.Add(new RawStoredAccessPolicy(policy3, startTime3, expiryTime3, permission3));
+
+            //Permission empty, StartTime null, ExpirtyTime null
+            string policy4 = GenNameString("p", 4);
+            DateTime? startTime4 = null;
+            DateTime? expiryTime4 = null;
+            string permission4 = string.Empty;
+            sampleStordAccessPolicies.Add(new RawStoredAccessPolicy(policy4, startTime4, expiryTime4, permission4));
+
+            //All null
+            string policy5 = GenNameString("p", 5);
+            DateTime? expiryTime5 = null;
+            DateTime? startTime5 = null;
+            string permission5 = null;
+            sampleStordAccessPolicies.Add(new RawStoredAccessPolicy(policy5, startTime5, expiryTime5, permission5));
+
+            return sampleStordAccessPolicies;
+        }
+
+        public static void ClearStoredAccessPolicy<T>(T serviceRef)
+        {
+            if (typeof(T) == typeof(CloudTable))
+            {
+                TablePermissions permissions = ((CloudTable)(Object)serviceRef).GetPermissions();
+                permissions.SharedAccessPolicies.Clear();
+                ((CloudTable)(Object)serviceRef).SetPermissions(permissions);
+            }
+            else if (typeof(T) == typeof(CloudBlobContainer))
+            {
+                BlobContainerPermissions permissions = ((CloudBlobContainer)(Object)serviceRef).GetPermissions();
+                permissions.SharedAccessPolicies.Clear();
+                ((CloudBlobContainer)(Object)serviceRef).SetPermissions(permissions);
+            }
+            else if (typeof(T) == typeof(CloudQueue))
+            {
+                QueuePermissions permissions = ((CloudQueue)(Object)serviceRef).GetPermissions();
+                permissions.SharedAccessPolicies.Clear();
+                ((CloudQueue)(Object)serviceRef).SetPermissions(permissions);
+            }
+            else
+            {
+                throw new Exception("Unknown Service Type!");
+            }
+        }
+
+        public static T SetupSharedAccessPolicy<T>(DateTime? startTime, DateTime? expiryTime, string permission)
+        {
+            if (!(typeof(T) == typeof(SharedAccessTablePolicy) ||
+               typeof(T) == typeof(SharedAccessBlobPolicy) ||
+               typeof(T) == typeof(SharedAccessQueuePolicy)))
+            {
+                throw new Exception("Unknown Policy Type!");
+            }
+
+            T policy = (T)Activator.CreateInstance(typeof(T));
+            if (startTime != null)
+            {
+                ((dynamic)policy).SharedAccessStartTime = (DateTimeOffset?)startTime.Value.ToUniversalTime();
+            }
+
+            if (expiryTime != null)
+            {
+                ((dynamic)policy).SharedAccessExpiryTime = (DateTimeOffset?)expiryTime.Value.ToUniversalTime();
+            }
+            Utility.SetupAccessPolicyPermission(policy, permission);
+            return policy;
+        }
+
+        public static Dictionary<string, object> ConstructGetPolicyOutput<T>(T policy, string policyName)
+        {
+            if (!(typeof(T) == typeof(SharedAccessTablePolicy) ||
+               typeof(T) == typeof(SharedAccessBlobPolicy) ||
+               typeof(T) == typeof(SharedAccessQueuePolicy)))
+            {
+                throw new Exception("Unknown Policy Type!");
+            }
+
+            Dictionary<string, object> dic = new Dictionary<string, object>();
+            dic.Add("Policy", policyName);
+            dic.Add("Permissions", ((dynamic)policy).Permissions);
+            dic.Add("StartTime", ((dynamic)policy).SharedAccessStartTime);
+            dic.Add("ExpiryTime", ((dynamic)policy).SharedAccessExpiryTime);
+
+            return dic;
+        }
+    
+
+        public static void ValidateStoredAccessPolicies<T>(IDictionary<string, T> actualSharedPolicies, IDictionary<string, T> expectedSharedPolicies)
+        {
+            foreach (string policyName in expectedSharedPolicies.Keys)
+            {
+                Test.Info("Validate stored access policy:{0}", policyName);
+                Assert.IsTrue(actualSharedPolicies.Keys.Contains(policyName));
+                T actualPolicy = actualSharedPolicies[policyName];
+                Assert.IsNotNull(actualPolicy);
+                T expectedPolicy = expectedSharedPolicies[policyName];
+                Assert.IsNotNull(expectedPolicy);
+                ValidateStoredAccessPolicy<T>(actualPolicy, expectedPolicy);
+            }
+            Assert.AreEqual<int>(expectedSharedPolicies.Count, actualSharedPolicies.Count);
+
+        }
+
+        public static void ValidateStoredAccessPolicy<T>(T actualPolicy, T expectedPolicy)
+        {
+            if (!(typeof(T) == typeof(SharedAccessTablePolicy) ||
+                typeof(T) == typeof(SharedAccessBlobPolicy) ||
+                typeof(T) == typeof(SharedAccessQueuePolicy)))
+            {
+                throw new Exception("Unknown Service Type!");
+            }
+
+            Assert.AreEqual(
+                ((dynamic)expectedPolicy).SharedAccessStartTime,
+                ((dynamic)actualPolicy).SharedAccessStartTime,
+                string.Format("The expectied StartTime is: {0}, but actual StartTime is: {1}", ((dynamic)expectedPolicy).SharedAccessStartTime, ((dynamic)actualPolicy).SharedAccessStartTime));
+
+            Assert.AreEqual(
+                ((dynamic)expectedPolicy).SharedAccessExpiryTime,
+                ((dynamic)actualPolicy).SharedAccessExpiryTime,
+                string.Format("The expectied ExpiryTime is: {0}, but actual ExpiryTime is: {1}", ((dynamic)expectedPolicy).SharedAccessExpiryTime, ((dynamic)actualPolicy).SharedAccessExpiryTime));
+
+            Assert.AreEqual(
+                ((dynamic)expectedPolicy).Permissions,
+                ((dynamic)actualPolicy).Permissions,
+                string.Format("The expectied Permissions is: {0}, but actual Permissions is: {1}", ((dynamic)expectedPolicy).Permissions, ((dynamic)actualPolicy).Permissions));
+        }
+
+        public static void SetupAccessPolicyPermission<T>(T policy, string permission)
+        {
+            if (typeof(T) == typeof(SharedAccessTablePolicy))
+            {
+                SetupAccessPolicyPermission((SharedAccessTablePolicy)(Object)policy, permission);
+            }
+            else if (typeof(T) == typeof(SharedAccessBlobPolicy))
+            {
+                SetupAccessPolicyPermission((SharedAccessBlobPolicy)(Object)policy, permission);
+            }
+            else if ((typeof(T) == typeof(SharedAccessQueuePolicy)))
+            {
+                SetupAccessPolicyPermission((SharedAccessQueuePolicy)(Object)policy, permission);
+            }
+            else
+            {
+                throw new Exception("Unknown Service Type!");
+            }
+        }
+
+        /// <summary>
+        /// Set up shared access policy permission for SharedAccessTablePolicy
+        /// </summary>
+        /// <param name="policy">SharedAccessTablePolicy object</param>
+        /// <param name="permission">Permission</param>
+        internal static void SetupAccessPolicyPermission(SharedAccessTablePolicy policy, string permission)
+        {
+            if (string.IsNullOrEmpty(permission)) return;
+            policy.Permissions = SharedAccessTablePermissions.None;
+            permission = permission.ToLower();
+            foreach (char op in permission)
+            {
+                switch (op)
+                {
+                    case Permission.Add:
+                        policy.Permissions |= SharedAccessTablePermissions.Add;
+                        break;
+                    case Permission.Update:
+                        policy.Permissions |= SharedAccessTablePermissions.Update;
+                        break;
+                    case Permission.Delete:
+                        policy.Permissions |= SharedAccessTablePermissions.Delete;
+                        break;
+                    case Permission.Read:
+                    case Permission.Query:
+                        policy.Permissions |= SharedAccessTablePermissions.Query;
+                        break;
+                    default:
+                        throw new Exception("Unknown Permission Type!");
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Set up shared access policy permission for SharedAccessBlobPolicy
+        /// </summary>
+        /// <param name="policy">SharedAccessBlobPolicy object</param>
+        /// <param name="permission">Permission</param>
+        internal static void SetupAccessPolicyPermission(SharedAccessBlobPolicy policy, string permission)
+        {
+            if (string.IsNullOrEmpty(permission)) return;
+            policy.Permissions = SharedAccessBlobPermissions.None;
+            permission = permission.ToLower();
+            foreach (char op in permission)
+            {
+                switch (op)
+                {
+                    case Permission.Read:
+                        policy.Permissions |= SharedAccessBlobPermissions.Read;
+                        break;
+                    case Permission.Write:
+                        policy.Permissions |= SharedAccessBlobPermissions.Write;
+                        break;
+                    case Permission.Delete:
+                        policy.Permissions |= SharedAccessBlobPermissions.Delete;
+                        break;
+                    case Permission.List:
+                        policy.Permissions |= SharedAccessBlobPermissions.List;
+                        break;
+                    default:
+                        throw new Exception("Unknown Permission Type!");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Set up shared access policy permission for SharedAccessQueuePolicy
+        /// </summary>
+        /// <param name="policy">SharedAccessQueuePolicy object</param>
+        /// <param name="permission">Permisson</param>
+        internal static void SetupAccessPolicyPermission(SharedAccessQueuePolicy policy, string permission)
+        {
+            if (string.IsNullOrEmpty(permission)) return;
+            policy.Permissions = SharedAccessQueuePermissions.None;
+            permission = permission.ToLower();
+            foreach (char op in permission)
+            {
+                switch (op)
+                {
+                    case Permission.Read:
+                        policy.Permissions |= SharedAccessQueuePermissions.Read;
+                        break;
+                    case Permission.Add:
+                        policy.Permissions |= SharedAccessQueuePermissions.Add;
+                        break;
+                    case Permission.Update:
+                        policy.Permissions |= SharedAccessQueuePermissions.Update;
+                        break;
+                    case Permission.Process:
+                        policy.Permissions |= SharedAccessQueuePermissions.ProcessMessages;
+                        break;
+                    default:
+                        throw new Exception("Unknown Permission Type!");
+                }
+            }
+        }
+
+        public static class Permission
+        {
+            /// <summary>
+            /// Read permission
+            /// </summary>
+            public const char Read = 'r';
+
+            /// <summary>
+            /// Write permission
+            /// </summary>
+            public const char Write = 'w';
+
+            /// <summary>
+            /// Delete permission
+            /// </summary>
+            public const char Delete = 'd';
+
+            /// <summary>
+            /// List permission
+            /// </summary>
+            public const char List = 'l';
+
+            /// <summary>
+            /// Update permission
+            /// </summary>
+            public const char Update = 'u';
+
+            /// <summary>
+            /// Add permission
+            /// </summary>
+            public const char Add = 'a';
+
+            /// <summary>
+            /// Process permission
+            /// </summary>
+            public const char Process = 'p';
+
+            /// <summary>
+            /// Query permission
+            /// </summary>
+            public const char Query = 'q';
+        }
+
+        public class RawStoredAccessPolicy
+        {
+            public string PolicyName { get; set; }
+            public DateTime? StartTime { get; set; }
+            public DateTime? ExpiryTime { get; set; }
+            public string Permission { get; set; }
+
+            public RawStoredAccessPolicy(string policyName, DateTime? startTime, DateTime? expiryTime, string permission)
+            {
+                PolicyName = policyName;
+                StartTime = startTime;
+                ExpiryTime = expiryTime;
+                Permission = permission;
+            }
+
         }
     }
 }

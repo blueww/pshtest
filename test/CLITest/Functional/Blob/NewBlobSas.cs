@@ -73,9 +73,10 @@
         public void NewBlobSasWithLifeTime()
         {
             blobUtil.SetupTestContainerAndBlob();
-            double lifeTime = 3; //Minutes
+            double waitEffectTime = 1; 
+            double lifeTime = 5; //Minutes
             const double deltaTime = 0.5;
-            DateTime startTime = DateTime.Now.AddMinutes(lifeTime);
+            DateTime startTime = DateTime.Now.AddMinutes(waitEffectTime);
             DateTime expiryTime = startTime.AddMinutes(lifeTime);
 
             try
@@ -95,7 +96,7 @@
                 }
 
                 Test.Info("Sleep and wait for the sas token start time");
-                Thread.Sleep(TimeSpan.FromMinutes(lifeTime + deltaTime));
+                Thread.Sleep(TimeSpan.FromMinutes(waitEffectTime + deltaTime));
                 ValidateSasToken(blobUtil.Blob, blobPermission, sastoken);
                 Test.Info("Sleep and wait for sas token expiry time");
                 Thread.Sleep(TimeSpan.FromMinutes(lifeTime + deltaTime));
