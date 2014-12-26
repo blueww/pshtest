@@ -36,6 +36,7 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewPolicyDifferentNames()
         {
@@ -49,7 +50,7 @@
                 CreateStoredAccessPolicyAndValidate(Utility.GenNameString("p", 0), permission, startTime, expiryTime, queueName, false);
                 CreateStoredAccessPolicyAndValidate(Utility.GenNameString("p", 0), permission, startTime, expiryTime, queueName, false);
                 CreateStoredAccessPolicyAndValidate(Utility.GenNameString("p", 4), permission, startTime, expiryTime, queueName, false);
-                CreateStoredAccessPolicyAndValidate(FileNamingGenerator.GenerateValidateASCIIName(64), permission, startTime, expiryTime, queueName, false);
+                CreateStoredAccessPolicyAndValidate(FileNamingGenerator.GenerateValidASCIIOptionValue(64), permission, startTime, expiryTime, queueName, false);
                 foreach (var policyName in FileNamingGenerator.GenerateValidateUnicodeName(40))
                 {
                     CreateStoredAccessPolicyAndValidate(policyName, permission, startTime, expiryTime, queueName, false);
@@ -67,6 +68,7 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewPolicyDifferentValues()
         {
@@ -103,6 +105,7 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewPolicyInvalidParameter()
         {
@@ -114,19 +117,40 @@
             try
             {
                 Test.Assert(!agent.NewAzureStorageQueueStoredAccessPolicy("CONTAINER", Utility.GenNameString("p", 5), null, null, null), "Create stored acess policy for invalid queue name CONTAINER should fail");
-                ExpectedContainErrorMessage("The specifed resource name contains invalid characters.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The specifed resource name contains invalid characters.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Queue name format is incorrect");
+                }
 
                 Test.Assert(!agent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, Utility.GenNameString("p", 5), null, startTime, expiryTime), "Create stored access policy for ExpiryTime earlier than StartTime should fail");
-                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time.");
+                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
 
                 Test.Assert(!agent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, Utility.GenNameString("p", 5), null, startTime, startTime), "Create stored access policy for ExpiryTime same as StartTime should fail");
-                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time.");
+                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
 
                 Test.Assert(!agent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, Utility.GenNameString("p", 5), "x", null, null), "Create stored access policy with invalid permission should fail");
-                ExpectedContainErrorMessage("Invalid access permission");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Invalid access permission");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Invalid value: x. Options are: r,a,u,p");
+                }
 
-                Test.Assert(!agent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, FileNamingGenerator.GenerateValidateASCIIName(65), null, null, null), "Create stored access policy with invalid name length should fail");
-                ExpectedContainErrorMessage("Valid names should be 1 through 64 characters long.");
+                Test.Assert(!agent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, FileNamingGenerator.GenerateValidASCIIOptionValue(65), null, null, null), "Create stored access policy with invalid name length should fail");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Valid names should be 1 through 64 characters long.");  
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Reason: Signed identifier ID cannot be empty or over 64 characters in length");
+                }
 
                 for (int i = 1; i <= 5; i++)
                 {
@@ -134,11 +158,25 @@
                 }
 
                 Test.Assert(!agent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, Utility.GenNameString("p", 6), null, null, null), "Create more than 5 stored access policies should fail");
-                ExpectedContainErrorMessage("Too many '6' shared access policy identifiers provided");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Too many '6' shared access policy identifiers provided");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("A maximum of 5 access policies may be set");
+                }
 
                 queueUtil.RemoveQueue(queue);
                 Test.Assert(!agent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, Utility.GenNameString("p", 5), null, null, null), "Create stored access policy against non-existing container should fail");
-                ExpectedContainErrorMessage("does not exist");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("does not exist");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("The specified queue does not exist");
+                }
             }
             finally
             {
@@ -152,6 +190,7 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void GetPolicyVariations()
         {
@@ -193,6 +232,7 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void GetPolicyInvalid()
         {
@@ -201,22 +241,52 @@
 
             try
             {
-                Test.Assert(!agent.GetAzureStorageQueueStoredAccessPolicy(queue.Name, "policy"),
+                string policyName = "policy";
+                Test.Assert(!agent.GetAzureStorageQueueStoredAccessPolicy(queue.Name, policyName),
                     "Get non-existing stored access policy should fail");
-                ExpectedContainErrorMessage("Can not find policy");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find policy");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", policyName));
+                }
 
-                Test.Assert(!agent.GetAzureStorageQueueStoredAccessPolicy(queue.Name, FileNamingGenerator.GenerateValidateASCIIName(65)),
+                string invalidName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
+                Test.Assert(!agent.GetAzureStorageQueueStoredAccessPolicy(queue.Name, invalidName),
                     "Get stored access policy with name length larger than 64 should fail");
-                ExpectedContainErrorMessage("Can not find policy");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find policy");   
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", invalidName));
+                }
 
-                Test.Assert(!agent.GetAzureStorageQueueStoredAccessPolicy("CONTAINER", "policy"),
+                Test.Assert(!agent.GetAzureStorageQueueStoredAccessPolicy("CONTAINER", policyName),
                     "Get stored access policy from invalid queue name should fail");
-                ExpectedContainErrorMessage("The specifed resource name contains invalid characters");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The specifed resource name contains invalid characters"); 
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Queue name format is incorrect");
+                }
 
                 queueUtil.RemoveQueue(queue);
-                Test.Assert(!agent.GetAzureStorageQueueStoredAccessPolicy(queue.Name, "policy"),
+                Test.Assert(!agent.GetAzureStorageQueueStoredAccessPolicy(queue.Name, policyName),
                     "Get stored access policy from invalid queue name should fail");
-                ExpectedContainErrorMessage("The specified queue does not exist.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The specified queue does not exist.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("The specified queue does not exist.");
+                }
             }
             finally
             {
@@ -230,6 +300,7 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void RemovePolicyInvalid()
         {
@@ -238,22 +309,45 @@
 
             try
             {
-                Test.Assert(!agent.RemoveAzureStorageQueueStoredAccessPolicy(queue.Name, "policy"),
+                string policyName = "policy";
+                Test.Assert(!agent.RemoveAzureStorageQueueStoredAccessPolicy(queue.Name, policyName),
                     "Remove non-existing stored access policy should fail");
-                ExpectedContainErrorMessage("Can not find policy");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find policy");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", policyName));
+                }
 
-                Test.Assert(!agent.RemoveAzureStorageQueueStoredAccessPolicy(queue.Name, FileNamingGenerator.GenerateValidateASCIIName(65)),
+                string invalidName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
+                Test.Assert(!agent.RemoveAzureStorageQueueStoredAccessPolicy(queue.Name, invalidName),
                     "Remove stored access policy with name length larger than 64 should fail");
-                ExpectedContainErrorMessage("Can not find policy");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find policy");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", invalidName));
+                }
 
-                Test.Assert(!agent.RemoveAzureStorageQueueStoredAccessPolicy("CONTAINER", "policy"),
+                Test.Assert(!agent.RemoveAzureStorageQueueStoredAccessPolicy("CONTAINER", policyName),
                     "Remove stored access policy from invalid queue name should fail");
-                ExpectedContainErrorMessage("The specifed resource name contains invalid characters");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The specifed resource name contains invalid characters"); 
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Queue name format is incorrect");
+                }
 
                 queueUtil.RemoveQueue(queue);
-                Test.Assert(!agent.RemoveAzureStorageQueueStoredAccessPolicy(queue.Name, "policy"),
+                Test.Assert(!agent.RemoveAzureStorageQueueStoredAccessPolicy(queue.Name, policyName),
                     "Remove stored access policy from invalid table name should fail");
-                ExpectedContainErrorMessage("The specified queue does not exist.");
+                ExpectedContainErrorMessage("The specified queue does not exist");
             }
             finally
             {
@@ -267,6 +361,7 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetPolicyDifferentNames()
         {
@@ -283,7 +378,7 @@
             policy1.PolicyName = policy2.PolicyName = Utility.GenNameString("p", 4);
             SetStoredAccessPolicyAndValidate(policy1, policy2);
 
-            policy1.PolicyName = policy2.PolicyName = FileNamingGenerator.GenerateValidateASCIIName(64);
+            policy1.PolicyName = policy2.PolicyName = FileNamingGenerator.GenerateValidASCIIOptionValue(64);
             SetStoredAccessPolicyAndValidate(policy1, policy2);
 
             foreach (var samplePolicyName in FileNamingGenerator.GenerateValidateUnicodeName(40))
@@ -301,6 +396,7 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetPolicyDifferentValues()
         {
@@ -320,12 +416,14 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetPolicyNoStartTimeNoExpiryTime()
         {
             CloudQueue queue = queueUtil.CreateQueue();
             Utility.ClearStoredAccessPolicy<CloudQueue>(queue);
             Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessQueuePolicy>()[0];
+            double effectiveTime = 30;
 
             try
             {
@@ -334,7 +432,7 @@
                 //NoStartTime
                 Test.Assert(agent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, null, null, null, true, false),
                     "Set stored access policy with -NoStartTime should succeed");
-
+                Thread.Sleep(TimeSpan.FromSeconds(effectiveTime));
                 SharedAccessQueuePolicies expectedPolicies = new SharedAccessQueuePolicies();
                 expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessQueuePolicy>(null, samplePolicy.ExpiryTime, samplePolicy.Permission));
                 Utility.ValidateStoredAccessPolicies<SharedAccessQueuePolicy>(queue.GetPermissions().SharedAccessPolicies, expectedPolicies);
@@ -345,7 +443,8 @@
 
                 //NoExpiryTime
                 Test.Assert(agent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, null, null, null, false, true),
-                    "Set stored access policy with -NoStartTime should succeed");
+                    "Set stored access policy with -NoExpiryTime should succeed");
+                Thread.Sleep(TimeSpan.FromSeconds(effectiveTime)); 
                 expectedPolicies = new SharedAccessQueuePolicies();
                 expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessQueuePolicy>(null, null, samplePolicy.Permission));
                 Utility.ValidateStoredAccessPolicies<SharedAccessQueuePolicy>(queue.GetPermissions().SharedAccessPolicies, expectedPolicies);
@@ -359,7 +458,8 @@
                 CreateStoredAccessPolicy(samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime, queue);
 
                 Test.Assert(agent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, null, null, null, true, true),
-                    "Set stored access policy with -NoStartTime should succeed");
+                    "Set stored access policy with both -NoStartTime and -NoExpiryTime should succeed");
+                Thread.Sleep(TimeSpan.FromSeconds(effectiveTime)); 
                 expectedPolicies = new SharedAccessQueuePolicies();
                 expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessQueuePolicy>(null, null, samplePolicy.Permission));
                 Utility.ValidateStoredAccessPolicies<SharedAccessQueuePolicy>(queue.GetPermissions().SharedAccessPolicies, expectedPolicies);
@@ -380,6 +480,7 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetPolicyInvalidParameter()
         {
@@ -391,31 +492,74 @@
             try
             {
                 Test.Assert(!agent.SetAzureStorageQueueStoredAccessPolicy("CONTAINER", Utility.GenNameString("p", 5), null, null, null), "Set stored acess policy for invalid queue name CONTAINER should fail");
-                ExpectedContainErrorMessage("The specifed resource name contains invalid characters.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The specifed resource name contains invalid characters.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Queue name format is incorrect");
+                }
 
                 Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessQueuePolicy>()[0];
                 CreateStoredAccessPolicy(samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime, queue);
                 Test.Assert(!agent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, null, startTime, expiryTime), "Set stored access policy for ExpiryTime earlier than StartTime should fail");
-                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time.");
+                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
 
                 Test.Assert(!agent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, null, startTime, startTime), "Set stored access policy for ExpiryTime same as StartTime should fail");
-                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time.");
+                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
 
                 Test.Assert(!agent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, "x", null, null), "Set stored access policy with invalid permission should fail");
-                ExpectedContainErrorMessage("Invalid access permission");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Invalid access permission");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Invalid value: x. Options are: r,a,u,p");
+                }
 
-                Test.Assert(!agent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, FileNamingGenerator.GenerateValidateASCIIName(65), null, null, null), "Create stored access policy with invalid name length should fail");
-                ExpectedContainErrorMessage("Can not find policy");
+                string invalidName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
+                Test.Assert(!agent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, invalidName, null, null, null), "Create stored access policy with invalid name length should fail");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find policy");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", invalidName));
+                }
 
-                Test.Assert(!agent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, null, true, false), "Set stored access policy for ExpiryTime same as StartTime should fail");
-                ExpectedContainErrorMessage("Parameter -StartTime and -NoStartTime are mutually exclusive");
+                if (lang == Language.PowerShell)
+                {
+                    Test.Assert(!agent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, null, true, false), "Setting both -StartTime and -NoStartTime should fail");
+                    ExpectedContainErrorMessage("Parameter -StartTime and -NoStartTime are mutually exclusive");
+                }
+                else
+                {
+                    Test.Assert(agent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, null, true, false), "Setting both -StartTime and -NoStartTime should succeed");
+                }
 
-                Test.Assert(!agent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, samplePolicy.Permission, null, samplePolicy.ExpiryTime, false, true), "Set stored access policy for ExpiryTime same as StartTime should fail");
-                ExpectedContainErrorMessage("Parameter -ExpiryTime and -NoExpiryTime are mutually exclusive");
+                if (lang == Language.PowerShell)
+                {
+                    Test.Assert(!agent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, samplePolicy.Permission, null, samplePolicy.ExpiryTime, false, true), "Setting both -ExpiryTime and -NoExpiryTime should fail");
+                    ExpectedContainErrorMessage("Parameter -ExpiryTime and -NoExpiryTime are mutually exclusive");
+                }
+                else
+                {
+                    Test.Assert(agent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, samplePolicy.Permission, null, samplePolicy.ExpiryTime, false, true), "Setting both -ExpiryTime and -NoExpiryTime should succeed");
+                }
 
                 queueUtil.RemoveQueue(queue);
                 Test.Assert(!agent.SetAzureStorageTableStoredAccessPolicy(queue.Name, Utility.GenNameString("p", 5), null, null, null), "Set stored access policy against non-existing queue should fail");
-                ExpectedContainErrorMessage("does not exist");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("does not exist");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Reason:");
+                }
             }
             finally
             {
@@ -429,6 +573,7 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void PolicyWithSASPermission()
         {
