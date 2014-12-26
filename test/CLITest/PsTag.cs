@@ -113,7 +113,7 @@ namespace Management.Storage.ScenarioTest
         public const string NewTableSas = "nodejsnewtablesas";
         public const string SASInterop = "nodejssasinterop";
 
-        public const string StoredAccessPolicy = "storedaccesspolicy";
+        public const string StoredAccessPolicy = "nodejsstoredaccesspolicy";
 
         public const string File = "nodejsfile";
 

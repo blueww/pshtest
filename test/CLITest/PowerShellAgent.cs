@@ -2820,5 +2820,15 @@ namespace Management.Storage.ScenarioTest
         {
             throw new NotImplementedException();
         }
+
+        public override bool createAzureStorageAccount(string accountName, string label, string description, string affinityGroup, string location, string type, bool geoReplication)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool setAzureStorageAccount(string accountName, string label, string description, string type, bool geoReplication)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

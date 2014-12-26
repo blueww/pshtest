@@ -1387,6 +1387,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewTableStoredPolicyTest()
         {
@@ -1399,7 +1400,7 @@ namespace Management.Storage.ScenarioTest.BVT
             CloudTableUtil tableUtil = new CloudTableUtil(CommonStorageAccount);
             CloudTable table = tableUtil.CreateTable();
             Utility.ClearStoredAccessPolicy<CloudTable>(table);
-            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>()[0];
+            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>(lang == Language.NodeJS)[0];
 
             try
             {                
@@ -1424,6 +1425,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void GetTableStoredPolicyTest()
         {
@@ -1436,7 +1438,7 @@ namespace Management.Storage.ScenarioTest.BVT
             CloudTableUtil tableUtil = new CloudTableUtil(CommonStorageAccount);
             CloudTable table = tableUtil.CreateTable();
             Utility.ClearStoredAccessPolicy<CloudTable>(table);
-            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>()[0];
+            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>(lang == Language.NodeJS)[0];
 
             try
             {
@@ -1464,6 +1466,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void RemoveTableStoredPolicyTest()
         {
@@ -1476,7 +1479,7 @@ namespace Management.Storage.ScenarioTest.BVT
             CloudTableUtil tableUtil = new CloudTableUtil(CommonStorageAccount);
             CloudTable table = tableUtil.CreateTable();
             Utility.ClearStoredAccessPolicy<CloudTable>(table);
-            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>()[0];
+            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>(lang == Language.NodeJS)[0];
 
             try
             {
@@ -1501,6 +1504,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetTableStoredPolicyTest()
         {
@@ -1513,7 +1517,7 @@ namespace Management.Storage.ScenarioTest.BVT
             CloudTableUtil tableUtil = new CloudTableUtil(CommonStorageAccount);
             CloudTable table = tableUtil.CreateTable();
             Utility.ClearStoredAccessPolicy<CloudTable>(table);
-            List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>();
+            List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>(lang == Language.NodeJS);
             Utility.RawStoredAccessPolicy samplePolicy1 = samplePolicies[0];
             Utility.RawStoredAccessPolicy samplePolicy2 = samplePolicies[1];
             samplePolicy2.PolicyName = samplePolicy1.PolicyName;
@@ -1551,6 +1555,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewQueueStoredPolicyTest()
         {
@@ -1588,6 +1593,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void GetQueueStoredPolicyTest()
         {
@@ -1629,6 +1635,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void RemoveQueueStoredPolicyTest()
         {
@@ -1666,6 +1673,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetQueueStoredPolicyTest()
         {
@@ -1718,6 +1726,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewContainerStoredPolicyTest()
         {
@@ -1755,6 +1764,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void GetContainerStoredPolicyTest()
         {
@@ -1796,6 +1806,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void RemoveContainerStoredPolicyTest()
         {
@@ -1833,6 +1844,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetContainerStoredPolicyTest()
         {

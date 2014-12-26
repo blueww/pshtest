@@ -142,7 +142,7 @@ namespace Management.Storage.ScenarioTest
         {
             string settingFile = Test.Data.Get("AzureSubscriptionPath");
             RunNodeJSProcess(string.Format("import \"{0}\"", settingFile), needAccountParam: false, category: "account");
-        }               
+        }
 
         internal void SetActiveSubscription(string nameOrID)
         {
@@ -270,6 +270,16 @@ namespace Management.Storage.ScenarioTest
         public override bool ShowAzureStorageAccountConnectionString(string argument)
         {
             return RunNodeJSProcess(string.Format("account connectionstring show {0}", argument), needAccountParam: false);
+        }
+
+        public override bool createAzureStorageAccount(string accountName, string label, string description, string affinityGroup, string location, string type, bool geoReplication)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool setAzureStorageAccount(string accountName, string label, string description, string type, bool geoReplication)
+        {
+            throw new NotImplementedException();
         }
 
         public override bool NewAzureStorageContainer(string containerName)
@@ -465,7 +475,7 @@ namespace Management.Storage.ScenarioTest
             else
             {
                 return RunNodeJSProcess(string.Format("blob show \"{0}\" \"{1}\"", containerName, blobName));
-            }             
+            }
         }
 
         // this command is nodejs specific
@@ -1371,7 +1381,7 @@ namespace Management.Storage.ScenarioTest
         public override bool SetAzureStorageServiceLogging(Constants.ServiceType serviceType, LoggingOperations[] loggingOperations, string loggingRetentionDays = "",
             string loggingVersion = "", bool passThru = false)
         {
-            return this.SetAzureStorageServiceLogging(serviceType, GetLoggingOptions(loggingOperations), loggingRetentionDays, loggingVersion,passThru);
+            return this.SetAzureStorageServiceLogging(serviceType, GetLoggingOptions(loggingOperations), loggingRetentionDays, loggingVersion, passThru);
         }
 
         public override bool SetAzureStorageServiceMetrics(Constants.ServiceType serviceType, Constants.MetricsType metricsType, string metricsLevel = "", string metricsRetentionDays = "",
@@ -1437,7 +1447,7 @@ namespace Management.Storage.ScenarioTest
 
         internal string GetLoggingOptions(string loggingOperations)
         {
-            string[] separator = {","};
+            string[] separator = { "," };
             string[] operations = loggingOperations.Split(separator, StringSplitOptions.RemoveEmptyEntries);
             string options = string.Empty;
 
@@ -1454,7 +1464,7 @@ namespace Management.Storage.ScenarioTest
                     options += string.Format(" {0} ", operation);
                 }
             }
-            
+
             options += GetLoggingOptions(ops.ToArray());
             return options;
         }
@@ -1526,7 +1536,7 @@ namespace Management.Storage.ScenarioTest
                     Test.Assert((write.HasValue && !write.Value),
                     string.Format("expected LoggingOperations '{0}' for writing, actually write is '{1}'", serviceProperties.Logging.LoggingOperations.ToString(),
                     write));
-                } 
+                }
 
                 bool? delete = Output[0]["Delete"] as bool?;
                 if ((operations & LoggingOperations.Delete) != 0)
@@ -1562,7 +1572,7 @@ namespace Management.Storage.ScenarioTest
                     string.Format("expected Version to be {0}, actually it's {1}", serviceProperties.HourMetrics.Version, version));
             }
             else if (propertiesType.ToLower() == "minutemetrics")
-            {                                   
+            {
                 dynamic metrics = Output[0]["MinuteMetrics"];
                 int retention = metrics[0].RetentionPolicy.Days ?? 0;
                 int expected = serviceProperties.MinuteMetrics.RetentionDays ?? 0;
@@ -1640,7 +1650,7 @@ namespace Management.Storage.ScenarioTest
             {
                 if (!string.IsNullOrEmpty(startrk))
                 {
-                    command += " --start-rk " + startrk; 
+                    command += " --start-rk " + startrk;
                 }
                 command += " --start-pk " + startpk;
             }
@@ -1767,5 +1777,147 @@ namespace Management.Storage.ScenarioTest
 
             return command;
         }
+
+        ///-------------------------------------
+        /// Stored Access Policy APIs
+        ///-------------------------------------
+        public override bool GetAzureStorageTableStoredAccessPolicy(string tableName, string policyName)
+        {
+            return GetAzureStorageStoredAccessPolicy("table", tableName, policyName);
+        }
+
+        public override bool NewAzureStorageTableStoredAccessPolicy(string tableName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null)
+        {
+            return NewAzureStorageStoredAccessPolicy("table", tableName, policyName, permission, startTime, expiryTime);
+        }
+
+        public override bool RemoveAzureStorageTableStoredAccessPolicy(string tableName, string policyName, bool Force = true)
+        {
+            return RemoveAzureStorageStoredAccessPolicy("table", tableName, policyName, Force);
+        }
+
+        public override bool SetAzureStorageTableStoredAccessPolicy(string tableName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool NoStartTime = false, bool NoExpiryTime = false)
+        {
+            return SetAzureStorageStoredAccessPolicy("table", tableName, policyName, permission, startTime, expiryTime, NoStartTime, NoExpiryTime);
+        }
+
+        public override bool GetAzureStorageQueueStoredAccessPolicy(string queueName, string policyName)
+        {
+            return GetAzureStorageStoredAccessPolicy("queue", queueName, policyName);
+        }
+
+        public override bool NewAzureStorageQueueStoredAccessPolicy(string queueName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null) 
+        {
+            return NewAzureStorageStoredAccessPolicy("queue", queueName, policyName, permission, startTime, expiryTime);
+        }
+
+        public override bool RemoveAzureStorageQueueStoredAccessPolicy(string queueName, string policyName, bool Force = true) 
+        {
+            return RemoveAzureStorageStoredAccessPolicy("queue", queueName, policyName, Force);
+        }
+
+        public override bool SetAzureStorageQueueStoredAccessPolicy(string queueName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool NoStartTime = false, bool NoExpiryTime = false) 
+        {
+            return SetAzureStorageStoredAccessPolicy("queue", queueName, policyName, permission, startTime, expiryTime, NoStartTime, NoExpiryTime);
+        }
+
+        public override bool GetAzureStorageContainerStoredAccessPolicy(string containerName, string policyName) 
+        {
+            return GetAzureStorageStoredAccessPolicy("container", containerName, policyName);
+        }
+
+        public override bool NewAzureStorageContainerStoredAccessPolicy(string containerName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null) 
+        {
+            return NewAzureStorageStoredAccessPolicy("container", containerName, policyName, permission, startTime, expiryTime);
+        }
+
+        public override bool RemoveAzureStorageContainerStoredAccessPolicy(string containerName, string policyName, bool Force = true)
+        {
+            return RemoveAzureStorageStoredAccessPolicy("container", containerName, policyName, Force);
+        }
+
+        public override bool SetAzureStorageContainerStoredAccessPolicy(string containerName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool NoStartTime = false, bool NoExpiryTime = false) 
+        {
+            return SetAzureStorageStoredAccessPolicy("container", containerName, policyName, permission, startTime, expiryTime, NoStartTime, NoExpiryTime);
+        }
+
+       internal bool GetAzureStorageStoredAccessPolicy(string resourceType, string resourceName, string policyName)
+        {
+            string command = string.Format("{0} policy show {1} \"{2}\"", resourceType, resourceName, policyName);
+
+            return RunNodeJSProcess(command);
+        }
+
+       internal bool NewAzureStorageStoredAccessPolicy(string resourceType, string resourceName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null)
+        {
+            string command = string.Format("{0} policy create {1} \"{2}\"", resourceType, resourceName, policyName);
+
+            if (!string.IsNullOrEmpty(permission))
+            {
+                command += " --permissions " + permission;
+            }
+
+            if (startTime.HasValue)
+            {
+                command += " --start " + startTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ");
+            }
+
+            if (expiryTime.HasValue)
+            {
+                command += " --expiry " + expiryTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ");
+            }
+
+            return RunNodeJSProcess(command);
+        }
+
+       internal bool RemoveAzureStorageStoredAccessPolicy(string resourceType, string resourceName, string policyName, bool Force = true)
+        {
+            string command = string.Format("{0} policy delete {1} \"{2}\"", resourceType, resourceName, policyName);
+
+            return RunNodeJSProcess(command);
+        }
+
+       internal bool SetAzureStorageStoredAccessPolicy(string resourceType, string resourceName, string policyName, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool NoStartTime = false, bool NoExpiryTime = false)
+        {
+            string command = string.Format("{0} policy set {1} \"{2}\"", resourceType, resourceName, policyName);
+
+            if (!string.IsNullOrEmpty(permission))
+            {
+                command += " --permissions " + permission;
+            }
+            else if (permission == string.Empty)
+            {
+                command += " --permissions " + "\"  \"";
+            }
+
+            if (NoStartTime)
+            {
+                command += " --start " + "\"  \"";
+            }
+            else if (startTime.HasValue)
+            {
+                command += " --start " + startTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ");
+            }
+
+            if (NoExpiryTime)
+            {
+                command += " --expiry " + "\"  \"";
+            }
+            else if (expiryTime.HasValue)
+            {
+                command += " --expiry " + expiryTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ");
+            }
+
+            return RunNodeJSProcess(command);
+        }
+
     }
 }

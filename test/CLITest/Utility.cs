@@ -607,7 +607,7 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        public static List<RawStoredAccessPolicy> SetUpStoredAccessPolicyData<T>()
+        public static List<RawStoredAccessPolicy> SetUpStoredAccessPolicyData<T>(bool skipTableQPermission = false)
         {
             List<RawStoredAccessPolicy> sampleStordAccessPolicies = new List<RawStoredAccessPolicy>();
             string permission1 = null;
@@ -616,7 +616,7 @@ namespace Management.Storage.ScenarioTest
 
             if (typeof(T) == typeof(SharedAccessTablePolicy))
             {
-                permission1 = "rqaud";
+                permission1 = skipTableQPermission? "raud" : "rqaud";
                 permission2 = "aud";
                 permission3 = "ud";
             }
@@ -745,14 +745,15 @@ namespace Management.Storage.ScenarioTest
             foreach (string policyName in expectedSharedPolicies.Keys)
             {
                 Test.Info("Validate stored access policy:{0}", policyName);
-                Assert.IsTrue(actualSharedPolicies.Keys.Contains(policyName));
+                Test.Assert(actualSharedPolicies.Keys.Contains(policyName), string.Format("It should contain policy {0}.", policyName));
                 T actualPolicy = actualSharedPolicies[policyName];
-                Assert.IsNotNull(actualPolicy);
+                Test.Assert(actualPolicy != null, "Actual policy should not be null.");
                 T expectedPolicy = expectedSharedPolicies[policyName];
-                Assert.IsNotNull(expectedPolicy);
+                Test.Assert(expectedPolicy != null, "Expected policy should not be null.");
                 ValidateStoredAccessPolicy<T>(actualPolicy, expectedPolicy);
             }
-            Assert.AreEqual<int>(expectedSharedPolicies.Count, actualSharedPolicies.Count);
+            Test.Assert((int)(expectedSharedPolicies.Count) == (int)(actualSharedPolicies.Count),
+                string.Format("Expected count is {0} and the actual count is {1}.", expectedSharedPolicies.Count, actualSharedPolicies.Count));
 
         }
 
@@ -765,20 +766,14 @@ namespace Management.Storage.ScenarioTest
                 throw new Exception("Unknown Service Type!");
             }
 
-            Assert.AreEqual(
-                ((dynamic)expectedPolicy).SharedAccessStartTime,
-                ((dynamic)actualPolicy).SharedAccessStartTime,
-                string.Format("The expectied StartTime is: {0}, but actual StartTime is: {1}", ((dynamic)expectedPolicy).SharedAccessStartTime, ((dynamic)actualPolicy).SharedAccessStartTime));
+            Test.Assert(((dynamic)expectedPolicy).SharedAccessStartTime == ((dynamic)actualPolicy).SharedAccessStartTime,
+                string.Format("The expected StartTime is: {0} and actual StartTime is: {1}", ((dynamic)expectedPolicy).SharedAccessStartTime, ((dynamic)actualPolicy).SharedAccessStartTime));
 
-            Assert.AreEqual(
-                ((dynamic)expectedPolicy).SharedAccessExpiryTime,
-                ((dynamic)actualPolicy).SharedAccessExpiryTime,
-                string.Format("The expectied ExpiryTime is: {0}, but actual ExpiryTime is: {1}", ((dynamic)expectedPolicy).SharedAccessExpiryTime, ((dynamic)actualPolicy).SharedAccessExpiryTime));
+            Test.Assert(((dynamic)expectedPolicy).SharedAccessExpiryTime == ((dynamic)actualPolicy).SharedAccessExpiryTime,
+                string.Format("The expected ExpiryTime is: {0} and actual ExpiryTime is: {1}", ((dynamic)expectedPolicy).SharedAccessExpiryTime, ((dynamic)actualPolicy).SharedAccessExpiryTime));
 
-            Assert.AreEqual(
-                ((dynamic)expectedPolicy).Permissions,
-                ((dynamic)actualPolicy).Permissions,
-                string.Format("The expectied Permissions is: {0}, but actual Permissions is: {1}", ((dynamic)expectedPolicy).Permissions, ((dynamic)actualPolicy).Permissions));
+            Test.Assert(((dynamic)expectedPolicy).Permissions == ((dynamic)actualPolicy).Permissions,
+                string.Format("The expected Permissions is: {0} and actual Permissions is: {1}", ((dynamic)expectedPolicy).Permissions, ((dynamic)actualPolicy).Permissions));
         }
 
         public static void SetupAccessPolicyPermission<T>(T policy, string permission)

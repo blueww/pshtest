@@ -68,6 +68,17 @@
         {
             return GenerateNameFromRange(length, ValidASCIIRange);
         }
+        public static string GenerateValidASCIIOptionValue(int length)
+        {
+            string value = GenerateNameFromRange(length, ValidASCIIRange);
+           
+            if (value.StartsWith("-"))
+            {
+                value = "a" + value.Substring(1);
+            }
+
+            return value;
+        }
 
         public static string GenerateValidShareName(int length)
         {
