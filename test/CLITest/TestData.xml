@@ -9,6 +9,8 @@
   <logwarning>true</logwarning>
   <logerror>true</logerror>
 
+  <ManagementCert></ManagementCert>
+  <CertPassword></CertPassword>
   <AzureSubscriptionPath></AzureSubscriptionPath>
   <AzureSubscriptionName></AzureSubscriptionName>
   <AzureSubscriptionID></AzureSubscriptionID>
