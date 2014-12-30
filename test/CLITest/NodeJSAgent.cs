@@ -267,19 +267,76 @@ namespace Management.Storage.ScenarioTest
             return bSuccess;
         }
 
+        internal string appendStringOption(string command, string optionName, string optionValue, bool quoted = false, bool onlyNonEmpty = true)
+        {
+            if (!onlyNonEmpty || !string.IsNullOrEmpty(optionValue))
+            {
+                if (quoted)
+                {
+                    command += string.Format(" {0} \"{1}\" ", optionName, optionValue);
+                }
+                else
+                {
+                    command += string.Format(" {0} {1} ", optionName, optionValue);
+                }
+            }
+
+            return command;
+        }
+
+        internal string appendBoolOption(string command, string optionName)
+        {
+            return command + string.Format(" {0} ", optionName);
+        }
+
         public override bool ShowAzureStorageAccountConnectionString(string argument)
         {
             return RunNodeJSProcess(string.Format("account connectionstring show {0}", argument), needAccountParam: false);
         }
 
-        public override bool createAzureStorageAccount(string accountName, string label, string description, string affinityGroup, string location, string type, bool geoReplication)
+        public override bool createAzureStorageAccount(string accountName, string subscription, string label, string description, string location, string affinityGroup, string type, bool? geoReplication = null)
         {
-            throw new NotImplementedException();
+            string command = string.Format("account create {0}", accountName);
+            command = appendStringOption(command, "--subscription", subscription);
+            command = appendStringOption(command, "--label", label);
+            command = appendStringOption(command, "--description", description, true);
+            command = appendStringOption(command, "--location", location, true);
+            command = appendStringOption(command, "--affinity-group", affinityGroup, true);
+            command = appendStringOption(command, "--type", type);
+            if (geoReplication.HasValue)
+            {
+                if (geoReplication.Value)
+                {
+                    command = appendBoolOption(command, "--geoReplication");
+                }
+                else
+                {
+                    command = appendBoolOption(command, "--disable-geoReplication");
+                }
+            }
+
+            return RunNodeJSProcess(command, needAccountParam: false);
         }
 
-        public override bool setAzureStorageAccount(string accountName, string label, string description, string type, bool geoReplication)
+        public override bool setAzureStorageAccount(string accountName, string label, string description, string type, bool? geoReplication = null)
         {
-            throw new NotImplementedException();
+            string command = string.Format("account set {0}", accountName);
+            command = appendStringOption(command, "--label", label);
+            command = appendStringOption(command, "--description", description);
+            command = appendStringOption(command, "--type", type);
+            if (geoReplication.HasValue)
+            {
+                if (geoReplication.Value)
+                {
+                    command = appendBoolOption(command, "--geoReplication");
+                }
+                else
+                {
+                    command = appendBoolOption(command, "--disable-geoReplication");
+                }
+            }
+
+            return RunNodeJSProcess(command, needAccountParam: false);
         }
 
         public override bool NewAzureStorageContainer(string containerName)

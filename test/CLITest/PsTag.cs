@@ -87,7 +87,7 @@ namespace Management.Storage.ScenarioTest
         public const string NodeJSPerf= "nodejsperf";
         public const string NodeJSScale= "nodejsscale";
 
-        public const string NodeJSConString = "nodejsconnectionstring";
+        public const string NodeJSAccount = "nodejsAccount";
 
         public const string Blob = "nodejsblob";
         public const string GetBlob = "nodejsgetblob";
