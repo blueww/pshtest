@@ -76,9 +76,9 @@ namespace Management.Storage.ScenarioTest
         #region Account
         public abstract bool ShowAzureStorageAccountConnectionString(string accountName);
 
-        public abstract bool createAzureStorageAccount(string accountName, string label, string description, string affinityGroup, string location, string type, bool geoReplication);
+        public abstract bool createAzureStorageAccount(string accountName, string subscription, string label, string description, string location, string affinityGroup, string type, bool? geoReplication = null);
 
-        public abstract bool setAzureStorageAccount(string accountName, string label, string description, string type, bool geoReplication);
+        public abstract bool setAzureStorageAccount(string accountName, string label, string description, string type, bool? geoReplication = null);
         #endregion
 
         #region Container
