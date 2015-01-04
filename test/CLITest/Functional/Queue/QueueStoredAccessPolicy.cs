@@ -145,7 +145,7 @@
                 Test.Assert(!agent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, FileNamingGenerator.GenerateValidASCIIOptionValue(65), null, null, null), "Create stored access policy with invalid name length should fail");
                 if (lang == Language.PowerShell)
                 {
-                    ExpectedContainErrorMessage("Valid names should be 1 through 64 characters long.");  
+                    ExpectedContainErrorMessage("Valid names should be 1 through 64 characters long.");
                 }
                 else
                 {
@@ -258,7 +258,7 @@
                     "Get stored access policy with name length larger than 64 should fail");
                 if (lang == Language.PowerShell)
                 {
-                    ExpectedContainErrorMessage("Can not find policy");   
+                    ExpectedContainErrorMessage("Can not find policy");
                 }
                 else
                 {
@@ -269,7 +269,7 @@
                     "Get stored access policy from invalid queue name should fail");
                 if (lang == Language.PowerShell)
                 {
-                    ExpectedContainErrorMessage("The specifed resource name contains invalid characters"); 
+                    ExpectedContainErrorMessage("The specifed resource name contains invalid characters");
                 }
                 else
                 {
@@ -337,7 +337,7 @@
                     "Remove stored access policy from invalid queue name should fail");
                 if (lang == Language.PowerShell)
                 {
-                    ExpectedContainErrorMessage("The specifed resource name contains invalid characters"); 
+                    ExpectedContainErrorMessage("The specifed resource name contains invalid characters");
                 }
                 else
                 {
@@ -387,8 +387,6 @@
                 SetStoredAccessPolicyAndValidate(policy1, policy2);
             }
         }
-
-
 
         /// <summary>
         /// Test plan positive functional: 8.45.2, 8.45.3,8.45.4,8.45.5, 8.45.6
@@ -444,7 +442,7 @@
                 //NoExpiryTime
                 Test.Assert(agent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, null, null, null, false, true),
                     "Set stored access policy with -NoExpiryTime should succeed");
-                Thread.Sleep(TimeSpan.FromSeconds(effectiveTime)); 
+                Thread.Sleep(TimeSpan.FromSeconds(effectiveTime));
                 expectedPolicies = new SharedAccessQueuePolicies();
                 expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessQueuePolicy>(null, null, samplePolicy.Permission));
                 Utility.ValidateStoredAccessPolicies<SharedAccessQueuePolicy>(queue.GetPermissions().SharedAccessPolicies, expectedPolicies);
@@ -459,7 +457,7 @@
 
                 Test.Assert(agent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, null, null, null, true, true),
                     "Set stored access policy with both -NoStartTime and -NoExpiryTime should succeed");
-                Thread.Sleep(TimeSpan.FromSeconds(effectiveTime)); 
+                Thread.Sleep(TimeSpan.FromSeconds(effectiveTime));
                 expectedPolicies = new SharedAccessQueuePolicies();
                 expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessQueuePolicy>(null, null, samplePolicy.Permission));
                 Utility.ValidateStoredAccessPolicies<SharedAccessQueuePolicy>(queue.GetPermissions().SharedAccessPolicies, expectedPolicies);
@@ -696,6 +694,7 @@
                 }
 
                 expectedPolicies.Add(policy2.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessQueuePolicy>(policy2.StartTime, policy2.ExpiryTime, policy2.Permission));
+                Utility.WaitForPolicyBecomeValid<CloudQueue>(queue);
                 Utility.ValidateStoredAccessPolicies<SharedAccessQueuePolicy>(queue.GetPermissions().SharedAccessPolicies, expectedPolicies);
 
                 //validate the output

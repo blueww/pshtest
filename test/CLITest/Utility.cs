@@ -894,6 +894,23 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+        internal static void WaitForPolicyBecomeValid<T>(T resource)
+        {
+            int retry = 0;
+            while (((dynamic)resource).GetPermissions().SharedAccessPolicies.Keys.Count == 0)
+            {
+                if (retry++ < 6)
+                {
+                    Test.Info("Sleep and retry to get the policies again");
+                    Thread.Sleep(5000);
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
         public static class Permission
         {
             /// <summary>
