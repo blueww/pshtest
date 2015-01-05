@@ -57,9 +57,10 @@ namespace Management.Storage.ScenarioTest
         {
             TestBase.TestClassCleanup();
         }
-                                                         
+
         private static ManagementClient managementClient;
         private static StorageManagementClient storageClient;
+        private static string[] ForbiddenWordsInAccountName = {"fuck", "shit", "cunt", "cum", "nigger"};
 
         public override void OnTestSetup()
         {
@@ -850,7 +851,7 @@ namespace Management.Storage.ScenarioTest
             string subscriptionId = Test.Data.Get("AzureSubscriptionID");
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Invalid Location";
-            string location = FileNamingGenerator.GenerateNameFromRange(8, validNameRange); ;
+            string location = FileNamingGenerator.GenerateNameFromRange(8, validNameRange);
             string accountType = AccountType.Standard_GRS;
             string affinityGroup = null;
 
@@ -941,7 +942,7 @@ namespace Management.Storage.ScenarioTest
                 string newAccountType = info.GetRawConstantValue() as string;
                 Test.Assert(!agent.setAzureStorageAccount(accountName, label, description, newAccountType),
                     string.Format("Setting stoarge account {0} to type {1} should fail", accountName, newAccountType));
-                
+
                 if (newAccountType == AccountType.Standard_ZRS || newAccountType == AccountType.Premium_LRS)
                 {
                     ExpectedContainErrorMessage(string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", newAccountType));
@@ -998,7 +999,7 @@ namespace Management.Storage.ScenarioTest
             string description = "Storage Account Test Set Type";
 
             // No need to create a real accout for NodeJS as it won't pass the parameter validation
-            string[] newAccountTypes = {AccountType.Standard_ZRS, AccountType.Premium_LRS};
+            string[] newAccountTypes = { AccountType.Standard_ZRS, AccountType.Premium_LRS };
             foreach (string accountType in newAccountTypes)
             {
                 Test.Assert(!agent.setAzureStorageAccount(accountName, label, description, accountType),
@@ -1009,7 +1010,24 @@ namespace Management.Storage.ScenarioTest
 
         private string GenerateAccountName()
         {
-            return "xplattest" + FileNamingGenerator.GenerateNameFromRange(15, validNameRange);
+            bool regenerate = false;
+            string name = string.Empty;
+
+            do
+            {
+                name = FileNamingGenerator.GenerateNameFromRange(15, validNameRange);
+
+                foreach (string forbiddenWord in ForbiddenWordsInAccountName)
+                {
+                    if (name.Contains(forbiddenWord))
+                    {
+                        regenerate = true;
+                    }
+                }
+            }
+            while (regenerate);
+
+            return "xplattest" + name;
         }
 
         private void CreateAndValidateAccount(string accountName, string label, string description, string location, string affinityGroup, string accountType, bool? geoReplication = null)
@@ -1028,7 +1046,7 @@ namespace Management.Storage.ScenarioTest
 
             CreateNewAccount(accountName, label, description, location, affinityGroup, originalAccountType, geoReplication);
             ValidateAccount(accountName, label, description, location, affinityGroup, originalAccountType, geoReplication);
-            
+
             SetAccount(accountName, newLabel, newDescription, newAccountType, geoReplication);
             ValidateAccount(accountName, newLabel, newDescription, null, null, newAccountType, geoReplication);
 
@@ -1036,7 +1054,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         private void CreateNewAccount(string accountName, string label, string description, string location, string affinityGroup, string accountType, bool? geoReplication = null)
-        {    
+        {
             string subscriptionId = Test.Data.Get("AzureSubscriptionID");
 
             StorageAccountGetResponse response;
@@ -1141,7 +1159,7 @@ namespace Management.Storage.ScenarioTest
                 comparison = string.Format("azure storage account connectionstring show <name> {0}", option);
             }
             else
-            {                   
+            {
                 if (errorType == ErrorType.Unsupported)
                 {
                     endpoint = "ftp://endpoint.core.windows.net";
