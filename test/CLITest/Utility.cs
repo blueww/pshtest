@@ -896,10 +896,11 @@ namespace Management.Storage.ScenarioTest
 
         internal static void WaitForPolicyBecomeValid<T>(T resource)
         {
-            int retry = 0;
+            DateTimeOffset start = DateTimeOffset.Now;
+            
             while (((dynamic)resource).GetPermissions().SharedAccessPolicies.Keys.Count == 0)
             {
-                if (retry++ < 6)
+                if ((DateTimeOffset.Now - start) <= TimeSpan.FromSeconds(30))
                 {
                     Test.Info("Sleep and retry to get the policies again");
                     Thread.Sleep(5000);
