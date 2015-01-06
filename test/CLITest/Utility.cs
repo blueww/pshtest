@@ -898,7 +898,7 @@ namespace Management.Storage.ScenarioTest
         {
             DateTimeOffset start = DateTimeOffset.Now;
 
-            while (((dynamic)resource).GetPermissions().SharedAccessPolicies.Keys.Count < expectedCount)
+            while (((dynamic)resource).GetPermissions().SharedAccessPolicies.Keys.Count != expectedCount)
             {
                 if ((DateTimeOffset.Now - start) <= TimeSpan.FromSeconds(30))
                 {
