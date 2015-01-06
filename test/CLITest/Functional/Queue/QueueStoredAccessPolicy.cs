@@ -85,6 +85,8 @@
                     CreateStoredAccessPolicy(rawPolicy.PolicyName, rawPolicy.Permission, rawPolicy.StartTime, rawPolicy.ExpiryTime, queue, false);
                 }
 
+                Utility.WaitForPolicyBecomeValid<CloudQueue>(queue, samplePolicies.Count);
+
                 SharedAccessQueuePolicies expectedPolicies = new SharedAccessQueuePolicies();
                 foreach (Utility.RawStoredAccessPolicy rawPolicy in samplePolicies)
                 {

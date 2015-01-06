@@ -104,6 +104,8 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                     CreateStoredAccessPolicy(rawPolicy.PolicyName, rawPolicy.Permission, rawPolicy.StartTime, rawPolicy.ExpiryTime, container, false);
                 }
 
+                Utility.WaitForPolicyBecomeValid<CloudBlobContainer>(container, samplePolicies.Count);
+
                 SharedAccessBlobPolicies expectedPolicies = new SharedAccessBlobPolicies();
                 foreach (Utility.RawStoredAccessPolicy rawPolicy in samplePolicies)
                 {
