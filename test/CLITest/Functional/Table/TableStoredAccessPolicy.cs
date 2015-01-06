@@ -84,6 +84,8 @@
                     CreateStoredAccessPolicy(rawPolicy.PolicyName, rawPolicy.Permission, rawPolicy.StartTime, rawPolicy.ExpiryTime, table, false);
                 }
 
+                Utility.WaitForPolicyBecomeValid<CloudTable>(table, samplePolicies.Count);
+
                 SharedAccessTablePolicies expectedPolicies = new SharedAccessTablePolicies();
                 foreach (Utility.RawStoredAccessPolicy rawPolicy in samplePolicies)
                 {
