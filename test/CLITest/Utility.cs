@@ -907,6 +907,7 @@ namespace Management.Storage.ScenarioTest
                 }
                 else
                 {
+                    Test.Warn("No policy was found");
                     break;
                 }
             }
