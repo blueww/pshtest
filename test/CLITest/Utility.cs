@@ -19,6 +19,7 @@ namespace Management.Storage.ScenarioTest
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading;
     using Management.Storage.ScenarioTest.Util;
@@ -894,10 +895,11 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        internal static void WaitForPolicyBecomeValid<T>(T resource, int expectedCount = 1)
+        internal static void WaitForPolicyBecomeValid<T>(T resource, Utility.RawStoredAccessPolicy expectedPolicy = null, int expectedCount = 1)
         {
             DateTimeOffset start = DateTimeOffset.Now;
 
+            bool found = true;
             while (((dynamic)resource).GetPermissions().SharedAccessPolicies.Keys.Count != expectedCount)
             {
                 if ((DateTimeOffset.Now - start) <= TimeSpan.FromSeconds(30))
@@ -908,9 +910,80 @@ namespace Management.Storage.ScenarioTest
                 else
                 {
                     Test.Warn("No policy was found");
+                    found = false;
                     break;
                 }
             }
+
+            if (found && expectedCount == 1 && expectedPolicy != null)
+            { 
+                bool match = false;
+                start = DateTimeOffset.Now;
+
+                do 
+                {
+                    dynamic policy = null; 
+                    if (typeof(T) == typeof(CloudBlobContainer))
+                    {
+                        SharedAccessBlobPolicy output = null;
+                        match = ((dynamic)resource).GetPermissions().SharedAccessPolicies.TryGetValue(expectedPolicy.PolicyName, out output);
+                        policy = output;
+                    }
+                    else if (typeof(T) == typeof(CloudTable))
+                    {
+                        SharedAccessTablePolicy output = null;
+                        match = ((dynamic)resource).GetPermissions().SharedAccessPolicies.TryGetValue(expectedPolicy.PolicyName, out output);
+                        policy = output;
+                    }
+                    else if (typeof(T) == typeof(CloudQueue))
+                    { 
+                        SharedAccessQueuePolicy output = null;
+                        match = ((dynamic)resource).GetPermissions().SharedAccessPolicies.TryGetValue(expectedPolicy.PolicyName, out output);
+                        policy = output;
+                    }
+                     
+                    match = match && IsEqualPolicy(policy, expectedPolicy);
+
+                    if (!match)
+                    {
+                        if ((DateTimeOffset.Now - start) <= TimeSpan.FromSeconds(30))
+                        {
+                            Test.Info("Sleep and retry to get the policies again");
+                            Thread.Sleep(5000);
+                        }
+                        else
+                        {
+                            Test.Warn("No matching policy was found");
+                            break;
+                        }
+                    }
+                }
+                while (!match);
+            }
+        }
+
+        internal static bool IsEqualPolicy<T>(T actualPolicy, Utility.RawStoredAccessPolicy expectedPolicy)
+        {
+            object[] parameter = {expectedPolicy.Permission};
+            var permission = typeof(T).GetMethod("PermissionsFromString").Invoke(null, parameter);
+            bool equal = IsEqualTime(((dynamic)actualPolicy).SharedAccessStartTime, expectedPolicy.StartTime);
+            equal = equal && IsEqualTime(((dynamic)actualPolicy).SharedAccessExpiryTime, expectedPolicy.ExpiryTime);
+            return equal && ((dynamic)actualPolicy).Permissions.Equals(permission);
+        }
+
+        internal static bool IsEqualTime(DateTimeOffset? actualTime, DateTime? expectedTime)
+        {
+            if (actualTime.HasValue != expectedTime.HasValue)
+            {
+                return false;
+            }
+
+            if (expectedTime.HasValue && (actualTime.Value.UtcDateTime - expectedTime.Value.ToUniversalTime()) != TimeSpan.FromSeconds(0))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public static class Permission
