@@ -47,6 +47,11 @@
 
         public static IEnumerable<string> GenerateValidateUnicodeName(int length)
         {
+            if (AgentFactory.GetOSType() != OSType.Windows)
+            {
+                yield break;
+            }
+
             foreach (var generator in UnicodeGenerators)
             {
                 string str = generator.GenerateRandomString(length);
