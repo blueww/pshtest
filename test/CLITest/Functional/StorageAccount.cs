@@ -761,7 +761,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NodeJSAccount)]
         public void FTAccount104_CreateAccount_AccountType()
         {
