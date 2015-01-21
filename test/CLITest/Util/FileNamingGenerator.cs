@@ -154,7 +154,8 @@
                 while (
                     InvalidFileNameCharacters.Contains(ch) ||
                     BashControllers.Contains(ch) ||
-                    i == length - 1 && ch == '.');
+                    (i == length - 1 && ch == '.') ||
+                    (i == 0 && ch == '-'));
 
                 sb.Append(ch);
             }
