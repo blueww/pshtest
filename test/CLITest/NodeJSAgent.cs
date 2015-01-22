@@ -44,6 +44,7 @@ namespace Management.Storage.ScenarioTest
     {
         private const string NotImplemented = "Not implemented in NodeJS Agent!";
         private const string ExportPathCommand = " export PATH=$PATH:/usr/local/bin/;";
+        private const string DOUBLE_SPACE = "CLITEST_DOUBLESPACE_INDICATOR";
 
         private static int DefaultMaxWaitingTime = 600000;  // in miliseconds
 
@@ -133,6 +134,19 @@ namespace Management.Storage.ScenarioTest
                 // replace all " with ' in argument for linux
                 argument = argument.Replace('"', '\'');
             }
+
+            // replace all double-space parameter according to plink usage
+            // On Windows: DOUBLE_SPACE --> "  "
+            // With Plink for Linux and Mac: DOUBLE_SPACE --> "'  '"
+            if (AgentOSType == OSType.Windows)
+            {
+                argument = argument.Replace(DOUBLE_SPACE, "\"  \"");
+            }
+            else
+            {
+                argument = argument.Replace(DOUBLE_SPACE, "\"'  '\"");
+            }
+
             p.StartInfo.Arguments += string.Format(" azure {0} {1} --json", category, argument);
 
             Test.Info("NodeJS command: \"{0}\" {1}", p.StartInfo.FileName, p.StartInfo.Arguments);
@@ -1906,7 +1920,7 @@ namespace Management.Storage.ScenarioTest
 
        internal bool GetAzureStorageStoredAccessPolicy(string resourceType, string resourceName, string policyName)
         {
-            string command = string.Format("{0} policy show {1} \"{2}\"", resourceType, resourceName, policyName);
+            string command = string.Format("{0} policy show \"{1}\" \"{2}\"", resourceType, resourceName, policyName);
 
             return RunNodeJSProcess(command);
         }
@@ -1914,7 +1928,7 @@ namespace Management.Storage.ScenarioTest
        internal bool NewAzureStorageStoredAccessPolicy(string resourceType, string resourceName, string policyName, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null)
         {
-            string command = string.Format("{0} policy create {1} \"{2}\"", resourceType, resourceName, policyName);
+            string command = string.Format("{0} policy create \"{1}\" \"{2}\"", resourceType, resourceName, policyName);
 
             if (!string.IsNullOrEmpty(permission))
             {
@@ -1936,7 +1950,7 @@ namespace Management.Storage.ScenarioTest
 
        internal bool RemoveAzureStorageStoredAccessPolicy(string resourceType, string resourceName, string policyName, bool Force = true)
         {
-            string command = string.Format("{0} policy delete {1} \"{2}\"", resourceType, resourceName, policyName);
+            string command = string.Format("{0} policy delete \"{1}\" \"{2}\"", resourceType, resourceName, policyName);
 
             return RunNodeJSProcess(command);
         }
@@ -1944,7 +1958,7 @@ namespace Management.Storage.ScenarioTest
        internal bool SetAzureStorageStoredAccessPolicy(string resourceType, string resourceName, string policyName, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool NoStartTime = false, bool NoExpiryTime = false)
         {
-            string command = string.Format("{0} policy set {1} \"{2}\"", resourceType, resourceName, policyName);
+            string command = string.Format("{0} policy set \"{1}\" \"{2}\"", resourceType, resourceName, policyName);
 
             if (!string.IsNullOrEmpty(permission))
             {
@@ -1952,12 +1966,12 @@ namespace Management.Storage.ScenarioTest
             }
             else if (permission == string.Empty)
             {
-                command += " --permissions " + "\"  \"";
+                command += " --permissions " + DOUBLE_SPACE;
             }
 
             if (NoStartTime)
             {
-                command += " --start " + "\"  \"";
+                command += " --start " + DOUBLE_SPACE;
             }
             else if (startTime.HasValue)
             {
@@ -1966,7 +1980,7 @@ namespace Management.Storage.ScenarioTest
 
             if (NoExpiryTime)
             {
-                command += " --expiry " + "\"  \"";
+                command += " --expiry " + DOUBLE_SPACE;
             }
             else if (expiryTime.HasValue)
             {
