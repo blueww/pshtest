@@ -102,7 +102,7 @@
 
         public static string GenerateUniqueFileShareName()
         {
-            return string.Format(FileShareNameFormat, Interlocked.Increment(ref seed));
+            return Utility.GenNameString("fileshare");
         }
 
         public static string GenerateUniqueDirectoryName()
@@ -139,6 +139,16 @@
         public void AssertFileExists(CloudFileShare share, string filePath, string message)
         {
             Test.Assert(share.GetRootDirectoryReference().GetFileReference(filePath).Exists(), message);
+        }
+
+        public void DeleteFileShareIfExistsWithSleep(string fileShareName)
+        {
+            var fileShare = this.client.GetShareReference(fileShareName);
+            if (fileShare.Exists())
+            {
+                fileShare.Delete();
+                System.Threading.Thread.Sleep(60000);
+            }
         }
 
         public void DeleteFileShareIfExists(string fileShareName)
