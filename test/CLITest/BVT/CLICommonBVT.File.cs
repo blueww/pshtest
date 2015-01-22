@@ -45,12 +45,11 @@
             }
 
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
-            fileUtil.DeleteFileShareIfExists(fileShareName);
+            fileUtil.DeleteFileShareIfExistsWithSleep(fileShareName);
 
             try
             {
                 agent.NewFileShare(fileShareName);
-
                 var result = agent.Invoke();
 
                 agent.AssertNoError();

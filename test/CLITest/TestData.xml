@@ -9,6 +9,8 @@
   <logwarning>true</logwarning>
   <logerror>true</logerror>
 
+  <ManagementCert></ManagementCert>
+  <CertPassword></CertPassword>
   <AzureSubscriptionPath></AzureSubscriptionPath>
   <AzureSubscriptionName></AzureSubscriptionName>
   <AzureSubscriptionID></AzureSubscriptionID>
@@ -26,7 +28,7 @@
 
   <PSSnapInName></PSSnapInName>
   <NodeWorkingDirectory>.</NodeWorkingDirectory>
-  <BigFileUri>http://mirrors.kernel.org/fedora/releases/18/Live/x86_64/Fedora-18-x86_64-Live-Desktop.iso</BigFileUri>
+  <BigFileUri>http://xdmtest.blob.core.windows.net/public/Fedora-18-x86_64-Live-Desktop.iso</BigFileUri>
   <HttpsCopyHosts>core.windows.net</HttpsCopyHosts>
   <DownloadDir>.\Data\download\</DownloadDir>
   <UploadDir>.\Data\upload\</UploadDir>
