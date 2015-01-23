@@ -95,6 +95,9 @@ namespace Management.Storage.ScenarioTest
 
         private PowerShell GetPowerShellInstance()
         {
+            //assign the error message table for error validation
+            ExpectedErrorMsgTable = ExpectedErrorMsgTablePS;
+
             if (PowerShellInstance != null)
             {
                 PowerShellAgent.PowerShellInstance.Commands = PowerShellAgent.InitCommand;
@@ -132,9 +135,6 @@ namespace Management.Storage.ScenarioTest
             {
                 throw new Exception(String.Format("Module file path : {0} not found!", ModuleFilePath));
             }
-
-            //assign the error message table for error validation
-            ExpectedErrorMsgTable = ExpectedErrorMsgTablePS;
         }
 
         /// <summary>
