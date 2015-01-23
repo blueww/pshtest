@@ -73,8 +73,15 @@ namespace Management.Storage.ScenarioTest
                 expectedErrorMessage, ErrorMessages[0]));
         }
 
+        #region Account
         public abstract bool ShowAzureStorageAccountConnectionString(string accountName);
 
+        public abstract bool createAzureStorageAccount(string accountName, string subscription, string label, string description, string location, string affinityGroup, string type, bool? geoReplication = null);
+
+        public abstract bool setAzureStorageAccount(string accountName, string label, string description, string type, bool? geoReplication = null);
+        #endregion
+
+        #region Container
         /// <summary>
         /// Return true if succeed otherwise return false
         /// </summary>   
@@ -96,7 +103,9 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         public abstract bool NewAzureStorageContainer(string[] ContainerNames);
         public abstract bool RemoveAzureStorageContainer(string[] ContainerNames, bool Force = true);
+        #endregion
 
+        #region Queue
         public abstract bool NewAzureStorageQueue(string QueueName);
         /// <summary>
         /// Parameters:
@@ -113,7 +122,9 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         public abstract bool NewAzureStorageQueue(string[] QueueNames);
         public abstract bool RemoveAzureStorageQueue(string[] QueueNames, bool Force = true);
+        #endregion
 
+        #region Blob
         /// <summary>
         /// Parameters:
         ///     Block:
@@ -127,6 +138,17 @@ namespace Management.Storage.ScenarioTest
             bool Force = true, int ConcurrentCount = -1);
         public abstract bool GetAzureStorageBlob(string BlobName, string ContainerName);
         public abstract bool GetAzureStorageBlobByPrefix(string Prefix, string ContainerName);
+
+        public abstract bool RemoveAzureStorageBlob(string BlobName, string ContainerName, bool onlySnapshot = false, bool force = true);
+
+        public abstract bool StartAzureStorageBlobCopy(string sourceUri, string destContainerName, string destBlobName, object destContext, bool force = true);
+        public abstract bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, object destContext = null, bool force = true);
+        public abstract bool StartAzureStorageBlobCopy(ICloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true);
+
+        public abstract bool GetAzureStorageBlobCopyState(string containerName, string blobName, bool waitForComplete);
+        public abstract bool GetAzureStorageBlobCopyState(ICloudBlob blob, object context, bool waitForComplete);
+        public abstract bool StopAzureStorageBlobCopy(string containerName, string blobName, string copyId, bool force);
+        #endregion
 
         /// <summary>
         /// upload all files in one directory to a specific container (no recursive)
@@ -149,24 +171,16 @@ namespace Management.Storage.ScenarioTest
         /// <returns></returns>
         public abstract bool DownloadBlobFiles(string dirPath, string containerName, bool force = true, int concurrentCount = -1);
 
-        public abstract bool RemoveAzureStorageBlob(string BlobName, string ContainerName, bool onlySnapshot = false, bool force = true);
-
+        #region Table
         public abstract bool NewAzureStorageTable(string TableName);
         public abstract bool NewAzureStorageTable(string[] TableNames);
         public abstract bool GetAzureStorageTable(string TableName);
         public abstract bool GetAzureStorageTableByPrefix(string Prefix);
         public abstract bool RemoveAzureStorageTable(string TableName, bool Force = true);
         public abstract bool RemoveAzureStorageTable(string[] TableNames, bool Force = true);
+        #endregion
 
-        public abstract bool StartAzureStorageBlobCopy(string sourceUri, string destContainerName, string destBlobName, object destContext, bool force = true);
-        public abstract bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, object destContext = null, bool force = true);
-        public abstract bool StartAzureStorageBlobCopy(ICloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true);
-
-        public abstract bool GetAzureStorageBlobCopyState(string containerName, string blobName, bool waitForComplete);
-        public abstract bool GetAzureStorageBlobCopyState(ICloudBlob blob, object context, bool waitForComplete);
-        public abstract bool StopAzureStorageBlobCopy(string containerName, string blobName, string copyId, bool force);
-
-
+        #region Logging & Metrics APIs
         ///-------------------------------------
         /// Logging & Metrics APIs
         ///-------------------------------------
@@ -178,7 +192,9 @@ namespace Management.Storage.ScenarioTest
             string loggingVersion = "", bool passThru = false) { return false; }
         public virtual bool SetAzureStorageServiceMetrics(Constants.ServiceType serviceType, Constants.MetricsType metricsType, string metricsLevel = "", string metricsRetentionDays = "",
             string metricsVersion = "", bool passThru = false) { return false; }
+        #endregion
 
+        #region SAS token APIs
         ///-------------------------------------
         /// SAS token APIs
         ///-------------------------------------
@@ -194,6 +210,28 @@ namespace Management.Storage.ScenarioTest
         public virtual bool NewAzureStorageQueueSAS(string name, string policy, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false) { return false; }
 
+        public virtual string GetBlobSasFromCmd(string containerName, string blobName, string policy, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
+        public virtual string GetBlobSasFromCmd(ICloudBlob blob, string policy, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
+
+        public virtual string GetContainerSasFromCmd(string containerName, string policy, string permission,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
+
+        public virtual string GetQueueSasFromCmd(string queueName, string policy, string permission,
+                    DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
+
+        public virtual string GetTableSasFromCmd(string tableName, string policy, string permission,
+                    DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false,
+                    string startpk = "", string startrk = "", string endpk = "", string endrk = "") { return string.Empty; }
+
+        public abstract string SetContextWithSASToken(string accountName, CloudBlobUtil blobUtil, StorageObjectType objectType,
+            string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null);
+
+        public abstract void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, bool useHttps = true);
+        #endregion
+
+        #region Stored Access Policy APIs
         ///-------------------------------------
         /// Stored Access Policy APIs
         ///-------------------------------------
@@ -226,8 +264,9 @@ namespace Management.Storage.ScenarioTest
 
         public virtual bool SetAzureStorageContainerStoredAccessPolicy(string containerName, string policyName, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool NoStartTime = false, bool NoExpiryTime = false) { return false; }
+        #endregion
 
-
+        #region Output Validation
         public abstract void OutputValidation(Collection<Dictionary<string, object>> comp);
         public abstract void OutputValidation(IEnumerable<CloudBlobContainer> containers);
         public abstract void OutputValidation(IEnumerable<CloudFileShare> shares);
@@ -237,26 +276,7 @@ namespace Management.Storage.ScenarioTest
         public abstract void OutputValidation(IEnumerable<CloudTable> tables);
         public abstract void OutputValidation(IEnumerable<CloudQueue> queues);
         public virtual void OutputValidation(ServiceProperties serviceProperties, string propertiesType) { throw new NotImplementedException(NotImplemented); }
-
-        public virtual string GetBlobSasFromCmd(string containerName, string blobName, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
-        public virtual string GetBlobSasFromCmd(ICloudBlob blob, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
-
-        public virtual string GetContainerSasFromCmd(string containerName, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
-
-        public virtual string GetQueueSasFromCmd(string queueName, string policy, string permission,
-                    DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
-
-        public virtual string GetTableSasFromCmd(string tableName, string policy, string permission,
-                    DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false,
-                    string startpk = "", string startrk = "", string endpk = "", string endrk = "") { return string.Empty; }
-
-        public abstract string SetContextWithSASToken(string accountName, CloudBlobUtil blobUtil, StorageObjectType objectType,
-            string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null);
-
-        public abstract void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, bool useHttps = true);
+        #endregion
 
         #region xSMB operations
 

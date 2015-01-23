@@ -35,12 +35,13 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewPolicyDifferentNames()
         {
             DateTime? expiryTime = DateTime.Today.AddDays(10);
             DateTime? startTime = DateTime.Today.AddDays(-2);
-            string permission = "audq";
+            string permission = lang == Language.PowerShell ? "audq" : "raud";
             string tableName = Utility.GenNameString("table");
 
             try
@@ -48,7 +49,7 @@
                 CreateStoredAccessPolicyAndValidate(Utility.GenNameString("p", 0), permission, startTime, expiryTime, tableName, false);
                 CreateStoredAccessPolicyAndValidate(Utility.GenNameString("p", 0), permission, startTime, expiryTime, tableName, false);
                 CreateStoredAccessPolicyAndValidate(Utility.GenNameString("p", 4), permission, startTime, expiryTime, tableName, false);
-                CreateStoredAccessPolicyAndValidate(FileNamingGenerator.GenerateValidateASCIIName(64), permission, startTime, expiryTime, tableName, false);
+                CreateStoredAccessPolicyAndValidate(FileNamingGenerator.GenerateValidASCIIOptionValue(64), permission, startTime, expiryTime, tableName, false);
                 foreach (var policyName in FileNamingGenerator.GenerateValidateUnicodeName(40))
                 {
                     CreateStoredAccessPolicyAndValidate(policyName, permission, startTime, expiryTime, tableName, false);
@@ -66,10 +67,11 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewPolicyDifferentValues()
         {
-            List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>();
+            List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>(lang == Language.NodeJS);
 
             string tableName = Utility.GenNameString("table");
             CloudTable table = tableUtil.CreateTable(tableName);
@@ -81,6 +83,8 @@
                 {
                     CreateStoredAccessPolicy(rawPolicy.PolicyName, rawPolicy.Permission, rawPolicy.StartTime, rawPolicy.ExpiryTime, table, false);
                 }
+
+                Utility.WaitForPolicyBecomeValid<CloudTable>(table, expectedCount: samplePolicies.Count);
 
                 SharedAccessTablePolicies expectedPolicies = new SharedAccessTablePolicies();
                 foreach (Utility.RawStoredAccessPolicy rawPolicy in samplePolicies)
@@ -102,6 +106,7 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewPolicyInvalidParameter()
         {
@@ -111,21 +116,42 @@
             Utility.ClearStoredAccessPolicy<CloudTable>(table);
 
             try
-            {                
+            {
                 Test.Assert(!agent.NewAzureStorageTableStoredAccessPolicy("CONTAINER", Utility.GenNameString("p", 5), null, null, null), "Create stored acess policy for invalid table name CONTAINER should fail");
-                ExpectedContainErrorMessage("The table specified does not exist.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The table specified does not exist.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Reason:");
+                }
 
                 Test.Assert(!agent.NewAzureStorageTableStoredAccessPolicy(table.Name, Utility.GenNameString("p", 5), null, startTime, expiryTime), "Create stored access policy for ExpiryTime earlier than StartTime should fail");
-                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time.");
+                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
 
                 Test.Assert(!agent.NewAzureStorageTableStoredAccessPolicy(table.Name, Utility.GenNameString("p", 5), null, startTime, startTime), "Create stored access policy for ExpiryTime same as StartTime should fail");
-                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time.");
+                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
 
                 Test.Assert(!agent.NewAzureStorageTableStoredAccessPolicy(table.Name, Utility.GenNameString("p", 5), "x", null, null), "Create stored access policy with invalid permission should fail");
-                ExpectedContainErrorMessage("Invalid access permission");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Invalid access permission");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Invalid value: x. Options are: r,a,u,d");
+                }
 
-                Test.Assert(!agent.NewAzureStorageTableStoredAccessPolicy(table.Name, FileNamingGenerator.GenerateValidateASCIIName(65), null, null, null), "Create stored access policy with invalid name length should fail");
-                ExpectedContainErrorMessage("Valid names should be 1 through 64 characters long.");
+                Test.Assert(!agent.NewAzureStorageTableStoredAccessPolicy(table.Name, FileNamingGenerator.GenerateValidASCIIOptionValue(65), null, null, null), "Create stored access policy with invalid name length should fail");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Valid names should be 1 through 64 characters long.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Reason:");
+                }
 
                 for (int i = 1; i <= 5; i++)
                 {
@@ -133,11 +159,25 @@
                 }
 
                 Test.Assert(!agent.NewAzureStorageTableStoredAccessPolicy(table.Name, Utility.GenNameString("p", 6), null, null, null), "Create more than 5 stored access policies should fail");
-                ExpectedContainErrorMessage("Too many '6' shared access policy identifiers provided");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Too many '6' shared access policy identifiers provided");   
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("A maximum of 5 access policies may be set");
+                }
 
                 tableUtil.RemoveTable(table);
                 Test.Assert(!agent.NewAzureStorageTableStoredAccessPolicy(table.Name, Utility.GenNameString("p", 5), null, null, null), "Create stored access policy against non-existing container should fail");
-                ExpectedContainErrorMessage("does not exist");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("does not exist");   
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Reason:");
+                }
             }
             finally
             {
@@ -151,6 +191,7 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void GetPolicyVariations()
         {
@@ -166,7 +207,7 @@
                 Assert.IsTrue(agent.Output.Count == 0);
 
                 //get all policies
-                List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>();
+                List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>(lang == Language.NodeJS);
                 Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
                 foreach (Utility.RawStoredAccessPolicy samplePolicy in samplePolicies)
                 {
@@ -192,6 +233,7 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void GetPolicyInvalid()
         {
@@ -200,22 +242,52 @@
 
             try
             {
-                Test.Assert(!agent.GetAzureStorageTableStoredAccessPolicy(table.Name, "policy"),
+                string policyName = "policy";
+                Test.Assert(!agent.GetAzureStorageTableStoredAccessPolicy(table.Name, policyName),
                     "Get non-existing stored access policy should fail");
-                ExpectedContainErrorMessage("Can not find policy");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find policy");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", policyName));
+                }
 
-                Test.Assert(!agent.GetAzureStorageTableStoredAccessPolicy(table.Name, FileNamingGenerator.GenerateValidateASCIIName(65)),
+                string invalidName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
+                Test.Assert(!agent.GetAzureStorageTableStoredAccessPolicy(table.Name, invalidName),
                     "Get stored access policy with name length larger than 64 should fail");
-                ExpectedContainErrorMessage("Can not find policy");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find policy");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", invalidName));
+                }
 
-                Test.Assert(!agent.GetAzureStorageTableStoredAccessPolicy("CONTAINER", "policy"),
+                Test.Assert(!agent.GetAzureStorageTableStoredAccessPolicy("CONTAINER", policyName),
                     "Get stored access policy from invalid table name should fail");
-                ExpectedContainErrorMessage("The table specified does not exist.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The table specified does not exist.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Reason:");
+                }
 
                 tableUtil.RemoveTable(table);
-                Test.Assert(!agent.GetAzureStorageTableStoredAccessPolicy(table.Name, "policy"),
+                Test.Assert(!agent.GetAzureStorageTableStoredAccessPolicy(table.Name, policyName),
                     "Get stored access policy from invalid table name should fail");
-                ExpectedContainErrorMessage("The table specified does not exist.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The table specified does not exist.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Reason:");
+                }
             }
             finally
             {
@@ -229,6 +301,7 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void RemovePolicyInvalid()
         {
@@ -237,22 +310,52 @@
 
             try
             {
-                Test.Assert(!agent.RemoveAzureStorageTableStoredAccessPolicy(table.Name, "policy"),
+                string policyName = "policy";
+                Test.Assert(!agent.RemoveAzureStorageTableStoredAccessPolicy(table.Name, policyName),
                     "Remove non-existing stored access policy should fail");
-                ExpectedContainErrorMessage("Can not find policy");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find policy");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", policyName));
+                }
 
-                Test.Assert(!agent.RemoveAzureStorageTableStoredAccessPolicy(table.Name, FileNamingGenerator.GenerateValidateASCIIName(65)),
+                string invalidName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
+                Test.Assert(!agent.RemoveAzureStorageTableStoredAccessPolicy(table.Name, invalidName),
                     "Remove stored access policy with name length larger than 64 should fail");
-                ExpectedContainErrorMessage("Can not find policy");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find policy");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", invalidName));
+                }
 
-                Test.Assert(!agent.RemoveAzureStorageTableStoredAccessPolicy("CONTAINER", "policy"),
+                Test.Assert(!agent.RemoveAzureStorageTableStoredAccessPolicy("CONTAINER", policyName),
                     "Remove stored access policy from invalid table name should fail");
-                ExpectedContainErrorMessage("The table specified does not exist.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The table specified does not exist.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Reason:");
+                }
 
                 tableUtil.RemoveTable(table);
-                Test.Assert(!agent.RemoveAzureStorageTableStoredAccessPolicy(table.Name, "policy"),
+                Test.Assert(!agent.RemoveAzureStorageTableStoredAccessPolicy(table.Name, policyName),
                     "Remove stored access policy from invalid table name should fail");
-                ExpectedContainErrorMessage("The table specified does not exist.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The table specified does not exist.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Reason:");
+                }
             }
             finally
             {
@@ -266,6 +369,7 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetPolicyDifferentNames()
         {
@@ -282,7 +386,7 @@
             policy1.PolicyName = policy2.PolicyName = Utility.GenNameString("p", 4);
             SetStoredAccessPolicyAndValidate(policy1, policy2);
 
-            policy1.PolicyName = policy2.PolicyName = FileNamingGenerator.GenerateValidateASCIIName(64);
+            policy1.PolicyName = policy2.PolicyName = FileNamingGenerator.GenerateValidASCIIOptionValue(64);
             SetStoredAccessPolicyAndValidate(policy1, policy2);
 
             foreach (var samplePolicyName in FileNamingGenerator.GenerateValidateUnicodeName(40))
@@ -300,11 +404,12 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetPolicyDifferentValues()
         {
             string tableName = Utility.GenNameString("table");
-            List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>();
+            List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>(lang == Language.NodeJS);
             samplePolicies[4].PolicyName = samplePolicies[3].PolicyName = samplePolicies[2].PolicyName = samplePolicies[1].PolicyName = samplePolicies[0].PolicyName;
             samplePolicies[2].ExpiryTime = DateTime.Today.AddDays(3);
             SetStoredAccessPolicyAndValidate(samplePolicies[0], samplePolicies[1], tableName, true, false);
@@ -319,12 +424,14 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetPolicyNoStartTimeNoExpiryTime()
         {
             CloudTable table = tableUtil.CreateTable();
             Utility.ClearStoredAccessPolicy<CloudTable>(table);
-            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>()[0];
+            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>(lang == Language.NodeJS)[0];
+            double effectiveTime = 30;
 
             try
             {
@@ -333,7 +440,7 @@
                 //NoStartTime
                 Test.Assert(agent.SetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, null, null, null, true, false),
                     "Set stored access policy with -NoStartTime should succeed");
-
+                Thread.Sleep(TimeSpan.FromSeconds(effectiveTime));
                 SharedAccessTablePolicies expectedPolicies = new SharedAccessTablePolicies();
                 expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessTablePolicy>(null, samplePolicy.ExpiryTime, samplePolicy.Permission));
                 Utility.ValidateStoredAccessPolicies<SharedAccessTablePolicy>(table.GetPermissions().SharedAccessPolicies, expectedPolicies);
@@ -344,7 +451,8 @@
 
                 //NoExpiryTime
                 Test.Assert(agent.SetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, null, null, null, false, true),
-                    "Set stored access policy with -NoStartTime should succeed");
+                    "Set stored access policy with -NoExpiryTime should succeed");
+                Thread.Sleep(TimeSpan.FromSeconds(effectiveTime));
                 expectedPolicies = new SharedAccessTablePolicies();
                 expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessTablePolicy>(null, null, samplePolicy.Permission));
                 Utility.ValidateStoredAccessPolicies<SharedAccessTablePolicy>(table.GetPermissions().SharedAccessPolicies, expectedPolicies);
@@ -358,7 +466,8 @@
                 CreateStoredAccessPolicy(samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime, table);
 
                 Test.Assert(agent.SetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, null, null, null, true, true),
-                    "Set stored access policy with -NoStartTime should succeed");
+                    "Set stored access policy with both -NoStartTime and -NoExpiryTime should succeed");
+                Thread.Sleep(TimeSpan.FromSeconds(effectiveTime));
                 expectedPolicies = new SharedAccessTablePolicies();
                 expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessTablePolicy>(null, null, samplePolicy.Permission));
                 Utility.ValidateStoredAccessPolicies<SharedAccessTablePolicy>(table.GetPermissions().SharedAccessPolicies, expectedPolicies);
@@ -379,6 +488,7 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetPolicyInvalidParameter()
         {
@@ -390,31 +500,74 @@
             try
             {
                 Test.Assert(!agent.SetAzureStorageTableStoredAccessPolicy("CONTAINER", Utility.GenNameString("p", 5), null, null, null), "Set stored acess policy for invalid table name CONTAINER should fail");
-                ExpectedContainErrorMessage("The table specified does not exist.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The table specified does not exist.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Reason:");
+                }
 
-                Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>()[0];
+                Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>(lang == Language.NodeJS)[0];
                 CreateStoredAccessPolicy(samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime, table);
                 Test.Assert(!agent.SetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, null, startTime, expiryTime), "Set stored access policy for ExpiryTime earlier than StartTime should fail");
-                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time.");
+                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
 
                 Test.Assert(!agent.SetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, null, startTime, startTime), "Set stored access policy for ExpiryTime same as StartTime should fail");
-                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time.");
+                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
 
                 Test.Assert(!agent.SetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, "x", null, null), "Set stored access policy with invalid permission should fail");
-                ExpectedContainErrorMessage("Invalid access permission");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Invalid access permission");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Invalid value: x. Options are: r,a,u,d");
+                }
 
-                Test.Assert(!agent.SetAzureStorageTableStoredAccessPolicy(table.Name, FileNamingGenerator.GenerateValidateASCIIName(65), null, null, null), "Create stored access policy with invalid name length should fail");
-                ExpectedContainErrorMessage("Can not find policy");
+                string invalidName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
+                Test.Assert(!agent.SetAzureStorageTableStoredAccessPolicy(table.Name, invalidName, null, null, null), "Create stored access policy with invalid name length should fail");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find policy");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", invalidName));
+                }
 
-                Test.Assert(!agent.SetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, null, true, false), "Set stored access policy for ExpiryTime same as StartTime should fail");
-                ExpectedContainErrorMessage("Parameter -StartTime and -NoStartTime are mutually exclusive");
+                if (lang == Language.PowerShell)
+                {
+                    Test.Assert(!agent.SetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, null, true, false), "Setting both -StartTime and -NoStartTime should fail");
+                    ExpectedContainErrorMessage("Parameter -StartTime and -NoStartTime are mutually exclusive");
+                }
+                else
+                {
+                    Test.Assert(agent.SetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, null, true, false), "Setting stored access policy without empty start time should succeed");
+                }
 
-                Test.Assert(!agent.SetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, samplePolicy.Permission, null, samplePolicy.ExpiryTime, false, true), "Set stored access policy for ExpiryTime same as StartTime should fail");
-                ExpectedContainErrorMessage("Parameter -ExpiryTime and -NoExpiryTime are mutually exclusive");
+                if (lang == Language.PowerShell)
+                {
+                    Test.Assert(!agent.SetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, samplePolicy.Permission, null, samplePolicy.ExpiryTime, false, true), "Setting both -ExpiryTime and -NoExpiryTime should fail");
+                    ExpectedContainErrorMessage("Parameter -ExpiryTime and -NoExpiryTime are mutually exclusive");
+                }
+                else
+                {
+                    Test.Assert(agent.SetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, samplePolicy.Permission, null, samplePolicy.ExpiryTime, false, true), "Setting stored access policy without empty expiry time should succeed");
+                }
 
                 tableUtil.RemoveTable(table);
                 Test.Assert(!agent.SetAzureStorageTableStoredAccessPolicy(table.Name, Utility.GenNameString("p", 5), null, null, null), "Set stored access policy against non-existing table should fail");
-                ExpectedContainErrorMessage("does not exist");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("does not exist");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Reason:");
+                }
             }
             finally
             {
@@ -428,6 +581,7 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void PolicyWithSASExpiryTimeFutureToPast()
         {
@@ -435,11 +589,11 @@
             string policyName = Utility.GenNameString("saspolicy");
             DateTime? expiryTime = DateTime.Today.AddDays(10);
             DateTime? startTime = DateTime.Today.AddDays(-2);
-            string permission = "q";
+            string permission = lang == Language.PowerShell ? "q" : "r";
             CloudTable table = tableUtil.CreateTable();
 
             try
-            {           
+            {
                 //expiry time is future
                 CreateStoredAccessPolicy(policyName, permission, startTime, expiryTime, table, false);
                 string sasToken = agent.GetTableSasFromCmd(table.Name, policyName, string.Empty);
@@ -478,6 +632,7 @@
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void PolicyWithSASExpiryTimePastToFuture()
         {
@@ -485,11 +640,11 @@
             string policyName = Utility.GenNameString("saspolicy");
             DateTime? expiryTime = DateTime.Today.AddDays(-2);
             DateTime? startTime = DateTime.Today.AddDays(-10);
-            string permission = "q";
+            string permission = lang == Language.PowerShell ? "q" : "r";
             CloudTable table = tableUtil.CreateTable();
 
             try
-            {             
+            {
                 //expiry time is in the past
                 CreateStoredAccessPolicy(policyName, permission, startTime, expiryTime, table, false);
                 string sasToken = agent.GetTableSasFromCmd(table.Name, policyName, string.Empty);
@@ -593,6 +748,7 @@
                 }
 
                 expectedPolicies.Add(policy2.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessTablePolicy>(policy2.StartTime, policy2.ExpiryTime, policy2.Permission));
+                Utility.WaitForPolicyBecomeValid<CloudTable>(table, policy2); 
                 Utility.ValidateStoredAccessPolicies<SharedAccessTablePolicy>(table.GetPermissions().SharedAccessPolicies, expectedPolicies);
 
                 //validate the output

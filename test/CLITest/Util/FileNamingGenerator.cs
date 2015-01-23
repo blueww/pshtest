@@ -47,6 +47,11 @@
 
         public static IEnumerable<string> GenerateValidateUnicodeName(int length)
         {
+            if (AgentFactory.GetOSType() != OSType.Windows)
+            {
+                yield break;
+            }
+
             foreach (var generator in UnicodeGenerators)
             {
                 string str = generator.GenerateRandomString(length);
@@ -67,6 +72,17 @@
         public static string GenerateValidateASCIIName(int length)
         {
             return GenerateNameFromRange(length, ValidASCIIRange);
+        }
+        public static string GenerateValidASCIIOptionValue(int length)
+        {
+            string value = GenerateNameFromRange(length, ValidASCIIRange);
+           
+            if (value.StartsWith("-"))
+            {
+                value = "a" + value.Substring(1);
+            }
+
+            return value;
         }
 
         public static string GenerateValidShareName(int length)
@@ -138,7 +154,8 @@
                 while (
                     InvalidFileNameCharacters.Contains(ch) ||
                     BashControllers.Contains(ch) ||
-                    i == length - 1 && ch == '.');
+                    (i == length - 1 && ch == '.') ||
+                    (i == 0 && ch == '-'));
 
                 sb.Append(ch);
             }
