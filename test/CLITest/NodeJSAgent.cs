@@ -273,7 +273,7 @@ namespace Management.Storage.ScenarioTest
             {
                 ErrorMessages.Add(error);
 
-                string errFile = "Azure.err";
+                string errFile = "azure.err";
                 Test.Info(string.Format("Error details in {0}:", errFile));
                 Test.Info(FileUtil.ReadFileToText(errFile));
             }
