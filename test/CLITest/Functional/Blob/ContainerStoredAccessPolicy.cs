@@ -53,6 +53,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewPolicyDifferentNames()
         {
@@ -66,7 +67,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 CreateStoredAccessPolicyAndValidate(Utility.GenNameString("p", 0), permission, startTime, expiryTime, containerName, false);
                 CreateStoredAccessPolicyAndValidate(Utility.GenNameString("p", 0), permission, startTime, expiryTime, containerName, false);
                 CreateStoredAccessPolicyAndValidate(Utility.GenNameString("p", 4), permission, startTime, expiryTime, containerName, false);
-                CreateStoredAccessPolicyAndValidate(FileNamingGenerator.GenerateValidateASCIIName(64), permission, startTime, expiryTime, containerName, false);
+                CreateStoredAccessPolicyAndValidate(FileNamingGenerator.GenerateValidASCIIOptionValue(64), permission, startTime, expiryTime, containerName, false);
                 foreach (var policyName in FileNamingGenerator.GenerateValidateUnicodeName(40))
                 {
                     CreateStoredAccessPolicyAndValidate(policyName, permission, startTime, expiryTime, containerName, false);
@@ -86,6 +87,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewPolicyDifferentValues()
         {
@@ -101,6 +103,8 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 {
                     CreateStoredAccessPolicy(rawPolicy.PolicyName, rawPolicy.Permission, rawPolicy.StartTime, rawPolicy.ExpiryTime, container, false);
                 }
+
+                Utility.WaitForPolicyBecomeValid<CloudBlobContainer>(container, expectedCount: samplePolicies.Count);
 
                 SharedAccessBlobPolicies expectedPolicies = new SharedAccessBlobPolicies();
                 foreach (Utility.RawStoredAccessPolicy rawPolicy in samplePolicies)
@@ -122,6 +126,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewPolicyInvalidParameter()
         {
@@ -132,35 +137,70 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                Test.Assert(!agent.NewAzureStorageContainerStoredAccessPolicy("$logs", Utility.GenNameString("p", 5), null, null, null), "Create stored acess policy $logs container should fail");
+                Test.Assert(!agent.NewAzureStorageContainerStoredAccessPolicy("$logs", Utility.GenNameString("p", 5), null, null, null), "Create stored access policy $logs container should fail");
                 ExpectedContainErrorMessage("The account being accessed does not have sufficient permissions to execute this operation.");
 
-                Test.Assert(!agent.NewAzureStorageContainerStoredAccessPolicy("CONTAINER", Utility.GenNameString("p", 5), null, null, null), "Create stored acess policy for invalid container name CONTAINER should fail");
-                ExpectedContainErrorMessage("The specifed resource name contains invalid characters.");
+                Test.Assert(!agent.NewAzureStorageContainerStoredAccessPolicy("CONTAINER", Utility.GenNameString("p", 5), null, null, null), "Create stored access policy for invalid container name CONTAINER should fail");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The specifed resource name contains invalid characters.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Container name format is incorrect");
+                }
 
                 Test.Assert(!agent.NewAzureStorageContainerStoredAccessPolicy(container.Name, Utility.GenNameString("p", 5), null, startTime, expiryTime), "Create stored access policy for ExpiryTime earlier than StartTime should fail");
-                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time.");
+                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
 
                 Test.Assert(!agent.NewAzureStorageContainerStoredAccessPolicy(container.Name, Utility.GenNameString("p", 5), null, startTime, startTime), "Create stored access policy for ExpiryTime same as StartTime should fail");
-                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time.");
+                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
 
                 Test.Assert(!agent.NewAzureStorageContainerStoredAccessPolicy(container.Name, Utility.GenNameString("p", 5), "x", null, null), "Create stored access policy with invalid permission should fail");
-                ExpectedContainErrorMessage("Invalid access permission");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Invalid access permission");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Invalid value: x. Options are: r,w,d,l");
+                }
 
-                Test.Assert(!agent.NewAzureStorageContainerStoredAccessPolicy(container.Name, FileNamingGenerator.GenerateValidateASCIIName(65), null, null, null), "Create stored access policy with invalid permission should fail");
-                ExpectedContainErrorMessage("Valid names should be 1 through 64 characters long.");
+                Test.Assert(!agent.NewAzureStorageContainerStoredAccessPolicy(container.Name, FileNamingGenerator.GenerateValidASCIIOptionValue(65), null, null, null), "Create stored access policy with invalid permission should fail");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Valid names should be 1 through 64 characters long.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Reason: Signed identifier ID cannot be empty or over 64 characters in length");
+                }
 
-                for (int i = 1; i<=5; i++)
+                for (int i = 1; i <= 5; i++)
                 {
                     agent.NewAzureStorageContainerStoredAccessPolicy(container.Name, Utility.GenNameString("p", i), null, null, null);
                 }
 
                 Test.Assert(!agent.NewAzureStorageContainerStoredAccessPolicy(container.Name, Utility.GenNameString("p", 6), null, null, null), "Create moret than 5 stored access policies should fail");
-                ExpectedContainErrorMessage("Too many '6' shared access policy identifiers provided");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Too many '6' shared access policy identifiers provided");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("A maximum of 5 access policies may be set");
+                }
 
                 blobUtil.RemoveContainer(container);
                 Test.Assert(!agent.NewAzureStorageContainerStoredAccessPolicy(container.Name, Utility.GenNameString("p", 5), null, null, null), "Create stored access policy against non-existing container should fail");
-                ExpectedContainErrorMessage("does not exist");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("does not exist");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("The specified container does not exist");
+                }
             }
             finally
             {
@@ -174,6 +214,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void GetPolicyVariations()
         {
@@ -215,6 +256,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void GetPolicyFromRoot()
         {
@@ -247,6 +289,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void GetPolicyInvalid()
         {
@@ -255,24 +298,54 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                Test.Assert(!agent.GetAzureStorageContainerStoredAccessPolicy(container.Name, "policy"),
+                string policyName = "policy";
+                Test.Assert(!agent.GetAzureStorageContainerStoredAccessPolicy(container.Name, policyName),
                     "Get non-existing stored access policy should fail");
-                ExpectedContainErrorMessage("Can not find policy");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find policy");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", policyName));
+                }
 
-                Test.Assert(!agent.GetAzureStorageContainerStoredAccessPolicy(container.Name, FileNamingGenerator.GenerateValidateASCIIName(65)),
+                string invalidName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
+                Test.Assert(!agent.GetAzureStorageContainerStoredAccessPolicy(container.Name, invalidName),
                     "Get stored access policy with name length larger than 64 should fail");
-                ExpectedContainErrorMessage("Can not find policy");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find policy");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", invalidName));
+                }
 
-                Test.Assert(!agent.GetAzureStorageContainerStoredAccessPolicy("CONTAINER", "policy"),
+                Test.Assert(!agent.GetAzureStorageContainerStoredAccessPolicy("CONTAINER", policyName),
                     "Get stored access policy from invalid container name should fail");
-                ExpectedContainErrorMessage("The specifed resource name contains invalid characters");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The specifed resource name contains invalid characters");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Container name format is incorrect");
+                }
 
-                Test.Assert(!agent.GetAzureStorageContainerStoredAccessPolicy("$logs", "policy"),
+                Test.Assert(!agent.GetAzureStorageContainerStoredAccessPolicy("$logs", policyName),
                     "Get stored access policy from invalid container name should fail");
-                ExpectedContainErrorMessage("Can not find policy");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find policy");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", policyName));
+                }
 
                 blobUtil.RemoveContainer(container);
-                Test.Assert(!agent.GetAzureStorageContainerStoredAccessPolicy(container.Name, "policy"),
+                Test.Assert(!agent.GetAzureStorageContainerStoredAccessPolicy(container.Name, policyName),
                     "Get stored access policy from invalid container name should fail");
                 ExpectedContainErrorMessage("The specified container does not exist.");
             }
@@ -288,6 +361,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void RemovePolicyFromRoot()
         {
@@ -316,6 +390,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void RemovePolicyInvalid()
         {
@@ -324,26 +399,57 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                Test.Assert(!agent.RemoveAzureStorageContainerStoredAccessPolicy(container.Name, "policy"),
+                string policyName = "policy";
+                Test.Assert(!agent.RemoveAzureStorageContainerStoredAccessPolicy(container.Name, policyName),
                     "Remove non-existing stored access policy should fail");
-                ExpectedContainErrorMessage("Can not find policy");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find policy");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", policyName));
+                }
 
-                Test.Assert(!agent.RemoveAzureStorageContainerStoredAccessPolicy(container.Name, FileNamingGenerator.GenerateValidateASCIIName(65)),
+                string invalidName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
+                Test.Assert(!agent.RemoveAzureStorageContainerStoredAccessPolicy(container.Name, FileNamingGenerator.GenerateValidASCIIOptionValue(65)),
                     "Remove stored access policy with name length larger than 64 should fail");
-                ExpectedContainErrorMessage("Can not find policy");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find policy");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", invalidName));
+                }
 
-                Test.Assert(!agent.RemoveAzureStorageContainerStoredAccessPolicy("CONTAINER", "policy"),
+                Test.Assert(!agent.RemoveAzureStorageContainerStoredAccessPolicy("CONTAINER", policyName),
                     "Remove stored access policy from invalid container name should fail");
-                ExpectedContainErrorMessage("The specifed resource name contains invalid characters");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The specifed resource name contains invalid characters");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Container name format is incorrect");
+                }
 
-                Test.Assert(!agent.RemoveAzureStorageContainerStoredAccessPolicy("$logs", "policy"),
+                Test.Assert(!agent.RemoveAzureStorageContainerStoredAccessPolicy("$logs", policyName),
                     "Remove stored access policy from invalid container name should fail");
-                ExpectedContainErrorMessage("Can not find policy");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find policy");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", policyName));
+                }
 
                 blobUtil.RemoveContainer(container);
-                Test.Assert(!agent.RemoveAzureStorageContainerStoredAccessPolicy(container.Name, "policy"),
+                Test.Assert(!agent.RemoveAzureStorageContainerStoredAccessPolicy(container.Name, policyName),
                     "Remove stored access policy from invalid container name should fail");
-                ExpectedContainErrorMessage("The specified container does not exist.");
+                ExpectedContainErrorMessage("The specified container does not exist");
+
             }
             finally
             {
@@ -357,6 +463,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetPolicyDifferentNames()
         {
@@ -373,7 +480,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             policy1.PolicyName = policy2.PolicyName = Utility.GenNameString("p", 4);
             SetStoredAccessPolicyAndValidate(policy1, policy2);
 
-            policy1.PolicyName = policy2.PolicyName = FileNamingGenerator.GenerateValidateASCIIName(64);
+            policy1.PolicyName = policy2.PolicyName = FileNamingGenerator.GenerateValidASCIIOptionValue(64);
             SetStoredAccessPolicyAndValidate(policy1, policy2);
 
             foreach (var samplePolicyName in FileNamingGenerator.GenerateValidateUnicodeName(40))
@@ -393,12 +500,13 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetPolicyDifferentValues()
         {
             string containerName = Utility.GenNameString("container");
             List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessBlobPolicy>();
-            samplePolicies[4].PolicyName = samplePolicies[3].PolicyName =samplePolicies[2].PolicyName = samplePolicies[1].PolicyName = samplePolicies[0].PolicyName;
+            samplePolicies[4].PolicyName = samplePolicies[3].PolicyName = samplePolicies[2].PolicyName = samplePolicies[1].PolicyName = samplePolicies[0].PolicyName;
             samplePolicies[2].ExpiryTime = DateTime.Today.AddDays(3);
             SetStoredAccessPolicyAndValidate(samplePolicies[0], samplePolicies[1], containerName, true, false);
             SetStoredAccessPolicyAndValidate(samplePolicies[1], samplePolicies[2], containerName, true, false);
@@ -409,12 +517,14 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetPolicyNoStartTimeNoExpiryTime()
         {
             CloudBlobContainer container = blobUtil.CreateContainer();
             Utility.ClearStoredAccessPolicy<CloudBlobContainer>(container);
             Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessBlobPolicy>()[0];
+            double effectiveTime = 30;
 
             try
             {
@@ -423,7 +533,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 //NoStartTime
                 Test.Assert(agent.SetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, null, null, null, true, false),
                     "Set stored access policy with -NoStartTime should succeed");
-
+                Thread.Sleep(TimeSpan.FromSeconds(effectiveTime));
                 SharedAccessBlobPolicies expectedPolicies = new SharedAccessBlobPolicies();
                 expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessBlobPolicy>(null, samplePolicy.ExpiryTime, samplePolicy.Permission));
                 Utility.ValidateStoredAccessPolicies<SharedAccessBlobPolicy>(container.GetPermissions().SharedAccessPolicies, expectedPolicies);
@@ -434,7 +544,8 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 //NoExpiryTime
                 Test.Assert(agent.SetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, null, null, null, false, true),
-                    "Set stored access policy with -NoStartTime should succeed");
+                    "Set stored access policy with -NoExpiryTime should succeed");
+                Thread.Sleep(TimeSpan.FromSeconds(effectiveTime)); 
                 expectedPolicies = new SharedAccessBlobPolicies();
                 expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessBlobPolicy>(null, null, samplePolicy.Permission));
                 Utility.ValidateStoredAccessPolicies<SharedAccessBlobPolicy>(container.GetPermissions().SharedAccessPolicies, expectedPolicies);
@@ -448,7 +559,8 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 CreateStoredAccessPolicy(samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime, container);
 
                 Test.Assert(agent.SetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, null, null, null, true, true),
-                    "Set stored access policy with -NoStartTime should succeed");
+                    "Set stored access policy with both -NoStartTime and -NoExpiryTime should succeed");
+                Thread.Sleep(TimeSpan.FromSeconds(effectiveTime));
                 expectedPolicies = new SharedAccessBlobPolicies();
                 expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessBlobPolicy>(null, null, samplePolicy.Permission));
                 Utility.ValidateStoredAccessPolicies<SharedAccessBlobPolicy>(container.GetPermissions().SharedAccessPolicies, expectedPolicies);
@@ -469,6 +581,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetPolicyInvalidParameter()
         {
@@ -480,34 +593,84 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             try
             {
                 Test.Assert(!agent.SetAzureStorageContainerStoredAccessPolicy("$logs", Utility.GenNameString("p", 5), null, null, null), "Set stored acess policy $logs container should fail");
-                ExpectedContainErrorMessage("Can not find policy");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find policy");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Reason:");
+                }
 
                 Test.Assert(!agent.SetAzureStorageContainerStoredAccessPolicy("CONTAINER", Utility.GenNameString("p", 5), null, null, null), "Set stored acess policy for invalid container name CONTAINER should fail");
-                ExpectedContainErrorMessage("The specifed resource name contains invalid characters.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The specifed resource name contains invalid characters.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Reason:");
+                }
 
                 Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessBlobPolicy>()[0];
                 CreateStoredAccessPolicy(samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime, container);
                 Test.Assert(!agent.SetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, null, startTime, expiryTime), "Set stored access policy for ExpiryTime earlier than StartTime should fail");
-                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time.");
+                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
 
                 Test.Assert(!agent.SetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, null, startTime, startTime), "Set stored access policy for ExpiryTime same as StartTime should fail");
-                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time.");
+                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
 
                 Test.Assert(!agent.SetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, "x", null, null), "Set stored access policy with invalid permission should fail");
-                ExpectedContainErrorMessage("Invalid access permission");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Invalid access permission");  
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Invalid value: x. Options are: r,w,d,l");
+                }
 
-                Test.Assert(!agent.SetAzureStorageContainerStoredAccessPolicy(container.Name, FileNamingGenerator.GenerateValidateASCIIName(65), null, null, null), "Create stored access policy with invalid permission should fail");
-                ExpectedContainErrorMessage("Can not find policy");
+                string invalidName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
+                Test.Assert(!agent.SetAzureStorageContainerStoredAccessPolicy(container.Name, invalidName, null, null, null), "Create stored access policy with invalid name length should fail");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find policy");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", invalidName));
+                }
 
-                Test.Assert(!agent.SetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, null, true, false), "Set stored access policy for ExpiryTime same as StartTime should fail");
-                ExpectedContainErrorMessage("Parameter -StartTime and -NoStartTime are mutually exclusive");
+                if (lang == Language.PowerShell)
+                {
+                    Test.Assert(!agent.SetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, null, true, false), "Setting both -StartTime and -NoStartTime should fail");
+                    ExpectedContainErrorMessage("Parameter -StartTime and -NoStartTime are mutually exclusive");
+                }
+                else
+                {
+                    Test.Assert(agent.SetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, null, true, false), "Setting both -StartTime and -NoStartTime should succeed");
+                }
 
-                Test.Assert(!agent.SetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, samplePolicy.Permission, null, samplePolicy.ExpiryTime, false, true), "Set stored access policy for ExpiryTime same as StartTime should fail");
-                ExpectedContainErrorMessage("Parameter -ExpiryTime and -NoExpiryTime are mutually exclusive");
+                if (lang == Language.PowerShell)
+                {
+                    Test.Assert(!agent.SetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, samplePolicy.Permission, null, samplePolicy.ExpiryTime, false, true), "Setting both -ExpiryTime and -NoExpiryTime should fail");
+                    ExpectedContainErrorMessage("Parameter -ExpiryTime and -NoExpiryTime are mutually exclusive");
+                }
+                else
+                {
+                    Test.Assert(agent.SetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, samplePolicy.Permission, null, samplePolicy.ExpiryTime, false, true), "Setting both -ExpiryTime and -NoExpiryTime should succeed");
+                }
 
                 blobUtil.RemoveContainer(container);
                 Test.Assert(!agent.SetAzureStorageContainerStoredAccessPolicy(container.Name, Utility.GenNameString("p", 5), null, null, null), "Set stored access policy against non-existing container should fail");
-                ExpectedContainErrorMessage("does not exist");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("does not exist");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("The specified container does not exist");
+                }
             }
             finally
             {
@@ -521,6 +684,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void PolicyWithSASStartTimePastToFuture()
         {
@@ -572,6 +736,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void PolicyWithSASStartTimeFutureToPast()
         {
@@ -621,6 +786,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void PolicyWithSASRemovePolicy()
         {
@@ -683,7 +849,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 if (ifCleanUpPolicy)
                 {
-                    Utility.ClearStoredAccessPolicy<CloudBlobContainer>(container); 
+                    Utility.ClearStoredAccessPolicy<CloudBlobContainer>(container);
                 }
                 if (ifCleanUpContainer)
                 {
@@ -737,6 +903,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 }
 
                 expectedPolicies.Add(policy2.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessBlobPolicy>(policy2.StartTime, policy2.ExpiryTime, policy2.Permission));
+                Utility.WaitForPolicyBecomeValid<CloudBlobContainer>(container, policy2);
                 Utility.ValidateStoredAccessPolicies<SharedAccessBlobPolicy>(container.GetPermissions().SharedAccessPolicies, expectedPolicies);
 
                 //validate the output

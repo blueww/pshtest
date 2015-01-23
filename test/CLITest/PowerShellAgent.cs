@@ -95,6 +95,9 @@ namespace Management.Storage.ScenarioTest
 
         private PowerShell GetPowerShellInstance()
         {
+            //assign the error message table for error validation
+            ExpectedErrorMsgTable = ExpectedErrorMsgTablePS;
+
             if (PowerShellInstance != null)
             {
                 PowerShellAgent.PowerShellInstance.Commands = PowerShellAgent.InitCommand;
@@ -132,9 +135,6 @@ namespace Management.Storage.ScenarioTest
             {
                 throw new Exception(String.Format("Module file path : {0} not found!", ModuleFilePath));
             }
-
-            //assign the error message table for error validation
-            ExpectedErrorMsgTable = ExpectedErrorMsgTablePS;
         }
 
         /// <summary>
@@ -2817,6 +2817,16 @@ namespace Management.Storage.ScenarioTest
         #endregion
 
         public override bool ShowAzureStorageAccountConnectionString(string accountName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool createAzureStorageAccount(string accountName, string subscription, string label, string description, string location, string affinityGroup, string type, bool? geoReplication = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool setAzureStorageAccount(string accountName, string label, string description, string type, bool? geoReplication = null)
         {
             throw new NotImplementedException();
         }

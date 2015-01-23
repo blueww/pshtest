@@ -166,14 +166,19 @@ namespace Management.Storage.ScenarioTest.Util
             return Utility.GenNameString(prefix);
         }
 
-        public static string ReadFileToText(string path)
+        public static string ReadFileToText(string fileName)
         {
+            string path;
+            string azurePath = ".azure";
             if (AgentOSType == OSType.Windows)
             {
+                path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), azurePath, fileName);
                 return File.ReadAllText(path);
             }
             else 
             {
+                RunNodeJSProcess(string.Format("who", true));
+                path = "/" + Path.Combine("home", Output.Substring(0, Output.IndexOf(' ')), azurePath, fileName);
                 RunNodeJSProcess(string.Format("cat '{0}'", GetLinuxPath(path)), true);
                 return Output;
             }

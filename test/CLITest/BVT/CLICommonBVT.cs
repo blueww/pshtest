@@ -1387,6 +1387,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewTableStoredPolicyTest()
         {
@@ -1399,7 +1400,7 @@ namespace Management.Storage.ScenarioTest.BVT
             CloudTableUtil tableUtil = new CloudTableUtil(CommonStorageAccount);
             CloudTable table = tableUtil.CreateTable();
             Utility.ClearStoredAccessPolicy<CloudTable>(table);
-            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>()[0];
+            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>(lang == Language.NodeJS)[0];
 
             try
             {                
@@ -1409,6 +1410,9 @@ namespace Management.Storage.ScenarioTest.BVT
 
                 SharedAccessTablePolicies expectedPolicies = new SharedAccessTablePolicies();
                 expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessTablePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission));
+
+                Utility.WaitForPolicyBecomeValid<CloudTable>(table, samplePolicy); 
+
                 Utility.ValidateStoredAccessPolicies<SharedAccessTablePolicy>(table.GetPermissions().SharedAccessPolicies, expectedPolicies);
             }
             finally
@@ -1424,6 +1428,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void GetTableStoredPolicyTest()
         {
@@ -1436,13 +1441,16 @@ namespace Management.Storage.ScenarioTest.BVT
             CloudTableUtil tableUtil = new CloudTableUtil(CommonStorageAccount);
             CloudTable table = tableUtil.CreateTable();
             Utility.ClearStoredAccessPolicy<CloudTable>(table);
-            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>()[0];
+            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>(lang == Language.NodeJS)[0];
 
             try
             {
                 Test.Assert(agent.NewAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                     "Create stored access policy in table should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
+
+                Utility.WaitForPolicyBecomeValid<CloudTable>(table, samplePolicy);
+
                 Test.Assert(agent.GetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName),
                 "Get stored access policy in table should succeed");
                 Test.Info("Get stored access policy:{0}", samplePolicy.PolicyName);
@@ -1464,6 +1472,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void RemoveTableStoredPolicyTest()
         {
@@ -1476,7 +1485,7 @@ namespace Management.Storage.ScenarioTest.BVT
             CloudTableUtil tableUtil = new CloudTableUtil(CommonStorageAccount);
             CloudTable table = tableUtil.CreateTable();
             Utility.ClearStoredAccessPolicy<CloudTable>(table);
-            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>()[0];
+            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>(lang == Language.NodeJS)[0];
 
             try
             {
@@ -1501,6 +1510,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetTableStoredPolicyTest()
         {
@@ -1513,7 +1523,7 @@ namespace Management.Storage.ScenarioTest.BVT
             CloudTableUtil tableUtil = new CloudTableUtil(CommonStorageAccount);
             CloudTable table = tableUtil.CreateTable();
             Utility.ClearStoredAccessPolicy<CloudTable>(table);
-            List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>();
+            List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>(lang == Language.NodeJS);
             Utility.RawStoredAccessPolicy samplePolicy1 = samplePolicies[0];
             Utility.RawStoredAccessPolicy samplePolicy2 = samplePolicies[1];
             samplePolicy2.PolicyName = samplePolicy1.PolicyName;
@@ -1527,6 +1537,8 @@ namespace Management.Storage.ScenarioTest.BVT
                 Test.Assert(agent.SetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy2.PolicyName, samplePolicy2.Permission, samplePolicy2.StartTime, samplePolicy2.ExpiryTime),
                 "Set stored access policy in table should succeed");
                 Test.Info("Set stored access policy:{0}", samplePolicy2.PolicyName);
+
+                Utility.WaitForPolicyBecomeValid<CloudTable>(table, samplePolicy2); 
 
                 //get the policy and validate
                 SharedAccessTablePolicies expectedPolicies = new SharedAccessTablePolicies();
@@ -1551,6 +1563,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewQueueStoredPolicyTest()
         {
@@ -1573,6 +1586,9 @@ namespace Management.Storage.ScenarioTest.BVT
 
                 SharedAccessQueuePolicies expectedPolicies = new SharedAccessQueuePolicies();
                 expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessQueuePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission));
+
+                Utility.WaitForPolicyBecomeValid<CloudQueue>(queue, samplePolicy); 
+
                 Utility.ValidateStoredAccessPolicies<SharedAccessQueuePolicy>(queue.GetPermissions().SharedAccessPolicies, expectedPolicies);
             }
             finally
@@ -1588,6 +1604,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void GetQueueStoredPolicyTest()
         {
@@ -1607,6 +1624,8 @@ namespace Management.Storage.ScenarioTest.BVT
                 Test.Assert(agent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                     "Create stored access policy in queue should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
+
+                Utility.WaitForPolicyBecomeValid<CloudQueue>(queue, samplePolicy);
 
                 Test.Assert(agent.GetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName),
                 "Get stored access policy in queue should succeed");
@@ -1629,6 +1648,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void RemoveQueueStoredPolicyTest()
         {
@@ -1666,6 +1686,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetQueueStoredPolicyTest()
         {
@@ -1694,6 +1715,8 @@ namespace Management.Storage.ScenarioTest.BVT
                 "Set stored access policy in queue should succeed");
                 Test.Info("Set stored access policy:{0}", samplePolicy2.PolicyName);
 
+                Utility.WaitForPolicyBecomeValid<CloudQueue>(queue, samplePolicy2); 
+
                 //get the policy and validate
                 SharedAccessQueuePolicies expectedPolicies = new SharedAccessQueuePolicies();
                 expectedPolicies.Add(samplePolicy2.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessQueuePolicy>(samplePolicy2.StartTime, samplePolicy2.ExpiryTime, samplePolicy2.Permission));
@@ -1718,6 +1741,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewContainerStoredPolicyTest()
         {
@@ -1741,6 +1765,9 @@ namespace Management.Storage.ScenarioTest.BVT
                 //get the policy and validate
                 SharedAccessBlobPolicies expectedPolicies = new SharedAccessBlobPolicies();
                 expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessBlobPolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission));
+
+                Utility.WaitForPolicyBecomeValid<CloudBlobContainer>(container, samplePolicy);
+
                 Utility.ValidateStoredAccessPolicies<SharedAccessBlobPolicy>(container.GetPermissions().SharedAccessPolicies, expectedPolicies);
             }
             finally
@@ -1755,6 +1782,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void GetContainerStoredPolicyTest()
         {
@@ -1774,6 +1802,8 @@ namespace Management.Storage.ScenarioTest.BVT
                 Test.Assert(agent.NewAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                     "Create stored access policy in container should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
+
+                Utility.WaitForPolicyBecomeValid<CloudBlobContainer>(container, samplePolicy);
 
                 Test.Assert(agent.GetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName),
                 "Get stored access policy in container should succeed");
@@ -1796,6 +1826,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void RemoveContainerStoredPolicyTest()
         {
@@ -1833,6 +1864,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetContainerStoredPolicyTest()
         {
@@ -1860,6 +1892,8 @@ namespace Management.Storage.ScenarioTest.BVT
                 Test.Assert(agent.SetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy2.PolicyName, samplePolicy2.Permission, samplePolicy2.StartTime, samplePolicy2.ExpiryTime),
                 "Set stored access policy in container should succeed");
                 Test.Info("Set stored access policy:{0}", samplePolicy2.PolicyName);
+
+                Utility.WaitForPolicyBecomeValid<CloudBlobContainer>(container, samplePolicy2); 
 
                 //get the policy and validate
                 SharedAccessBlobPolicies expectedPolicies = new SharedAccessBlobPolicies();
