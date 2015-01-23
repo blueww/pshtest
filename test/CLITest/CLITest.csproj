@@ -171,6 +171,7 @@
     <Compile Include="NodeJSExecutionError.cs" />
     <Compile Include="PowerShellExecutionError.cs" />
     <Compile Include="PowerShellExecutionResult.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util\AssertUtil.cs" />
     <Compile Include="Util\BlockReadUntilSetStream.cs" />
     <Compile Include="Functional\SASInterop.cs" />
