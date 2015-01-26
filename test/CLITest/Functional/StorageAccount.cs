@@ -60,7 +60,7 @@ namespace Management.Storage.ScenarioTest
 
         private static ManagementClient managementClient;
         private static StorageManagementClient storageClient;
-        private static string[] ForbiddenWordsInAccountName = {"fuck", "shit", "cunt", "cum", "nigger"};
+        private static string[] ForbiddenWordsInAccountName = {"msn", "fuck", "shit", "cunt", "cum", "nigger"};
 
         public override void OnTestSetup()
         {
@@ -791,13 +791,18 @@ namespace Management.Storage.ScenarioTest
             string affinityGroup = null;
             string accountType = AccountType.Standard_GRS;
 
-            CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
+            try
+            {
+                CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
 
-            Test.Assert(!agent.createAzureStorageAccount(accountName, subscriptionId, label, description, location, affinityGroup, accountType),
-                string.Format("Creating existing stoarge account {0} in location {1} should fail", accountName, location));
-            ExpectedContainErrorMessage(string.Format("A storage account named '{0}' already exists in the subscription", accountName));
-
-            DeleteAccount(accountName);
+                Test.Assert(!agent.createAzureStorageAccount(accountName, subscriptionId, label, description, location, affinityGroup, accountType),
+                    string.Format("Creating existing stoarge account {0} in location {1} should fail", accountName, location));
+                ExpectedContainErrorMessage(string.Format("A storage account named '{0}' already exists in the subscription", accountName));
+            }
+            finally
+            {
+                DeleteAccount(accountName);
+            }
         }
 
         [TestMethod]
@@ -935,25 +940,30 @@ namespace Management.Storage.ScenarioTest
             string accountType = AccountType.Standard_ZRS;
             string affinityGroup = null;
 
-            CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
-
-            foreach (FieldInfo info in typeof(AccountType).GetFields())
+            try
             {
-                string newAccountType = info.GetRawConstantValue() as string;
-                Test.Assert(!agent.setAzureStorageAccount(accountName, label, description, newAccountType),
-                    string.Format("Setting stoarge account {0} to type {1} should fail", accountName, newAccountType));
+                CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
 
-                if (newAccountType == AccountType.Standard_ZRS || newAccountType == AccountType.Premium_LRS)
+                foreach (FieldInfo info in typeof(AccountType).GetFields())
                 {
-                    ExpectedContainErrorMessage(string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", newAccountType));
-                }
-                else
-                {
-                    ExpectedContainErrorMessage(string.Format("Cannot change storage account type from Standard_ZRS to {0} or vice versa", info.Name));
+                    string newAccountType = info.GetRawConstantValue() as string;
+                    Test.Assert(!agent.setAzureStorageAccount(accountName, label, description, newAccountType),
+                        string.Format("Setting stoarge account {0} to type {1} should fail", accountName, newAccountType));
+
+                    if (newAccountType == AccountType.Standard_ZRS || newAccountType == AccountType.Premium_LRS)
+                    {
+                        ExpectedContainErrorMessage(string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", newAccountType));
+                    }
+                    else
+                    {
+                        ExpectedContainErrorMessage(string.Format("Cannot change storage account type from Standard_ZRS to {0} or vice versa", info.Name));
+                    }
                 }
             }
-
-            DeleteAccount(accountName);
+            finally
+            {
+                DeleteAccount(accountName);
+            }
         }
 
         [TestMethod]
@@ -968,25 +978,30 @@ namespace Management.Storage.ScenarioTest
             string accountType = AccountType.Premium_LRS;
             string affinityGroup = null;
 
-            CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
-
-            foreach (FieldInfo info in typeof(AccountType).GetFields())
+            try
             {
-                string newAccountType = info.GetRawConstantValue() as string;
-                Test.Assert(!agent.setAzureStorageAccount(accountName, label, description, newAccountType),
-                    string.Format("Setting stoarge account {0} to type {1} should fail", accountName, newAccountType));
+                CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
 
-                if (newAccountType == AccountType.Standard_ZRS || newAccountType == AccountType.Premium_LRS)
+                foreach (FieldInfo info in typeof(AccountType).GetFields())
                 {
-                    ExpectedContainErrorMessage(string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", newAccountType));
-                }
-                else
-                {
-                    ExpectedContainErrorMessage(string.Format("Cannot change storage account type from Premium_LRS to {0} or vice versa", info.Name));
+                    string newAccountType = info.GetRawConstantValue() as string;
+                    Test.Assert(!agent.setAzureStorageAccount(accountName, label, description, newAccountType),
+                        string.Format("Setting stoarge account {0} to type {1} should fail", accountName, newAccountType));
+
+                    if (newAccountType == AccountType.Standard_ZRS || newAccountType == AccountType.Premium_LRS)
+                    {
+                        ExpectedContainErrorMessage(string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", newAccountType));
+                    }
+                    else
+                    {
+                        ExpectedContainErrorMessage(string.Format("Cannot change storage account type from Premium_LRS to {0} or vice versa", info.Name));
+                    }
                 }
             }
-
-            DeleteAccount(accountName);
+            finally
+            {
+                DeleteAccount(accountName);
+            }
         }
 
         [TestMethod]
@@ -1032,9 +1047,15 @@ namespace Management.Storage.ScenarioTest
 
         private void CreateAndValidateAccount(string accountName, string label, string description, string location, string affinityGroup, string accountType, bool? geoReplication = null)
         {
-            CreateNewAccount(accountName, label, description, location, affinityGroup, accountType, geoReplication);
-            ValidateAccount(accountName, label, description, location, affinityGroup, accountType, geoReplication);
-            DeleteAccount(accountName);
+            try
+            {
+                CreateNewAccount(accountName, label, description, location, affinityGroup, accountType, geoReplication);
+                ValidateAccount(accountName, label, description, location, affinityGroup, accountType, geoReplication);
+            }
+            finally
+            {
+                DeleteAccount(accountName);
+            }
         }
 
         private void SetAndValidateAccount(string accountName, string originalAccountType, string newLabel, string newDescription, string newAccountType, bool? geoReplication = null)
@@ -1044,13 +1065,18 @@ namespace Management.Storage.ScenarioTest
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Setting";
 
-            CreateNewAccount(accountName, label, description, location, affinityGroup, originalAccountType, geoReplication);
-            ValidateAccount(accountName, label, description, location, affinityGroup, originalAccountType, geoReplication);
+            try
+            {
+                CreateNewAccount(accountName, label, description, location, affinityGroup, originalAccountType, geoReplication);
+                ValidateAccount(accountName, label, description, location, affinityGroup, originalAccountType, geoReplication);
 
-            SetAccount(accountName, newLabel, newDescription, newAccountType, geoReplication);
-            ValidateAccount(accountName, newLabel, newDescription, null, null, newAccountType, geoReplication);
-
-            DeleteAccount(accountName);
+                SetAccount(accountName, newLabel, newDescription, newAccountType, geoReplication);
+                ValidateAccount(accountName, newLabel, newDescription, null, null, newAccountType, geoReplication);
+            }
+            finally
+            {
+                DeleteAccount(accountName);
+            }
         }
 
         private void CreateNewAccount(string accountName, string label, string description, string location, string affinityGroup, string accountType, bool? geoReplication = null)
