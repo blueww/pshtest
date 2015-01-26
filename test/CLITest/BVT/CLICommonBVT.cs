@@ -1495,8 +1495,12 @@ namespace Management.Storage.ScenarioTest.BVT
 
                 Test.Assert(agent.RemoveAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName),
                     "Remove stored access policy in table should succeed");
-                Test.Info("Remove stored access policy:{0}", samplePolicy.PolicyName); 
-                Test.Assert(table.GetPermissions().SharedAccessPolicies.Count == 0, "Policy should be removed");
+                Test.Info("Remove stored access policy:{0}", samplePolicy.PolicyName);
+
+                Utility.WaitForPolicyBecomeValid<CloudTable>(table, expectedCount: 0);
+
+                int count = table.GetPermissions().SharedAccessPolicies.Count;
+                Test.Assert(count == 0, string.Format("Policy should be removed. Current policy count is {0}", count));
             }
             finally
             {
@@ -1671,8 +1675,12 @@ namespace Management.Storage.ScenarioTest.BVT
 
                 Test.Assert(agent.RemoveAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName),
                     "Remove stored access policy in queue should succeed");
-                Test.Info("Remove stored access policy:{0}", samplePolicy.PolicyName); ;
-                Test.Assert(queue.GetPermissions().SharedAccessPolicies.Count == 0, "Policy should be removed");
+                Test.Info("Remove stored access policy:{0}", samplePolicy.PolicyName);
+
+                Utility.WaitForPolicyBecomeValid<CloudQueue>(queue, expectedCount: 0);
+
+                int count = queue.GetPermissions().SharedAccessPolicies.Count;
+                Test.Assert(count == 0, string.Format("Policy should be removed. Current policy count is {0}", count));
             }
             finally
             {
@@ -1849,8 +1857,12 @@ namespace Management.Storage.ScenarioTest.BVT
 
                 Test.Assert(agent.RemoveAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName),
                     "Remove stored access policy in container should succeed");
-                Test.Info("Remove stored access policy:{0}", samplePolicy.PolicyName); ;
-                Test.Assert(container.GetPermissions().SharedAccessPolicies.Count == 0, "Policy should be removed");
+                Test.Info("Remove stored access policy:{0}", samplePolicy.PolicyName);
+
+                Utility.WaitForPolicyBecomeValid<CloudBlobContainer>(container, expectedCount: 0);
+
+                int count = container.GetPermissions().SharedAccessPolicies.Count;
+                Test.Assert(count == 0, string.Format("Policy should be removed. Current policy count is {0}", count));
             }
             finally
             {

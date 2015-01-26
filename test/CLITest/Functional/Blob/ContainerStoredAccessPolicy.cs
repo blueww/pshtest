@@ -376,7 +376,11 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 Test.Assert(agent.RemoveAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName),
                     "Remove stored access policy in container should succeed");
                 Test.Info("Remove stored access policy:{0}", samplePolicy.PolicyName);
-                Test.Assert(container.GetPermissions().SharedAccessPolicies.Count == 0, "Policy should be removed");
+
+                Utility.WaitForPolicyBecomeValid<CloudBlobContainer>(container, expectedCount: 0);
+
+                int count = container.GetPermissions().SharedAccessPolicies.Count;
+                Test.Assert(count == 0, string.Format("Policy should be removed. Current policy count is {0}", count));
             }
             finally
             {
