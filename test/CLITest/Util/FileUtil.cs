@@ -170,18 +170,26 @@ namespace Management.Storage.ScenarioTest.Util
         {
             string path;
             string azurePath = ".azure";
+            string userName = Test.Data.Get("UserName");
             if (AgentOSType == OSType.Windows)
             {
                 path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), azurePath, fileName);
                 return File.ReadAllText(path);
             }
-            else 
+            else if (AgentOSType == OSType.Linux) 
             {
-                RunNodeJSProcess(string.Format("who", true));
-                path = "/" + Path.Combine("home", Output.Substring(0, Output.IndexOf(' ')), azurePath, fileName);
+                path = "/" + Path.Combine("home", userName, azurePath, fileName);
                 RunNodeJSProcess(string.Format("cat '{0}'", GetLinuxPath(path)), true);
                 return Output;
             }
+            else if (AgentOSType == OSType.Mac)
+            {
+                path = "/" + Path.Combine("users", userName, azurePath, fileName);
+                RunNodeJSProcess(string.Format("cat '{0}'", GetLinuxPath(path)), true);
+                return Output;
+            }
+
+            return string.Empty;
         }
 
         /// <summary>
