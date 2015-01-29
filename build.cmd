@@ -21,8 +21,7 @@ if [%PRODUCT%] == [] GOTO :xPlat
 GOTO :END
 
 :xPlat
-cd Xplat
-.\tools\windows\build.cmd
-cd ..
+CALL .\Xplat\tools\windows\scripts\prepareRepoClone.cmd
+msbuild /t:rebuild /p:Configuration=Release .\Xplat\tools\windows\azure-cli.sln
 
 :END
