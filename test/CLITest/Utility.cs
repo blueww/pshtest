@@ -797,6 +797,16 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+        public static string SqueezeSpaces(string value)
+        {
+            while (value.IndexOf("  ") != -1)
+            {
+                value = value.Replace("  ", " ");
+            }
+
+            return value;
+        }
+
         /// <summary>
         /// Set up shared access policy permission for SharedAccessTablePolicy
         /// </summary>
