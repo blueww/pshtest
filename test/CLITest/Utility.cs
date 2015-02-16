@@ -17,13 +17,11 @@ namespace Management.Storage.ScenarioTest
     using System;
     using System.Collections;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
     using System.Linq;
-    using System.Reflection;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Threading;
     using Management.Storage.ScenarioTest.Util;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Auth;
     using Microsoft.WindowsAzure.Storage.Blob;
@@ -799,12 +797,7 @@ namespace Management.Storage.ScenarioTest
 
         public static string SqueezeSpaces(string value)
         {
-            while (value.IndexOf("  ") != -1)
-            {
-                value = value.Replace("  ", " ");
-            }
-
-            return value;
+            return Regex.Replace(value, "\\s{2,}", " ");
         }
 
         /// <summary>
