@@ -111,7 +111,7 @@ namespace Management.Storage.ScenarioTest
                 string BlobName = Utility.GenNameString("nonexisting");
 
                 // Delete the blob if it exists
-                ICloudBlob blob = BlobHelper.QueryBlob(ContainerName, BlobName);
+                CloudBlob blob = BlobHelper.QueryBlob(ContainerName, BlobName);
                 if (blob != null)
                     blob.DeleteIfExists();
 
@@ -153,7 +153,7 @@ namespace Management.Storage.ScenarioTest
 
             //--------------Upload operation--------------
             Test.Assert(agent.SetAzureStorageBlobContent(UploadFilePath, ROOT_CONTAINER_NAME, Type), Utility.GenComparisonData("SendAzureStorageBlob", true));
-            ICloudBlob blob = BlobHelper.QueryBlob(ROOT_CONTAINER_NAME, blobName);
+            CloudBlob blob = BlobHelper.QueryBlob(ROOT_CONTAINER_NAME, blobName);
             blob.FetchAttributes();
             // Verification for returned values
             CloudBlobUtil.PackBlobCompareData(blob, dic);
@@ -214,7 +214,7 @@ namespace Management.Storage.ScenarioTest
                 string BLOB_NAME = Utility.GenNameString("nonexisting");
 
                 // Delete the blob if it exists
-                ICloudBlob blob = BlobHelper.QueryBlob(CONTAINER_NAME, BLOB_NAME);
+                CloudBlob blob = BlobHelper.QueryBlob(CONTAINER_NAME, BLOB_NAME);
                 if (blob != null)
                     blob.DeleteIfExists();
 
@@ -250,7 +250,7 @@ namespace Management.Storage.ScenarioTest
             try
             {
                 // Delete the blob if it exists
-                ICloudBlob blob = BlobHelper.QueryBlob(CONTAINER_NAME, BLOB_NAME);
+                CloudBlob blob = BlobHelper.QueryBlob(CONTAINER_NAME, BLOB_NAME);
                 if (blob != null)
                     blob.DeleteIfExists();
 
