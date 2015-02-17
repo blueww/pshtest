@@ -69,7 +69,7 @@ namespace Management.Storage.ScenarioTest.Performance.Helper
 
             //check blob
             var folderName = local;
-            List<ICloudBlob> bloblist;
+            List<CloudBlob> bloblist;
             BlobHelper.ListBlobs(remote, out bloblist);
 
             // check file num first

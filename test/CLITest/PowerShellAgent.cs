@@ -1100,11 +1100,11 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps);
         }
 
-        public override bool StartAzureStorageBlobCopy(ICloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        public override bool StartAzureStorageBlobCopy(CloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true)
         {
             PowerShell ps = GetPowerShellInstance();
             ps.AddCommand("Start-CopyAzureStorageBlob");
-            ps.BindParameter("ICloudBlob", srcBlob);
+            ps.BindParameter("CloudBlob", srcBlob);
             ps.BindParameter("DestContainer", destContainerName);
             ps.BindParameter("Force", force);
             ps.BindParameter("DestBlob", destBlobName);
@@ -1127,11 +1127,11 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps);
         }
 
-        public override bool GetAzureStorageBlobCopyState(ICloudBlob blob, object context, bool waitForComplete)
+        public override bool GetAzureStorageBlobCopyState(CloudBlob blob, object context, bool waitForComplete)
         {
             PowerShell ps = GetPowerShellInstance();
             ps.AddCommand("Get-AzureStorageBlobCopyState");
-            ps.BindParameter("ICloudBlob", blob);
+            ps.BindParameter("CloudBlob", blob);
             ps.BindParameter("WaitForComplete", waitForComplete);
 
             return InvokeStoragePowerShell(ps, context);
@@ -1545,9 +1545,9 @@ namespace Management.Storage.ScenarioTest
                                 "CloudBlobContainer Column {0}: {1} = {2}", str, comp[i][str], Output[i][str]);
                             break;
 
-                        case "ICloudBlob":
-                            Test.Assert(CompareEntity((ICloudBlob)comp[i][str], (ICloudBlob)Output[i][str]),
-                                "ICloudBlob Column {0}: {1} = {2}", str, comp[i][str], Output[i][str]);
+                        case "CloudBlob":
+                            Test.Assert(CompareEntity((CloudBlob)comp[i][str], (CloudBlob)Output[i][str]),
+                                "CloudBlob Column {0}: {1} = {2}", str, comp[i][str], Output[i][str]);
                             break;
 
                         case "Permission":
@@ -1669,20 +1669,20 @@ namespace Management.Storage.ScenarioTest
         }
 
         /// <summary>
-        /// Compare the output collection data with ICloudBlob
+        /// Compare the output collection data with CloudBlob
         /// </summary> 
         /// <param name="containers">a list of cloudblobcontainer objects</param>
-        public override void OutputValidation(IEnumerable<ICloudBlob> blobs)
+        public override void OutputValidation(IEnumerable<CloudBlob> blobs)
         {
-            Test.Info("Validate ICloudBlob objects");
+            Test.Info("Validate CloudBlob objects");
             Test.Assert(blobs.Count() == Output.Count, "Comparison size: {0} = {1} Output size", blobs.Count(), Output.Count);
             if (blobs.Count() != Output.Count)
                 return;
 
             int count = 0;
-            foreach (ICloudBlob blob in blobs)
+            foreach (CloudBlob blob in blobs)
             {
-                Test.Assert(CompareEntity(blob, (ICloudBlob)Output[count]["ICloudBlob"]), string.Format("ICloudBlob equality checking for blob '{0}'", blob.Name));
+                Test.Assert(CompareEntity(blob, (CloudBlob)Output[count]["CloudBlob"]), string.Format("CloudBlob equality checking for blob '{0}'", blob.Name));
                 ++count;
             }
         }
@@ -1803,7 +1803,7 @@ namespace Management.Storage.ScenarioTest
         /// Get blob sas token from powershell cmdlet
         /// </summary>
         /// <returns></returns>
-        public override string GetBlobSasFromCmd(ICloudBlob blob, string policy, string permission,
+        public override string GetBlobSasFromCmd(CloudBlob blob, string policy, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
         {
             return GetBlobSasFromCmd(blob.Container.Name, blob.Name, policy, permission, startTime, expiryTime, fulluri);
