@@ -179,10 +179,10 @@ namespace Management.Storage.ScenarioTest
 
         public abstract bool StartAzureStorageBlobCopy(string sourceUri, string destContainerName, string destBlobName, object destContext, bool force = true);
         public abstract bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, object destContext = null, bool force = true);
-        public abstract bool StartAzureStorageBlobCopy(ICloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true);
+        public abstract bool StartAzureStorageBlobCopy(CloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true);
 
         public abstract bool GetAzureStorageBlobCopyState(string containerName, string blobName, bool waitForComplete);
-        public abstract bool GetAzureStorageBlobCopyState(ICloudBlob blob, object context, bool waitForComplete);
+        public abstract bool GetAzureStorageBlobCopyState(CloudBlob blob, object context, bool waitForComplete);
         public abstract bool StopAzureStorageBlobCopy(string containerName, string blobName, string copyId, bool force);
         #endregion
 
@@ -248,7 +248,7 @@ namespace Management.Storage.ScenarioTest
 
         public virtual string GetBlobSasFromCmd(string containerName, string blobName, string policy, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
-        public virtual string GetBlobSasFromCmd(ICloudBlob blob, string policy, string permission,
+        public virtual string GetBlobSasFromCmd(CloudBlob blob, string policy, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
 
         public virtual string GetContainerSasFromCmd(string containerName, string policy, string permission,
@@ -313,7 +313,7 @@ namespace Management.Storage.ScenarioTest
         public abstract void OutputValidation(IEnumerable<CloudFileShare> shares);
         public abstract void OutputValidation(IEnumerable<IListFileItem> items);
         public abstract void OutputValidation(IEnumerable<BlobContainerPermissions> permissions);
-        public abstract void OutputValidation(IEnumerable<ICloudBlob> blobs);
+        public abstract void OutputValidation(IEnumerable<CloudBlob> blobs);
         public abstract void OutputValidation(IEnumerable<CloudTable> tables);
         public abstract void OutputValidation(IEnumerable<CloudQueue> queues);
         public virtual void OutputValidation(IEnumerable<StorageAccount> accounts) { throw new NotImplementedException(NotImplemented); }

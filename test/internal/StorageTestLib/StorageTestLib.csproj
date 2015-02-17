@@ -77,6 +77,9 @@
     <Compile Include="..\..\..\azcopy\dmlib\internal\test\StorageTestLib\Helpers.cs">
       <Link>Helpers.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\azcopy\dmlib\internal\test\StorageTestLib\StorageExtensions.cs">
+      <Link>StorageExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\azcopy\dmlib\internal\test\StorageTestLib\TestConstants.cs">
       <Link>TestConstants.cs</Link>
     </Compile>

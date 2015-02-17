@@ -812,7 +812,7 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(argument, force);
         }
 
-        public override bool StartAzureStorageBlobCopy(ICloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        public override bool StartAzureStorageBlobCopy(CloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true)
         {
             string argument = string.Format(string.Format("blob copy start \"{0}\" \"{1}\"", srcBlob.SnapshotQualifiedUri.AbsoluteUri, destContainerName));
             if (!string.IsNullOrWhiteSpace(destBlobName))
@@ -834,7 +834,7 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(string.Format("blob copy show \"{0}\" \"{1}\"", containerName, blobName));
         }
 
-        public override bool GetAzureStorageBlobCopyState(ICloudBlob blob, object context, bool waitForComplete)
+        public override bool GetAzureStorageBlobCopyState(CloudBlob blob, object context, bool waitForComplete)
         {
             string argument = string.Format("blob copy show \"{0}\" \"{1}\"", blob.Container.Name, blob.Name);
 
@@ -876,8 +876,8 @@ namespace Management.Storage.ScenarioTest
                                 CompareEntity(dic, (CloudBlobContainer)comp[count]["CloudBlobContainer"]);
                                 break;
 
-                            case "ICloudBlob":
-                                CompareEntity(dic, (ICloudBlob)comp[count]["ICloudBlob"]);
+                            case "CloudBlob":
+                                CompareEntity(dic, (CloudBlob)comp[count]["CloudBlob"]);
                                 break;
 
                             case "ShowContainer":
@@ -891,12 +891,12 @@ namespace Management.Storage.ScenarioTest
                                 break;
 
                             case "ShowBlob":
-                                CompareEntity(dic, (ICloudBlob)comp[count]["ShowBlob"]);
+                                CompareEntity(dic, (CloudBlob)comp[count]["ShowBlob"]);
                                 {
                                     // construct a json format dictionary object
                                     var jsonDic = new Dictionary<string, object> { { "properties", JsonConvert.SerializeObject(dic) } };
                                     // compare fields in container properties
-                                    CompareEntity(jsonDic, (ICloudBlob)comp[count]["ShowBlob"]);
+                                    CompareEntity(jsonDic, (CloudBlob)comp[count]["ShowBlob"]);
                                 }
                                 break;
                             case "ApproximateMessageCount":
@@ -951,9 +951,9 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        public override void OutputValidation(IEnumerable<ICloudBlob> blobs)
+        public override void OutputValidation(IEnumerable<CloudBlob> blobs)
         {
-            Test.Info("Validate ICloudBlob objects");
+            Test.Info("Validate CloudBlob objects");
             Test.Assert(blobs.Count() == Output.Count, "Comparison size: {0} = {1} Output size", blobs.Count(), Output.Count);
             if (blobs.Count() != Output.Count)
             {
@@ -961,7 +961,7 @@ namespace Management.Storage.ScenarioTest
             }
 
             int count = 0;
-            foreach (ICloudBlob blob in blobs)
+            foreach (CloudBlob blob in blobs)
             {
                 blob.FetchAttributes();
                 CompareEntity(Output[count], blob);
@@ -1082,9 +1082,9 @@ namespace Management.Storage.ScenarioTest
             var xsclDic = JsonConvert.DeserializeObject<Dictionary<string, object>>(JsonConvert.SerializeObject(obj, new StringEnumConverter()));
             xsclDic = ConvertXSCLEntities(xsclDic);
 
-            if (obj is ICloudBlob)
+            if (obj is CloudBlob)
             {
-                ICloudBlob blob = (ICloudBlob)obj;
+                CloudBlob blob = (CloudBlob)obj;
                 if (blob.SnapshotTime != null)
                 {
                     string snapshotUri = BlobHttpWebRequestFactory.Get(blob.Uri, 0, blob.SnapshotTime.Value.UtcDateTime, AccessCondition.GenerateEmptyCondition(), new OperationContext()).Address.AbsoluteUri;
@@ -1165,9 +1165,9 @@ namespace Management.Storage.ScenarioTest
         /// <returns></returns>
         internal static object GetProperties(object obj)
         {
-            if (obj is ICloudBlob)
+            if (obj is CloudBlob)
             {
-                return ((ICloudBlob)obj).Properties;
+                return ((CloudBlob)obj).Properties;
             }
             else if (obj.GetType() == typeof(CloudBlobContainer))
             {
@@ -1942,7 +1942,7 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        public override string GetBlobSasFromCmd(ICloudBlob blob, string policy, string permission,
+        public override string GetBlobSasFromCmd(CloudBlob blob, string policy, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
         {
             return GetBlobSasFromCmd(blob.Container.Name, blob.Name, policy, permission, startTime, expiryTime, fulluri);

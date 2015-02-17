@@ -525,7 +525,7 @@ namespace Management.Storage.ScenarioTest.BVT
             {
                 blobUtil.SetupTestContainerAndBlob(blobNamePrefix: "blob");
             }
-            ICloudBlob destBlob = CopyBlobAndWaitForComplete(blobUtil);
+            CloudBlob destBlob = CopyBlobAndWaitForComplete(blobUtil);
 
             try
             {
@@ -583,7 +583,7 @@ namespace Management.Storage.ScenarioTest.BVT
             {
                 blobUtil.SetupTestContainerAndBlob(blobNamePrefix: "blob");
             }
-            ICloudBlob destBlob = CopyBlobAndWaitForComplete(blobUtil);
+            CloudBlob destBlob = CopyBlobAndWaitForComplete(blobUtil);
 
             try
             {
@@ -697,7 +697,7 @@ namespace Management.Storage.ScenarioTest.BVT
 
                 // Verification for returned values
                 // get blob object using XSCL 
-                ICloudBlob blob = CommonBlobHelper.QueryBlob(NewContainerName, BlobName);
+                CloudBlob blob = CommonBlobHelper.QueryBlob(NewContainerName, BlobName);
                 blob.FetchAttributes();
                 CloudBlobUtil.PackBlobCompareData(blob, dic);
                 dic.Add("ShowBlob", blob);
@@ -711,11 +711,11 @@ namespace Management.Storage.ScenarioTest.BVT
             }
         }
 
-        internal ICloudBlob CopyBlobAndWaitForComplete(CloudBlobUtil blobUtil)
+        internal CloudBlob CopyBlobAndWaitForComplete(CloudBlobUtil blobUtil)
         {
             string destBlobName = Utility.GenNameString("copystate");
 
-            ICloudBlob destBlob = default(ICloudBlob);
+            CloudBlob destBlob = null;
 
             Test.Info("Copy Blob using storage client");
 
@@ -772,7 +772,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 }
 
                 Test.Info("Get destination blob in copy task");
-                ICloudBlob blob = blobUtil.Container.GetBlobReferenceFromServer(copiedName);
+                CloudBlob blob = StorageExtensions.GetBlobReferenceFromServer(blobUtil.Container, copiedName);
                 Test.Assert(blob != null, "Destination blob should exist after start copy. If not, please check it's a test issue or dev issue.");
 
                 string sourceUri = CloudBlobUtil.ConvertCopySourceUri(blobUtil.Blob.Uri.ToString());
@@ -1079,7 +1079,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 //--------------Upload operation--------------
                 Test.Assert(agent.SetAzureStorageBlobContent(UploadFilePath, NEW_CONTAINER_NAME, Type), Utility.GenComparisonData("SendAzureStorageBlob", true));
 
-                ICloudBlob blob = CommonBlobHelper.QueryBlob(NEW_CONTAINER_NAME, blobName);
+                CloudBlob blob = CommonBlobHelper.QueryBlob(NEW_CONTAINER_NAME, blobName);
                 CloudBlobUtil.PackBlobCompareData(blob, dic);
                 // Verification for returned values
                 agent.OutputValidation(comp);
@@ -1127,10 +1127,10 @@ namespace Management.Storage.ScenarioTest.BVT
 
                 // Verification for returned values
                 // get blob object using XSCL 
-                ICloudBlob blob = CommonBlobHelper.QueryBlob(NEW_CONTAINER_NAME, blobName);
+                CloudBlob blob = CommonBlobHelper.QueryBlob(NEW_CONTAINER_NAME, blobName);
                 blob.FetchAttributes();
                 CloudBlobUtil.PackBlobCompareData(blob, dic);
-                dic.Add("ICloudBlob", blob);
+                dic.Add("CloudBlob", blob);
 
                 agent.OutputValidation(comp);
             }
@@ -1171,7 +1171,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 string downloadFilePath = Path.Combine(DownloadDirPath, blobName);
                 Test.Assert(agent.GetAzureStorageBlobContent(blobName, downloadFilePath, ContainerName),
                     Utility.GenComparisonData("GetAzureStorageBlobContent", true));
-                ICloudBlob blob = CommonBlobHelper.QueryBlob(ContainerName, blobName);
+                CloudBlob blob = CommonBlobHelper.QueryBlob(ContainerName, blobName);
                 CloudBlobUtil.PackBlobCompareData(blob, dic);
                 // Verification for returned values
                 agent.OutputValidation(comp);
@@ -1218,7 +1218,7 @@ namespace Management.Storage.ScenarioTest.BVT
 
                 //--------------Remove operation--------------
                 Test.Assert(agent.RemoveAzureStorageBlob(blobName, NEW_CONTAINER_NAME), Utility.GenComparisonData("RemoveAzureStorageBlob", true));
-                ICloudBlob blob = CommonBlobHelper.QueryBlob(NEW_CONTAINER_NAME, blobName);
+                CloudBlob blob = CommonBlobHelper.QueryBlob(NEW_CONTAINER_NAME, blobName);
                 Test.Assert(blob == null, "blob {0} should not exist!", blobName);
             }
             finally
