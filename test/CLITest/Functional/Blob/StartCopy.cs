@@ -107,7 +107,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             CloudBlobContainer rootContainer = blobUtil.CreateContainer("$root");
 
             string srcBlobName = Utility.GenNameString("src");
-            ICloudBlob srcBlob = blobUtil.CreateRandomBlob(rootContainer, srcBlobName);
+            CloudBlob srcBlob = blobUtil.CreateRandomBlob(rootContainer, srcBlobName);
             CloudBlobContainer destContainer = blobUtil.CreateContainer();
 
             try
@@ -139,7 +139,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             string srcBlobName = Utility.GenNameString("src");
             CloudBlobContainer srcContainer = blobUtil.CreateContainer();
-            ICloudBlob srcBlob = blobUtil.CreateRandomBlob(srcContainer, srcBlobName);
+            CloudBlob srcBlob = blobUtil.CreateRandomBlob(srcContainer, srcBlobName);
 
             try
             {
@@ -169,7 +169,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             CloudBlobContainer rootContainer = blobUtil.CreateContainer("$root");
 
             string srcBlobName = Utility.GenNameString("src");
-            ICloudBlob srcBlob = blobUtil.CreateRandomBlob(rootContainer, srcBlobName);
+            CloudBlob srcBlob = blobUtil.CreateRandomBlob(rootContainer, srcBlobName);
 
             try
             {
@@ -197,8 +197,8 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             CloudBlobContainer destContainer = blobUtil.CreateContainer();
 
             string srcBlobName = Utility.GenNameString("src");
-            ICloudBlob srcBlob = blobUtil.CreateRandomBlob(srcContainer, srcBlobName);
-            ICloudBlob snapshot = default(ICloudBlob);
+            CloudBlob srcBlob = blobUtil.CreateRandomBlob(srcContainer, srcBlobName);
+            CloudBlob snapshot = null;
 
             if (srcBlob.BlobType == Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob)
             {
@@ -211,12 +211,12 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                Func<bool> StartCopyUsingICloudBlob = delegate()
+                Func<bool> StartCopyUsingCloudBlob = delegate()
                 {
                     return agent.StartAzureStorageBlobCopy(snapshot, destContainer.Name, string.Empty, PowerShellAgent.Context);
                 };
 
-                ICloudBlob destBlob = AssertCopyBlobCrossContainer(snapshot, destContainer, string.Empty, PowerShellAgent.Context);
+                CloudBlob destBlob = AssertCopyBlobCrossContainer(snapshot, destContainer, string.Empty, PowerShellAgent.Context);
                 Test.Assert(snapshot.SnapshotTime != null, "The snapshot time of destination blob should be not null");
                 Test.Assert(destBlob.SnapshotTime == null, "The snapshot time of destination blob should be null");
             }
@@ -243,7 +243,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             CloudBlobContainer srcContainer = blobUtil.CreateContainer();
 
             string srcBlobName = Utility.GenNameString("src");
-            ICloudBlob srcBlob = blobUtil.CreateRandomBlob(srcContainer, srcBlobName);
+            CloudBlob srcBlob = blobUtil.CreateRandomBlob(srcContainer, srcBlobName);
 
             try
             {
@@ -392,8 +392,8 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         public void StartCopyWithMismatchedBlobTypeTest()
         {
             CloudBlobContainer container = blobUtil.CreateContainer();
-            ICloudBlob blockBlob = blobUtil.CreateBlockBlob(container, Utility.GenNameString("block"));
-            ICloudBlob pageBlob = blobUtil.CreatePageBlob(container, Utility.GenNameString("page"));
+            CloudBlob blockBlob = blobUtil.CreateBlockBlob(container, Utility.GenNameString("block"));
+            CloudBlob pageBlob = blobUtil.CreatePageBlob(container, Utility.GenNameString("page"));
 
             string copyBlockBlobError;
             string copyPageBlobError;
@@ -433,9 +433,9 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             CloudBlobContainer container = blobUtil.CreateContainer();
             string srcBlobName = Utility.GenNameString("src");
-            ICloudBlob srcBlob = blobUtil.CreateRandomBlob(container, srcBlobName, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
+            CloudBlob srcBlob = blobUtil.CreateRandomBlob(container, srcBlobName, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             string destBlobName = Utility.GenNameString("dest");
-            ICloudBlob destBlob = blobUtil.CreateRandomBlob(container, destBlobName, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
+            CloudBlob destBlob = blobUtil.CreateRandomBlob(container, destBlobName, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             string filePath = FileUtil.GenerateOneTempTestFile();
 
             try
@@ -453,7 +453,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             }
         }
 
-        private ICloudBlob AssertCopyBlobCrossContainer(ICloudBlob srcBlob, CloudBlobContainer destContainer, string destBlobName, object destContext, Func<bool> StartFunc = null)
+        private CloudBlob AssertCopyBlobCrossContainer(CloudBlob srcBlob, CloudBlobContainer destContainer, string destBlobName, object destContext, Func<bool> StartFunc = null)
         {
             if (StartFunc == null)
             {
@@ -473,12 +473,12 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 expectedBlobName = srcBlob.Name;
             }
 
-            ICloudBlob destBlob = null;
+            CloudBlob destBlob = null;
             string actualBlobName;
             string expectedSourceUri = CloudBlobUtil.ConvertCopySourceUri(srcBlob.Uri.ToString());
             if (lang == Language.PowerShell)
             {
-                destBlob = (ICloudBlob)agent.Output[0]["ICloudBlob"];
+                destBlob = (CloudBlob)agent.Output[0]["CloudBlob"];
                 destBlob.FetchAttributes();
                 actualBlobName = destBlob.Name;
 

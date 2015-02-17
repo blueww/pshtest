@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MS.Test.Common.MsTestLib;
 using StorageTestLib;
 using BlobType = Microsoft.WindowsAzure.Storage.Blob.BlobType;
-using ICloudBlob = Microsoft.WindowsAzure.Storage.Blob.ICloudBlob;
+using CloudBlob = Microsoft.WindowsAzure.Storage.Blob.CloudBlob;
 using Management.Storage.ScenarioTest.Performance.Helper;
 
 namespace Management.Storage.ScenarioTest
@@ -350,7 +350,7 @@ namespace Management.Storage.ScenarioTest
         internal static void CheckMD5(string containerName, string filePath)
         {
             string blobName = Path.GetFileName(filePath);
-            ICloudBlob blob = BlobHelper.QueryBlob(containerName, blobName);
+            CloudBlob blob = BlobHelper.QueryBlob(containerName, blobName);
             string localMd5 = FileUtil.GetFileContentMD5(filePath);
             Test.Assert(localMd5 == blob.Properties.ContentMD5,
                 string.Format("blob content md5 should be {0}, and actually it's {1}", localMd5, blob.Properties.ContentMD5));

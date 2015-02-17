@@ -55,7 +55,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             CloudBlobContainer rootContainer = blobUtil.CreateContainer("$root");
             string srcBlobName = Utility.GenNameString("src");
             //We could only use block blob to copy from external uri
-            ICloudBlob srcBlob = blobUtil.CreateBlockBlob(rootContainer, srcBlobName);
+            CloudBlob srcBlob = blobUtil.CreateBlockBlob(rootContainer, srcBlobName);
             string copyId = CopyBigFileToBlob(srcBlob);
             AssertStopPendingCopyOperationTest(srcBlob, lang == Language.NodeJS ? copyId : "*");
         }
@@ -74,7 +74,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             CloudBlobContainer container = blobUtil.CreateContainer();
             int count = random.Next(1, 5);
             List<string> blobNames = new List<string>();
-            List<ICloudBlob> blobs = new List<ICloudBlob>();
+            List<CloudBlob> blobs = new List<CloudBlob>();
 
             for (int i = 0; i < count; i++)
             {
@@ -84,7 +84,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                foreach (ICloudBlob blob in blobs)
+                foreach (CloudBlob blob in blobs)
                 {
                     CopyBigFileToBlob(blob);
                 }
@@ -195,7 +195,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             }
         }
 
-        private void AssertStopPendingCopyOperationTest(ICloudBlob blob, string copyId = "*")
+        private void AssertStopPendingCopyOperationTest(CloudBlob blob, string copyId = "*")
         {
             Test.Assert(blob.CopyState.Status == CopyStatus.Pending, String.Format("The copy status should be pending, actually it's {0}", blob.CopyState.Status));
             bool force = true;
@@ -206,7 +206,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             Test.Assert(agent.Output.Count == expectedOutputCount, String.Format("Should return {0} message, and actually it's {1}", expectedOutputCount, agent.Output.Count));
         }
 
-        private string CopyBigFileToBlob(ICloudBlob blob)
+        private string CopyBigFileToBlob(CloudBlob blob)
         {
             string uri = Test.Data.Get("BigFileUri");
             Test.Assert(!String.IsNullOrEmpty(uri), string.Format("Big file uri should be not empty, actually it's {0}", uri));

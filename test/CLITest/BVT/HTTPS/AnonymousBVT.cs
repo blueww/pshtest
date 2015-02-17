@@ -119,13 +119,13 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             {
                 string pageBlobName = Utility.GenNameString("pageblob");
                 string blockBlobName = Utility.GenNameString("blockblob");
-                ICloudBlob blockBlob = blobUtil.CreateBlockBlob(container, blockBlobName);
-                ICloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
+                CloudBlob blockBlob = blobUtil.CreateBlockBlob(container, blockBlobName);
+                CloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
 
                 Test.Assert(agent.GetAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
-                agent.OutputValidation(new List<ICloudBlob> { blockBlob });
+                agent.OutputValidation(new List<CloudBlob> { blockBlob });
                 Test.Assert(agent.GetAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
-                agent.OutputValidation(new List<ICloudBlob> { pageBlob });
+                agent.OutputValidation(new List<CloudBlob> { pageBlob });
             }
             finally
             {
@@ -191,13 +191,13 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
         private void DownloadBlobFromContainer(CloudBlobContainer container, StorageBlob.BlobType type)
         {
             string blobName = Utility.GenNameString("blob");
-            ICloudBlob blob = blobUtil.CreateBlob(container, blobName, type);
+            CloudBlob blob = blobUtil.CreateBlob(container, blobName, type);
 
             string filePath = Path.Combine(downloadDirRoot, blob.Name);
             Test.Assert(agent.GetAzureStorageBlobContent(blob.Name, filePath, container.Name, true), "download blob should be successful");
             string localMd5 = FileUtil.GetFileContentMD5(filePath);
             Test.Assert(localMd5 == blob.Properties.ContentMD5, string.Format("local content md5 should be {0}, and actually it's {1}", blob.Properties.ContentMD5, localMd5));
-            agent.OutputValidation(new List<ICloudBlob> { blob });
+            agent.OutputValidation(new List<CloudBlob> { blob });
         }
 
         [TestMethod()]
@@ -225,8 +225,8 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             {
                 string pageBlobName = Utility.GenNameString("pageblob");
                 string blockBlobName = Utility.GenNameString("blockblob");
-                ICloudBlob blockBlob = blobUtil.CreateBlockBlob(container, blockBlobName);
-                ICloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
+                CloudBlob blockBlob = blobUtil.CreateBlockBlob(container, blockBlobName);
+                CloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
 
                 string protocol = useHttps ? "https" : "http";
 
@@ -235,10 +235,10 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
                     StorageAccountName, protocol, StorageEndPoint);
                 psAgent.AddPipelineScript(cmd);
                 Test.Assert(agent.GetAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
-                agent.OutputValidation(new List<ICloudBlob> { blockBlob });
+                agent.OutputValidation(new List<CloudBlob> { blockBlob });
                 psAgent.AddPipelineScript(cmd);
                 Test.Assert(agent.GetAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
-                agent.OutputValidation(new List<ICloudBlob> { pageBlob });
+                agent.OutputValidation(new List<CloudBlob> { pageBlob });
             }
             finally
             {
