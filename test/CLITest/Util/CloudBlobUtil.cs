@@ -411,16 +411,38 @@ namespace Management.Storage.ScenarioTest.Util
 
             if (type == StorageBlobType.Unspecified)
             {
-                type = (random.Next(0, 2) == 0) ? StorageBlobType.PageBlob : StorageBlobType.BlockBlob;
+                int randomValue = random.Next(1, 4);
+                switch (randomValue)
+                {
+                    case 1:
+                        type = StorageBlobType.PageBlob;
+                        break;
+                    case 2:
+                        type = StorageBlobType.BlockBlob;
+                        break;
+                    case 3:
+                        type = StorageBlobType.AppendBlob;
+                        break;
+                    default:
+                        break;
+                }
             }
             
             if (type == StorageBlobType.PageBlob)
             {
                 return CreatePageBlob(container, blobName);
             }
-            else
+            else if (type == StorageBlobType.BlockBlob)
             {
                 return CreateBlockBlob(container, blobName);
+            }
+            else if (type == StorageBlobType.AppendBlob)
+            {
+                return CreateAppendBlob(container, blobName);
+            }
+            else
+            {
+                throw new InvalidOperationException(string.Format("Invalid blob type: {0}", type));
             }
         }
 
