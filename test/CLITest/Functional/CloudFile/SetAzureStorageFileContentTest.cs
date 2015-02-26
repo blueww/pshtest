@@ -22,7 +22,6 @@
         [ClassInitialize]
         public static void SetAzureStorageFileContentTestInitialize(TestContext context)
         {
-            StorageAccount = Utility.ConstructStorageAccountFromConnectionString();
             TestBase.TestClassInitialize(context);
         }
 
