@@ -145,19 +145,6 @@ namespace Management.Storage.ScenarioTest
             return account;
         }
 
-        /// <summary>
-        /// Constructs the storage account instance using the provided
-        /// connection string from configuration file.
-        /// </summary>
-        /// <returns>
-        /// Returns the constructed CloudStorageAccount instance.
-        /// </returns>
-        public static CloudStorageAccount ConstructStorageAccountFromConnectionString(string configurationName = "StorageConnectionString")
-        {
-            string connectionString = Test.Data.Get(configurationName);
-            return CloudStorageAccount.Parse(connectionString);
-        }
-
         public static List<string> GenNameLists(string prefix, int count = 1, int len = 8)
         {
             List<string> names = new List<string>();
@@ -202,9 +189,21 @@ namespace Management.Storage.ScenarioTest
             return builder.ToString();
         }
 
-        public static string GenConnectionString(string StorageAccountName, string StorageAccountKey)
+        public static string GenConnectionString(string storageAccountName, string storageAccountKey, bool useHttps = true, string endPoint = "")
         {
-            return String.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}", StorageAccountName, StorageAccountKey);
+            if (string.IsNullOrEmpty(endPoint))
+            {
+                return String.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}", storageAccountName, storageAccountKey);
+            }
+
+            string[] endpoints = GetStorageEndPoints(storageAccountName, useHttps, endPoint);
+            return String.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};BlobEndPoint={2};TableEndPoint={3};QueueEndPoint={4};FileEndPoint={5}",
+                storageAccountName, 
+                storageAccountKey,
+                endpoints[0],
+                endpoints[1],
+                endpoints[2],
+                endpoints[3]);
         }
 
         /// <summary>

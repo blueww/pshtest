@@ -38,7 +38,7 @@
         [ClassInitialize]
         public static void MountTestInitialize(TestContext context)
         {
-            StorageAccount = Utility.ConstructStorageAccountFromConnectionString();
+            StorageAccount = GetCloudStorageAccountFromConfig();
             accountName = StorageAccount.Credentials.AccountName;
             accountKey = StorageAccount.Credentials.ExportBase64EncodedKey();
             fileEndpoint = StorageAccount.FileEndpoint.DnsSafeHost;
