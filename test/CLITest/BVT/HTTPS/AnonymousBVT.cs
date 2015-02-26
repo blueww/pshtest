@@ -119,13 +119,17 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             {
                 string pageBlobName = Utility.GenNameString("pageblob");
                 string blockBlobName = Utility.GenNameString("blockblob");
+                string appendBlobName = Utility.GenNameString("appendblob");
                 CloudBlob blockBlob = blobUtil.CreateBlockBlob(container, blockBlobName);
                 CloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
+                CloudBlob appendBlob = blobUtil.CreateAppendBlob(container, appendBlobName);
 
                 Test.Assert(agent.GetAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
                 agent.OutputValidation(new List<CloudBlob> { blockBlob });
                 Test.Assert(agent.GetAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
                 agent.OutputValidation(new List<CloudBlob> { pageBlob });
+                Test.Assert(agent.GetAzureStorageBlob(appendBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
+                agent.OutputValidation(new List<CloudBlob> { appendBlob });
             }
             finally
             {
@@ -181,6 +185,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
         {
             DownloadBlobFromContainer(container, StorageBlob.BlobType.BlockBlob);
             DownloadBlobFromContainer(container, StorageBlob.BlobType.PageBlob);
+            DownloadBlobFromContainer(container, StorageBlob.BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -225,8 +230,10 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             {
                 string pageBlobName = Utility.GenNameString("pageblob");
                 string blockBlobName = Utility.GenNameString("blockblob");
+                string appendBlobName = Utility.GenNameString("appendblob");
                 CloudBlob blockBlob = blobUtil.CreateBlockBlob(container, blockBlobName);
                 CloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
+                CloudBlob appendBlob = blobUtil.CreateAppendBlob(container, appendBlobName);
 
                 string protocol = useHttps ? "https" : "http";
 
@@ -239,6 +246,9 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
                 psAgent.AddPipelineScript(cmd);
                 Test.Assert(agent.GetAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
                 agent.OutputValidation(new List<CloudBlob> { pageBlob });
+                psAgent.AddPipelineScript(cmd);
+                Test.Assert(agent.GetAzureStorageBlob(appendBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
+                agent.OutputValidation(new List<CloudBlob> { appendBlob });
             }
             finally
             {
