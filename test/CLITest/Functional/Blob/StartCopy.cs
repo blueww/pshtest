@@ -204,9 +204,17 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 snapshot = ((CloudBlockBlob)srcBlob).CreateSnapshot();
             }
-            else
+            else if (srcBlob.BlobType == Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob)
             {
                 snapshot = ((CloudPageBlob)srcBlob).CreateSnapshot();
+            }
+            else if (srcBlob.BlobType == Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob)
+            {
+                snapshot = ((CloudAppendBlob)srcBlob).CreateSnapshot();
+            }
+            else
+            {
+                throw new InvalidOperationException(string.Format("Invalid blob type: {0}", srcBlob.BlobType));
             }
 
             try
@@ -394,27 +402,34 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             CloudBlobContainer container = blobUtil.CreateContainer();
             CloudBlob blockBlob = blobUtil.CreateBlockBlob(container, Utility.GenNameString("block"));
             CloudBlob pageBlob = blobUtil.CreatePageBlob(container, Utility.GenNameString("page"));
+            CloudBlob appendBlob = blobUtil.CreateAppendBlob(container, Utility.GenNameString("append"));
 
-            string copyBlockBlobError;
-            string copyPageBlobError;
+            string copyBlobError;
             Validator validator;
             if (lang == Language.PowerShell)
             {
-                copyBlockBlobError = "Cannot overwrite an existing PageBlob with a BlockBlob.";
-                copyPageBlobError = "Cannot overwrite an existing BlockBlob with a PageBlob.";
+                copyBlobError = "Blob type of source and destination must be the same.";
                 validator = ExpectedEqualErrorMessage;
             }
             else
-            {       
-                copyBlockBlobError = copyPageBlobError = "The blob type is invalid for this operation";
+            {
+                copyBlobError = "The blob type is invalid for this operation";
                 validator = ExpectedStartsWithErrorMessage;
             }
             try
             {
                 Test.Assert(!agent.StartAzureStorageBlobCopy(blockBlob, container.Name, pageBlob.Name), "Start copy should failed with mismatched blob type");
-                validator(copyBlockBlobError);
+                validator(copyBlobError);
                 Test.Assert(!agent.StartAzureStorageBlobCopy(container.Name, pageBlob.Name, container.Name, blockBlob.Name), "Start copy should failed with mismatched blob type");
-                validator(copyPageBlobError);
+                validator(copyBlobError);
+                Test.Assert(!agent.StartAzureStorageBlobCopy(container.Name, pageBlob.Name, container.Name, appendBlob.Name), "Start copy should failed with mismatched blob type");
+                validator(copyBlobError);
+                Test.Assert(!agent.StartAzureStorageBlobCopy(container.Name, blockBlob.Name, container.Name, appendBlob.Name), "Start copy should failed with mismatched blob type");
+                validator(copyBlobError);
+                Test.Assert(!agent.StartAzureStorageBlobCopy(container.Name, appendBlob.Name, container.Name, blockBlob.Name), "Start copy should failed with mismatched blob type");
+                validator(copyBlobError);
+                Test.Assert(!agent.StartAzureStorageBlobCopy(container.Name, appendBlob.Name, container.Name, pageBlob.Name), "Start copy should failed with mismatched blob type");
+                validator(copyBlobError);
             }
             finally
             {
