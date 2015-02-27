@@ -311,8 +311,8 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             CloudBlobContainer Container = blobUtil.CreateContainer();
             string ContainerName = Container.Name;
-            string BlobName = Utility.GenNameString("blockblob");
-            CloudBlob Blob = blobUtil.CreateBlockBlob(Container, BlobName);
+            string BlobName = Utility.GenNameString("blob");
+            CloudBlob Blob = blobUtil.CreateRandomBlob(Container, BlobName);
             
             string uri = Test.Data.Get("BigFileUri");
             Test.Assert(!String.IsNullOrEmpty(uri), string.Format("Big file uri should be not empty, actually it's {0}", uri));

@@ -369,6 +369,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             DownloadBlobWithSpeicialChars(BlobType.BlockBlob);
             DownloadBlobWithSpeicialChars(BlobType.PageBlob);
+            DownloadBlobWithSpeicialChars(BlobType.AppendBlob);
         }
 
         public void DownloadBlobWithSpeicialChars(BlobType blobType)
@@ -406,6 +407,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             DownloadBlobWithZeroSize(BlobType.BlockBlob);
             DownloadBlobWithZeroSize(BlobType.PageBlob);
+            DownloadBlobWithZeroSize(BlobType.AppendBlob);
         }
 
         public void DownloadBlobWithZeroSize(BlobType blobType)

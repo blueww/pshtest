@@ -41,6 +41,7 @@ namespace Management.Storage.ScenarioTest.BVT
         private static CloudStorageAccount CommonStorageAccount;
         private static string CommonBlockFilePath;
         private static string CommonPageFilePath;
+        private static string CommonAppendFilePath;
         private static string CommonSmallFilePath;
         private static string CommonMediumFilePath;
         private static string SmallFileMD5;
@@ -146,11 +147,13 @@ namespace Management.Storage.ScenarioTest.BVT
 
             CommonBlockFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
             CommonPageFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
+            CommonAppendFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
             CommonSmallFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
             CommonMediumFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
 
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonBlockFilePath), AlwaysOperateOnWindows);
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonPageFilePath), AlwaysOperateOnWindows);
+            FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonAppendFilePath), AlwaysOperateOnWindows);
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonSmallFilePath), AlwaysOperateOnWindows);
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonMediumFilePath), AlwaysOperateOnWindows);
 
@@ -160,6 +163,7 @@ namespace Management.Storage.ScenarioTest.BVT
             // Generate block file and page file which are used for uploading
             FileUtil.GenerateMediumFile(CommonBlockFilePath, Utility.GetRandomTestCount(1, 5), AlwaysOperateOnWindows);
             FileUtil.GenerateMediumFile(CommonPageFilePath, Utility.GetRandomTestCount(1, 5), AlwaysOperateOnWindows);
+            FileUtil.GenerateMediumFile(CommonAppendFilePath, Utility.GetRandomTestCount(1, 5), AlwaysOperateOnWindows);
             FileUtil.GenerateMediumFile(CommonMediumFilePath, Utility.GetRandomTestCount(5, 10), AlwaysOperateOnWindows);
             FileUtil.GenerateSmallFile(CommonSmallFilePath, Utility.GetRandomTestCount(1, 10), AlwaysOperateOnWindows);
             MediumFileMD5 = FileUtil.GetFileContentMD5(CommonMediumFilePath);
@@ -330,6 +334,7 @@ namespace Management.Storage.ScenarioTest.BVT
         {
             UploadBlobTest(agent, CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             UploadBlobTest(agent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            UploadBlobTest(agent, CommonAppendFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -342,6 +347,7 @@ namespace Management.Storage.ScenarioTest.BVT
         {
             GetBlobTest(agent, CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             GetBlobTest(agent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            GetBlobTest(agent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -355,6 +361,7 @@ namespace Management.Storage.ScenarioTest.BVT
             string downloadDirPath = Test.Data.Get("DownloadDir");
             DownloadBlobTest(agent, CommonBlockFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             DownloadBlobTest(agent, CommonPageFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            DownloadBlobTest(agent, CommonPageFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -367,6 +374,7 @@ namespace Management.Storage.ScenarioTest.BVT
         {
             RemoveBlobTest(agent, CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             RemoveBlobTest(agent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            RemoveBlobTest(agent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -1120,6 +1128,9 @@ namespace Management.Storage.ScenarioTest.BVT
                     bSuccess = CommonBlobHelper.UploadFileToBlockBlob(NEW_CONTAINER_NAME, blobName, UploadFilePath);
                 else if (Type == Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob)
                     bSuccess = CommonBlobHelper.UploadFileToPageBlob(NEW_CONTAINER_NAME, blobName, UploadFilePath);
+                else if (Type == Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob)
+                    bSuccess = CommonBlobHelper.UploadFileToAppendBlob(NEW_CONTAINER_NAME, blobName, UploadFilePath);
+
                 Test.Assert(bSuccess, "upload file {0} to container {1} should succeed", UploadFilePath, NEW_CONTAINER_NAME);
 
                 //--------------Get operation--------------
@@ -1214,6 +1225,8 @@ namespace Management.Storage.ScenarioTest.BVT
                     bSuccess = CommonBlobHelper.UploadFileToBlockBlob(NEW_CONTAINER_NAME, blobName, UploadFilePath);
                 else if (Type == Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob)
                     bSuccess = CommonBlobHelper.UploadFileToPageBlob(NEW_CONTAINER_NAME, blobName, UploadFilePath);
+                else if (Type == Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob)
+                    bSuccess = CommonBlobHelper.UploadFileToAppendBlob(NEW_CONTAINER_NAME, blobName, UploadFilePath);
                 Test.Assert(bSuccess, "upload file {0} to container {1} should succeed", UploadFilePath, NEW_CONTAINER_NAME);
 
                 //--------------Remove operation--------------
