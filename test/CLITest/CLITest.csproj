@@ -226,6 +226,8 @@
     <Compile Include="IExecutionError.cs" />
     <Compile Include="IExecutionResult.cs" />
     <Compile Include="Performance\Helper\AbstractBlobUploadOperation.cs" />
+    <Compile Include="Performance\Helper\AppendBlobDownloadOperation.cs" />
+    <Compile Include="Performance\Helper\AppendBlobUploadOperation.cs" />
     <Compile Include="Performance\Helper\BlockBlobDownloadOperation.cs" />
     <Compile Include="Performance\Helper\BlockBlobUploadOperation.cs" />
     <Compile Include="Performance\Helper\AbstractBlobDownloadOperation.cs" />
