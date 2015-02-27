@@ -286,6 +286,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             RemoveBlobWithSpeicialChars(BlobType.BlockBlob);
             RemoveBlobWithSpeicialChars(BlobType.PageBlob);
+            RemoveBlobWithSpeicialChars(BlobType.AppendBlob);
         }
 
         public void RemoveBlobWithSpeicialChars(BlobType blobType)
@@ -323,7 +324,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                Test.Assert(!agent.RemoveAzureStorageBlob(blobName, container.Name, false, false), "remove an blob with snapshout should throw an confirmation exception");
+                Test.Assert(!agent.RemoveAzureStorageBlob(blobName, container.Name, false, false), "remove an blob with snapshot should throw an confirmation exception");
                 ExpectedContainErrorMessage(ConfirmExceptionMessage);
                 Test.Assert(blob.Exists(), string.Format("the specified blob '{0}' should exist", blob.Name));
                 Test.Assert(snapshot.Exists(), "the snapshot should exist");
