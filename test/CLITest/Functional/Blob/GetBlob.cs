@@ -97,6 +97,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 string pageBlobName = Utility.GenNameString("page");
                 string blockBlobName = Utility.GenNameString("block");
+                string appendBlobName = Utility.GenNameString("append");
                 CloudBlobContainer container = blobUtil.CreateContainer(containerName);
 
                 List<string> blobNames = new List<string>();
@@ -108,14 +109,18 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 }
 
                 List<CloudBlob> blobs = blobUtil.CreateRandomBlob(container, blobNames);
-                CloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
 
+                CloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
                 Test.Assert(agent.GetAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
                 agent.OutputValidation(new List<CloudBlob>() { pageBlob });
 
                 CloudBlob blockBlob = blobUtil.CreateBlockBlob(container, blockBlobName);
-                Test.Assert(agent.GetAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
-                agent.OutputValidation(new List<CloudBlob>() { pageBlob });
+                Test.Assert(agent.GetAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
+                agent.OutputValidation(new List<CloudBlob>() { blockBlob });
+
+                CloudBlob appendBlob = blobUtil.CreateBlockBlob(container, appendBlobName);
+                Test.Assert(agent.GetAzureStorageBlob(appendBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
+                agent.OutputValidation(new List<CloudBlob>() { appendBlob });
             }
             finally
             {
@@ -157,6 +162,15 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 Test.Assert(agent.GetAzureStorageBlob(blobName, string.Empty), Utility.GenComparisonData("Get-AzureStorageContainer | Get-AzureStorageBlob", true));
                 Test.Assert(agent.Output.Count == 1, String.Format("Want to retrieve {0} block blob, but retrieved {1} block blobs", 1, agent.Output.Count));
+
+                agent.OutputValidation(new List<CloudBlob>() { blob });
+
+                blobName = Utility.GenNameString("blob");
+                blob = blobUtil.CreateAppendBlob(container, blobName);
+                ((PowerShellAgent)agent).AddPipelineScript(cmd);
+
+                Test.Assert(agent.GetAzureStorageBlob(blobName, string.Empty), Utility.GenComparisonData("Get-AzureStorageContainer | Get-AzureStorageBlob", true));
+                Test.Assert(agent.Output.Count == 1, String.Format("Want to retrieve {0} append blob, but retrieved {1} append blobs", 1, agent.Output.Count));
 
                 agent.OutputValidation(new List<CloudBlob>() { blob });
             }
@@ -307,6 +321,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             string containerName = Utility.GenNameString("container");
             string pageBlobName = Utility.GenNameString("page");
             string blockBlobName = Utility.GenNameString("block");
+            string appendBlobName = Utility.GenNameString("append");
             Test.Info("Create test container and blobs");
             CloudBlobContainer container = blobUtil.CreateContainer(containerName);
 
@@ -314,9 +329,11 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 CloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
                 CloudBlob blockBlob = blobUtil.CreateBlockBlob(container, blockBlobName);
+                CloudBlob appendBlob = blobUtil.CreateAppendBlob(container, appendBlobName);
                 List<CloudBlob> blobs = new List<CloudBlob>();
                 pageBlob.FetchAttributes();
                 blockBlob.FetchAttributes();
+                appendBlob.FetchAttributes();
 
                 int minSnapshot = 1;
                 int maxSnapshot = 5;
@@ -345,6 +362,17 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 blobs.Add(pageBlob);
 
+                count = random.Next(minSnapshot, maxSnapshot);
+                for (int i = 0; i < count; i++)
+                {
+                    CloudAppendBlob snapshot = ((CloudAppendBlob)appendBlob).CreateSnapshot();
+                    snapshot.FetchAttributes();
+                    blobs.Add(snapshot);
+                    Thread.Sleep(snapshotInterval);
+                }
+
+                blobs.Add(appendBlob);
+
                 Test.Assert(agent.GetAzureStorageBlob(string.Empty, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with snapshot blobs", true));
                 Test.Assert(agent.Output.Count == blobs.Count, String.Format("Expect to retrieve {0} blobs, actually retrieved {1} blobs", blobs.Count, agent.Output.Count));
                 agent.OutputValidation(blobs);
@@ -371,22 +399,29 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             string containerName = Utility.GenNameString("container");
             string pageBlobName = Utility.GenNameString("page");
             string blockBlobName = Utility.GenNameString("block");
+            string appendBlobName = Utility.GenNameString("append");
             CloudBlobContainer container = blobUtil.CreateContainer(containerName);
 
             try
             {
                 CloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
                 CloudBlob blockBlob = blobUtil.CreateBlockBlob(container, blockBlobName);
+                CloudBlob appendBlob = blobUtil.CreateBlockBlob(container, appendBlobName);
                 ((CloudPageBlob)pageBlob).AcquireLease(null, string.Empty);
                 ((CloudBlockBlob)blockBlob).AcquireLease(null, string.Empty);
+                ((CloudAppendBlob)appendBlob).AcquireLease(null, string.Empty);
                 pageBlob.FetchAttributes();
                 blockBlob.FetchAttributes();
+                appendBlob.FetchAttributes();
 
                 Test.Assert(agent.GetAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with lease", true));
                 agent.OutputValidation(new List<CloudBlob>() { pageBlob });
 
                 Test.Assert(agent.GetAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with lease", true));
                 agent.OutputValidation(new List<CloudBlob>() { blockBlob });
+
+                Test.Assert(agent.GetAzureStorageBlob(appendBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with lease", true));
+                agent.OutputValidation(new List<CloudBlob>() { appendBlob });
             }
             finally
             {
@@ -410,12 +445,14 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             string containerName = Utility.GenNameString("container");
             string pageBlobName = Utility.GenNameString("page");
             string blockBlobName = Utility.GenNameString("block");
+            string appendBlobName = Utility.GenNameString("append");
             CloudBlobContainer container = blobUtil.CreateContainer(containerName);
 
             try
             {
                 CloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
                 CloudBlob blockBlob = blobUtil.CreateBlockBlob(container, blockBlobName);
+                CloudBlob appendBlob = blobUtil.CreateBlockBlob(container, appendBlobName);
 
                 int count = Utility.GetRandomTestCount();
                 for (int i = 0; i < count; i++)
@@ -424,6 +461,8 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                     pageBlob.SetMetadata();
                     blockBlob.Metadata.Add(Utility.GenNameString("GetBlobWithMetadata"), Utility.GenNameString("GetBlobWithMetadata"));
                     blockBlob.SetMetadata();
+                    appendBlob.Metadata.Add(Utility.GenNameString("GetBlobWithMetadata"), Utility.GenNameString("GetBlobWithMetadata"));
+                    appendBlob.SetMetadata();
                 }
 
                 Test.Assert(agent.GetAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with metadata", true));
@@ -433,6 +472,10 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 Test.Assert(agent.GetAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with metadata", true));
                 Test.Assert(agent.Output.Count == 1, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 1, agent.Output.Count));
                 agent.OutputValidation(new List<CloudBlob>() { blockBlob });
+
+                Test.Assert(agent.GetAzureStorageBlob(appendBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with metadata", true));
+                Test.Assert(agent.Output.Count == 1, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 1, agent.Output.Count));
+                agent.OutputValidation(new List<CloudBlob>() { appendBlob });
             }
             finally
             {
