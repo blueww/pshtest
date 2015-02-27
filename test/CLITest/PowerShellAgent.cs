@@ -802,6 +802,10 @@ namespace Management.Storage.ScenarioTest
             {
                 ps.BindParameter("BlobType", "Page");
             }
+            else if (blobType == BlobType.AppendBlob)
+            {
+                ps.BindParameter("BlobType", "Append");
+            }
 
             if (concurrentCount != -1)
             {
