@@ -446,7 +446,21 @@ namespace Management.Storage.ScenarioTest.Util
             }
         }
 
-
+        public CloudBlob GetRandomBlobReference(CloudBlobContainer container, string blobName)
+        {
+            int randomValue = random.Next(1, 4);
+            switch (randomValue)
+            {
+                case 1:
+                    return container.GetPageBlobReference(blobName);
+                case 2:
+                    return container.GetBlockBlobReference(blobName);
+                case 3:
+                    return container.GetAppendBlobReference(blobName);
+                default:
+                    throw new InvalidOperationException(string.Format("Invalid blob type: {0}", randomValue));
+            }
+        }
 
         /// <summary>
         /// convert blob name into valid file name
@@ -533,6 +547,9 @@ namespace Management.Storage.ScenarioTest.Util
                     break;
                 case StorageBlob.BlobType.PageBlob:
                     snapshot = ((CloudPageBlob)blob).CreateSnapshot();
+                    break;
+                case StorageBlob.BlobType.AppendBlob:
+                    snapshot = ((CloudAppendBlob)blob).CreateSnapshot();
                     break;
                 default:
                     throw new ArgumentException(string.Format("Unsupport blob type {0} when create snapshot", blob.BlobType));

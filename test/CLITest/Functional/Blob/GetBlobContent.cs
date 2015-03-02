@@ -88,16 +88,17 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             ContainerName = Utility.GenNameString("container");
             BlobName = Utility.GenNameString("blob");
             CloudBlobContainer container = blobUtil.CreateContainer(ContainerName);
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference(BlobName);
+            CloudBlob blobRef = blobUtil.GetRandomBlobReference(container, BlobName);
+
             // Create or overwrite the "myblob" blob with contents from a local file.
             using (var fileStream = System.IO.File.OpenRead(filePath))
             {
-                blockBlob.UploadFromStream(fileStream);
+                blobRef.UploadFromStream(fileStream);
             }
 
             File.Delete(filePath);
-            blockBlob.FetchAttributes();
-            Blob = blockBlob;
+            blobRef.FetchAttributes();
+            Blob = blobRef;
             Container = container;
         }
 

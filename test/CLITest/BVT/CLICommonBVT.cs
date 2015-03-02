@@ -727,17 +727,25 @@ namespace Management.Storage.ScenarioTest.BVT
 
             Test.Info("Copy Blob using storage client");
 
-            if (blobUtil.Blob.BlobType == StorageBlob.BlobType.BlockBlob)
+            switch (blobUtil.Blob.BlobType)
             {
-                CloudBlockBlob blockBlob = blobUtil.Container.GetBlockBlobReference(destBlobName);
-                blockBlob.StartCopyFromBlob((CloudBlockBlob)blobUtil.Blob);
-                destBlob = blockBlob;
-            }
-            else
-            {
-                CloudPageBlob pageBlob = blobUtil.Container.GetPageBlobReference(destBlobName);
-                pageBlob.StartCopyFromBlob((CloudPageBlob)blobUtil.Blob);
-                destBlob = pageBlob;
+                case StorageBlob.BlobType.BlockBlob:
+                    CloudBlockBlob blockBlob = blobUtil.Container.GetBlockBlobReference(destBlobName);
+                    blockBlob.StartCopyFromBlob((CloudBlockBlob)blobUtil.Blob);
+                    destBlob = blockBlob;
+                    break;
+                case StorageBlob.BlobType.PageBlob:
+                    CloudPageBlob pageBlob = blobUtil.Container.GetPageBlobReference(destBlobName);
+                    pageBlob.StartCopyFromBlob((CloudPageBlob)blobUtil.Blob);
+                    destBlob = pageBlob;
+                    break;
+                case StorageBlob.BlobType.AppendBlob:
+                    CloudAppendBlob appendBlob = blobUtil.Container.GetAppendBlobReference(destBlobName);
+                    appendBlob.StartCopy((CloudAppendBlob)blobUtil.Blob);
+                    destBlob = appendBlob;
+                    break;
+                default:
+                    throw new InvalidOperationException(string.Format("Invalid blob type: {0}", blobUtil.Blob.BlobType));
             }
 
             CloudBlobUtil.WaitForCopyOperationComplete(destBlob);

@@ -307,7 +307,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             try
             {
                 CloudBlobContainer container = blobUtil.CreateContainer(containerName);
-                blobUtil.CreateBlockBlob(container, blobName);
+                blobUtil.CreateRandomBlob(container, blobName);
 
                 Test.Assert(!agent.StartAzureStorageBlobCopy(invalidContainerName, Utility.GenNameString("blob"), containerName, Utility.GenNameString("blob")), "Start copy should failed with invalid src container name");
                 ExpectedStartsWithErrorMessage(invalidContainerErrorMessage);
