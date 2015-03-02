@@ -75,6 +75,7 @@ namespace Management.Storage.ScenarioTest
             FileUtil.CreateDirIfNotExits(DownloadDirPath);
             RootBlobOperations(agent, BlockFilePath, DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             RootBlobOperations(agent, PageFilePath, DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            RootBlobOperations(agent, PageFilePath, DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         [TestMethod]
@@ -162,10 +163,7 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(blob.Exists(), "blob " + blobName + " should exist!");
 
             // validate the ContentType value for GetAzureStorageBlob operation
-            if (Type == Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob)
-            {
-                dic["ContentType"] = "application/octet-stream";
-            }
+            dic["ContentType"] = "application/octet-stream";
 
             //--------------Get operation--------------
             Test.Assert(agent.GetAzureStorageBlob(blobName, ROOT_CONTAINER_NAME), Utility.GenComparisonData("GetAzureStorageBlob", true));

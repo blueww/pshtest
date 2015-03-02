@@ -116,7 +116,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             try
             {
                 List<CloudBlob> blobs = blobUtil.CreateRandomBlob(container, blobNames);
-                CloudBlob subBlob = blobUtil.CreatePageBlob(container, subBlobName);
+                CloudBlob subBlob = blobUtil.CreateRandomBlob(container, subBlobName);
 
                 List<IListBlobItem> blobLists = container.ListBlobs(string.Empty, true).ToList();
                 Test.Assert(blobLists.Count == 3, string.Format("container {0} should contain {1} blobs", containerName, 3));
@@ -163,14 +163,14 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                CloudBlob blob = blobUtil.CreatePageBlob(container, blobName);
+                CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
                 List<CloudBlob> blobs = new List<CloudBlob>();
                 blob.FetchAttributes();
 
                 int count = random.Next(1, 5);
                 for (int i = 0; i < count; i++)
                 {
-                    CloudPageBlob snapshot = ((CloudPageBlob)blob).CreateSnapshot();
+                    CloudBlob snapshot = blob.Snapshot();
                     snapshot.FetchAttributes();
                     blobs.Add(snapshot);
                 }
@@ -206,14 +206,14 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                CloudBlob blob = blobUtil.CreatePageBlob(container, blobName);
+                CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
                 List<CloudBlob> blobs = new List<CloudBlob>();
                 blob.FetchAttributes();
 
                 int count = random.Next(1, 5);
                 for (int i = 0; i < count; i++)
                 {
-                    CloudPageBlob snapshot = ((CloudPageBlob)blob).CreateSnapshot();
+                    CloudBlob snapshot = blob.Snapshot();
                     snapshot.FetchAttributes();
                     blobs.Add(snapshot);
                 }
@@ -252,7 +252,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                CloudBlob blob = blobUtil.CreatePageBlob(container, blobName);
+                CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
                 blob.AcquireLease(null, string.Empty);
 
                 List<IListBlobItem> blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
@@ -324,7 +324,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                Test.Assert(!agent.RemoveAzureStorageBlob(blobName, container.Name, false, false), "remove an blob with snapshot should throw an confirmation exception");
+                Test.Assert(!agent.RemoveAzureStorageBlob(blobName, container.Name, false, false), "remove a blob with snapshot should throw a confirmation exception");
                 ExpectedContainErrorMessage(ConfirmExceptionMessage);
                 Test.Assert(blob.Exists(), string.Format("the specified blob '{0}' should exist", blob.Name));
                 Test.Assert(snapshot.Exists(), "the snapshot should exist");

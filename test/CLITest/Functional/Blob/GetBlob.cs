@@ -118,7 +118,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 Test.Assert(agent.GetAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
                 agent.OutputValidation(new List<CloudBlob>() { blockBlob });
 
-                CloudBlob appendBlob = blobUtil.CreateBlockBlob(container, appendBlobName);
+                CloudBlob appendBlob = blobUtil.CreateAppendBlob(container, appendBlobName);
                 Test.Assert(agent.GetAzureStorageBlob(appendBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
                 agent.OutputValidation(new List<CloudBlob>() { appendBlob });
             }
@@ -542,7 +542,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                CloudBlob blob = blobUtil.CreatePageBlob(container, blobName);
+                CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
 
                 string notExistingBlobName = "notexistingblob";
                 Test.Assert(!agent.GetAzureStorageBlob(notExistingBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with not existing blob", false));
