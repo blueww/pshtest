@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30723.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "internal", "internal", "{2F7E239C-906B-4C29-BCE3-9AB91CD67EA7}"
 EndProject
@@ -14,11 +14,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{8A65F2
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MsTest2", "internal\MsTest2\MsTest2.csproj", "{A7EDCC64-0549-4C78-ACED-0CA7B605D8FB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StorageTestLib", "..\azcopy\dmlib\internal\test\StorageTestLib\StorageTestLib.csproj", "{4F2832DD-E6C6-48B7-819A-AE06BFCAFA7C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StorageTestLib", "internal\StorageTestLib\StorageTestLib.csproj", "{4F2832DD-E6C6-48B7-819A-AE06BFCAFA7C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MsTest2", "..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTest2\MsTest2.csproj", "{A7EDCC64-0549-4C78-ACED-0CA7B605D8FB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MsTestLib", "internal\MsTestLib\MsTestLib.csproj", "{AC39B50F-DC27-4411-9ED4-A4A137190ACB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MsTestLib", "..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\MsTestLib.csproj", "{AC39B50F-DC27-4411-9ED4-A4A137190ACB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,14 +30,14 @@ Global
 		{2A32B519-4847-4FA2-8D1D-D3523BC535EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A32B519-4847-4FA2-8D1D-D3523BC535EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2A32B519-4847-4FA2-8D1D-D3523BC535EC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A7EDCC64-0549-4C78-ACED-0CA7B605D8FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A7EDCC64-0549-4C78-ACED-0CA7B605D8FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A7EDCC64-0549-4C78-ACED-0CA7B605D8FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A7EDCC64-0549-4C78-ACED-0CA7B605D8FB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4F2832DD-E6C6-48B7-819A-AE06BFCAFA7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4F2832DD-E6C6-48B7-819A-AE06BFCAFA7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F2832DD-E6C6-48B7-819A-AE06BFCAFA7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F2832DD-E6C6-48B7-819A-AE06BFCAFA7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7EDCC64-0549-4C78-ACED-0CA7B605D8FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7EDCC64-0549-4C78-ACED-0CA7B605D8FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7EDCC64-0549-4C78-ACED-0CA7B605D8FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7EDCC64-0549-4C78-ACED-0CA7B605D8FB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AC39B50F-DC27-4411-9ED4-A4A137190ACB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AC39B50F-DC27-4411-9ED4-A4A137190ACB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC39B50F-DC27-4411-9ED4-A4A137190ACB}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -47,8 +47,8 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{A7EDCC64-0549-4C78-ACED-0CA7B605D8FB} = {2F7E239C-906B-4C29-BCE3-9AB91CD67EA7}
 		{4F2832DD-E6C6-48B7-819A-AE06BFCAFA7C} = {2F7E239C-906B-4C29-BCE3-9AB91CD67EA7}
+		{A7EDCC64-0549-4C78-ACED-0CA7B605D8FB} = {2F7E239C-906B-4C29-BCE3-9AB91CD67EA7}
 		{AC39B50F-DC27-4411-9ED4-A4A137190ACB} = {2F7E239C-906B-4C29-BCE3-9AB91CD67EA7}
 	EndGlobalSection
 EndGlobal
