@@ -203,6 +203,55 @@ namespace Management.Storage.ScenarioTest
             Run(o, true);
         }
 
+        #region append blob
+        [TestMethod]
+        [TestCategory(PsTag.Perf)]
+        [TestCategory(CLITag.NodeJSPerf)]
+        [Timeout(14400000)]
+        public void UploadHttpAppend()
+        {
+            BlobHelper.CleanupContainer(ContainerName);
+            GenerateTestFiles();
+            var o = new AppendBlobUploadOperation(this.agent, BlobHelper);
+            Run(o);
+        }
+
+        [TestMethod]
+        [TestCategory(PsTag.Perf)]
+        [TestCategory(CLITag.NodeJSPerf)]
+        [Timeout(14400000)]
+        public void DownloadHttpAppend()
+        {
+            var o = new AppendBlobDownloadOperation(this.agent, BlobHelper);
+            Run(o);
+        }
+
+        [TestMethod]
+        [TestCategory(PsTag.Scale)]
+        [TestCategory(CLITag.NodeJSScale)]
+        [Timeout(144000000)]
+        public void UploadHttpAppend_Max()
+        {
+            BlobHelper.CleanupContainer(ContainerName);
+
+            //put the generating files here, because it will cost a few hours to generate very big files
+            var o = new AppendBlobUploadOperation(this.agent, BlobHelper);
+            GenerateTestFiles_Max(o);
+            Run(o, true);
+        }
+
+        [TestMethod]
+        [TestCategory(PsTag.Scale)]
+        [TestCategory(CLITag.NodeJSScale)]
+        [Timeout(144000000)]
+        public void DownloadHttpAppend_Max()
+        {
+            var o = new AppendBlobDownloadOperation(this.agent, BlobHelper);
+            Run(o, true);
+        }
+
+        #endregion
+
         /// <summary>
         /// upload blob files
         /// the following two parameters are only useful for upload blob file with maximum size
@@ -326,24 +375,39 @@ namespace Management.Storage.ScenarioTest
             for (int i = 2; i <= 512; i *= 4)
             {
                 string fileName = "testfile_" + i + "K";
-                Test.Info("Generating file: " + fileName);
-                FileUtil.GenerateSmallFile(fileName, i);
+
+                //generate the file only when same file of same length already exists.
+                if (!File.Exists(fileName) || new FileInfo(fileName).Length != i * 1024)
+                {
+                    Test.Info("Generating file: " + fileName);
+                    FileUtil.GenerateSmallFile(fileName, i);
+                }
             }
 
             Test.Info("Generating medium files(MB)...");
             for (int i = 2; i <= 512; i *= 4)
             {
                 string fileName = "testfile_" + i + "M";
-                Test.Info("Generating file: " + fileName);
-                FileUtil.GenerateMediumFile(fileName, i);
+
+                //generate the file only when same file of same length already exists.
+                if (!File.Exists(fileName) || new FileInfo(fileName).Length != i * 1024 * 1024)
+                {
+                    Test.Info("Generating file: " + fileName);
+                    FileUtil.GenerateMediumFile(fileName, i);
+                }
             }
 
             Test.Info("Generating big files(GB)...");
             for (int i = 2; i <= 16; i *= 4)
             {
                 string fileName = "testfile_" + i + "G";
-                Test.Info("Generating file: " + fileName);
-                FileUtil.GenerateMediumFile(fileName, i * 1024);
+
+                //generate the file only when same file of same length already exists.
+                if (!File.Exists(fileName) || new FileInfo(fileName).Length != i * 1024 * 1024 * 1024)
+                {
+                    Test.Info("Generating file: " + fileName);
+                    FileUtil.GenerateMediumFile(fileName, i * 1024);
+                }
             }
         }
 
@@ -363,8 +427,13 @@ namespace Management.Storage.ScenarioTest
         public static void GenerateTestFiles_Max(ICLIOperation o)
         {
             string filename = "testfile_" + o.MaxSize + o.Unit;
-            Test.Info("Generating file: " + filename);
-            GenerateBigFile(filename, o.MaxSize);
+            
+            //generate the file only when same file of same length already exists.
+            if (!File.Exists(filename) || new FileInfo(filename).Length != o.MaxSize * 1024 * 1024 * 1024)
+            {
+                Test.Info("Generating file: " + filename);
+                GenerateBigFile(filename, o.MaxSize);
+            }
         }
 
         internal static void GenerateBigFile(string filename, int sizeGB)
