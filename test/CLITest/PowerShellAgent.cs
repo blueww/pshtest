@@ -1615,7 +1615,7 @@ namespace Management.Storage.ScenarioTest
             int count = 0;
             foreach (CloudBlob blob in blobs)
             {
-                Test.Assert(CompareEntity(blob, (CloudBlob)Output[count]["CloudBlob"]), string.Format("CloudBlob equality checking for blob '{0}'", blob.Name));
+                Test.Assert(CompareEntity(blob, (CloudBlob)Output[count]["ICloudBlob"]), string.Format("CloudBlob equality checking for blob '{0}'", blob.Name));
                 ++count;
             }
         }
@@ -2259,7 +2259,9 @@ namespace Management.Storage.ScenarioTest
 
             foreach (var propertyInfo in typeof(T).GetProperties())
             {
-                if (propertyInfo.Name.Equals("ServiceClient"))
+                if (propertyInfo.Name.Equals("ServiceClient")
+                    || propertyInfo.Name.Equals("Container")
+                    || propertyInfo.Name.Equals("Parent"))
                     continue;
 
                 object o1 = null;
@@ -2284,6 +2286,7 @@ namespace Management.Storage.ScenarioTest
                     if (v1.GetType() == typeof(CloudBlobContainer)
                         || v1.GetType() == typeof(CloudBlockBlob)
                         || v1.GetType() == typeof(CloudPageBlob)
+                        || v1.GetType() == typeof(CloudAppendBlob)
                         || v1.GetType() == typeof(CloudQueue)
                         || v1.GetType() == typeof(CloudTable)
                         || v1.GetType() == typeof(CloudFileShare)
@@ -2300,7 +2303,8 @@ namespace Management.Storage.ScenarioTest
                 else if (propertyInfo.Name.Equals("Properties"))
                 {
                     if (v1.GetType() == typeof(CloudBlockBlob)
-                        || v1.GetType() == typeof(CloudPageBlob))
+                        || v1.GetType() == typeof(CloudPageBlob)
+                        || v1.GetType() == typeof(CloudAppendBlob))
                     {
                         bResult = CompareEntity((BlobProperties)o1, (BlobProperties)o2);
                     }
