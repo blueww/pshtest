@@ -137,7 +137,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             Validator validator;
             if (lang == Language.PowerShell)
             {
-                errorMessage = string.Format("Can not find blob '{0}' in container '{1}'.", blobName, srcContainerName);
+                errorMessage = string.Format("Can not find blob '{0}' in container '{1}', or the blob type is unsupported.", blobName, srcContainerName);
                 validator = ExpectedEqualErrorMessage;
             }
             else
@@ -243,7 +243,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 object context;
                 if (lang == Language.PowerShell)
                 {
-                    destBlob = (CloudBlob)agent.Output[0]["CloudBlob"];
+                    destBlob = (CloudBlob)agent.Output[0]["ICloudBlob"];
                     //make sure this context is different from the PowerShell.Context
                     context = agent.Output[0]["Context"];
                     Test.Assert(PowerShellAgent.Context != context, "make sure you are using different context for cross account copy");

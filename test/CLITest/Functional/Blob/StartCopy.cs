@@ -348,7 +348,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             Validator validator;
             if (lang == Language.PowerShell)
             {
-                errorMessage = string.Format("Can not find blob '{0}' in container '{1}'.", blobName, srcContainerName);
+                errorMessage = string.Format("Can not find blob '{0}' in container '{1}', or the blob type is unsupported.", blobName, srcContainerName);
                 validator = ExpectedEqualErrorMessage;
             }
             else

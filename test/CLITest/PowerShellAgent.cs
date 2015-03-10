@@ -46,16 +46,16 @@ namespace Management.Storage.ScenarioTest
         protected bool _UseContextParam = true;  // decide whether to specify the Context parameter
 
         private static Hashtable ExpectedErrorMsgTablePS = new Hashtable() {
-                {"GetBlobContentWithNotExistsBlob", "Can not find blob '{0}' in container '{1}'."},
-                {"GetBlobContentWithNotExistsContainer", "Can not find blob '{0}' in container '{1}'."},
-                {"GetNonExistingBlob", "Can not find blob '{0}' in container '{1}'."},
+                {"GetBlobContentWithNotExistsBlob", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
+                {"GetBlobContentWithNotExistsContainer", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
+                {"GetNonExistingBlob", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
                 {"RemoveBlobWithLease", "The remote server returned an error: (412)"},
                 {"SetBlobContentWithInvalidBlobType", "Blob type of the blob reference doesn't match blob type of the blob. HTTP Status Code: 200"},
                 {"SetPageBlobWithInvalidFileSize", "File size {0} bytes is invalid for PageBlob, must be a multiple of 512 bytes"},
                 {"CreateExistingContainer", "Container '{0}' already exists."},
                 {"CreateInvalidContainer", "Container name '{0}' is invalid."},
                 {"RemoveNonExistingContainer", "Can not find the container '{0}'."},
-                {"RemoveNonExistingBlob", "Can not find blob '{0}' in container '{1}'."},
+                {"RemoveNonExistingBlob", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
                 {"SetBlobContentWithInvalidBlobName", "Blob name '{0}' is invalid."},
                 {"SetContainerAclWithInvalidName", "Container name '{0}' is invalid."},
                 {"CreateExistingTable", "Table '{0}' already exists."},
