@@ -95,9 +95,16 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 blobRef.UploadFromStream(fileStream);
             }
+            
+            blobRef.FetchAttributes();
+
+            if (null == blobRef.Properties.ContentMD5)
+            {
+                blobRef.Properties.ContentMD5 = FileUtil.GetFileContentMD5(filePath);
+                blobRef.SetProperties();
+            }
 
             File.Delete(filePath);
-            blobRef.FetchAttributes();
             Blob = blobRef;
             Container = container;
         }
@@ -257,7 +264,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 for (int i = 0; i < snapshotCount; i++)
                 {
-                    CloudBlob blob = ((CloudBlockBlob)Blob).CreateSnapshot();
+                    CloudBlob blob = Blob.Snapshot();
                     blobs.Add(blob);
                 }
 

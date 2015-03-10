@@ -548,7 +548,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 Test.Assert(!agent.GetAzureStorageBlob(notExistingBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with not existing blob", false));
                 Test.Assert(agent.ErrorMessages.Count == 1, "only throw an exception");
                 //the same error may output different error messages in different environments
-                bool expectedError = agent.ErrorMessages[0].StartsWith(String.Format("Can not find blob '{0}' in container '{1}'.", notExistingBlobName, containerName)) 
+                bool expectedError = agent.ErrorMessages[0].StartsWith(String.Format("Can not find blob '{0}' in container '{1}', or the blob type is unsupported.", notExistingBlobName, containerName)) 
                     || agent.ErrorMessages[0].StartsWith("The remote server returned an error: (404) Not Found")
                     || agent.ErrorMessages[0].StartsWith(String.Format("Blob {0} in Container {1} doesn't exist", notExistingBlobName, containerName));
                 Test.Assert(expectedError, agent.ErrorMessages[0]);
