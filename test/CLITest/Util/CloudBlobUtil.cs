@@ -819,9 +819,17 @@ namespace Management.Storage.ScenarioTest.Util
             {
                 sasBlob = sasContainer.GetBlockBlobReference(blob.Name);
             }
-            else
+            else if (blob.BlobType == StorageBlobType.PageBlob)
             {
                 sasBlob = sasContainer.GetPageBlobReference(blob.Name);
+            }
+            else if (blob.BlobType == StorageBlobType.AppendBlob)
+            {
+                sasBlob = sasContainer.GetAppendBlobReference(blob.Name);
+            }
+            else
+            {
+                throw new InvalidOperationException(string.Format("Invalid blob type: {0}", blob.BlobType));
             }
             
             return sasBlob;
