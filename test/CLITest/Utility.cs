@@ -197,7 +197,7 @@ namespace Management.Storage.ScenarioTest
             }
 
             string[] endpoints = GetStorageEndPoints(storageAccountName, useHttps, endPoint);
-            return String.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};BlobEndPoint={2};TableEndPoint={3};QueueEndPoint={4};FileEndPoint={5}",
+            return String.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};BlobEndpoint={2};QueueEndpoint={3};TableEndpoint={4};FileEndpoint={5}",
                 storageAccountName, 
                 storageAccountKey,
                 endpoints[0],
