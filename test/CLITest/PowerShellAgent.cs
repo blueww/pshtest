@@ -1499,9 +1499,9 @@ namespace Management.Storage.ScenarioTest
                                 "CloudBlobContainer Column {0}: {1} = {2}", str, comp[i][str], Output[i][str]);
                             break;
 
-                        case "CloudBlob":
+                        case "ICloudBlob":
                             Test.Assert(CompareEntity((CloudBlob)comp[i][str], (CloudBlob)Output[i][str]),
-                                "CloudBlob Column {0}: {1} = {2}", str, comp[i][str], Output[i][str]);
+                                "ICloudBlob Column {0}: {1} = {2}", str, comp[i][str], Output[i][str]);
                             break;
 
                         case "Permission":
