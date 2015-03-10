@@ -1149,7 +1149,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 CloudBlob blob = CommonBlobHelper.QueryBlob(NEW_CONTAINER_NAME, blobName);
                 blob.FetchAttributes();
                 CloudBlobUtil.PackBlobCompareData(blob, dic);
-                dic.Add("CloudBlob", blob);
+                dic.Add("ICloudBlob", blob);
 
                 agent.OutputValidation(comp);
             }
