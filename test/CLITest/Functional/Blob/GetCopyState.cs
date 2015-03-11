@@ -183,9 +183,18 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 ((CloudBlockBlob)destBlob).StartCopyFromBlob((CloudBlockBlob)srcBlob);
             }
-            else
+            else if (destBlob.BlobType == StorageBlob.BlobType.PageBlob)
             {
                 ((CloudPageBlob)destBlob).StartCopyFromBlob((CloudPageBlob)srcBlob);
+            }
+            else if (destBlob.BlobType == StorageBlob.BlobType.AppendBlob)
+            {
+                ((CloudAppendBlob)destBlob).StartCopy((CloudAppendBlob)srcBlob);
+            }
+            else
+            {
+                Test.Error(string.Format("Invalid blob type: {0}", destBlob.BlobType));
+                return;
             }
 
             Test.Assert(agent.GetAzureStorageBlobCopyState("$root", destBlob.Name, true), "Get copy state in $root container should succeed.");
