@@ -635,16 +635,17 @@ namespace Management.Storage.ScenarioTest.Util
 
         public static CloudBlob GetBlob(CloudBlobContainer container, string blobName, StorageBlobType blobType)
         {
-            CloudBlob blob = null;
-            if (blobType == StorageBlobType.BlockBlob)
+            switch (blobType)
             {
-                blob = container.GetBlockBlobReference(blobName);
+                case StorageBlobType.BlockBlob:
+                    return container.GetBlockBlobReference(blobName);
+                case StorageBlobType.PageBlob:
+                    return container.GetPageBlobReference(blobName);
+                case StorageBlobType.AppendBlob:
+                    return container.GetAppendBlobReference(blobName);
+                default:
+                    throw new InvalidOperationException(string.Format("Invalid blob type: {0}", blobType));
             }
-            else
-            {
-                blob = container.GetPageBlobReference(blobName);
-            }
-            return blob;
         }
 
         /// <summary>

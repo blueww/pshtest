@@ -493,7 +493,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             string expectedSourceUri = CloudBlobUtil.ConvertCopySourceUri(srcBlob.Uri.ToString());
             if (lang == Language.PowerShell)
             {
-                destBlob = (CloudBlob)agent.Output[0]["CloudBlob"];
+                destBlob = (CloudBlob)agent.Output[0]["ICloudBlob"];
                 destBlob.FetchAttributes();
                 actualBlobName = destBlob.Name;
 
