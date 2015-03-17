@@ -344,6 +344,17 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 for (int i = 0; i < count; i++)
                 {
+                    CloudAppendBlob snapshot = ((CloudAppendBlob)appendBlob).CreateSnapshot();
+                    snapshot.FetchAttributes();
+                    blobs.Add(snapshot);
+                    Thread.Sleep(snapshotInterval);
+                }
+
+                blobs.Add(appendBlob);
+
+                count = random.Next(minSnapshot, maxSnapshot);
+                for (int i = 0; i < count; i++)
+                {
                     CloudBlockBlob snapshot = ((CloudBlockBlob)blockBlob).CreateSnapshot();
                     snapshot.FetchAttributes();
                     blobs.Add(snapshot);
@@ -361,17 +372,6 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 }
 
                 blobs.Add(pageBlob);
-
-                count = random.Next(minSnapshot, maxSnapshot);
-                for (int i = 0; i < count; i++)
-                {
-                    CloudAppendBlob snapshot = ((CloudAppendBlob)appendBlob).CreateSnapshot();
-                    snapshot.FetchAttributes();
-                    blobs.Add(snapshot);
-                    Thread.Sleep(snapshotInterval);
-                }
-
-                blobs.Add(appendBlob);
 
                 Test.Assert(agent.GetAzureStorageBlob(string.Empty, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with snapshot blobs", true));
                 Test.Assert(agent.Output.Count == blobs.Count, String.Format("Expect to retrieve {0} blobs, actually retrieved {1} blobs", blobs.Count, agent.Output.Count));
@@ -406,7 +406,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 CloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
                 CloudBlob blockBlob = blobUtil.CreateBlockBlob(container, blockBlobName);
-                CloudBlob appendBlob = blobUtil.CreateBlockBlob(container, appendBlobName);
+                CloudBlob appendBlob = blobUtil.CreateAppendBlob(container, appendBlobName);
                 ((CloudPageBlob)pageBlob).AcquireLease(null, string.Empty);
                 ((CloudBlockBlob)blockBlob).AcquireLease(null, string.Empty);
                 ((CloudAppendBlob)appendBlob).AcquireLease(null, string.Empty);
