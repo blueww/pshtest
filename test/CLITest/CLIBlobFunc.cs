@@ -37,6 +37,7 @@ namespace Management.Storage.ScenarioTest
         private static CloudBlobHelper BlobHelper;
         private static string BlockFilePath;
         private static string PageFilePath;
+        private static string AppendFilePath;
 
         #region Additional test attributes
 
@@ -50,12 +51,15 @@ namespace Management.Storage.ScenarioTest
 
             BlockFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
             PageFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
+            AppendFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(BlockFilePath));
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(PageFilePath));
+            FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(AppendFilePath));
 
             // Generate block file and page file which are used for uploading
             FileUtil.GenerateMediumFile(BlockFilePath, Utility.GetRandomTestCount(1, 10));
             FileUtil.GenerateMediumFile(PageFilePath, Utility.GetRandomTestCount(1, 10));
+            FileUtil.GenerateMediumFile(AppendFilePath, Utility.GetRandomTestCount(1, 10));
         }
 
         [ClassCleanup()]
@@ -75,7 +79,7 @@ namespace Management.Storage.ScenarioTest
             FileUtil.CreateDirIfNotExits(DownloadDirPath);
             RootBlobOperations(agent, BlockFilePath, DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             RootBlobOperations(agent, PageFilePath, DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
-            RootBlobOperations(agent, PageFilePath, DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
+            RootBlobOperations(agent, AppendFilePath, DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         [TestMethod]

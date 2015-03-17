@@ -408,7 +408,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             Validator validator;
             if (lang == Language.PowerShell)
             {
-                copyBlobError = "Blob type of source and destination must be the same.";
+                copyBlobError = "User specified blob type does not match the blob type of the existing destination blob.";
                 validator = ExpectedEqualErrorMessage;
             }
             else
