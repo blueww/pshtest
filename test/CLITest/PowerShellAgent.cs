@@ -282,6 +282,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, bool useHttps = true)
         {
+            this.SetStorageContextWithSASToken(StorageAccountName, sasToken, null, useHttps);
+        }
+
+        public override void SetStorageContextWithSASToken(string StorageAccountName, string sasToken,  string endpoint,  bool useHttps = true)
+        {
             PowerShell ps = PowerShell.Create(_InitState);
             ps.AddCommand("New-AzureStorageContext");
             ps.BindParameter("StorageAccountName", StorageAccountName);
@@ -294,6 +299,11 @@ namespace Management.Storage.ScenarioTest
             else
             {
                 ps.BindParameter("Protocol", "http");
+            }
+
+            if (!string.IsNullOrEmpty(endpoint))
+            { 
+                ps.BindParameter("Endpoint", endpoint);
             }
 
             Test.Info("Set PowerShell Storage Context using SasToken, Cmdline: {0}", GetCommandLine(ps));
@@ -1810,6 +1820,12 @@ namespace Management.Storage.ScenarioTest
         public override string SetContextWithSASToken(string accountName, CloudBlobUtil blobUtil, StorageObjectType objectType,
             string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null)
         {
+            return this.SetContextWithSASToken(accountName, blobUtil, objectType, null, policy, permission, startTime, expiryTime);
+        }
+
+        public override string SetContextWithSASToken(string accountName, CloudBlobUtil blobUtil, StorageObjectType objectType,
+            string endpoint, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null)
+        {
             string sastoken = string.Empty;
             switch (objectType)
             {
@@ -1823,7 +1839,7 @@ namespace Management.Storage.ScenarioTest
                     throw new Exception("unsupported object type : " + objectType.ToString());
             }
 
-            this.SetStorageContextWithSASToken(accountName, sastoken);
+            this.SetStorageContextWithSASToken(accountName, sastoken, endpoint: endpoint);
             return sastoken;
         }
 
