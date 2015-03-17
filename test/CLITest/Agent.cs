@@ -228,6 +228,16 @@ namespace Management.Storage.ScenarioTest
         public abstract string SetContextWithSASToken(string accountName, CloudBlobUtil blobUtil, StorageObjectType objectType,
             string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null);
 
+        public virtual string SetContextWithSASToken(string accountName, CloudBlobUtil blobUtil, StorageObjectType objectType,
+            string endpoint, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null)
+        {
+            return null;
+        }
+
+        public virtual void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, string endpoint, bool useHttps = true)
+        { 
+        }
+
         public abstract void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, bool useHttps = true);
         #endregion
 

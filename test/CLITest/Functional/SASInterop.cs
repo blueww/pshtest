@@ -19,6 +19,8 @@
         private static string commonPageFilePath;
         private static string downloadDirPath;
 
+        private static string StorageEndpoint;
+
         //In PowerShell cmdlet, we do not allow "*[]'" for blob name because it's for wild card patten
         private const string SpecialCharsPrefix = @"~!@#$%^&()_+";
 
@@ -28,6 +30,7 @@
             TestBase.TestClassInitialize(testContext);
             GenerateBvtTempFiles();
             downloadDirPath = Test.Data.Get("DownloadDir");
+            StorageEndpoint = Test.Data.Get("StorageEndPoint");
         }
 
         [ClassCleanup()]
@@ -115,6 +118,8 @@
             BlobOrContainerWithReadPermission(StorageObjectType.Container, BlobType.BlockBlob);
             SetCLIEnv(TestContext); //reset agent env 
             BlobOrContainerWithReadPermission(StorageObjectType.Container, BlobType.PageBlob);
+            SetCLIEnv(TestContext); //reset agent env 
+            BlobOrContainerWithReadPermission(StorageObjectType.Container, BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -134,6 +139,8 @@
             BlobOrContainerWithReadPermission(StorageObjectType.Container, BlobType.BlockBlob);
             SetCLIEnv(TestContext); //reset agent env 
             BlobOrContainerWithReadPermission(StorageObjectType.Container, BlobType.PageBlob);
+            SetCLIEnv(TestContext); //reset agent env 
+            BlobOrContainerWithReadPermission(StorageObjectType.Container, BlobType.AppendBlob);
         }
 
         public void BlobOrContainerWithReadPermission(StorageObjectType objectType, BlobType blobType)
@@ -142,7 +149,7 @@
 
             try
             {
-                agent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, string.Empty, "r");
+                agent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, StorageEndpoint, string.Empty, "r");
 
                 // Get blob with the generated SAS token
                 Test.Assert(agent.GetAzureStorageBlob(blobUtil.Blob.Name, blobUtil.ContainerName),
@@ -188,6 +195,8 @@
             BlobOrContainerWithWritePermission(commonBlockFilePath, StorageObjectType.Container, BlobType.BlockBlob);
             SetCLIEnv(TestContext); //reset agent env 
             BlobOrContainerWithWritePermission(commonPageFilePath, StorageObjectType.Container, BlobType.PageBlob);
+            SetCLIEnv(TestContext); //reset agent env 
+            BlobOrContainerWithWritePermission(commonPageFilePath, StorageObjectType.Container, BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -203,6 +212,8 @@
             BlobOrContainerWithWritePermission(commonBlockFilePath, StorageObjectType.Blob, BlobType.BlockBlob);
             SetCLIEnv(TestContext); //reset agent env 
             BlobOrContainerWithWritePermission(commonPageFilePath, StorageObjectType.Blob, BlobType.PageBlob);
+            SetCLIEnv(TestContext); //reset agent env 
+            BlobOrContainerWithWritePermission(commonPageFilePath, StorageObjectType.Blob, BlobType.AppendBlob);
         }
 
         public void BlobOrContainerWithWritePermission(string uploadFilePath, StorageObjectType objectType, BlobType type)
@@ -210,7 +221,7 @@
             blobUtil.SetupTestContainerAndBlob(type);
             try
             {
-                agent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, string.Empty, "w");
+                agent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, StorageEndpoint, string.Empty, "w");
 
                 // Upload blob with the generated SAS token
                 Test.Assert(agent.SetAzureStorageBlobContent(uploadFilePath, blobUtil.ContainerName, type, blobUtil.Blob.Name),
@@ -257,7 +268,7 @@
             blobUtil.SetupTestContainerAndBlob();
             try
             {
-                agent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, string.Empty, "d");
+                agent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, StorageEndpoint, string.Empty, "d");
 
                 // Delete blob with the generated SAS token
                 Test.Assert(agent.RemoveAzureStorageBlob(blobUtil.Blob.Name, blobUtil.ContainerName),
@@ -285,7 +296,7 @@
             try
             {
                 string sastoken = agent.GetContainerSasFromCmd(blobUtil.ContainerName, string.Empty, "l");
-                agent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sastoken);
+                agent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sastoken, StorageEndpoint);
 
                 // List blobs with the generated SAS token
                 Test.Assert(agent.GetAzureStorageBlob(string.Empty, blobUtil.ContainerName),
@@ -313,7 +324,7 @@
             try
             {
                 string sastoken = agent.GetQueueSasFromCmd(queue.Name, string.Empty, "r");
-                agent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sastoken);
+                agent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sastoken, StorageEndpoint);
 
                 //list specified queue with properties and meta data
                 Test.Assert(agent.GetAzureStorageQueue(queue.Name), Utility.GenComparisonData("GetAzureStorageQueue", true));
