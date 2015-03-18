@@ -321,7 +321,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             CloudBlobContainer Container = blobUtil.CreateContainer();
             string ContainerName = Container.Name;
             string BlobName = Utility.GenNameString("blob");
-            CloudBlob Blob = blobUtil.CreateRandomBlob(Container, BlobName);
+            CloudBlob Blob = blobUtil.CreateBlockBlob(Container, BlobName);
             
             string uri = Test.Data.Get("BigFileUri");
             Test.Assert(!String.IsNullOrEmpty(uri), string.Format("Big file uri should be not empty, actually it's {0}", uri));
@@ -330,7 +330,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 return;
             }
-
+            
             Blob.StartCopyFromBlob(new Uri(uri));
 
             int maxMonitorCount = 3; 
