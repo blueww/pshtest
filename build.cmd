@@ -22,6 +22,6 @@ GOTO :END
 
 :xPlat
 CALL .\Xplat\tools\windows\scripts\prepareRepoClone.cmd
-msbuild /t:rebuild /p:Configuration=Release .\Xplat\tools\windows\azure-cli.sln
+msbuild /t:rebuild /p:Configuration=Release azure-cli.sln
 
 :END
