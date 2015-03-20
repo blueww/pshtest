@@ -640,6 +640,9 @@
                 //get the policy and validate
                 SharedAccessQueuePolicies expectedPolicies = new SharedAccessQueuePolicies();
                 expectedPolicies.Add(policyName, Utility.SetupSharedAccessPolicy<SharedAccessQueuePolicy>(startTime, expiryTime, permission));
+
+                Utility.RawStoredAccessPolicy policy = new Utility.RawStoredAccessPolicy(policyName, startTime, expiryTime, permission);
+                Utility.WaitForPolicyBecomeValid<CloudQueue>(queue, policy); 
                 Utility.ValidateStoredAccessPolicies<SharedAccessQueuePolicy>(queue.GetPermissions().SharedAccessPolicies, expectedPolicies);
             }
             finally
