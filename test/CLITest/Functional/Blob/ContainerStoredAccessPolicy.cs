@@ -851,6 +851,9 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 //get the policy and validate
                 SharedAccessBlobPolicies expectedPolicies = new SharedAccessBlobPolicies();
                 expectedPolicies.Add(policyName, Utility.SetupSharedAccessPolicy<SharedAccessBlobPolicy>(startTime, expiryTime, permission));
+                
+                Utility.RawStoredAccessPolicy policy = new Utility.RawStoredAccessPolicy(policyName, startTime, expiryTime, permission);
+                Utility.WaitForPolicyBecomeValid<CloudBlobContainer>(container, policy); 
                 Utility.ValidateStoredAccessPolicies<SharedAccessBlobPolicy>(container.GetPermissions().SharedAccessPolicies, expectedPolicies);
             }
             finally

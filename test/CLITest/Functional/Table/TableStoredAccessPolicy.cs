@@ -692,6 +692,9 @@
                 //get the policy and validate
                 SharedAccessTablePolicies expectedPolicies = new SharedAccessTablePolicies();
                 expectedPolicies.Add(policyName, Utility.SetupSharedAccessPolicy<SharedAccessTablePolicy>(startTime, expiryTime, permission));
+
+                Utility.RawStoredAccessPolicy policy = new Utility.RawStoredAccessPolicy(policyName, startTime, expiryTime, permission);
+                Utility.WaitForPolicyBecomeValid<CloudTable>(table, policy); 
                 Utility.ValidateStoredAccessPolicies<SharedAccessTablePolicy>(table.GetPermissions().SharedAccessPolicies, expectedPolicies);
             }
             finally

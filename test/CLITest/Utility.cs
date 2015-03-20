@@ -975,7 +975,7 @@ namespace Management.Storage.ScenarioTest
             }
 
             object[] parameter = { permissionTmp };
-            var permission = typeof(T).GetMethod("PermissionsFromString").Invoke(null, parameter);
+            var permission = permissionTmp != null ? typeof(T).GetMethod("PermissionsFromString").Invoke(null, parameter) : null;
             bool equal = IsEqualTime(((dynamic)actualPolicy).SharedAccessStartTime, expectedPolicy.StartTime);
             equal = equal && IsEqualTime(((dynamic)actualPolicy).SharedAccessExpiryTime, expectedPolicy.ExpiryTime);
             return equal && ((dynamic)actualPolicy).Permissions.Equals(permission);
