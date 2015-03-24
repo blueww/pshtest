@@ -221,7 +221,7 @@
             blobUtil.SetupTestContainerAndBlob(type);
             try
             {
-                agent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, StorageEndpoint, string.Empty, "w");
+                agent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, StorageEndpoint, string.Empty, "rw");
 
                 // Upload blob with the generated SAS token
                 Test.Assert(agent.SetAzureStorageBlobContent(uploadFilePath, blobUtil.ContainerName, type, blobUtil.Blob.Name),
