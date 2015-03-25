@@ -19,6 +19,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using Management.Storage.ScenarioTest.Common;
 using MS.Test.Common.MsTestLib;
+using System.Threading;
 
 namespace Management.Storage.ScenarioTest.Util
 {
@@ -86,7 +87,7 @@ namespace Management.Storage.ScenarioTest.Util
         public void RemoveTable(string tableName)
         {
             CloudTable table = client.GetTableReference(tableName);
-            table.DeleteIfExists();
+            this.RemoveTable(table);
         }
 
         /// <summary>
@@ -95,6 +96,22 @@ namespace Management.Storage.ScenarioTest.Util
         public void RemoveTable(CloudTable table)
         {
             table.DeleteIfExists();
+
+            // There is delay for deleting a table's permission infos to take effact.
+            // Here wait for it.
+            while (true)
+            {
+                try
+                {
+                    table.GetPermissions();
+                }
+                catch
+                {
+                    break;
+                }
+
+                Thread.Sleep(2000);
+            }
         }
 
         /// <summary>

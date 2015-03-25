@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
-    using System.Linq;
     using System.Threading;
     using Management.Storage.ScenarioTest.Common;
     using Management.Storage.ScenarioTest.Util;
@@ -346,6 +345,7 @@
                 }
 
                 tableUtil.RemoveTable(table);
+
                 Test.Assert(!agent.RemoveAzureStorageTableStoredAccessPolicy(table.Name, policyName),
                     "Remove stored access policy from invalid table name should fail");
                 if (lang == Language.PowerShell)
