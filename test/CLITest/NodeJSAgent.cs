@@ -466,6 +466,19 @@ namespace Management.Storage.ScenarioTest
             {
                 parameter += " --blobtype page ";
             }
+            else if (type == BlobType.AppendBlob)
+            {
+                parameter += " --blobtype append ";
+            }
+            else
+            {
+                // Randomly set block blob explictly or use default type (block blob)
+                Random random = new Random();
+                if (random.Next(0, 2) > 0)
+                {
+                    parameter += " --blobtype block ";
+                }
+            }
 
             if (properties != null)
             {
