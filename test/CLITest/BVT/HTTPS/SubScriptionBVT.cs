@@ -14,8 +14,13 @@
 
 namespace Management.Storage.ScenarioTest.BVT.HTTPS
 {
+    using System.Security.Cryptography.X509Certificates;
     using Management.Storage.ScenarioTest.Common;
+    using Management.Storage.ScenarioTest.Util;
+    using Microsoft.Azure.Management.Storage;
+    using Microsoft.Azure.Management.Storage.Models;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.WindowsAzure;
     using MS.Test.Common.MsTestLib;
     using StorageTestLib;
 
@@ -25,6 +30,8 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
     [TestClass]
     class SubScriptionBVT : CLICommonBVT
     {
+        private static AccountUtils AccountUtils;
+
         [ClassInitialize()]
         public static void SubScriptionBVTClassInitialize(TestContext testContext)
         {
@@ -35,6 +42,8 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             SetUpStorageAccount = TestBase.GetCloudStorageAccountFromConfig(useHttps: useHttps);
             CLICommonBVT.CLICommonBVTInitialize(testContext);
             SetupSubscription();
+
+            AccountUtils = new AccountUtils();
         }
 
         /// <summary>
@@ -62,6 +71,29 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             string key = System.Environment.GetEnvironmentVariable(EnvKey);
             Test.Assert(string.IsNullOrEmpty(key), string.Format("env connection string {0} should be null or empty", key));
             Test.Assert(PowerShellAgent.Context == null, "PowerShell context should be null when running bvt against Subscription");
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.BVT)]
+        public void CreateSRPAccount()
+        {
+            string resourceGroupName = AccountUtils.GenerateResourceGroupName();
+            string accountName = AccountUtils.GenerateAccountName();
+            string location = Constants.Locations[random.Next(0, Constants.Locations.Length)];
+
+            try
+            {
+                Test.Assert(agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, Constants.AccountType.Standard_LRS, location),
+                    "Create account {0} of resource group {1} should succeeded.", accountName, resourceGroupName);
+
+                StorageAccountGetPropertiesResponse properties = AccountUtils.SRPStorageClient.StorageAccounts.GetProperties(resourceGroupName, accountName);
+                Test.Assert(properties.StorageAccount.AccountType.Value == AccountType.StandardLRS, "Account type should be StandardLRS");
+                Test.Assert(properties.StorageAccount.Location == location, "Account type should be StandardLRS");
+            }
+            finally
+            {
+                AccountUtils.SRPStorageClient.StorageAccounts.Delete(resourceGroupName, accountName);
+            }
         }
     }
 }

@@ -81,6 +81,13 @@ namespace Management.Storage.ScenarioTest
         public abstract bool setAzureStorageAccount(string accountName, string label, string description, string type, bool? geoReplication = null);
         #endregion
 
+        #region SRPAccount
+        public virtual bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string type, string location)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
         #region Container
         /// <summary>
         /// Return true if succeed otherwise return false

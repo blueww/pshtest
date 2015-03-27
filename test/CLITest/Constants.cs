@@ -13,6 +13,44 @@ namespace Management.Storage.ScenarioTest
         public const string SASTokenKey = "";
         public const string SASTokenKeyNode = "sas";
 
+        public struct AccountType
+        {
+            public const string Standard_LRS = "Standard_LRS";
+            public const string Standard_ZRS = "Standard_ZRS";
+            public const string Standard_GRS = "Standard_GRS";
+            public const string Standard_RAGRS = "Standard_RAGRS";
+            public const string Premium_LRS = "Premium_LRS";
+        };
+
+        public static readonly string[] AccountTypes = { AccountType.Standard_LRS, 
+                                                           AccountType.Standard_ZRS, 
+                                                           AccountType.Standard_GRS, 
+                                                           AccountType.Standard_RAGRS, 
+                                                           AccountType.Premium_LRS };
+
+        public struct Location
+        {
+            public const string WestUS = "West US";
+            public const string SouthCentralUS = "South Central US";
+            public const string EastUS = "East US";
+            public const string EastUS2 = "East US 2";
+            public const string CentralUS = "Central US";
+            public const string NorthEurope = "North Europe";
+            public const string WestEurope = "West Europe";
+            public const string SoutheastAsia = "Southeast Asia";
+            public const string EastAsia = "East Asia";
+        };
+
+        public static readonly string[] Locations = { Location.WestUS,
+                                                        Location.SouthCentralUS,
+                                                        Location.EastUS,
+                                                        Location.EastUS2,
+                                                        Location.CentralUS,
+                                                        Location.NorthEurope,
+                                                        Location.WestEurope,
+                                                        Location.SoutheastAsia,
+                                                        Location.EastAsia };
+
         /// <summary>
         /// used for Set/Get Service Properties
         /// </summary>
