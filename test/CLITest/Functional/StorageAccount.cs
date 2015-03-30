@@ -60,7 +60,7 @@ namespace Management.Storage.ScenarioTest
 
         private static ManagementClient managementClient;
         private static StorageManagementClient storageClient;
-        private static string[] ForbiddenWordsInAccountName = {"msn", "fuck", "shit", "cunt", "cum", "nigger"};
+        private static string[] ForbiddenWordsInAccountName = {"msn", "fuck", "shit", "cunt", "cum", "nigger", "kkk"};
 
         public override void OnTestSetup()
         {
