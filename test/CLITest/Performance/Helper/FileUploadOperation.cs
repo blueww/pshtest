@@ -38,7 +38,7 @@ namespace Management.Storage.ScenarioTest.Performance.Helper
 
         public override void Before(string containerName, string fileName)
         {
-            //do nothing
+            this.BeforeBatch(fileName, containerName);
         }
 
         public override void BeforeBatch(string local, string remote)

@@ -57,6 +57,8 @@ namespace Management.Storage.ScenarioTest.Performance.Helper
         bool ValidateBatch(string local, string remote, int fileNum, out string error);
         #endregion
 
+        TimeSpan GetReportedTransferringTime();
+
         /// <summary>
         /// This operation name
         /// </summary>

@@ -35,6 +35,7 @@
   <TempDir>.\Data\temp\</TempDir>
   <SpecialChars>~!@#$%^&amp;*()_+[]'</SpecialChars>
   <EnvContextKey>AZURE_STORAGE_CONNECTION_STRING</EnvContextKey>
+  <!--
   <TestClass name="Management.Storage.ScenarioTest.CLIPerf_OneBlob">
     <containerName>perf</containerName>
   </TestClass>
@@ -52,10 +53,12 @@
   </TestClass>
   <TestClass name="Management.Storage.ScenarioTest.CLIPerf_BlobCmdlets">
     <BlobCount>1</BlobCount>
-    <!--<BlobCount>1,2,5,10,20,50,100,200,500,1000,2000,5000,6000</BlobCount>-->
-  </TestClass>
+    <BlobCount>1,2,5,10,20,50,100,200,500,1000,2000,5000,6000</BlobCount>
+  </TestClass>-->
   <FileName>testfile</FileName>
   <FolderName>testfolder</FolderName>
+  <UploadPerfContainerPrefix>cliperftest</UploadPerfContainerPrefix>
+  <DownloadPerfContainerPrefix>cliperftest</DownloadPerfContainerPrefix> <!--make sure containers with this prefix has expected data for download-->
   <PLinkPath></PLinkPath>
   <UserName></UserName>
   <HostName></HostName>

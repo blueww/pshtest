@@ -51,7 +51,8 @@ namespace Management.Storage.ScenarioTest
             BlobHelper = new CloudBlobHelper(CloudStorageAccount.Parse(ConnectionString));
             FileHelper = new CloudFileHelper(CloudStorageAccount.Parse(ConnectionString));
 
-            ContainerPrefix = Utility.GenNameString("perf");
+            UploadContainerPrefix = Test.Data.Get("UploadPerfContainerPrefix");
+            DownloadContainerPrefix = Test.Data.Get("DownloadPerfContainerPrefix");
 
             FileName = Test.Data.Get("FileName");
             FolderName = Test.Data.Get("FolderName");
@@ -165,9 +166,12 @@ namespace Management.Storage.ScenarioTest
             while (fileNum <= 128) //change to a smaller number(2048-->128) as we upload/download blobs in sequence now
             {
                 var folderName = FolderName + "-" + fileNum;
+
+                remote = DownloadContainerPrefix;
                 if (operation.NeedDataPreparation)
                 {
                     FileUtil.PrepareData(folderName, fileNum, FILE_SIZE_MB * 1024);
+                    remote = UploadContainerPrefix; //if data preparation is needed, then it's upload test.
                 }
 
                 TransferTestFiles(
@@ -240,6 +244,8 @@ namespace Management.Storage.ScenarioTest
         public static CloudBlobHelper BlobHelper;
         public static CloudFileHelper FileHelper;
         public static string ContainerPrefix;
+        public static string DownloadContainerPrefix;
+        public static string UploadContainerPrefix;
         public static string FileName;
         public static string FolderName;
     }

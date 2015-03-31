@@ -25,13 +25,15 @@ namespace Management.Storage.ScenarioTest
 
             BlobHelper = new CloudBlobHelper(StorageAccount);
             FileHelper = new CloudFileHelper(StorageAccount);
-            ContainerName = Utility.GenNameString("perf");
 
-            BlobHelper.CreateContainer(ContainerName);
-            BlobHelper.CleanupContainer(ContainerName);
+            UploadContainerPrefix = Test.Data.Get("UploadPerfContainerPrefix");
+            DownloadContainerPrefix = Test.Data.Get("DownloadPerfContainerPrefix");
 
-            FileHelper.CreateShare(ContainerName);
-            FileHelper.CleanupShare(ContainerName);
+            //BlobHelper.CreateContainer(ContainerName);
+            //BlobHelper.CleanupContainer(ContainerName);
+
+            //FileHelper.CreateShare(ContainerName);
+            //FileHelper.CleanupShare(ContainerName);
 
             //set the ConcurrentTaskCount field
             PowerShellAgent.ConcurrentTaskCount = Environment.ProcessorCount * 8;
@@ -46,8 +48,8 @@ namespace Management.Storage.ScenarioTest
 
             // disable this as sometimes we would want to use the generated files to 
             //Helper.DeletePattern("testfile_*");
-            BlobHelper.CleanupContainer(ContainerName);
-            FileHelper.CleanupShare(ContainerName);
+            //BlobHelper.CleanupContainer(ContainerName);
+            //FileHelper.CleanupShare(ContainerName);
         }
 
         //Use TestInitialize to run code before running each test
@@ -73,8 +75,6 @@ namespace Management.Storage.ScenarioTest
         [Timeout(14400000)]
         public void UploadHttpBlock()
         {
-            BlobHelper.CleanupContainer(ContainerName);
-            GenerateTestFiles();
             var o = new BlockBlobUploadOperation(this.agent, BlobHelper);
             Run(o);
         }
@@ -95,8 +95,6 @@ namespace Management.Storage.ScenarioTest
         [Timeout(14400000)]
         public void UploadHttpPage()
         {
-            BlobHelper.CleanupContainer(ContainerName);
-            GenerateTestFiles();
             var o = new PageBlobUploadOperation(this.agent, BlobHelper);
             Run(o);
         }
@@ -107,7 +105,6 @@ namespace Management.Storage.ScenarioTest
         [Timeout(14400000)]
         public void DownloadHttpPage()
         {
-            GenerateTestFiles();
             var o = new PageBlobDownloadOperation(this.agent, BlobHelper);
             Run(o);
         }
@@ -118,11 +115,7 @@ namespace Management.Storage.ScenarioTest
         [Timeout(144000000)]
         public void UploadHttpBlock_Max()
         {
-            BlobHelper.CleanupContainer(ContainerName);
-
-            //put the generating files here, because it will cost a few hours to generate very big files
             var o = new BlockBlobUploadOperation(this.agent, BlobHelper);
-            GenerateTestFiles_Max(o);
             Run(o, true);
         }
 
@@ -142,9 +135,7 @@ namespace Management.Storage.ScenarioTest
         [Timeout(144000000)]
         public void UploadHttpPage_Max()
         {
-            BlobHelper.CleanupContainer(ContainerName);
             var o = new PageBlobUploadOperation(this.agent, BlobHelper);
-            GenerateTestFiles_Max(o);
             Run(o, true);
         }
 
@@ -165,7 +156,6 @@ namespace Management.Storage.ScenarioTest
         [Timeout(14400000)]
         public void UploadFile()
         {
-            GenerateTestFiles();
             var o = new FileUploadOperation(this.agent, FileHelper);
             Run(o);
         }
@@ -189,7 +179,6 @@ namespace Management.Storage.ScenarioTest
         public void UploadFile_Max()
         {
             var o = new FileUploadOperation(this.agent, FileHelper);
-            GenerateTestFiles_Max(o);
             Run(o, true);
         }
 
@@ -211,6 +200,21 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         public void Run(ICLIOperation operation, bool bMax = false)
         {
+            ContainerName = DownloadContainerPrefix;
+            if (operation.NeedDataPreparation)
+            {
+                if (bMax)
+                {
+                    GenerateTestFiles_Max(operation);
+                }
+                else
+                {
+                    GenerateTestFiles();
+                }
+
+                ContainerName = UploadContainerPrefix; //if data preparation is needed, then it's upload test.
+            }
+
             Dictionary<long, double> fileSizeTime = new Dictionary<long, double>();
             Dictionary<long, double> fileSizeTimeSD = new Dictionary<long, double>();
 
@@ -389,5 +393,7 @@ namespace Management.Storage.ScenarioTest
         public static CloudBlobHelper BlobHelper;
         public static CloudFileHelper FileHelper;
         public static string ContainerName;
+        public static string DownloadContainerPrefix;
+        public static string UploadContainerPrefix;
     }
 }

@@ -21,7 +21,7 @@ namespace Management.Storage.ScenarioTest.Performance.Helper
 
         public virtual void Before(string containerName, string fileName)
         {
-            BlobHelper.CreateContainer(containerName);
+            this.BeforeBatch(fileName, containerName);
         }
 
         public virtual void BeforeBatch(string local, string remote)
