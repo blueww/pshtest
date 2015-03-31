@@ -54,7 +54,8 @@ namespace Management.Storage.ScenarioTest
             BlobHelper = new CloudBlobHelper(CloudStorageAccount.Parse(ConnectionString));
             FileHelper = new CloudFileHelper(CloudStorageAccount.Parse(ConnectionString));
 
-            ContainerPrefix = Utility.GenNameString("perf");
+            UploadContainerPrefix = Test.Data.Get("UploadPerfContainerPrefix");
+            DownloadContainerPrefix = Test.Data.Get("DownloadPerfContainerPrefix");
 
             FileName = Test.Data.Get("FileName");
             FolderName = Test.Data.Get("FolderName");
@@ -164,9 +165,11 @@ namespace Management.Storage.ScenarioTest
                 var folder = FolderName + "-" + fileNum;
                 var size = MAX_SIZE_MB * 1024 / fileNum;
 
+                ContainerPrefix = DownloadContainerPrefix;
                 if (operation.NeedDataPreparation)
                 {
                     FileUtil.PrepareData(folder, fileNum, size);
+                    ContainerPrefix = UploadContainerPrefix; //if data preparation is needed, then it's upload test.
                 }
 
                 TransferTestFiles(
@@ -240,6 +243,8 @@ namespace Management.Storage.ScenarioTest
         public static CloudBlobHelper BlobHelper;
         public static CloudFileHelper FileHelper;
         public static string ContainerPrefix;
+        public static string DownloadContainerPrefix;
+        public static string UploadContainerPrefix;
         public static string FileName;
         public static string FolderName;
     }
