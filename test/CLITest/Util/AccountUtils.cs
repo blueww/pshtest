@@ -13,7 +13,7 @@ namespace Management.Storage.ScenarioTest.Util
 {
     class AccountUtils
     {
-        private static string[] ForbiddenWordsInAccountName = { "msn", "fuck", "shit", "cunt", "cum", "nigger" };
+        private static string[] ForbiddenWordsInAccountName = { "msn", "fuck", "shit", "cunt", "cum", "nigger", "kkk" };
         private static Tuple<int, int> ValidNameRange = new Tuple<int, int>((int)'a', (int)'z');
         private static Random random = new Random();
 
@@ -73,7 +73,7 @@ namespace Management.Storage.ScenarioTest.Util
 
             do
             {
-                name = FileNamingGenerator.GenerateNameFromRange(random.Next(3, 24), ValidNameRange);
+                name = "clitest" + FileNamingGenerator.GenerateNameFromRange(random.Next(0, 18), ValidNameRange);
 
                 foreach (string forbiddenWord in ForbiddenWordsInAccountName)
                 {

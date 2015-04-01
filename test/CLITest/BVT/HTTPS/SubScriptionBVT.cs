@@ -95,5 +95,32 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
                 AccountUtils.SRPStorageClient.StorageAccounts.Delete(resourceGroupName, accountName);
             }
         }
+
+        [TestMethod()]
+        [TestCategory(Tag.BVT)]
+        public void SetSRPAccount()
+        {
+            string resourceGroupName = AccountUtils.GenerateResourceGroupName();
+            string accountName = AccountUtils.GenerateAccountName();
+            string location = Constants.Locations[random.Next(0, Constants.Locations.Length)];
+
+            try
+            {
+                AccountUtils.SRPStorageClient.StorageAccounts.Create(resourceGroupName, accountName, new StorageAccountCreateParameters()
+                    {
+                        AccountType = AccountType.StandardLRS,
+                        Location = location
+                    });
+
+                Test.Assert(agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, Constants.AccountType.Standard_GRS),
+                    "Set account {0} of resource group {1} should succeeded.", accountName, resourceGroupName);
+
+                //TODO Validate
+            }
+            finally
+            {
+                AccountUtils.SRPStorageClient.StorageAccounts.Delete(resourceGroupName, accountName);
+            }
+        }
     }
 }
