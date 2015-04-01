@@ -48,8 +48,8 @@ namespace Management.Storage.ScenarioTest
             string certPassword = Test.Data.Get("CertPassword");
             X509Certificate2 cert = new X509Certificate2(certFile, certPassword);
             CertificateCloudCredentials creadetial = new CertificateCloudCredentials(Test.Data.Get("AzureSubscriptionID"), cert);
-            storageClient = new StorageManagementClient(creadetial);
             managementClient = new ManagementClient(creadetial);
+            accountUtils = new AccountUtils();
         }
 
         [ClassCleanup()]
@@ -59,8 +59,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         private static ManagementClient managementClient;
-        private static StorageManagementClient storageClient;
-        private static string[] ForbiddenWordsInAccountName = {"msn", "fuck", "shit", "cunt", "cum", "nigger", "kkk"};
+        private static AccountUtils accountUtils;
 
         public override void OnTestSetup()
         {
@@ -709,7 +708,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSAccount)]
         public void FTAccount101_CreateAccount_FullParams()
         {
-            string accountName = GenerateAccountName();
+            string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Description";
             string location = AccountLocation.ASIA_EAST;
@@ -724,7 +723,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSAccount)]
         public void FTAccount102_CreateAccount_Localtion()
         {
-            string accountName = GenerateAccountName();
+            string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Location Setting";
             string affinityGroup = null;
@@ -742,7 +741,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSAccount)]
         public void FTAccount103_CreateAccount_AffinityGroup()
         {
-            string accountName = GenerateAccountName();
+            string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Affinity Group";
             string location = AccountLocation.ASIA_EAST;
@@ -772,7 +771,7 @@ namespace Management.Storage.ScenarioTest
 
             foreach (FieldInfo info in typeof(AccountType).GetFields())
             {
-                string accountName = GenerateAccountName();
+                string accountName = accountUtils.GenerateAccountName();
                 string accountType = info.GetRawConstantValue() as string;
                 CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType);
             }
@@ -783,7 +782,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSAccount)]
         public void FTAccount105_CreateAccount_ExistingAccount()
         {
-            string accountName = GenerateAccountName();
+            string accountName = accountUtils.GenerateAccountName();
             string subscriptionId = Test.Data.Get("AzureSubscriptionID");
             string label = "StorageAccountLabel";
             string description = "Storage Account Negative Case";
@@ -810,7 +809,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSAccount)]
         public void FTAccount106_CreateAccount_DifferentLocation()
         {
-            string accountName = GenerateAccountName();
+            string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Location and Affinity Group";
             string accoutLocation = AccountLocation.ASIA_EAST;
@@ -834,7 +833,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSAccount)]
         public void FTAccount107_CreateAccount_NonExistingAffinityGroup()
         {
-            string accountName = GenerateAccountName();
+            string accountName = accountUtils.GenerateAccountName();
             string subscriptionId = Test.Data.Get("AzureSubscriptionID");
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Non-Existing Affinity Group";
@@ -852,7 +851,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSAccount)]
         public void FTAccount108_CreateAccount_InvalidLocation()
         {
-            string accountName = GenerateAccountName();
+            string accountName = accountUtils.GenerateAccountName();
             string subscriptionId = Test.Data.Get("AzureSubscriptionID");
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Invalid Location";
@@ -870,7 +869,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSAccount)]
         public void FTAccount109_CreateAccount_InvalidType()
         {
-            string accountName = GenerateAccountName();
+            string accountName = accountUtils.GenerateAccountName();
             string subscriptionId = Test.Data.Get("AzureSubscriptionID");
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Invalid Type";
@@ -888,7 +887,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSAccount)]
         public void FTAccount201_SetAccount_ChangeType_LabeL_Description()
         {
-            string accountName = GenerateAccountName();
+            string accountName = accountUtils.GenerateAccountName();
             string label = FileNamingGenerator.GenerateNameFromRange(15, validNameRange);
             string description = FileNamingGenerator.GenerateNameFromRange(20, validNameRange);
             string originalAccountType = AccountType.Standard_GRS;
@@ -902,7 +901,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSAccount)]
         public void FTAccount202_SetAccount_NonExisitingAccount()
         {
-            string accountName = GenerateAccountName();
+            string accountName = accountUtils.GenerateAccountName();
             string label = FileNamingGenerator.GenerateNameFromRange(15, validNameRange);
             string description = FileNamingGenerator.GenerateNameFromRange(20, validNameRange);
             string accountType = AccountType.Standard_LRS;
@@ -917,7 +916,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSAccount)]
         public void FTAccount203_SetAccount_NonExistingType()
         {
-            string accountName = GenerateAccountName();
+            string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Non-Existing Type";
 
@@ -933,7 +932,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSAccount)]
         public void FTAccount204_SetAccount_ZRSToOthers()
         {
-            string accountName = GenerateAccountName();
+            string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Set Type";
             string location = AccountLocation.ASIA_EAST;
@@ -971,7 +970,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSAccount)]
         public void FTAccount205_SetAccount_PLRSToOthers()
         {
-            string accountName = GenerateAccountName();
+            string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Set Type";
             string location = AccountLocation.US_WEST;
@@ -1009,7 +1008,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSAccount)]
         public void FTAccount206_SetAccount_OthersToZRSOrPLRS()
         {
-            string accountName = GenerateAccountName();
+            string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Set Type";
 
@@ -1021,28 +1020,6 @@ namespace Management.Storage.ScenarioTest
                     string.Format("Setting stoarge account {0} to type {1} should fail", accountName, accountType));
                 ExpectedContainErrorMessage(string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", accountType));
             }
-        }
-
-        private string GenerateAccountName()
-        {
-            bool regenerate = false;
-            string name = string.Empty;
-
-            do
-            {
-                name = FileNamingGenerator.GenerateNameFromRange(15, validNameRange);
-
-                foreach (string forbiddenWord in ForbiddenWordsInAccountName)
-                {
-                    if (name.Contains(forbiddenWord))
-                    {
-                        regenerate = true;
-                    }
-                }
-            }
-            while (regenerate);
-
-            return "xplattest" + name;
         }
 
         private void CreateAndValidateAccount(string accountName, string label, string description, string location, string affinityGroup, string accountType, bool? geoReplication = null)
@@ -1086,7 +1063,7 @@ namespace Management.Storage.ScenarioTest
             StorageAccountGetResponse response;
             try
             {
-                response = storageClient.StorageAccounts.Get(accountName);
+                response = accountUtils.StorageClient.StorageAccounts.Get(accountName);
             }
             catch (CloudException ex)
             {
@@ -1102,7 +1079,7 @@ namespace Management.Storage.ScenarioTest
         {
             string subscriptionId = Test.Data.Get("AzureSubscriptionID");
 
-            StorageAccountGetResponse response = storageClient.StorageAccounts.Get(accountName);
+            StorageAccountGetResponse response = accountUtils.StorageClient.StorageAccounts.Get(accountName);
             Test.Assert(response.StatusCode == HttpStatusCode.OK, string.Format("Account {0} should be created successfully.", accountName));
 
             Test.Assert(agent.setAzureStorageAccount(accountName, newLabel, newDescription, newAccountType, geoReplication),
@@ -1111,7 +1088,7 @@ namespace Management.Storage.ScenarioTest
 
         private void ValidateAccount(string accountName, string label, string description, string location, string affinityGroup, string accountType, bool? geoReplication = null)
         {
-            StorageAccountGetResponse response = storageClient.StorageAccounts.Get(accountName);
+            StorageAccountGetResponse response = accountUtils.StorageClient.StorageAccounts.Get(accountName);
             Test.Assert(response.StatusCode == HttpStatusCode.OK, string.Format("Account {0} should be created successfully.", accountName));
 
             StorageAccount account = response.StorageAccount;
@@ -1144,7 +1121,7 @@ namespace Management.Storage.ScenarioTest
             {
                 if (createdAccounts.Contains(accountName))
                 {
-                    storageClient.StorageAccounts.DeleteAsync(accountName).Wait();
+                    accountUtils.StorageClient.StorageAccounts.DeleteAsync(accountName).Wait();
                 }
             }
             catch (Exception ex)

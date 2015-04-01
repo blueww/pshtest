@@ -86,6 +86,11 @@ namespace Management.Storage.ScenarioTest
         {
             throw new NotImplementedException();
         }
+
+        public virtual bool SetSRPAzureStorageAccount(string resourceGroupName, string accountName, string accountType)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
 
         #region Container
