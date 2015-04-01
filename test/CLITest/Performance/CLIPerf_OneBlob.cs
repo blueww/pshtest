@@ -256,11 +256,20 @@ namespace Management.Storage.ScenarioTest
             for (int i = initSize; i <= endSize; i *= 4)
             {
                 string fileName = "testfile_" + i + unit;
-                if (!FileUtil.FileExists(fileName))
+
+                long fileSize = 0L;
+                if (operation.NeedDataPreparation)
                 {
-                    throw new Exception("file not found, path: " + fileName);
+                    if (!FileUtil.FileExists(fileName))
+                    {
+                        throw new Exception("file not found, path: " + fileName);
+                    }
+                    else
+                    {
+                        fileSize = FileUtil.GetFileSize(fileName);
+                    }
                 }
-                long fileSize = FileUtil.GetFileSize(fileName);
+
                 List<long> fileTimeList = new List<long>();
 
                 Stopwatch sw = new Stopwatch();
@@ -287,6 +296,12 @@ namespace Management.Storage.ScenarioTest
                     Test.Info("file name : {0} round : {1} time(ms) : {2}", fileName, j + 1, sw.ElapsedMilliseconds);
                 }
                 double average = fileTimeList.Average();
+
+                if (!operation.NeedDataPreparation)
+                {
+                    fileSize = FileUtil.GetFileSize(fileName);
+                }
+
                 fileSizeTime.Add(fileSize, average);
                 var deviation = fileTimeList.Select(num => Math.Pow(num - average, 2));
                 double sd = Math.Sqrt(deviation.Average());
