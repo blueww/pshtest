@@ -17,6 +17,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Management.Storage.ScenarioTest.Util;
+using Microsoft.Azure.Management.Storage.Models;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.File;
 using Microsoft.WindowsAzure.Storage.Queue;
@@ -287,6 +288,7 @@ namespace Management.Storage.ScenarioTest
         public abstract void OutputValidation(IEnumerable<ICloudBlob> blobs);
         public abstract void OutputValidation(IEnumerable<CloudTable> tables);
         public abstract void OutputValidation(IEnumerable<CloudQueue> queues);
+        public virtual void OutputValidation(IEnumerable<StorageAccount> accounts) { throw new NotImplementedException(NotImplemented); }
         public virtual void OutputValidation(ServiceProperties serviceProperties, string propertiesType) { throw new NotImplementedException(NotImplemented); }
         #endregion
 
