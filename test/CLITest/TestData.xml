@@ -57,8 +57,9 @@
   </TestClass>-->
   <FileName>testfile</FileName>
   <FolderName>testfolder</FolderName>
-  <UploadPerfContainerPrefix>cliperftest</UploadPerfContainerPrefix>
-  <DownloadPerfContainerPrefix>cliperftest</DownloadPerfContainerPrefix> <!--make sure containers with this prefix has expected data for download-->
+  <UploadPerfContainerPrefix>cliperftestupload</UploadPerfContainerPrefix>
+  <DownloadPerfContainerPrefix>cliperftest</DownloadPerfContainerPrefix> <!--make sure containers with this prefix has expected data for download. Otherwise specify GenerateDataBeforeDownload to True -->
+  <GenerateDataBeforeDownload>true</GenerateDataBeforeDownload>
   <PLinkPath></PLinkPath>
   <UserName></UserName>
   <HostName></HostName>

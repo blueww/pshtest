@@ -15,7 +15,7 @@ using Management.Storage.ScenarioTest.Performance.Helper;
 namespace Management.Storage.ScenarioTest
 {
     [TestClass]
-    public class CLIPerf_OneBlob : TestBase
+    public class CLIPerf_OneBlob : CLIPerfBase
     {
         #region Additional test attributes
         [ClassInitialize()]
@@ -25,15 +25,6 @@ namespace Management.Storage.ScenarioTest
 
             BlobHelper = new CloudBlobHelper(StorageAccount);
             FileHelper = new CloudFileHelper(StorageAccount);
-
-            UploadContainerPrefix = Test.Data.Get("UploadPerfContainerPrefix");
-            DownloadContainerPrefix = Test.Data.Get("DownloadPerfContainerPrefix");
-
-            //BlobHelper.CreateContainer(ContainerName);
-            //BlobHelper.CleanupContainer(ContainerName);
-
-            //FileHelper.CreateShare(ContainerName);
-            //FileHelper.CleanupShare(ContainerName);
 
             //set the ConcurrentTaskCount field
             PowerShellAgent.ConcurrentTaskCount = Environment.ProcessorCount * 8;
@@ -45,11 +36,6 @@ namespace Management.Storage.ScenarioTest
         public static void MyClassCleanup()
         {
             Trace.WriteLine("ClasssCleanup");
-
-            // disable this as sometimes we would want to use the generated files to 
-            //Helper.DeletePattern("testfile_*");
-            //BlobHelper.CleanupContainer(ContainerName);
-            //FileHelper.CleanupShare(ContainerName);
         }
 
         //Use TestInitialize to run code before running each test
@@ -86,7 +72,8 @@ namespace Management.Storage.ScenarioTest
         public void DownloadHttpBlock()
         {
             var o = new BlockBlobDownloadOperation(this.agent, BlobHelper);
-            Run(o);
+            var ro = new BlockBlobUploadOperation(this.agent, BlobHelper);
+            Run(o, ro);
         }
 
         [TestMethod]
@@ -106,7 +93,8 @@ namespace Management.Storage.ScenarioTest
         public void DownloadHttpPage()
         {
             var o = new PageBlobDownloadOperation(this.agent, BlobHelper);
-            Run(o);
+            var ro = new PageBlobUploadOperation(this.agent, BlobHelper);
+            Run(o, ro);
         }
 
         [TestMethod]
@@ -116,7 +104,7 @@ namespace Management.Storage.ScenarioTest
         public void UploadHttpBlock_Max()
         {
             var o = new BlockBlobUploadOperation(this.agent, BlobHelper);
-            Run(o, true);
+            Run(o, max: true);
         }
 
         [TestMethod]
@@ -126,7 +114,8 @@ namespace Management.Storage.ScenarioTest
         public void DownloadHttpBlock_Max()
         {
             var o = new BlockBlobDownloadOperation(this.agent, BlobHelper);
-            Run(o, true);
+            var ro = new BlockBlobUploadOperation(this.agent, BlobHelper);
+            Run(o, ro, max: true);
         }
 
         [TestMethod]
@@ -136,7 +125,7 @@ namespace Management.Storage.ScenarioTest
         public void UploadHttpPage_Max()
         {
             var o = new PageBlobUploadOperation(this.agent, BlobHelper);
-            Run(o, true);
+            Run(o, max: true);
         }
 
         [TestMethod]
@@ -146,7 +135,8 @@ namespace Management.Storage.ScenarioTest
         public void DownloadHttpPage_Max()
         {
             var o = new PageBlobDownloadOperation(this.agent, BlobHelper);
-            Run(o, true);
+            var ro = new PageBlobUploadOperation(this.agent, BlobHelper);
+            Run(o, ro, max: true);
         }
 
         [TestMethod]
@@ -168,7 +158,8 @@ namespace Management.Storage.ScenarioTest
         public void DownloadFile()
         {
             var o = new FileDownloadOperation(this.agent, FileHelper);
-            Run(o);
+            var ro = new FileUploadOperation(this.agent, FileHelper);
+            Run(o, ro);
         }
 
 
@@ -179,7 +170,7 @@ namespace Management.Storage.ScenarioTest
         public void UploadFile_Max()
         {
             var o = new FileUploadOperation(this.agent, FileHelper);
-            Run(o, true);
+            Run(o, max: true);
         }
 
         [TestMethod]
@@ -189,21 +180,21 @@ namespace Management.Storage.ScenarioTest
         public void DownloadFile_Max()
         {
             var o = new FileDownloadOperation(this.agent, FileHelper);
-            Run(o, true);
+            var ro = new FileUploadOperation(this.agent, FileHelper);
+            Run(o, ro, max: true);
         }
 
         /// <summary>
         /// upload blob files
         /// the following two parameters are only useful for upload blob file with maximum size
         /// <param name="blobType"></param>
-        /// <param name="bMax">indicates whether download a blob with the maximum size</param>
+        /// <param name="max">indicates whether download a blob with the maximum size</param>
         /// </summary>
-        public void Run(ICLIOperation operation, bool bMax = false)
+        public void Run(ICLIOperation operation, ICLIOperation reverseOperation = null, bool max = false)
         {
-            ContainerName = DownloadContainerPrefix;
-            if (operation.NeedDataPreparation)
+            if (operation.IsUploadTest || (this.GenerateDataBeforeDownload && reverseOperation != null)) 
             {
-                if (bMax)
+                if (max)
                 {
                     GenerateTestFiles_Max(operation);
                 }
@@ -211,14 +202,12 @@ namespace Management.Storage.ScenarioTest
                 {
                     GenerateTestFiles();
                 }
-
-                ContainerName = UploadContainerPrefix; //if data preparation is needed, then it's upload test.
             }
 
             Dictionary<long, double> fileSizeTime = new Dictionary<long, double>();
             Dictionary<long, double> fileSizeTimeSD = new Dictionary<long, double>();
 
-            TransferTestFiles(fileSizeTime, fileSizeTimeSD, operation, bMax);
+            TransferTestFiles(fileSizeTime, fileSizeTimeSD, operation, max, reverseOperation);
 
             //print the results
             string sizes = string.Empty;
@@ -251,14 +240,20 @@ namespace Management.Storage.ScenarioTest
         /// <param name="unit">"K", "M", "G", "G_BLOCK", "G_PAGE"</param>
         /// </summary>
         public void TransferTestFiles(int initSize, int endSize, string unit, Dictionary<long, double> fileSizeTime,
-            Dictionary<long, double> fileSizeTimeSD, ICLIOperation operation, int? iteration = null)
+            Dictionary<long, double> fileSizeTimeSD, ICLIOperation operation, ICLIOperation reverseOperation = null, int? iteration = null)
         {
+            var containerName = DownloadContainerPrefix;
+            if (operation.IsUploadTest)
+            {
+                containerName = UploadContainerPrefix;
+            }
+
             for (int i = initSize; i <= endSize; i *= 4)
             {
                 string fileName = "testfile_" + i + unit;
 
                 long fileSize = 0L;
-                if (operation.NeedDataPreparation)
+                if (operation.IsUploadTest)
                 {
                     if (!FileUtil.FileExists(fileName))
                     {
@@ -269,6 +264,11 @@ namespace Management.Storage.ScenarioTest
                         fileSize = FileUtil.GetFileSize(fileName);
                     }
                 }
+                else if (this.GenerateDataBeforeDownload && reverseOperation != null)
+                {
+                    reverseOperation.Before(containerName, fileName);
+                    reverseOperation.Go(containerName, fileName);
+                }
 
                 List<long> fileTimeList = new List<long>();
 
@@ -277,11 +277,11 @@ namespace Management.Storage.ScenarioTest
                 var iterations = iteration.HasValue ? iteration.Value : Constants.Iterations;
                 for (int j = 0; j < iterations; j++)
                 {
-                    operation.Before(ContainerName, fileName);
+                    operation.Before(containerName, fileName);
 
                     sw.Reset(); sw.Start();
                     var bSuccess = operation.Go(
-                                        containerName: ContainerName,
+                                        containerName: containerName,
                                         fileName: fileName);
                     
                     Test.Assert(bSuccess, operation.Name + " should succeed");
@@ -291,13 +291,13 @@ namespace Management.Storage.ScenarioTest
                     fileTimeList.Add(sw.ElapsedMilliseconds);
 
                     var error = string.Empty;
-                    Test.Assert(operation.Validate(ContainerName, fileName, out error), error);
+                    Test.Assert(operation.Validate(containerName, fileName, out error), error);
 
                     Test.Info("file name : {0} round : {1} time(ms) : {2}", fileName, j + 1, sw.ElapsedMilliseconds);
                 }
                 double average = fileTimeList.Average();
 
-                if (!operation.NeedDataPreparation)
+                if (!operation.IsUploadTest)
                 {
                     fileSize = FileUtil.GetFileSize(fileName);
                 }
@@ -316,13 +316,13 @@ namespace Management.Storage.ScenarioTest
         /// <param name="bMax">indicates whether download a blob with the maximum size</param>
         /// </summary>
         public void TransferTestFiles(Dictionary<long, double> fileSizeTime,
-            Dictionary<long, double> fileSizeTimeSD, ICLIOperation operation, bool bMax = false)
+            Dictionary<long, double> fileSizeTimeSD, ICLIOperation operation, bool bMax = false, ICLIOperation reverseOperation = null)
         {
             if (!bMax)
             {
-                TransferTestFiles(2, 512, "K", fileSizeTime, fileSizeTimeSD, operation);
-                TransferTestFiles(2, 512, "M", fileSizeTime, fileSizeTimeSD, operation);
-                TransferTestFiles(2, 16, "G", fileSizeTime, fileSizeTimeSD, operation);
+                TransferTestFiles(2, 512, "K", fileSizeTime, fileSizeTimeSD, operation, reverseOperation);
+                TransferTestFiles(2, 512, "M", fileSizeTime, fileSizeTimeSD, operation, reverseOperation);
+                TransferTestFiles(2, 16, "G", fileSizeTime, fileSizeTimeSD, operation, reverseOperation);
             }
             else
             {
@@ -335,6 +335,7 @@ namespace Management.Storage.ScenarioTest
                     fileSizeTime: fileSizeTime,
                     fileSizeTimeSD: fileSizeTimeSD,
                     operation: operation,
+                    reverseOperation: reverseOperation,
                     iteration: 1); //for large scale testing, we only needs 1 iteration
             }
         }
@@ -407,8 +408,5 @@ namespace Management.Storage.ScenarioTest
 
         public static CloudBlobHelper BlobHelper;
         public static CloudFileHelper FileHelper;
-        public static string ContainerName;
-        public static string DownloadContainerPrefix;
-        public static string UploadContainerPrefix;
     }
 }
