@@ -25,6 +25,7 @@ using System.Management.Automation.Runspaces;
 using System.Reflection;
 using System.Text;
 using Management.Storage.ScenarioTest.Util;
+using Microsoft.Azure.Management.Storage.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -1515,6 +1516,27 @@ namespace Management.Storage.ScenarioTest
                             break;
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Compare the output collection data with containers
+        /// 
+        /// Parameters:
+        ///     containers: comparison data
+        /// </summary> 
+        public override void OutputValidation(IEnumerable<StorageAccount> accounts)
+        {
+            Test.Info("Validate StorageAccount objects");
+            Test.Assert(accounts.Count() == Output.Count, "Comparison size: {0} = {1} Output size", accounts.Count(), Output.Count);
+            if (accounts.Count() != Output.Count)
+                return;
+
+            int count = 0;
+            foreach (StorageAccount account in accounts)
+            {
+                Test.Assert(CompareEntity(account, (StorageAccount)Output[count][BaseObject]), "StorageAccount equality checking: {0}", account.Name);
+                ++count;
             }
         }
 
