@@ -21,7 +21,8 @@ namespace Management.Storage.ScenarioTest.Performance.Helper
 
         public virtual void Before(string containerName, string fileName)
         {
-            this.BeforeBatch(fileName, containerName);
+            BlobHelper.CreateContainer(containerName);
+            BlobHelper.DeleteBlob(containerName, fileName);
         }
 
         public virtual void BeforeBatch(string local, string remote)
@@ -111,7 +112,7 @@ namespace Management.Storage.ScenarioTest.Performance.Helper
             return true;
         }
 
-        public virtual bool NeedDataPreparation
+        public virtual bool IsUploadTest
         {
             get { return true; }
         }

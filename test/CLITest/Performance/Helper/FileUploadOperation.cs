@@ -38,7 +38,9 @@ namespace Management.Storage.ScenarioTest.Performance.Helper
 
         public override void Before(string containerName, string fileName)
         {
-            this.BeforeBatch(fileName, containerName);
+            FileHelper.CreateShare(containerName);
+            FileHelper.DeleteFiles(containerName, ".", fileName);
+
         }
 
         public override void BeforeBatch(string local, string remote)

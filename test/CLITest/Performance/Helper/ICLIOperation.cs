@@ -90,8 +90,8 @@ namespace Management.Storage.ScenarioTest.Performance.Helper
         string Unit { get; set; }
 
         /// <summary>
-        /// Switch to specify if data preparation is done before the tests
+        /// Switch to specify if this test is upload test, otherwise download test
         /// </summary>
-        bool NeedDataPreparation { get; }
+        bool IsUploadTest { get; }
     }
 }

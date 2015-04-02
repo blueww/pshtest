@@ -11,30 +11,14 @@ using StorageTestLib;
 using BlobType = Microsoft.WindowsAzure.Storage.Blob.BlobType;
 using Management.Storage.ScenarioTest.Performance.Helper;
 using Management.Storage.ScenarioTest.Util;
+using Management.Storage.ScenarioTest.Common;
 
 namespace Management.Storage.ScenarioTest
 {
     [TestClass]
-    public class CLIPerf_N_64M_Big
+    public class CLIPerf_N_64M_Big : CLIPerfBase
     {
         private const int FILE_SIZE_MB = 64;
-        private TestContext testContextInstance;
-
-        /// <summary>
-        ///Gets or sets the test context which provides
-        ///information about and functionality for the current test run.
-        ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
-                return testContextInstance;
-            }
-            set
-            {
-                testContextInstance = value;
-            }
-        }
 
         #region Additional test attributes
         // 
@@ -44,16 +28,11 @@ namespace Management.Storage.ScenarioTest
         [ClassInitialize()]
         public static void MyClassInitialize(TestContext testContext)
         {
-            //Test.FullClassName = testContext.FullyQualifiedTestClassName;
-            Test.FullClassName = testContext.FullyQualifiedTestClassName;
+            TestBase.TestClassInitialize(testContext);
 
-            string ConnectionString = Test.Data.Get("StorageConnectionString");
-            BlobHelper = new CloudBlobHelper(CloudStorageAccount.Parse(ConnectionString));
-            FileHelper = new CloudFileHelper(CloudStorageAccount.Parse(ConnectionString));
-
-            UploadContainerPrefix = Test.Data.Get("UploadPerfContainerPrefix");
-            DownloadContainerPrefix = Test.Data.Get("DownloadPerfContainerPrefix");
-
+            BlobHelper = new CloudBlobHelper(StorageAccount);
+            FileHelper = new CloudFileHelper(StorageAccount);
+            
             FileName = Test.Data.Get("FileName");
             FolderName = Test.Data.Get("FolderName");
             
@@ -63,9 +42,6 @@ namespace Management.Storage.ScenarioTest
             // import module
             string moduleFilePath = Test.Data.Get("ModuleFilePath");
             PowerShellAgent.ImportModule(moduleFilePath);
-
-            // $context = New-AzureStorageContext -ConnectionString ...
-            PowerShellAgent.SetStorageContext(ConnectionString);
 
             //set the ConcurrentTaskCount field
             PowerShellAgent.ConcurrentTaskCount = Environment.ProcessorCount * 8;
@@ -116,7 +92,8 @@ namespace Management.Storage.ScenarioTest
         public void DownloadHttpBlock()
         {
             var o = new BlockBlobDownloadOperation(new PowerShellAgent(), BlobHelper);
-            Run(o);
+            var ro = new BlockBlobUploadOperation(new PowerShellAgent(), BlobHelper);
+            Run(o, ro);
         }
 
         [TestMethod]
@@ -132,7 +109,8 @@ namespace Management.Storage.ScenarioTest
         public void DownloadHttpPage()
         {
             var o = new PageBlobDownloadOperation(new PowerShellAgent(), BlobHelper);
-            Run(o);
+            var ro = new PageBlobUploadOperation(new PowerShellAgent(), BlobHelper);
+            Run(o, ro);
         }
 
         [TestMethod]
@@ -152,31 +130,38 @@ namespace Management.Storage.ScenarioTest
         public void DownloadFile()
         {
             var o = new FileDownloadOperation(new PowerShellAgent(), FileHelper);
-            Run(o);
+            var ro = new FileUploadOperation(new PowerShellAgent(), FileHelper);
+            Run(o, ro);
         }
 
-        public void Run(ICLIOperation operation)
+        public void Run(ICLIOperation operation, ICLIOperation reverseOperation = null)
         {
             Dictionary<int, double> fileNumTime = new Dictionary<int, double>();
             Dictionary<int, double> fileNumTimeSD = new Dictionary<int, double>();
-            string remote = ContainerPrefix;
             string local = ".";
 
             int fileNum = 2;
             while (fileNum <= 128) //change to a smaller number(2048-->128) as we upload/download blobs in sequence now
             {
                 var folderName = FolderName + "-" + fileNum;
+                var containerName = DownloadContainerPrefix + "-" + folderName;
+                var localFolder = local + "\\" + folderName;
 
-                remote = DownloadContainerPrefix;
-                if (operation.NeedDataPreparation)
+                if (operation.IsUploadTest)
                 {
                     FileUtil.PrepareData(folderName, fileNum, FILE_SIZE_MB * 1024);
-                    remote = UploadContainerPrefix; //if data preparation is needed, then it's upload test.
+                    containerName = UploadContainerPrefix + "-" + folderName;
+                }
+                else if (this.GenerateDataBeforeDownload && reverseOperation != null)
+                {
+                    FileUtil.PrepareData(folderName, fileNum, FILE_SIZE_MB * 1024);
+                    reverseOperation.BeforeBatch(remote: containerName, local: localFolder);
+                    reverseOperation.GoBatch(remote: containerName, local: localFolder);
                 }
 
                 TransferTestFiles(
-                    remote: remote + "-" + folderName,
-                    local: local + "\\" + folderName, 
+                    remote: containerName,
+                    local: localFolder, 
                     fileNum: fileNum, 
                     fileNumTime: fileNumTime, 
                     fileNumTimeSD: fileNumTimeSD, 
@@ -243,9 +228,6 @@ namespace Management.Storage.ScenarioTest
 
         public static CloudBlobHelper BlobHelper;
         public static CloudFileHelper FileHelper;
-        public static string ContainerPrefix;
-        public static string DownloadContainerPrefix;
-        public static string UploadContainerPrefix;
         public static string FileName;
         public static string FolderName;
     }
