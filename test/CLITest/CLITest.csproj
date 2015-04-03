@@ -237,6 +237,7 @@
     <Compile Include="Functional\CloudFile\RemoveAzureStorageFileDirectoryTest.cs" />
     <Compile Include="Functional\CloudFile\RemoveAzureStorageFileShareTest.cs" />
     <Compile Include="Functional\Queue\QueueStoredAccessPolicy.cs" />
+    <Compile Include="Functional\SRPStorageAccount.cs" />
     <Compile Include="Functional\StorageAccount.cs" />
     <Compile Include="Functional\Table\TableStoredAccessPolicy.cs" />
     <Compile Include="IExecutionError.cs" />

@@ -8,6 +8,15 @@ namespace Management.Storage.ScenarioTest
     public class Constants
     {
         /// <summary>
+        /// CLI Modes: ASM, ARM
+        /// </summary>
+        public enum Mode
+        {
+            asm,
+            arm
+        };
+
+        /// <summary>
         /// Used for retrieve SAS token value in agent.Output
         /// </summary>
         public const string SASTokenKey = "";

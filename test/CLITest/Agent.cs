@@ -74,24 +74,28 @@ namespace Management.Storage.ScenarioTest
                 expectedErrorMessage, ErrorMessages[0]));
         }
 
+        public abstract bool ChangeCLIMode(Constants.Mode mode);
+
         #region Account
         public abstract bool ShowAzureStorageAccountConnectionString(string accountName);
 
-        public abstract bool createAzureStorageAccount(string accountName, string subscription, string label, string description, string location, string affinityGroup, string type, bool? geoReplication = null);
+        public abstract bool CreateAzureStorageAccount(string accountName, string subscription, string label, string description, string location, string affinityGroup, string type, bool? geoReplication = null);
 
-        public abstract bool setAzureStorageAccount(string accountName, string label, string description, string type, bool? geoReplication = null);
+        public abstract bool SetAzureStorageAccount(string accountName, string label, string description, string type, bool? geoReplication = null);
+
+        public abstract bool DeleteAzureStorageAccount(string accountName);
+
+        public abstract bool ShowAzureStorageAccount(string accountName);
         #endregion
 
         #region SRPAccount
-        public virtual bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string type, string location)
-        {
-            throw new NotImplementedException();
-        }
+        public abstract bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string type, string location);
 
-        public virtual bool SetSRPAzureStorageAccount(string resourceGroupName, string accountName, string accountType)
-        {
-            throw new NotImplementedException();
-        }
+        public abstract bool SetSRPAzureStorageAccount(string resourceGroupName, string accountName, string accountType);
+
+        public abstract bool DeleteSRPAzureStorageAccount(string resourceGroup, string accountName);
+
+        public abstract bool ShowSRPAzureStorageAccount(string resourceGroup, string accountName);
         #endregion
 
         #region Container
