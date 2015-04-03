@@ -2838,17 +2838,52 @@ namespace Management.Storage.ScenarioTest
 
         #endregion
 
+        public override bool ChangeCLIMode(Constants.Mode mode)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool ShowAzureStorageAccountConnectionString(string accountName)
         {
             throw new NotImplementedException();
         }
 
-        public override bool createAzureStorageAccount(string accountName, string subscription, string label, string description, string location, string affinityGroup, string type, bool? geoReplication = null)
+        public override bool CreateAzureStorageAccount(string accountName, string subscription, string label, string description, string location, string affinityGroup, string type, bool? geoReplication = null)
         {
             throw new NotImplementedException();
         }
 
-        public override bool setAzureStorageAccount(string accountName, string label, string description, string type, bool? geoReplication = null)
+        public override bool SetAzureStorageAccount(string accountName, string label, string description, string type, bool? geoReplication = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool DeleteAzureStorageAccount(string accountName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool ShowAzureStorageAccount(string accountName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string type, string location)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool SetSRPAzureStorageAccount(string resourceGroupName, string accountName, string accountType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool DeleteSRPAzureStorageAccount(string resourceGroup, string accountName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool ShowSRPAzureStorageAccount(string resourceGroup, string accountName)
         {
             throw new NotImplementedException();
         }

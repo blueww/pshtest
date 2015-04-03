@@ -1,17 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using SRPManagement = Microsoft.Azure.Management.Storage;
-using SRPCredentials = Microsoft.Azure;
-using Microsoft.WindowsAzure;
-using MS.Test.Common.MsTestLib;
-using Microsoft.WindowsAzure.Management.Storage;
-
-namespace Management.Storage.ScenarioTest.Util
+﻿namespace Management.Storage.ScenarioTest.Util
 {
-    class AccountUtils
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Security.Cryptography.X509Certificates;
+    using System.Text;
+    using Microsoft.WindowsAzure;
+    using Microsoft.WindowsAzure.Management.Storage;
+    using MS.Test.Common.MsTestLib;
+    using SRPCredentials = Microsoft.Azure;
+    using SRPManagement = Microsoft.Azure.Management.Storage;
+    using SRPModel = Microsoft.Azure.Management.Storage.Models;
+
+    public class AccountUtils
     {
         private static string[] ForbiddenWordsInAccountName = { "msn", "fuck", "shit", "cunt", "cum", "nigger", "kkk" };
         private static Tuple<int, int> ValidNameRange = new Tuple<int, int>((int)'a', (int)'z');
@@ -64,6 +65,16 @@ namespace Management.Storage.ScenarioTest.Util
         public string GenerateResourceGroupName()
         {
             return this.GenerateAvailableAccountName();
+        }
+
+        public string GenerateAccountLocation()
+        {
+            return Constants.Locations[random.Next(0, Constants.Locations.Length)];
+        }
+
+        public string GenerateAccountType()
+        {
+            return Constants.AccountTypes[random.Next(0, Constants.AccountTypes.Length)];
         }
 
         private string GenerateAvailableAccountName()
