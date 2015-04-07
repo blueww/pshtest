@@ -2843,7 +2843,17 @@ namespace Management.Storage.ScenarioTest
             throw new NotImplementedException();
         }
 
-        public override bool ShowAzureStorageAccountConnectionString(string accountName)
+        public override bool ShowAzureStorageAccountConnectionString(string accountName, string resourceGroupName = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool ShowAzureStorageAccountKeys(string accountName, string resourceGroupName = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool RenewAzureStorageAccountKeys(string accountName, Constants.AccountKeyType type = Constants.AccountKeyType.Primary, string resourceGroupName = null)
         {
             throw new NotImplementedException();
         }

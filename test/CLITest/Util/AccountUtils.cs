@@ -7,6 +7,7 @@
     using System.Text;
     using Microsoft.WindowsAzure;
     using Microsoft.WindowsAzure.Management.Storage;
+    using Microsoft.WindowsAzure.Management.Storage.Models;
     using MS.Test.Common.MsTestLib;
     using SRPCredentials = Microsoft.Azure;
     using SRPManagement = Microsoft.Azure.Management.Storage;
@@ -62,6 +63,28 @@
             return  name;
         }
 
+        public string GenerateAndValidateNonExsitingAccountName()
+        {
+            string accountName = string.Empty;
+            bool validated = false;
+            while (!validated)
+            {
+                accountName = this.GenerateAccountName();
+                StorageAccountGetResponse response;
+                try
+                {
+                    // Use service management client to check the existing account for a global search
+                    response = this.StorageClient.StorageAccounts.Get(accountName);
+                }
+                catch (CloudException ex)
+                {
+                    Test.Assert(ex.ErrorCode.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
+                    validated = true;
+                }
+            }
+            return accountName;
+        }
+
         public string GenerateResourceGroupName()
         {
             return this.GenerateAvailableAccountName();
@@ -84,7 +107,7 @@
 
             do
             {
-                name = "clitest" + FileNamingGenerator.GenerateNameFromRange(random.Next(0, 18), ValidNameRange);
+                name = "clitest" + FileNamingGenerator.GenerateNameFromRange(random.Next(10, 18), ValidNameRange);
 
                 foreach (string forbiddenWord in ForbiddenWordsInAccountName)
                 {
