@@ -34,6 +34,7 @@ using Microsoft.WindowsAzure.Storage.File;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Shared.Protocol;
+using System.Text.RegularExpressions;
 
 namespace Management.Storage.ScenarioTest
 {
@@ -224,29 +225,7 @@ namespace Management.Storage.ScenarioTest
 
             if (bSuccess)
             {
-                // parse output data
-                // the output may have warning message, it should keep the json object only.
-                // WARNING: warning message
-                // [{..........}]
-                output = output.Trim();
-                if (output.Length >= 2)
-                {
-                    int startIndex = output.IndexOf('[');
-                    if (startIndex == -1 || (output[0] == '{' && output[output.Length - 1] == '}'))
-                    {
-                        // modify output as a collection
-                        output = '[' + output + ']';
-                    }
-                    else if (startIndex > 0 && output[startIndex - 1] == '\n')
-                    {
-                        // Check '[' starts in a new line to escape the warning message in the output before json objects
-                        int endIndex = output.LastIndexOf(']');
-                        if (startIndex != -1 && endIndex != -1)
-                        {
-                            output = output.Substring(startIndex, endIndex - startIndex + 1);
-                        }
-                    }
-                }
+                output = parseOutput(output);
 
                 Collection<Dictionary<string, object>> result = null;
                 try
@@ -281,6 +260,54 @@ namespace Management.Storage.ScenarioTest
             return bSuccess;
         }
 
+        internal string parseOutput(string output)
+        {
+            // parse output data
+            // the output may have warning message, it should keep the json object only.
+            // WARNING: warning message
+            // [{..........}]
+            output = output.Trim();
+            if (output.Length >= 2)
+            {
+                int startIndex = output.IndexOf('[');
+                if (Regex.Match(output, "^{.*}$", RegexOptions.Singleline).Success)
+                {
+                    // modify output as a collection
+                    output = '[' + output + ']';
+                }
+                else if (startIndex > 0 && output[startIndex - 1] == '\n')
+                {
+                    // Check '[' starts in a new line to escape the warning message in the output before json objects
+                    int endIndex = output.LastIndexOf(']');
+                    if (startIndex != -1 && endIndex != -1)
+                    {
+                        output = output.Substring(startIndex, endIndex - startIndex + 1);
+                    }
+                }
+                else if (!Regex.Match(output, @"^\[.*\]$", RegexOptions.Singleline).Success)
+                {
+                    int lineIndex = 0;
+                    string[] lines = output.Split('\n');
+                    output = "[{";
+                    foreach (string line in lines)
+                    {
+                        int index = line.IndexOf(':');
+                        if (index != -1)
+                        {
+                            output += string.Format("{0}_{1}:\'{2}\',\n", lineIndex++, line.Substring(0, index).Trim(), line.Substring(index + 1).Trim());
+                        }
+                        else 
+                        {
+                            output += string.Format("{0}_info:\'{1}\',\n", lineIndex++, line.Trim());
+                        }
+                    }
+                    output += "}]";
+                }
+            }
+
+            return output;
+        }
+
         internal string appendStringOption(string command, string optionName, string optionValue, bool quoted = false, bool onlyNonEmpty = true)
         {
             if (!onlyNonEmpty || !string.IsNullOrEmpty(optionValue))
@@ -305,12 +332,52 @@ namespace Management.Storage.ScenarioTest
 
         public override bool ChangeCLIMode(Constants.Mode mode)
         {
-            return RunNodeJSProcess(string.Format("mode {0}", mode), needAccountParam: false, category: "config");
+            return RunNodeJSProcess(string.Format("mode {0} --json", mode), needAccountParam: false, category: "config");
         }
 
-        public override bool ShowAzureStorageAccountConnectionString(string argument)
+        public override bool ShowAzureStorageAccountConnectionString(string argument, string resourceGroupName = null)
         {
-            return RunNodeJSProcess(string.Format("account connectionstring show {0}", argument), needAccountParam: false);
+            if (string.IsNullOrEmpty(resourceGroupName))
+            {
+                return RunNodeJSProcess(string.Format("account connectionstring show {0}", argument), needAccountParam: false);
+            }
+            else
+            {
+                return RunNodeJSProcess(string.Format("account connectionstring show {0} --resoruce-group {1}", argument, resourceGroupName), needAccountParam: false);
+            }
+        }
+
+        public override bool ShowAzureStorageAccountKeys(string accountName, string resourceGroupName = null)
+        {
+
+            if (string.IsNullOrEmpty(resourceGroupName))
+            {
+                return RunNodeJSProcess(string.Format("account keys list {0}", accountName), needAccountParam: false);
+            }
+            else
+            {
+                return RunNodeJSProcess(string.Format("account keys list {0} --resoruce-group {1}", accountName, resourceGroupName), needAccountParam: false);
+            }
+        }
+
+        public override bool RenewAzureStorageAccountKeys(string accountName, Constants.AccountKeyType type = Constants.AccountKeyType.Primary, string resourceGroupName = null)
+        {
+            string command = string.Format("account keys renew {0}", accountName);
+            if (type == Constants.AccountKeyType.Primary)
+            {
+                command = appendStringOption(command, "--primary", string.Empty, onlyNonEmpty: false);
+            }
+            else if (type == Constants.AccountKeyType.Secondary)
+            {
+                command = appendStringOption(command, "--secondary", string.Empty, onlyNonEmpty: false);
+            }
+            else
+            {
+                command = appendStringOption(command, "--INVALIDTYPE", string.Empty, onlyNonEmpty: false);
+            }
+
+            command = appendStringOption(command, "--resoruce-group", resourceGroupName);
+            return RunNodeJSProcess(command, needAccountParam: false);
         }
 
         public override bool CreateAzureStorageAccount(string accountName, string subscription, string label, string description, string location, string affinityGroup, string type, bool? geoReplication = null)
@@ -362,7 +429,7 @@ namespace Management.Storage.ScenarioTest
         {
             string command = string.Format("account delete {0}", accountName);
 
-            return RunNodeJSProcess(command, needAccountParam: false);
+            return RunNodeJSProcess(command, force: true, needAccountParam: false);
         }
 
         public override bool ShowAzureStorageAccount(string accountName)

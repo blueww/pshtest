@@ -79,6 +79,16 @@ namespace Management.Storage.ScenarioTest
             Minute
         };
 
+        /// <summary>
+        /// Storage account Keys types: primary, secondary
+        /// </summary>
+        public enum AccountKeyType
+        {
+            Primary,
+            Secondary,
+            Invalid
+        };
+
         public const int MAX_BLOCK_BLOB_SIZE = 195;   //GB
         public const int MAX_PAGE_BLOB_SIZE = 1024;   //GB
         public const int MAX_FILE_SIZE = 1024;   //GB
