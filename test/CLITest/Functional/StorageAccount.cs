@@ -62,7 +62,6 @@ namespace Management.Storage.ScenarioTest
 
         private static ManagementClient managementClient;
         protected static AccountUtils accountUtils;
-        protected static bool isResourceMode = false;
         protected static string resourceGroupName;
 
         public override void OnTestSetup()

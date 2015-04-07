@@ -32,8 +32,8 @@ namespace Management.Storage.ScenarioTest
         [ClassInitialize()]
         public static void SRPStorageAccountTestInit(TestContext testContext)
         {
-            StorageAccountTest.TestClassInitialize(testContext);
             isResourceMode = true;
+            StorageAccountTest.TestClassInitialize(testContext);
 
             resourceLocation = accountUtils.GenerateAccountLocation();
             resourceManager = new ResourceManagerWrapper();
