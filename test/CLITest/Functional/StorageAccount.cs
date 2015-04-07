@@ -51,7 +51,7 @@ namespace Management.Storage.ScenarioTest
             X509Certificate2 cert = new X509Certificate2(certFile, certPassword);
             CertificateCloudCredentials creadetial = new CertificateCloudCredentials(Test.Data.Get("AzureSubscriptionID"), cert);
             managementClient = new ManagementClient(creadetial);
-            accountUtils = new AccountUtils();
+            accountUtils = new AccountUtils(lang);
         }
 
         [ClassCleanup()]
@@ -736,7 +736,7 @@ namespace Management.Storage.ScenarioTest
             string description = "Storage Account Description";
             string location = Constants.Location.EastAsia;
             string affinityGroup = null;
-            string accountType = this.mapAccountType(Constants.AccountType.Standard_GRS);
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
 
             CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType);
         }
@@ -751,7 +751,7 @@ namespace Management.Storage.ScenarioTest
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Location Setting";
             string affinityGroup = null;
-            string accountType = this.mapAccountType(Constants.AccountType.Standard_GRS);
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
 
             foreach (FieldInfo info in typeof(Constants.Location).GetFields())
             {
@@ -770,7 +770,7 @@ namespace Management.Storage.ScenarioTest
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Affinity Group";
             string location = Constants.Location.EastAsia;
-            string accountType = this.mapAccountType(Constants.AccountType.Standard_GRS);
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
             string affinityGroup = "TestAffinityGroup";
 
             try
@@ -792,13 +792,13 @@ namespace Management.Storage.ScenarioTest
         {
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Account Type";
-            string location = Constants.Location.WestUS;
             string affinityGroup = null;
 
             foreach (FieldInfo info in typeof(Constants.AccountType).GetFields())
             {
                 string accountName = accountUtils.GenerateAccountName();
-                string accountType = this.mapAccountType(info.GetRawConstantValue() as string);
+                string accountType = accountUtils.mapAccountType(info.GetRawConstantValue() as string);
+                string location = accountUtils.GenerateAccountLocation(accountType);
                 CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType);
             }
         }
@@ -815,7 +815,7 @@ namespace Management.Storage.ScenarioTest
             string description = "Storage Account Negative Case";
             string location = Constants.Location.EastAsia;
             string affinityGroup = null;
-            string accountType = this.mapAccountType(Constants.AccountType.Standard_GRS);
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
 
             try
             {
@@ -842,7 +842,7 @@ namespace Management.Storage.ScenarioTest
             string description = "Storage Account Test Location and Affinity Group";
             string accoutLocation = Constants.Location.EastAsia;
             string groupLocation = Constants.Location.SoutheastAsia;
-            string accountType = this.mapAccountType(Constants.AccountType.Standard_GRS);
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
             string affinityGroup = "TestAffinityGroupAndLocation";
 
             try
@@ -867,7 +867,7 @@ namespace Management.Storage.ScenarioTest
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Non-Existing Affinity Group";
             string location = Constants.Location.EastAsia;
-            string accountType = this.mapAccountType(Constants.AccountType.Standard_GRS);
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
             string affinityGroup = FileNamingGenerator.GenerateNameFromRange(15, validNameRange);
 
             Test.Assert(!agent.CreateAzureStorageAccount(accountName, subscriptionId, label, description, location, affinityGroup, accountType),
@@ -886,7 +886,7 @@ namespace Management.Storage.ScenarioTest
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Invalid Location";
             string location = FileNamingGenerator.GenerateNameFromRange(8, validNameRange);
-            string accountType = this.mapAccountType(Constants.AccountType.Standard_GRS);
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
             string affinityGroup = null;
 
             Test.Assert(!agent.CreateAzureStorageAccount(accountName, subscriptionId, label, description, location, affinityGroup, accountType),
@@ -922,8 +922,8 @@ namespace Management.Storage.ScenarioTest
             string accountName = accountUtils.GenerateAccountName();
             string label = FileNamingGenerator.GenerateNameFromRange(15, validNameRange);
             string description = FileNamingGenerator.GenerateNameFromRange(20, validNameRange);
-            string originalAccountType = this.mapAccountType(Constants.AccountType.Standard_GRS);
-            string newAccountType = this.mapAccountType(Constants.AccountType.Standard_LRS);
+            string originalAccountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
+            string newAccountType = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
 
             SetAndValidateAccount(accountName, originalAccountType, label, description, newAccountType);
         }
@@ -937,7 +937,7 @@ namespace Management.Storage.ScenarioTest
             string accountName = accountUtils.GenerateAccountName();
             string label = FileNamingGenerator.GenerateNameFromRange(15, validNameRange);
             string description = FileNamingGenerator.GenerateNameFromRange(20, validNameRange);
-            string accountType = this.mapAccountType(Constants.AccountType.Standard_LRS);
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
 
             Test.Assert(!agent.SetAzureStorageAccount(accountName, label, description, accountType),
                 string.Format("Setting non-existing stoarge account {0} should fail", accountName));
@@ -971,7 +971,7 @@ namespace Management.Storage.ScenarioTest
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Set Type";
             string location = Constants.Location.EastAsia;
-            string accountType = this.mapAccountType(Constants.AccountType.Standard_ZRS);
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS);
             string affinityGroup = null;
 
             try
@@ -980,12 +980,12 @@ namespace Management.Storage.ScenarioTest
 
                 foreach (FieldInfo info in typeof(Constants.AccountType).GetFields())
                 {
-                    string newAccountType = this.mapAccountType(info.GetRawConstantValue() as string);
+                    string newAccountType = accountUtils.mapAccountType(info.GetRawConstantValue() as string);
                     Test.Assert(!agent.SetAzureStorageAccount(accountName, label, description, newAccountType),
                         string.Format("Setting stoarge account {0} to type {1} should fail", accountName, newAccountType));
 
-                    if (newAccountType == this.mapAccountType(Constants.AccountType.Standard_ZRS) ||
-                        newAccountType == this.mapAccountType(Constants.AccountType.Premium_LRS))
+                    if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS) ||
+                        newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
                     {
                         ExpectedContainErrorMessage(string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", newAccountType));
                     }
@@ -1010,8 +1010,8 @@ namespace Management.Storage.ScenarioTest
             string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Set Type";
-            string location = Constants.Location.WestUS;
-            string accountType = this.mapAccountType(Constants.AccountType.Premium_LRS);
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Premium_LRS);
+            string location = accountUtils.GenerateAccountLocation(accountType);
             string affinityGroup = null;
 
             try
@@ -1020,12 +1020,12 @@ namespace Management.Storage.ScenarioTest
 
                 foreach (FieldInfo info in typeof(Constants.AccountType).GetFields())
                 {
-                    string newAccountType = this.mapAccountType(info.GetRawConstantValue() as string);
+                    string newAccountType = accountUtils.mapAccountType(info.GetRawConstantValue() as string);
                     Test.Assert(!agent.SetAzureStorageAccount(accountName, label, description, newAccountType),
                         string.Format("Setting stoarge account {0} to type {1} should fail", accountName, newAccountType));
 
-                    if (newAccountType == this.mapAccountType(Constants.AccountType.Standard_ZRS) ||
-                        newAccountType == this.mapAccountType(Constants.AccountType.Premium_LRS))
+                    if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS) ||
+                        newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
                     {
                         ExpectedContainErrorMessage(string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", newAccountType));
                     }
@@ -1055,7 +1055,7 @@ namespace Management.Storage.ScenarioTest
             string[] newAccountTypes = { Constants.AccountType.Standard_ZRS, Constants.AccountType.Premium_LRS };
             foreach (string accountType in newAccountTypes)
             {
-                string type = this.mapAccountType(accountType);
+                string type = accountUtils.mapAccountType(accountType);
                 Test.Assert(!agent.SetAzureStorageAccount(accountName, label, description, type),
                     string.Format("Setting stoarge account {0} to type {1} should fail", accountName, type));
                 ExpectedContainErrorMessage(string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", type));
@@ -1068,9 +1068,9 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount301_DeleteAccount_ExistingAccount()
         {
-            string accountName = accountUtils.GenerateAccountName();
-            string location = accountUtils.GenerateAccountLocation();
-            string accountType = this.mapAccountType(accountUtils.GenerateAccountType());
+            string accountName = accountUtils.GenerateAccountName();  
+            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());
+            string location = accountUtils.GenerateAccountLocation(accountType);
 
             try
             {
@@ -1138,9 +1138,9 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount401_GetAccount_ShowAnExistingAccount()
         {
-            string accountName = accountUtils.GenerateAccountName();
-            string location = accountUtils.GenerateAccountLocation();
-            string accountType = this.mapAccountType(accountUtils.GenerateAccountType());
+            string accountName = accountUtils.GenerateAccountName();    
+            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());
+            string location = accountUtils.GenerateAccountLocation(accountType);
 
             try
             {
@@ -1182,10 +1182,10 @@ namespace Management.Storage.ScenarioTest
             try
             {
                 for (int i = 0; i < accountCount; i++)
-                {
+                {                                                    
+                    accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());
                     accountName = accountUtils.GenerateAccountName();
-                    location = accountUtils.GenerateAccountLocation();
-                    accountType = this.mapAccountType(accountUtils.GenerateAccountType());
+                    location = accountUtils.GenerateAccountLocation(accountType);
 
                     if (isResourceMode)
                     {
@@ -1254,8 +1254,9 @@ namespace Management.Storage.ScenarioTest
             {
                 if (isResourceMode)
                 {
-                    string location = accountUtils.GenerateAccountLocation();
-                    CreateNewSRPAccount(resourceGroupName, accountName, location);
+                    string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());
+                    string location = accountUtils.GenerateAccountLocation(accountType);
+                    CreateNewSRPAccount(accountName, location, accountType);
                     Test.Assert(!agent.ShowSRPAzureStorageAccount(nonExsitingGroupName, accountName),
                         string.Format("Showing the existing stoarge account {0} in non-existing resoruce group {1} should fail", accountName, nonExsitingGroupName));
                 }
@@ -1273,8 +1274,8 @@ namespace Management.Storage.ScenarioTest
         public void FTAccount501_AccountKey_ListKeys()
         {
             string accountName = accountUtils.GenerateAccountName();
-            string location = accountUtils.GenerateAccountLocation();
-            string accountType = this.mapAccountType(accountUtils.GenerateAccountType());
+            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());   
+            string location = accountUtils.GenerateAccountLocation(accountType);
 
             try
             {
@@ -1334,8 +1335,8 @@ namespace Management.Storage.ScenarioTest
         public void FTAccount503_AccountKey_RenewKeys()
         {
             string accountName = accountUtils.GenerateAccountName();
-            string location = accountUtils.GenerateAccountLocation();
-            string accountType = this.mapAccountType(accountUtils.GenerateAccountType());
+            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());
+            string location = accountUtils.GenerateAccountLocation(accountType);
 
             try
             {
@@ -1395,8 +1396,8 @@ namespace Management.Storage.ScenarioTest
 
             try
             {
-                string location = Constants.Location.WestUS;
-                string accountType = this.mapAccountType(accountUtils.GenerateAccountType());
+                string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());
+                string location = accountUtils.GenerateAccountLocation(accountType);
                 accountName = accountUtils.GenerateAccountName();
 
                 if (isResourceMode)
@@ -1528,7 +1529,7 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(accountName == account.Name, string.Format("Expected account name is {0} and actually it is {1}", accountName, account.Name));
             Test.Assert(label == account.Properties.Label, string.Format("Expected label is {0} and actually it is {1}", label, account.Properties.Label));
             Test.Assert(description == account.Properties.Description, string.Format("Expected description is {0} and actually it is {1}", description, account.Properties.Description));
-            Test.Assert(this.mapAccountType(typeof(Constants.AccountType).GetField(account.Properties.AccountType).GetRawConstantValue() as string).Equals(accountType),
+            Test.Assert(accountUtils.mapAccountType(typeof(Constants.AccountType).GetField(account.Properties.AccountType).GetRawConstantValue() as string).Equals(accountType),
                 string.Format("Expected account type is {0} and actually it is {1}", accountType, account.Properties.AccountType));
 
             if (!string.IsNullOrEmpty(location))
@@ -1775,27 +1776,6 @@ namespace Management.Storage.ScenarioTest
 
             Test.Info(string.Format("The connection string is: {0}", nodeAgent.Output[0]["string"] as string));
             Test.Assert(expect.Equals(nodeAgent.Output[0]["string"] as string), "Two strings should be identical.");
-        }
-
-        private string mapAccountType(string type)
-        {
-            if (lang == Language.NodeJS)
-            {
-                switch (type)
-                {
-                    case Constants.AccountType.Standard_LRS:
-                        return "LRS";
-                    case Constants.AccountType.Standard_ZRS:
-                        return "ZRS";
-                    case Constants.AccountType.Standard_GRS:
-                        return "GRS";
-                    case Constants.AccountType.Standard_RAGRS:
-                        return "RAGRS";
-                    case Constants.AccountType.Premium_LRS:
-                        return "PLRS";
-                }
-            }
-            return type;
         }
 
         private enum ServiceType { Blob, Queue, Table, File }

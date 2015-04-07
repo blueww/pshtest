@@ -1,17 +1,13 @@
 ﻿namespace Management.Storage.ScenarioTest.Util
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Security.Cryptography.X509Certificates;
-    using System.Text;
     using Microsoft.WindowsAzure;
     using Microsoft.WindowsAzure.Management.Storage;
     using Microsoft.WindowsAzure.Management.Storage.Models;
     using MS.Test.Common.MsTestLib;
     using SRPCredentials = Microsoft.Azure;
     using SRPManagement = Microsoft.Azure.Management.Storage;
-    using SRPModel = Microsoft.Azure.Management.Storage.Models;
 
     public class AccountUtils
     {
@@ -31,7 +27,9 @@
             private set;
         }
 
-        public AccountUtils()
+        private Language language = Language.PowerShell;
+
+        public AccountUtils(Language language)
         { 
             string certFile = Test.Data.Get("ManagementCert");
             string certPassword = Test.Data.Get("CertPassword");
@@ -40,6 +38,7 @@
             SRPCredentials.CertificateCloudCredentials srpCredentials = new SRPCredentials.CertificateCloudCredentials(Test.Data.Get("AzureSubscriptionID"), cert);
             SRPStorageClient = new SRPManagement.StorageManagementClient(srpCredentials);
             StorageClient = new StorageManagementClient(credetial);
+            this.language = language;
         }
 
         public string GenerateAccountName()
@@ -90,14 +89,43 @@
             return this.GenerateAvailableAccountName();
         }
 
-        public string GenerateAccountLocation()
+        public string GenerateAccountLocation(string location)
         {
-            return Constants.Locations[random.Next(0, Constants.Locations.Length)];
+            if (location == this.mapAccountType(Constants.AccountType.Premium_LRS))
+            {
+                return Constants.Location.WestUS;
+            }
+            else
+            {
+                return Constants.Locations[random.Next(0, Constants.Locations.Length)];
+            }
         }
 
         public string GenerateAccountType()
         {
             return Constants.AccountTypes[random.Next(0, Constants.AccountTypes.Length)];
+        }
+
+        public string mapAccountType(string type)
+        {
+            if (this.language == Language.NodeJS)
+            {
+                switch (type)
+                {
+                    case Constants.AccountType.Standard_LRS:
+                        return "LRS";
+                    case Constants.AccountType.Standard_ZRS:
+                        return "ZRS";
+                    case Constants.AccountType.Standard_GRS:
+                        return "GRS";
+                    case Constants.AccountType.Standard_RAGRS:
+                        return "RAGRS";
+                    case Constants.AccountType.Premium_LRS:
+                        return "PLRS";
+                }
+            }
+
+            return type;
         }
 
         private string GenerateAvailableAccountName()
