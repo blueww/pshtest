@@ -47,7 +47,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             SetupSubscription();
 
             ResourceManager = new ResourceManagerWrapper();
-            AccountUtils = new AccountUtils();
+            AccountUtils = new AccountUtils(lang);
         }
 
         /// <summary>
