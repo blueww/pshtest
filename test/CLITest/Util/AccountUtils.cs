@@ -1,16 +1,13 @@
 ﻿namespace Management.Storage.ScenarioTest.Util
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Security.Cryptography.X509Certificates;
-    using System.Text;
     using Microsoft.WindowsAzure;
     using Microsoft.WindowsAzure.Management.Storage;
+    using Microsoft.WindowsAzure.Management.Storage.Models;
     using MS.Test.Common.MsTestLib;
     using SRPCredentials = Microsoft.Azure;
     using SRPManagement = Microsoft.Azure.Management.Storage;
-    using SRPModel = Microsoft.Azure.Management.Storage.Models;
 
     public class AccountUtils
     {
@@ -30,7 +27,9 @@
             private set;
         }
 
-        public AccountUtils()
+        private Language language = Language.PowerShell;
+
+        public AccountUtils(Language language)
         { 
             string certFile = Test.Data.Get("ManagementCert");
             string certPassword = Test.Data.Get("CertPassword");
@@ -39,6 +38,7 @@
             SRPCredentials.CertificateCloudCredentials srpCredentials = new SRPCredentials.CertificateCloudCredentials(Test.Data.Get("AzureSubscriptionID"), cert);
             SRPStorageClient = new SRPManagement.StorageManagementClient(srpCredentials);
             StorageClient = new StorageManagementClient(credetial);
+            this.language = language;
         }
 
         public string GenerateAccountName()
@@ -62,19 +62,70 @@
             return  name;
         }
 
+        public string GenerateAndValidateNonExsitingAccountName()
+        {
+            string accountName = string.Empty;
+            bool validated = false;
+            while (!validated)
+            {
+                accountName = this.GenerateAccountName();
+                StorageAccountGetResponse response;
+                try
+                {
+                    // Use service management client to check the existing account for a global search
+                    response = this.StorageClient.StorageAccounts.Get(accountName);
+                }
+                catch (CloudException ex)
+                {
+                    Test.Assert(ex.ErrorCode.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
+                    validated = true;
+                }
+            }
+            return accountName;
+        }
+
         public string GenerateResourceGroupName()
         {
             return this.GenerateAvailableAccountName();
         }
 
-        public string GenerateAccountLocation()
+        public string GenerateAccountLocation(string location)
         {
-            return Constants.Locations[random.Next(0, Constants.Locations.Length)];
+            if (location == this.mapAccountType(Constants.AccountType.Premium_LRS))
+            {
+                return Constants.Location.WestUS;
+            }
+            else
+            {
+                return Constants.Locations[random.Next(0, Constants.Locations.Length)];
+            }
         }
 
         public string GenerateAccountType()
         {
             return Constants.AccountTypes[random.Next(0, Constants.AccountTypes.Length)];
+        }
+
+        public string mapAccountType(string type)
+        {
+            if (this.language == Language.NodeJS)
+            {
+                switch (type)
+                {
+                    case Constants.AccountType.Standard_LRS:
+                        return "LRS";
+                    case Constants.AccountType.Standard_ZRS:
+                        return "ZRS";
+                    case Constants.AccountType.Standard_GRS:
+                        return "GRS";
+                    case Constants.AccountType.Standard_RAGRS:
+                        return "RAGRS";
+                    case Constants.AccountType.Premium_LRS:
+                        return "PLRS";
+                }
+            }
+
+            return type;
         }
 
         private string GenerateAvailableAccountName()
@@ -84,7 +135,7 @@
 
             do
             {
-                name = "clitest" + FileNamingGenerator.GenerateNameFromRange(random.Next(0, 18), ValidNameRange);
+                name = "clitest" + FileNamingGenerator.GenerateNameFromRange(random.Next(10, 18), ValidNameRange);
 
                 foreach (string forbiddenWord in ForbiddenWordsInAccountName)
                 {

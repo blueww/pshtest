@@ -51,7 +51,7 @@ namespace Management.Storage.ScenarioTest
             X509Certificate2 cert = new X509Certificate2(certFile, certPassword);
             CertificateCloudCredentials creadetial = new CertificateCloudCredentials(Test.Data.Get("AzureSubscriptionID"), cert);
             managementClient = new ManagementClient(creadetial);
-            accountUtils = new AccountUtils();
+            accountUtils = new AccountUtils(lang);
         }
 
         [ClassCleanup()]
@@ -62,10 +62,10 @@ namespace Management.Storage.ScenarioTest
 
         private static ManagementClient managementClient;
         protected static AccountUtils accountUtils;
-        protected static string resourceGroupName;
+        protected static string resourceGroupName = string.Empty;
 
         public override void OnTestSetup()
-        {                    
+        {
             NodeJSAgent nodeAgent = (NodeJSAgent)agent;
             if (!accountImported)
             {
@@ -112,6 +112,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount001_ConnectionStringShowHelp()
         {
             // Arrange
@@ -119,16 +120,14 @@ namespace Management.Storage.ScenarioTest
             NodeJSAgent nodeAgent = (NodeJSAgent)agent;
 
             // Act
-            try
+            nodeAgent.ShowAzureStorageAccountConnectionString("-h");
+            result = nodeAgent.Output[0].Count > 0;
+            foreach (var item in nodeAgent.Output[0])
             {
-                nodeAgent.ShowAzureStorageAccountConnectionString("-h");
-            }
-            catch (JsonReaderException)
-            {
-                string output = nodeAgent.Output[0]["output"] as string;
-                if (!string.IsNullOrWhiteSpace(output))
+                if (!item.Key.Contains("help"))
                 {
-                    result = output.Contains("storage account connectionstring show [options] <name>");
+                    result = false;
+                    break;
                 }
             }
 
@@ -142,6 +141,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount002_ConnectionStringShow_NoSubscriptionID()
         {
             // Arrange
@@ -149,7 +149,7 @@ namespace Management.Storage.ScenarioTest
             string account = Test.Data.Get("StorageAccountName");
 
             // Act
-            bool result = nodeAgent.ShowAzureStorageAccountConnectionString(account);
+            bool result = nodeAgent.ShowAzureStorageAccountConnectionString(account, resourceGroupName);
 
             // Assert
             Test.Assert(result, Utility.GenComparisonData("azure storage account connectionstring show", true));
@@ -258,6 +258,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount007_ConnectionStringShow_UseHttp()
         {
             // Arrange
@@ -267,7 +268,7 @@ namespace Management.Storage.ScenarioTest
 
             // Act
             string argument = string.Format("{0} --use-http", account);
-            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument);
+            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument, resourceGroupName);
 
             // Assert
             string expect = string.Format("DefaultEndpointsProtocol=http;AccountName={0};AccountKey={1}", account, Test.Data.Get("StorageAccountKey"));
@@ -281,6 +282,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount008_ConnectionStringShow_UseHttps()
         {
             // Arrange
@@ -290,7 +292,7 @@ namespace Management.Storage.ScenarioTest
 
             // Act
             string argument = string.Format("{0} --blob-endpoint http://myBlobEndpoint.core.windows.net", account);
-            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument);
+            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument, resourceGroupName);
 
             // Assert
             string expect = string.Format("DefaultEndpointsProtocol=https;BlobEndpoint=http://myBlobEndpoint.core.windows.net;AccountName={0};AccountKey={1}", account, Test.Data.Get("StorageAccountKey"));
@@ -304,6 +306,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount009_ConnectionStringShow_BlobEndpoint_Empty()
         {
             this.ErrorEndpoint(ServiceType.Blob, ErrorType.Empty);
@@ -315,6 +318,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount010_ConnectionStringShow_BlobEndpoint_Invalid()
         {
             this.ErrorEndpoint(ServiceType.Blob, ErrorType.Invalid);
@@ -326,6 +330,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount011_ConnectionStringShow_BlobEndpoint_URL_Protocol()
         {
             string endpoint = "https://myBlobEndpoint.core.windows.net";
@@ -338,6 +343,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount012_ConnectionStringShow_BlobEndpoint_IP_Protocol()
         {
             string endpoint = "https://10.0.0.172";
@@ -350,6 +356,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount013_ConnectionStringShow_BlobEndpoint_URL_NoProtocol()
         {
             string endpoint = "myBlobEndpoint.core.windows.net";
@@ -362,6 +369,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount014_ConnectionStringShow_BlobEndpoint_IP_NoProtocol()
         {
             string endpoint = "10.0.0.172";
@@ -374,6 +382,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount015_ConnectionStringShow_QueueEndpoint_Empty()
         {
             this.ErrorEndpoint(ServiceType.Queue, ErrorType.Empty);
@@ -385,6 +394,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount016_ConnectionStringShow_QueueEndpoint_Invalid()
         {
             this.ErrorEndpoint(ServiceType.Queue, ErrorType.Invalid);
@@ -396,6 +406,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount017_ConnectionStringShow_QueueEndpoint_URL_Protocol()
         {
             string endpoint = "https://myQueueEndpoint.core.windows.net";
@@ -408,6 +419,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount018_ConnectionStringShow_QueueEndpoint_IP_Protocol()
         {
             string endpoint = "https://10.0.0.172";
@@ -420,6 +432,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount019_ConnectionStringShow_QueueEndpoint_URL_NoProtocol()
         {
             string endpoint = "myQueueEndpoint.core.windows.net";
@@ -432,6 +445,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount020_ConnectionStringShow_QueueEndpoint_IP_NoProtocol()
         {
             string endpoint = "10.0.0.172";
@@ -444,6 +458,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount021_ConnectionStringShow_TableEndpoint_Empty()
         {
             this.ErrorEndpoint(ServiceType.Table, ErrorType.Empty);
@@ -455,6 +470,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount022_ConnectionStringShow_TableEndpoint_Unsupported()
         {
             this.ErrorEndpoint(ServiceType.Table, ErrorType.Unsupported);
@@ -466,6 +482,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount023_ConnectionStringShow_TableEndpoint_URL_Protocol()
         {
             string endpoint = "https://myTableEndpoint.core.windows.net";
@@ -478,6 +495,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount024_ConnectionStringShow_TableEndpoint_IP_Protocol()
         {
             string endpoint = "https://10.0.0.172";
@@ -490,6 +508,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount025_ConnectionStringShow_TableEndpoint_URL_NoProtocol()
         {
             string endpoint = "myTableEndpoint.core.windows.net";
@@ -502,6 +521,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount026_ConnectionStringShow_TableEndpoint_IP_NoProtocol()
         {
             string endpoint = "10.0.0.172";
@@ -514,6 +534,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount027_ConnectionStringShow_FileEndpoint_Empty()
         {
             this.ErrorEndpoint(ServiceType.File, ErrorType.Empty);
@@ -525,6 +546,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount028_ConnectionStringShow_FileEndpoint_Invalid()
         {
             this.ErrorEndpoint(ServiceType.File, ErrorType.Invalid);
@@ -536,6 +558,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount029_ConnectionStringShow_FileEndpoint_URL_Protocol()
         {
             string endpoint = "https://myFileEndpoint.core.windows.net";
@@ -548,6 +571,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount030_ConnectionStringShow_FileEndpoint_IP_Protocol()
         {
             string endpoint = "https://10.0.0.172";
@@ -560,6 +584,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount031_ConnectionStringShow_FileEndpoint_URL_NoProtocol()
         {
             string endpoint = "myFileEndpoint.core.windows.net";
@@ -572,6 +597,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount032_ConnectionStringShow_FileEndpoint_IP_NoProtocol()
         {
             string endpoint = "10.0.0.172";
@@ -584,6 +610,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount033_ConnectionStringShow_NoAccount()
         {
             // Arrange
@@ -592,7 +619,7 @@ namespace Management.Storage.ScenarioTest
 
             // Act
             // TODO: Investigate sometimes the result is true and the error message is only "\n".
-            result = nodeAgent.ShowAzureStorageAccountConnectionString(string.Empty) && (nodeAgent.Output.Count != 0);
+            result = nodeAgent.ShowAzureStorageAccountConnectionString(string.Empty, resourceGroupName) && (nodeAgent.Output.Count != 0);
 
             // Assert
             // TODO: Assert error message:  "error: missing required argument `name'" when the error message issue is resolved.
@@ -605,6 +632,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount034_ConnectionStringShow_NonExistingAccount()
         {
             // Arrange
@@ -613,7 +641,7 @@ namespace Management.Storage.ScenarioTest
             string account = "idonotexist";
 
             // Act
-            result = nodeAgent.ShowAzureStorageAccountConnectionString(account);
+            result = nodeAgent.ShowAzureStorageAccountConnectionString(account, resourceGroupName);
 
             // Assert
             Test.Assert(nodeAgent.ErrorMessages[0].Contains(string.Format("The storage account '{0}' was not found.", account)), "The invalid account should be prompted.");
@@ -626,6 +654,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount035_ConnectionStringShow_InvalidAccountFormat()
         {
             // Arrange
@@ -634,7 +663,7 @@ namespace Management.Storage.ScenarioTest
             string account = "invalid-account";
 
             // Act
-            result = nodeAgent.ShowAzureStorageAccountConnectionString(account);
+            result = nodeAgent.ShowAzureStorageAccountConnectionString(account, resourceGroupName);
 
             // Assert
             Test.Assert(nodeAgent.ErrorMessages[0].Contains("The name is not a valid storage account name."), "The invalid account should be prompted.");
@@ -647,6 +676,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount036_ConnectionStringShow_MixParams()
         {
             // Arrange
@@ -656,7 +686,7 @@ namespace Management.Storage.ScenarioTest
 
             // Act
             string argument = string.Format("{0} --use-http --file-endpoint https://myFileEndpoint.chinacloud.api.cn", account);
-            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument);
+            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument, resourceGroupName);
 
             // Assert
             string expect = string.Format("DefaultEndpointsProtocol=http;FileEndpoint=https://myFileEndpoint.chinacloud.api.cn;AccountName={0};AccountKey={1}", account, Test.Data.Get("StorageAccountKey"));
@@ -670,6 +700,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount037_ConnectionStringShow_FullParams()
         {
             // Arrange
@@ -685,7 +716,7 @@ namespace Management.Storage.ScenarioTest
 
             // Act
             string argument = string.Format(argumentTemplate, account, blobEndpoint, queueEndpoint, tableEndpoint, fileEndpont);
-            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument);
+            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument, resourceGroupName);
 
             // Assert
             string expect = string.Format(expectTemplate, blobEndpoint, queueEndpoint, tableEndpoint, fileEndpont, account, Test.Data.Get("StorageAccountKey"));
@@ -696,6 +727,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount101_CreateAccount_FullParams()
         {
             string accountName = accountUtils.GenerateAccountName();
@@ -703,7 +735,7 @@ namespace Management.Storage.ScenarioTest
             string description = "Storage Account Description";
             string location = Constants.Location.EastAsia;
             string affinityGroup = null;
-            string accountType = Constants.AccountType.Standard_GRS;
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
 
             CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType);
         }
@@ -711,13 +743,14 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount102_CreateAccount_Localtion()
         {
             string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Location Setting";
             string affinityGroup = null;
-            string accountType = Constants.AccountType.Standard_GRS;
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
 
             foreach (FieldInfo info in typeof(Constants.Location).GetFields())
             {
@@ -729,13 +762,14 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount103_CreateAccount_AffinityGroup()
         {
             string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Affinity Group";
             string location = Constants.Location.EastAsia;
-            string accountType = Constants.AccountType.Standard_GRS;
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
             string affinityGroup = "TestAffinityGroup";
 
             try
@@ -752,17 +786,18 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount104_CreateAccount_AccountType()
         {
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Account Type";
-            string location = Constants.Location.WestUS;
             string affinityGroup = null;
 
             foreach (FieldInfo info in typeof(Constants.AccountType).GetFields())
             {
                 string accountName = accountUtils.GenerateAccountName();
-                string accountType = info.GetRawConstantValue() as string;
+                string accountType = accountUtils.mapAccountType(info.GetRawConstantValue() as string);
+                string location = accountUtils.GenerateAccountLocation(accountType);
                 CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType);
             }
         }
@@ -770,6 +805,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount105_CreateAccount_ExistingAccount()
         {
             string accountName = accountUtils.GenerateAccountName();
@@ -778,7 +814,7 @@ namespace Management.Storage.ScenarioTest
             string description = "Storage Account Negative Case";
             string location = Constants.Location.EastAsia;
             string affinityGroup = null;
-            string accountType = Constants.AccountType.Standard_GRS;
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
 
             try
             {
@@ -797,6 +833,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount106_CreateAccount_DifferentLocation()
         {
             string accountName = accountUtils.GenerateAccountName();
@@ -804,7 +841,7 @@ namespace Management.Storage.ScenarioTest
             string description = "Storage Account Test Location and Affinity Group";
             string accoutLocation = Constants.Location.EastAsia;
             string groupLocation = Constants.Location.SoutheastAsia;
-            string accountType = Constants.AccountType.Standard_GRS;
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
             string affinityGroup = "TestAffinityGroupAndLocation";
 
             try
@@ -821,6 +858,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount107_CreateAccount_NonExistingAffinityGroup()
         {
             string accountName = accountUtils.GenerateAccountName();
@@ -828,7 +866,7 @@ namespace Management.Storage.ScenarioTest
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Non-Existing Affinity Group";
             string location = Constants.Location.EastAsia;
-            string accountType = Constants.AccountType.Standard_GRS;
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
             string affinityGroup = FileNamingGenerator.GenerateNameFromRange(15, validNameRange);
 
             Test.Assert(!agent.CreateAzureStorageAccount(accountName, subscriptionId, label, description, location, affinityGroup, accountType),
@@ -839,6 +877,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount108_CreateAccount_InvalidLocation()
         {
             string accountName = accountUtils.GenerateAccountName();
@@ -846,7 +885,7 @@ namespace Management.Storage.ScenarioTest
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Invalid Location";
             string location = FileNamingGenerator.GenerateNameFromRange(8, validNameRange);
-            string accountType = Constants.AccountType.Standard_GRS;
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
             string affinityGroup = null;
 
             Test.Assert(!agent.CreateAzureStorageAccount(accountName, subscriptionId, label, description, location, affinityGroup, accountType),
@@ -857,6 +896,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount109_CreateAccount_InvalidType()
         {
             string accountName = accountUtils.GenerateAccountName();
@@ -875,13 +915,14 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount201_SetAccount_ChangeType_LabeL_Description()
         {
             string accountName = accountUtils.GenerateAccountName();
             string label = FileNamingGenerator.GenerateNameFromRange(15, validNameRange);
             string description = FileNamingGenerator.GenerateNameFromRange(20, validNameRange);
-            string originalAccountType = Constants.AccountType.Standard_GRS;
-            string newAccountType = Constants.AccountType.Standard_LRS;
+            string originalAccountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
+            string newAccountType = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
 
             SetAndValidateAccount(accountName, originalAccountType, label, description, newAccountType);
         }
@@ -889,12 +930,13 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount202_SetAccount_NonExisitingAccount()
         {
             string accountName = accountUtils.GenerateAccountName();
             string label = FileNamingGenerator.GenerateNameFromRange(15, validNameRange);
             string description = FileNamingGenerator.GenerateNameFromRange(20, validNameRange);
-            string accountType = Constants.AccountType.Standard_LRS;
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
 
             Test.Assert(!agent.SetAzureStorageAccount(accountName, label, description, accountType),
                 string.Format("Setting non-existing stoarge account {0} should fail", accountName));
@@ -904,6 +946,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount203_SetAccount_NonExistingType()
         {
             string accountName = accountUtils.GenerateAccountName();
@@ -920,13 +963,14 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount204_SetAccount_ZRSToOthers()
         {
             string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Set Type";
             string location = Constants.Location.EastAsia;
-            string accountType = Constants.AccountType.Standard_ZRS;
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS);
             string affinityGroup = null;
 
             try
@@ -935,11 +979,12 @@ namespace Management.Storage.ScenarioTest
 
                 foreach (FieldInfo info in typeof(Constants.AccountType).GetFields())
                 {
-                    string newAccountType = info.GetRawConstantValue() as string;
+                    string newAccountType = accountUtils.mapAccountType(info.GetRawConstantValue() as string);
                     Test.Assert(!agent.SetAzureStorageAccount(accountName, label, description, newAccountType),
                         string.Format("Setting stoarge account {0} to type {1} should fail", accountName, newAccountType));
 
-                    if (newAccountType == Constants.AccountType.Standard_ZRS || newAccountType == Constants.AccountType.Premium_LRS)
+                    if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS) ||
+                        newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
                     {
                         ExpectedContainErrorMessage(string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", newAccountType));
                     }
@@ -958,13 +1003,14 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount205_SetAccount_PLRSToOthers()
         {
             string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Set Type";
-            string location = Constants.Location.WestUS;
-            string accountType = Constants.AccountType.Premium_LRS;
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Premium_LRS);
+            string location = accountUtils.GenerateAccountLocation(accountType);
             string affinityGroup = null;
 
             try
@@ -973,11 +1019,12 @@ namespace Management.Storage.ScenarioTest
 
                 foreach (FieldInfo info in typeof(Constants.AccountType).GetFields())
                 {
-                    string newAccountType = info.GetRawConstantValue() as string;
+                    string newAccountType = accountUtils.mapAccountType(info.GetRawConstantValue() as string);
                     Test.Assert(!agent.SetAzureStorageAccount(accountName, label, description, newAccountType),
                         string.Format("Setting stoarge account {0} to type {1} should fail", accountName, newAccountType));
 
-                    if (newAccountType == Constants.AccountType.Standard_ZRS || newAccountType == Constants.AccountType.Premium_LRS)
+                    if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS) ||
+                        newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
                     {
                         ExpectedContainErrorMessage(string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", newAccountType));
                     }
@@ -996,6 +1043,7 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount206_SetAccount_OthersToZRSOrPLRS()
         {
             string accountName = accountUtils.GenerateAccountName();
@@ -1006,9 +1054,10 @@ namespace Management.Storage.ScenarioTest
             string[] newAccountTypes = { Constants.AccountType.Standard_ZRS, Constants.AccountType.Premium_LRS };
             foreach (string accountType in newAccountTypes)
             {
-                Test.Assert(!agent.SetAzureStorageAccount(accountName, label, description, accountType),
-                    string.Format("Setting stoarge account {0} to type {1} should fail", accountName, accountType));
-                ExpectedContainErrorMessage(string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", accountType));
+                string type = accountUtils.mapAccountType(accountType);
+                Test.Assert(!agent.SetAzureStorageAccount(accountName, label, description, type),
+                    string.Format("Setting stoarge account {0} to type {1} should fail", accountName, type));
+                ExpectedContainErrorMessage(string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", type));
             }
         }
 
@@ -1018,9 +1067,9 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount301_DeleteAccount_ExistingAccount()
         {
-            string accountName = accountUtils.GenerateAccountName();
-            string location = accountUtils.GenerateAccountLocation();
-            string accountType = accountUtils.GenerateAccountType();
+            string accountName = accountUtils.GenerateAccountName();  
+            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());
+            string location = accountUtils.GenerateAccountLocation(accountType);
 
             try
             {
@@ -1048,82 +1097,37 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount302_DeleteAccount_NonExistingAccount()
         {
-            string accountName = string.Empty;
+            string accountName = accountUtils.GenerateAndValidateNonExsitingAccountName();
 
-            try
+            if (isResourceMode)
             {
-                bool validated = false;
-                while (!validated)
-                {
-                    accountName = accountUtils.GenerateAccountName();
-                    StorageAccountGetResponse response;
-                    try
-                    {
-                        response = accountUtils.StorageClient.StorageAccounts.Get(accountName);
-                    }
-                    catch (CloudException ex)
-                    {
-                        Test.Assert(ex.ErrorCode.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
-                        validated = true;
-                    }
-                }
-                if (isResourceMode)
-                {
-                    Test.Assert(!agent.DeleteSRPAzureStorageAccount(resourceGroupName, accountName),
-                        string.Format("Deleting stoarge account {0} in resoruce group {1} should fail", accountName, resourceGroupName));
-                }
-                else
-                {
-                    Test.Assert(!agent.DeleteAzureStorageAccount(accountName),
-                        string.Format("Deleting stoarge account {0} should fail", accountName));
-                }
+                Test.Assert(!agent.DeleteSRPAzureStorageAccount(resourceGroupName, accountName),
+                    string.Format("Deleting stoarge account {0} in resoruce group {1} should fail", accountName, resourceGroupName));
             }
-            finally
+            else
             {
-                DeleteAccountWrapper(accountName);
+                Test.Assert(!agent.DeleteAzureStorageAccount(accountName),
+                    string.Format("Deleting stoarge account {0} should fail", accountName));
             }
         }
 
         [TestMethod]
-        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount303_DeleteAccount_NonExistingResourceGroup()
         {
-            string accountName = string.Empty;
+            string accountName = accountUtils.GenerateAndValidateNonExsitingAccountName();
 
-            try
+            if (isResourceMode)
             {
-                bool validated = false;
-                while (!validated)
-                {
-                    accountName = accountUtils.GenerateAccountName();
-                    StorageAccountGetResponse response;
-                    try
-                    {
-                        // Use service management client to check the existing account for a global search
-                        response = accountUtils.StorageClient.StorageAccounts.Get(accountName);
-                    }
-                    catch (CloudException ex)
-                    {
-                        Test.Assert(ex.ErrorCode.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
-                        validated = true;
-                    }
-                }
-                if (isResourceMode)
-                {
-                    string nonExsitingGroupName = accountUtils.GenerateResourceGroupName();
-                    Test.Assert(!agent.DeleteSRPAzureStorageAccount(nonExsitingGroupName, accountName),
-                        string.Format("Deleting stoarge account {0} in resoruce group {1} should fail", accountName, resourceGroupName));
-                }
-            }
-            finally
-            {
-                DeleteAccountWrapper(accountName);
+                string nonExsitingGroupName = accountUtils.GenerateResourceGroupName();
+                Test.Assert(!agent.DeleteSRPAzureStorageAccount(nonExsitingGroupName, accountName),
+                    string.Format("Deleting stoarge account {0} in resoruce group {1} should fail", accountName, resourceGroupName));
             }
         }
 
@@ -1133,9 +1137,9 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount401_GetAccount_ShowAnExistingAccount()
         {
-            string accountName = accountUtils.GenerateAccountName();
-            string location = accountUtils.GenerateAccountLocation();
-            string accountType = accountUtils.GenerateAccountType();
+            string accountName = accountUtils.GenerateAccountName();    
+            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());
+            string location = accountUtils.GenerateAccountLocation(accountType);
 
             try
             {
@@ -1163,7 +1167,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount402_GetAccount_ListAccounts()
@@ -1177,10 +1181,10 @@ namespace Management.Storage.ScenarioTest
             try
             {
                 for (int i = 0; i < accountCount; i++)
-                {
+                {                                                    
+                    accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());
                     accountName = accountUtils.GenerateAccountName();
-                    location = accountUtils.GenerateAccountLocation();
-                    accountType = accountUtils.GenerateAccountType();
+                    location = accountUtils.GenerateAccountLocation(accountType);
 
                     if (isResourceMode)
                     {
@@ -1208,7 +1212,7 @@ namespace Management.Storage.ScenarioTest
                 {
                     Test.Assert(agent.ShowAzureStorageAccount(string.Empty), message);
                 }
-                    
+
             }
             finally
             {
@@ -1220,51 +1224,197 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount403_GetAccount_ShowNonExistingAccount()
         {
-            string accountName = string.Empty;
+            string nonExsitingGroupName = accountUtils.GenerateResourceGroupName();
+            string accountName = accountUtils.GenerateAndValidateNonExsitingAccountName();
+
+            if (isResourceMode)
+            {
+                Test.Assert(!agent.ShowSRPAzureStorageAccount(nonExsitingGroupName, accountName),
+                    string.Format("Showing non-existing stoarge account {0} in non-existing resoruce group {1} should fail", accountName, nonExsitingGroupName));
+
+                Test.Assert(!agent.ShowSRPAzureStorageAccount(nonExsitingGroupName, string.Empty),
+                    string.Format("Listing stoarge accounts in non-existing resoruce group {0} should fail", nonExsitingGroupName));
+
+                Test.Assert(!agent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
+                    string.Format("Showing non-existing stoarge account {0} in resoruce group {1} should fail", accountName, resourceGroupName));
+            }
+            else
+            {
+                Test.Assert(!agent.ShowAzureStorageAccount(accountName),
+                    string.Format("Showing stoarge accounts {0} should fail", accountName));
+            }
 
             try
             {
-                bool validated = false;
-                while (!validated)
-                {
-                    accountName = accountUtils.GenerateAccountName();
-                    StorageAccountGetResponse response;
-                    try
-                    {
-                        // Use service management client to check the existing account for a global search
-                        response = accountUtils.StorageClient.StorageAccounts.Get(accountName);
-                    }
-                    catch (CloudException ex)
-                    {
-                        Test.Assert(ex.ErrorCode.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
-                        validated = true;
-                    }
-                }
                 if (isResourceMode)
                 {
-                    string nonExsitingGroupName = accountUtils.GenerateResourceGroupName();
-                    Test.Assert(!agent.ShowSRPAzureStorageAccount(nonExsitingGroupName, accountName),
-                        string.Format("Showing non-existing stoarge account {0} in non-existing resoruce group {1} should fail", accountName, nonExsitingGroupName));
-
-                    Test.Assert(!agent.ShowSRPAzureStorageAccount(nonExsitingGroupName, string.Empty),
-                        string.Format("Listing stoarge accounts in non-existing resoruce group {0} should fail", nonExsitingGroupName));
-
-                    Test.Assert(!agent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
-                        string.Format("Showing non-existing stoarge account {0} in resoruce group {1} should fail", accountName, resourceGroupName));
-
-                    string location = accountUtils.GenerateAccountLocation();
-                    CreateNewSRPAccount(resourceGroupName, accountName, location);
+                    string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());
+                    string location = accountUtils.GenerateAccountLocation(accountType);
+                    CreateNewSRPAccount(accountName, location, accountType);
                     Test.Assert(!agent.ShowSRPAzureStorageAccount(nonExsitingGroupName, accountName),
                         string.Format("Showing the existing stoarge account {0} in non-existing resoruce group {1} should fail", accountName, nonExsitingGroupName));
                 }
+            }
+            finally
+            {
+                DeleteAccountWrapper(accountName);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount501_AccountKey_ListKeys()
+        {
+            string accountName = accountUtils.GenerateAccountName();
+            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());   
+            string location = accountUtils.GenerateAccountLocation(accountType);
+
+            try
+            {
+                if (isResourceMode)
+                {
+                    CreateNewSRPAccount(resourceGroupName, accountName, location);
+                    Test.Assert(agent.ShowAzureStorageAccountKeys(accountName, resourceGroupName),
+                        string.Format("Showing keys of the stoarge account {0} in resoruce group {1} should succeed", accountName, resourceGroupName));
+                }
                 else
                 {
-                    Test.Assert(!agent.ShowAzureStorageAccount(accountName),
-                        string.Format("Showing stoarge accounts {0} should fail", accountName));
+                    string label = "StorageAccountLabel";
+                    string description = "Storage Account Test Set Type";
+                    string affinityGroup = string.Empty;
+
+                    CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
+                    Test.Assert(agent.ShowAzureStorageAccountKeys(accountName),
+                        string.Format("Showing keys of the stoarge account {0} should succeed", accountName));
+                }
+            }
+            finally
+            {
+                DeleteAccountWrapper(accountName);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount502_AccountKey_ListKeysOfNonExistingAccount()
+        {
+            string accountName = accountUtils.GenerateAndValidateNonExsitingAccountName();
+
+            if (isResourceMode)
+            {
+                string nonExsitingGroupName = accountUtils.GenerateResourceGroupName();
+                Test.Assert(!agent.ShowAzureStorageAccountKeys(accountName, nonExsitingGroupName),
+                    string.Format("Listing keys of the non-existing stoarge account {0} in non-existing resoruce group {1} should fail", accountName, nonExsitingGroupName));
+
+                Test.Assert(!agent.ShowAzureStorageAccountKeys(accountName, resourceGroupName),
+                    string.Format("Listint keys of the non-existing stoarge account {0} in resoruce group {1} should fail", accountName, resourceGroupName));
+            }
+            else
+            {
+                Test.Assert(!agent.ShowAzureStorageAccountKeys(accountName),
+                    string.Format("Listing kyes of the stoarge accounts {0} should fail", accountName));
+            }
+
+            ExpectedContainErrorMessage(string.Format("The storage account '{0}' was not found", accountName));
+        }
+
+        [TestMethod]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount503_AccountKey_RenewKeys()
+        {
+            string accountName = accountUtils.GenerateAccountName();
+            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());
+            string location = accountUtils.GenerateAccountLocation(accountType);
+
+            try
+            {
+                if (isResourceMode)
+                {
+                    CreateNewSRPAccount(resourceGroupName, accountName, location);
+                    Test.Assert(agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Primary, resourceGroupName),
+                        string.Format("Renewing the primary key of the stoarge account {0} in resoruce group {1} should succeed", accountName, resourceGroupName));
+                    Test.Assert(agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Secondary, resourceGroupName),
+                        string.Format("Renewing the secondary key of the stoarge account {0} in resoruce group {1} should succeed", accountName, resourceGroupName));
+                }
+                else
+                {
+                    string label = "StorageAccountLabel";
+                    string description = "Storage Account Test Set Type";
+                    string affinityGroup = string.Empty;
+                    CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
+
+                    Test.Assert(agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Primary),
+                        string.Format("Renewing the primary key of the stoarge account {0} should succeed", accountName));
+                    Test.Assert(agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Secondary),
+                        string.Format("Renewing the secondary key of the stoarge account {0} should succeed", accountName));
+                }
+            }
+            finally
+            {
+                DeleteAccountWrapper(accountName);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount504_AccountKey_RenewKeysForNonExistingAccount()
+        {
+            string accountName = accountUtils.GenerateAndValidateNonExsitingAccountName();
+
+            if (isResourceMode)
+            {
+                string nonExsitingGroupName = accountUtils.GenerateResourceGroupName();
+                Test.Assert(!agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Primary, nonExsitingGroupName),
+                    string.Format("Renewing the primary key of the non-existing stoarge account {0} in non-existing resoruce group {1} should fail", accountName, nonExsitingGroupName));
+
+                Test.Assert(!agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Secondary, resourceGroupName),
+                    string.Format("Renewing the secondary key of the non-existing stoarge account {0} in resoruce group {1} should fail", accountName, resourceGroupName));
+            }
+            else
+            {
+                Test.Assert(!agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Primary),
+                    string.Format("Renewing the primary key of the stoarge account {0} should fail", accountName));
+                Test.Assert(!agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Secondary),
+                    string.Format("Renewing the secondary key of the stoarge account {0} should fail", accountName));
+            }
+
+            ExpectedContainErrorMessage(string.Format("The storage account '{0}' was not found", accountName));
+
+            try
+            {
+                string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());
+                string location = accountUtils.GenerateAccountLocation(accountType);
+                accountName = accountUtils.GenerateAccountName();
+
+                if (isResourceMode)
+                {
+                    CreateNewSRPAccount(resourceGroupName, accountName, location);
+
+                    Test.Assert(agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Invalid, resourceGroupName) && agent.Output.Count == 0,
+                        string.Format("Renewing an invalid key type of the stoarge account {0} in resoruce group {1} should fail", accountName, resourceGroupName));
+                }
+                else
+                {
+                    string label = "StorageAccountLabel";
+                    string description = "Storage Account Test Set Type";
+                    string affinityGroup = string.Empty;
+                    CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
+
+                    Test.Assert(agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Invalid) && agent.Output.Count == 0,
+                        string.Format("Renewing an invalid key type of the stoarge account {0} should fail", accountName));
                 }
             }
             finally
@@ -1304,7 +1454,7 @@ namespace Management.Storage.ScenarioTest
             try
             {
                 if (isResourceMode)
-                {    
+                {
                     CreateNewSRPAccount(accountName, location, originalAccountType);
                     ValidateSRPAccount(accountName, location, originalAccountType);
 
@@ -1378,7 +1528,8 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(accountName == account.Name, string.Format("Expected account name is {0} and actually it is {1}", accountName, account.Name));
             Test.Assert(label == account.Properties.Label, string.Format("Expected label is {0} and actually it is {1}", label, account.Properties.Label));
             Test.Assert(description == account.Properties.Description, string.Format("Expected description is {0} and actually it is {1}", description, account.Properties.Description));
-            Test.Assert(typeof(Constants.AccountType).GetField(account.Properties.AccountType).GetRawConstantValue().Equals(accountType), string.Format("Expected account type is {0} and actually it is {1}", accountType, account.Properties.AccountType));
+            Test.Assert(accountUtils.mapAccountType(typeof(Constants.AccountType).GetField(account.Properties.AccountType).GetRawConstantValue() as string).Equals(accountType),
+                string.Format("Expected account type is {0} and actually it is {1}", accountType, account.Properties.AccountType));
 
             if (!string.IsNullOrEmpty(location))
             {
@@ -1528,7 +1679,7 @@ namespace Management.Storage.ScenarioTest
 
             // Act
             // TODO: Investigate sometimes the result is true and the error message is only "\n".    
-            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument) && (nodeAgent.Output.Count != 0);
+            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument, resourceGroupName) && (nodeAgent.Output.Count != 0);
 
             // Assert 
             if (errorType == ErrorType.Unsupported)
@@ -1617,7 +1768,7 @@ namespace Management.Storage.ScenarioTest
 
             // Act
             string argument = string.Format(argumentTemplate, account, blobEndpoint, queueEndpoint, tableEndpoint, fileEndpoint);
-            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument);
+            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument, resourceGroupName);
 
             // Assert
             string expect = string.Format(expectTempalte, blobEndpoint, queueEndpoint, tableEndpoint, fileEndpoint, account, Test.Data.Get("StorageAccountKey"));

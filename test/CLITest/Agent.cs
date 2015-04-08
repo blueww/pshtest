@@ -76,8 +76,15 @@ namespace Management.Storage.ScenarioTest
 
         public abstract bool ChangeCLIMode(Constants.Mode mode);
 
+        #region Account Keys
+        public abstract bool ShowAzureStorageAccountConnectionString(string accountName, string resourceGroupName = null);
+
+        public abstract bool ShowAzureStorageAccountKeys(string accountName, string resourceGroupName = null);
+
+        public abstract bool RenewAzureStorageAccountKeys(string accountName, Constants.AccountKeyType type, string resourceGroupName = null);
+        #endregion
+
         #region Account
-        public abstract bool ShowAzureStorageAccountConnectionString(string accountName);
 
         public abstract bool CreateAzureStorageAccount(string accountName, string subscription, string label, string description, string location, string affinityGroup, string type, bool? geoReplication = null);
 
