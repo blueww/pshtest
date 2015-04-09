@@ -89,9 +89,9 @@
             return this.GenerateAvailableAccountName();
         }
 
-        public string GenerateAccountLocation(string location)
+        public string GenerateAccountLocation(string type)
         {
-            if (location == this.mapAccountType(Constants.AccountType.Premium_LRS))
+            if (type == this.mapAccountType(Constants.AccountType.Premium_LRS))
             {
                 return Constants.Location.WestUS;
             }
