@@ -41,6 +41,7 @@ namespace Management.Storage.ScenarioTest.Common
 
         protected Agent agent;
         protected static Language lang;
+        protected static bool isResourceMode = false;
 
         private TestContext testContextInstance;
 
@@ -129,8 +130,18 @@ namespace Management.Storage.ScenarioTest.Common
             lang = AgentFactory.GetLanguage(testContext.Properties);
             if (lang == Language.PowerShell)
             {
-                // import module
-                string moduleFilePath = Test.Data.Get("ModuleFilePath");
+                string moduleFilePath = null;
+                if (isResourceMode)
+                {
+                    // import module
+                    moduleFilePath = Test.Data.Get("ResourceModuleFilePath");
+                }
+                else
+                {
+                    // import module
+                    moduleFilePath = Test.Data.Get("ModuleFilePath");
+                }
+
                 if (!string.IsNullOrWhiteSpace(moduleFilePath))
                 {
                     PowerShellAgent.ImportModule(moduleFilePath);

@@ -2880,22 +2880,69 @@ namespace Management.Storage.ScenarioTest
 
         public override bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string type, string location)
         {
-            throw new NotImplementedException();
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("New-AzureStorageAccount");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("Name", accountName);
+            ps.BindParameter("Type", type);
+            ps.BindParameter("Location", location);
+            
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ParseBlobCollection(ps.Invoke());
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
         }
 
         public override bool SetSRPAzureStorageAccount(string resourceGroupName, string accountName, string accountType)
         {
-            throw new NotImplementedException();
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Set-AzureStorageAccount");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("Name", accountName);
+            ps.BindParameter("Type", accountType);
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ParseBlobCollection(ps.Invoke());
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
         }
 
         public override bool DeleteSRPAzureStorageAccount(string resourceGroup, string accountName)
         {
-            throw new NotImplementedException();
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Remove-AzureStorageAccount");
+            ps.BindParameter("ResourceGroupName", resourceGroup);
+            ps.BindParameter("Name", accountName);
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ParseBlobCollection(ps.Invoke());
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
         }
 
         public override bool ShowSRPAzureStorageAccount(string resourceGroup, string accountName)
         {
-            throw new NotImplementedException();
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Get-AzureStorageAccount");
+            ps.BindParameter("ResourceGroupName", resourceGroup);
+            ps.BindParameter("Name", accountName);
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ParseBlobCollection(ps.Invoke());
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
         }
     }
 }
