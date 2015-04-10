@@ -32,8 +32,8 @@ namespace Management.Storage.ScenarioTest
         [ClassInitialize()]
         public static void SRPStorageAccountTestInit(TestContext testContext)
         {
-            StorageAccountTest.StorageAccountTestInit(testContext);
             isResourceMode = true;
+            StorageAccountTest.StorageAccountTestInit(testContext);
 
             resourceLocation = accountUtils.GenerateAccountLocation(string.Empty);
             resourceManager = new ResourceManagerWrapper();
@@ -45,10 +45,16 @@ namespace Management.Storage.ScenarioTest
         private static string resourceLocation;
 
         [ClassCleanup()]
-        public static void SRFPStorageAccountTestCleanup()
+        public static void SRPStorageAccountTestCleanup()
         {
             resourceManager.DeleteResourceGroup(resourceGroupName);
             StorageAccountTest.StorageAccountTestCleanup();
+        }
+
+        public override void OnTestSetup()
+        {
+            base.OnTestSetup();
+            agent.ChangeCLIMode(Constants.Mode.arm);
         }
         #endregion
     }

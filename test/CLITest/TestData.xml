@@ -9,8 +9,13 @@
   <logwarning>true</logwarning>
   <logerror>true</logerror>
 
+  <ResourceModuleFilePath>C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager\AzureResourceManager.psd1</ResourceModuleFilePath>
   <ManagementCert></ManagementCert>
   <CertPassword></CertPassword>
+  <AADRealm>72f988bf-86f1-41af-91ab-2d7cd011db47</AADRealm>
+  <AADClient>f64ce98e-0381-4800-b914-1022149a2fa5</AADClient>
+  <AADUser>xtestlab@microsoft.com</AADUser>
+  <AADPassword></AADPassword>
   <AzureSubscriptionPath></AzureSubscriptionPath>
   <AzureSubscriptionName></AzureSubscriptionName>
   <AzureSubscriptionID></AzureSubscriptionID>
