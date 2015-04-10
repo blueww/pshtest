@@ -22,7 +22,6 @@ namespace Management.Storage.ScenarioTest
     using System.Threading;
     using Management.Storage.ScenarioTest.Common;
     using Management.Storage.ScenarioTest.Util;
-    using SRPModel = Microsoft.Azure.Management.Storage.Models;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Microsoft.WindowsAzure;
     using Microsoft.WindowsAzure.Management;
@@ -30,7 +29,7 @@ namespace Management.Storage.ScenarioTest
     using Microsoft.WindowsAzure.Management.Storage;
     using Microsoft.WindowsAzure.Management.Storage.Models;
     using MS.Test.Common.MsTestLib;
-    using Newtonsoft.Json;
+    using SRPModel = Microsoft.Azure.Management.Storage.Models;
 
     /// <summary>
     /// this class contains all the account parameter settings for Node.js commands
@@ -46,11 +45,7 @@ namespace Management.Storage.ScenarioTest
             TestBase.TestClassInitialize(testContext);
             NodeJSAgent.AgentConfig.UseEnvVar = false;
 
-            string certFile = Test.Data.Get("ManagementCert");
-            string certPassword = Test.Data.Get("CertPassword");
-            X509Certificate2 cert = new X509Certificate2(certFile, certPassword);
-            CertificateCloudCredentials creadetial = new CertificateCloudCredentials(Test.Data.Get("AzureSubscriptionID"), cert);
-            managementClient = new ManagementClient(creadetial);
+            managementClient = new ManagementClient(Utility.GetCertificateCloudCredential());
             accountUtils = new AccountUtils(lang);
         }
 
@@ -66,9 +61,10 @@ namespace Management.Storage.ScenarioTest
 
         public override void OnTestSetup()
         {
-            NodeJSAgent nodeAgent = (NodeJSAgent)agent;
-            if (!accountImported)
+            if (!accountImported && lang == Language.NodeJS)
             {
+                NodeJSAgent nodeAgent = (NodeJSAgent)agent;
+                agent.ChangeCLIMode(Constants.Mode.asm);
                 nodeAgent.ImportAzureSubscription();
 
                 string subscriptionID = Test.Data.Get("AzureSubscriptionID");
@@ -86,15 +82,6 @@ namespace Management.Storage.ScenarioTest
                 }
 
                 accountImported = true;
-            }
-
-            if (isResourceMode)
-            {
-                nodeAgent.ChangeCLIMode(Constants.Mode.arm);
-            }
-            else
-            {
-                nodeAgent.ChangeCLIMode(Constants.Mode.asm);
             }
         }
 
@@ -1102,7 +1089,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount302_DeleteAccount_NonExistingAccount()
         {
-            string accountName = accountUtils.GenerateAndValidateNonExsitingAccountName();
+            string accountName = accountUtils.GenerateAccountName();
 
             if (isResourceMode)
             {
@@ -1121,7 +1108,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount303_DeleteAccount_NonExistingResourceGroup()
         {
-            string accountName = accountUtils.GenerateAndValidateNonExsitingAccountName();
+            string accountName = accountUtils.GenerateAccountName();
 
             if (isResourceMode)
             {
@@ -1230,7 +1217,7 @@ namespace Management.Storage.ScenarioTest
         public void FTAccount403_GetAccount_ShowNonExistingAccount()
         {
             string nonExsitingGroupName = accountUtils.GenerateResourceGroupName();
-            string accountName = accountUtils.GenerateAndValidateNonExsitingAccountName();
+            string accountName = accountUtils.GenerateAccountName();
 
             if (isResourceMode)
             {
@@ -1307,7 +1294,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount502_AccountKey_ListKeysOfNonExistingAccount()
         {
-            string accountName = accountUtils.GenerateAndValidateNonExsitingAccountName();
+            string accountName = accountUtils.GenerateAccountName();
 
             if (isResourceMode)
             {
@@ -1372,7 +1359,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount504_AccountKey_RenewKeysForNonExistingAccount()
         {
-            string accountName = accountUtils.GenerateAndValidateNonExsitingAccountName();
+            string accountName = accountUtils.GenerateAccountName();
 
             if (isResourceMode)
             {
@@ -1498,9 +1485,9 @@ namespace Management.Storage.ScenarioTest
             {
                 response = accountUtils.StorageClient.StorageAccounts.Get(accountName);
             }
-            catch (CloudException ex)
+            catch (Hyak.Common.CloudException ex)
             {
-                Test.Assert(ex.ErrorCode.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
+                Test.Assert(ex.Error.Code.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
                 createdAccounts.Add(accountName);
             }
 
@@ -1576,13 +1563,13 @@ namespace Management.Storage.ScenarioTest
                 // Use service management client to check the existing account for a global search
                 response = accountUtils.StorageClient.StorageAccounts.Get(accountName);
             }
-            catch (CloudException ex)
+            catch (Hyak.Common.CloudException ex)
             {
-                Test.Assert(ex.ErrorCode.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
+                Test.Assert(ex.Error.Code.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
                 createdAccounts.Add(accountName);
             }
 
-            Test.Assert(agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, location, accountType),
+            Test.Assert(agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
                 string.Format("Creating stoarge account {0} in the resource group {1} at location {2} should succeed", accountName, resourceGroupName, location));
         }
 

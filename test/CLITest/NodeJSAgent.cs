@@ -450,6 +450,7 @@ namespace Management.Storage.ScenarioTest
         public override bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string type, string location)
         {
             string command = string.Format("account create {0}", accountName);
+            command = appendStringOption(command, "--resource-group", resourceGroupName);
             command = appendStringOption(command, "--location", location, true);
             command = appendStringOption(command, "--type", type);
 
@@ -459,20 +460,21 @@ namespace Management.Storage.ScenarioTest
         public override bool SetSRPAzureStorageAccount(string resourceGroupName, string accountName, string type)
         {
             string command = string.Format("account set {0}", accountName);
+            command = appendStringOption(command, "--resource-group", resourceGroupName);
             command = appendStringOption(command, "--type", type);
 
             return RunNodeJSProcess(command, needAccountParam: false);
         }
 
-        public override bool DeleteSRPAzureStorageAccount(string resourceGroup, string accountName)
+        public override bool DeleteSRPAzureStorageAccount(string resourceGroupName, string accountName)
         {
             string command = string.Format("account delete {0}", accountName);
-            command = appendStringOption(command, "--resource-group", resourceGroup);
+            command = appendStringOption(command, "--resource-group", resourceGroupName);
 
             return RunNodeJSProcess(command, needAccountParam: false);
         }
 
-        public override bool ShowSRPAzureStorageAccount(string resourceGroup, string accountName)
+        public override bool ShowSRPAzureStorageAccount(string resourceGroupName, string accountName)
         {
             string command = string.Empty;
             if (string.IsNullOrEmpty(accountName))
@@ -483,7 +485,7 @@ namespace Management.Storage.ScenarioTest
             {
                 command = string.Format("account show {0}", accountName);
             }
-            command = appendStringOption(command, "--resource-group", resourceGroup);
+            command = appendStringOption(command, "--resource-group", resourceGroupName);
 
             return RunNodeJSProcess(command, needAccountParam: false);
         }
