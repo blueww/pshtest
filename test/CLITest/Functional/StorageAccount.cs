@@ -31,6 +31,7 @@ namespace Management.Storage.ScenarioTest
     using Microsoft.WindowsAzure.Management.Storage.Models;
     using MS.Test.Common.MsTestLib;
     using Newtonsoft.Json;
+    using StorageTestLib;
 
     /// <summary>
     /// this class contains all the account parameter settings for Node.js commands
@@ -44,7 +45,7 @@ namespace Management.Storage.ScenarioTest
         public static void StorageAccountTestInit(TestContext testContext)
         {
             TestBase.TestClassInitialize(testContext);
-            NodeJSAgent.AgentConfig.UseEnvVar = false;
+            NodeJSAgent.AgentConfig.UseEnvVar = false;            
 
             string certFile = Test.Data.Get("ManagementCert");
             string certPassword = Test.Data.Get("CertPassword");
@@ -66,35 +67,41 @@ namespace Management.Storage.ScenarioTest
 
         public override void OnTestSetup()
         {
-            NodeJSAgent nodeAgent = (NodeJSAgent)agent;
+            string settingFile = Test.Data.Get("AzureSubscriptionPath");
+            string subscriptionId = Test.Data.Get("AzureSubscriptionID");
+
             if (!accountImported)
             {
-                nodeAgent.ImportAzureSubscription();
+                agent.ImportAzureSubscription(settingFile);
 
                 string subscriptionID = Test.Data.Get("AzureSubscriptionID");
                 if (!string.IsNullOrEmpty(subscriptionID))
                 {
-                    nodeAgent.SetActiveSubscription(subscriptionID);
+                    agent.SetActiveSubscription(subscriptionID);
                 }
                 else
                 {
                     string subscriptionName = Test.Data.Get("AzureSubscriptionName");
                     if (!string.IsNullOrEmpty(subscriptionName))
                     {
-                        nodeAgent.SetActiveSubscription(subscriptionName);
+                        agent.SetActiveSubscription(subscriptionName);
                     }
                 }
 
                 accountImported = true;
             }
 
-            if (isResourceMode)
+            if (lang == Language.NodeJS)
             {
-                nodeAgent.ChangeCLIMode(Constants.Mode.arm);
-            }
-            else
-            {
-                nodeAgent.ChangeCLIMode(Constants.Mode.asm);
+                NodeJSAgent nodeAgent = (NodeJSAgent)agent;
+                if (isResourceMode)
+                {
+                    nodeAgent.ChangeCLIMode(Constants.Mode.arm);
+                }
+                else
+                {
+                    nodeAgent.ChangeCLIMode(Constants.Mode.asm);
+                }
             }
         }
 
@@ -1062,6 +1069,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -1075,7 +1083,7 @@ namespace Management.Storage.ScenarioTest
             {
                 if (isResourceMode)
                 {
-                    CreateNewSRPAccount(resourceGroupName, accountName, location);
+                    CreateNewSRPAccount(accountName, location, accountType);
                     Test.Assert(agent.DeleteSRPAzureStorageAccount(resourceGroupName, accountName),
                         string.Format("Deleting stoarge account {0} in resoruce group {1} should succeed", accountName, resourceGroupName));
                 }
@@ -1097,6 +1105,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -1106,8 +1115,17 @@ namespace Management.Storage.ScenarioTest
 
             if (isResourceMode)
             {
-                Test.Assert(!agent.DeleteSRPAzureStorageAccount(resourceGroupName, accountName),
-                    string.Format("Deleting stoarge account {0} in resoruce group {1} should fail", accountName, resourceGroupName));
+                bool succeeded = agent.DeleteSRPAzureStorageAccount(resourceGroupName, accountName);
+
+                if (lang == Language.PowerShell)
+                {
+                    Test.Assert(succeeded, string.Format("Deleting stoarge account {0} in resoruce group {1} should succeed", accountName, resourceGroupName));
+                }
+                else
+                {
+                    Test.Assert(agent.DeleteSRPAzureStorageAccount(resourceGroupName, accountName),
+                        string.Format("Deleting stoarge account {0} in resoruce group {1} should fail", accountName, resourceGroupName));
+                }
             }
             else
             {
@@ -1117,6 +1135,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount303_DeleteAccount_NonExistingResourceGroup()
@@ -1132,6 +1151,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -1145,7 +1165,7 @@ namespace Management.Storage.ScenarioTest
             {
                 if (isResourceMode)
                 {
-                    CreateNewSRPAccount(resourceGroupName, accountName, location);
+                    CreateNewSRPAccount(accountName, location, accountType);
                     Test.Assert(agent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
                         string.Format("Showing stoarge account {0} in resoruce group {1} should succeed", accountName, resourceGroupName));
                 }
@@ -1167,6 +1187,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -1188,7 +1209,7 @@ namespace Management.Storage.ScenarioTest
 
                     if (isResourceMode)
                     {
-                        CreateNewSRPAccount(resourceGroupName, accountName, location);
+                        CreateNewSRPAccount(accountName, location, accountType);
                     }
                     else
                     {
@@ -1224,6 +1245,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -1267,6 +1289,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -1280,7 +1303,7 @@ namespace Management.Storage.ScenarioTest
             {
                 if (isResourceMode)
                 {
-                    CreateNewSRPAccount(resourceGroupName, accountName, location);
+                    CreateNewSRPAccount(accountName, location, accountType);
                     Test.Assert(agent.ShowAzureStorageAccountKeys(accountName, resourceGroupName),
                         string.Format("Showing keys of the stoarge account {0} in resoruce group {1} should succeed", accountName, resourceGroupName));
                 }
@@ -1302,6 +1325,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -1328,6 +1352,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -1341,7 +1366,7 @@ namespace Management.Storage.ScenarioTest
             {
                 if (isResourceMode)
                 {
-                    CreateNewSRPAccount(resourceGroupName, accountName, location);
+                    CreateNewSRPAccount(accountName, location, accountType);
                     Test.Assert(agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Primary, resourceGroupName),
                         string.Format("Renewing the primary key of the stoarge account {0} in resoruce group {1} should succeed", accountName, resourceGroupName));
                     Test.Assert(agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Secondary, resourceGroupName),
@@ -1367,6 +1392,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -1401,7 +1427,7 @@ namespace Management.Storage.ScenarioTest
 
                 if (isResourceMode)
                 {
-                    CreateNewSRPAccount(resourceGroupName, accountName, location);
+                    CreateNewSRPAccount(accountName, location, accountType);
 
                     Test.Assert(agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Invalid, resourceGroupName) && agent.Output.Count == 0,
                         string.Format("Renewing an invalid key type of the stoarge account {0} in resoruce group {1} should fail", accountName, resourceGroupName));
@@ -1569,7 +1595,7 @@ namespace Management.Storage.ScenarioTest
         private void CreateNewSRPAccount(string accountName, string location, string accountType)
         {
             string subscriptionId = Test.Data.Get("AzureSubscriptionID");
-
+            
             StorageAccountGetResponse response;
             try
             {
@@ -1581,8 +1607,13 @@ namespace Management.Storage.ScenarioTest
                 Test.Assert(ex.ErrorCode.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
                 createdAccounts.Add(accountName);
             }
+            catch (Hyak.Common.CloudException ex)
+            {
+                Test.Assert(ex.Error.Code.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
+                createdAccounts.Add(accountName);
+            }
 
-            Test.Assert(agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, location, accountType),
+            Test.Assert(agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
                 string.Format("Creating stoarge account {0} in the resource group {1} at location {2} should succeed", accountName, resourceGroupName, location));
         }
 

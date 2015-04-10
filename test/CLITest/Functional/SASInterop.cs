@@ -55,7 +55,7 @@
             if (!accountImported && lang == Language.NodeJS)
             {
                 NodeJSAgent nodeAgent = (NodeJSAgent)agent;
-                nodeAgent.ImportAzureSubscription();
+                nodeAgent.ImportAzureSubscription(Test.Data.Get("AzureSubscriptionPath"));
 
                 string subscriptionID = Test.Data.Get("AzureSubscriptionID");
                 if (!string.IsNullOrEmpty(subscriptionID))
