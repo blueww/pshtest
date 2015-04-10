@@ -1,7 +1,11 @@
 ﻿namespace Management.Storage.ScenarioTest.Util
 {
     using System;
+    using System.IO;
     using System.Security.Cryptography.X509Certificates;
+    using System.Threading;
+    using Microsoft.Azure.Common.Authentication;
+    using Microsoft.Azure.Common.Authentication.Models;
     using Microsoft.WindowsAzure;
     using Microsoft.WindowsAzure.Management.Storage;
     using Microsoft.WindowsAzure.Management.Storage.Models;
@@ -34,9 +38,8 @@
             string certFile = Test.Data.Get("ManagementCert");
             string certPassword = Test.Data.Get("CertPassword");
             X509Certificate2 cert = new X509Certificate2(certFile, certPassword);
-            CertificateCloudCredentials credetial = new CertificateCloudCredentials(Test.Data.Get("AzureSubscriptionID"), cert);
-            SRPCredentials.CertificateCloudCredentials srpCredentials = new SRPCredentials.CertificateCloudCredentials(Test.Data.Get("AzureSubscriptionID"), cert);
-            SRPStorageClient = new SRPManagement.StorageManagementClient(srpCredentials);
+            SRPCredentials.CertificateCloudCredentials credetial = new SRPCredentials.CertificateCloudCredentials(Test.Data.Get("AzureSubscriptionID"), cert);
+            SRPStorageClient = new SRPManagement.StorageManagementClient(credetial);
             StorageClient = new StorageManagementClient(credetial);
             this.language = language;
         }
@@ -78,6 +81,11 @@
                 catch (CloudException ex)
                 {
                     Test.Assert(ex.ErrorCode.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
+                    validated = true;
+                }
+                catch (Hyak.Common.CloudException ex)
+                {
+                    Test.Assert(ex.Error.Code.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
                     validated = true;
                 }
             }

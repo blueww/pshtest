@@ -153,15 +153,14 @@ namespace Management.Storage.ScenarioTest
             Test.Info("NodeJS command: \"{0}\" {1}", p.StartInfo.FileName, p.StartInfo.Arguments);
         }
 
-        internal void ImportAzureSubscription()
+        public override void ImportAzureSubscription(string settingFile)
         {
-            string settingFile = Test.Data.Get("AzureSubscriptionPath");
             RunNodeJSProcess(string.Format("import \"{0}\"", settingFile), needAccountParam: false, category: "account");
         }
 
-        internal void SetActiveSubscription(string nameOrID)
+        public override void SetActiveSubscription(string subscriptionId)
         {
-            RunNodeJSProcess(string.Format("set \"{0}\"", nameOrID), needAccountParam: false, category: "account");
+            RunNodeJSProcess(string.Format("set \"{0}\"", subscriptionId), needAccountParam: false, category: "account");
         }
 
         internal bool RunNodeJSProcess(string argument, bool force = false, bool needAccountParam = true, string category = "storage")
