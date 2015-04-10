@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Management.Storage.ScenarioTest</RootNamespace>
     <AssemblyName>PowerShellTest</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <TargetFrameworkProfile />
@@ -36,126 +36,143 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Hyak.Common">
-      <HintPath>..\packages\Hyak.Common.1.0.2\lib\net40\Hyak.Common.dll</HintPath>
+    <Reference Include="Hyak.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Hyak.Common.1.0.2\lib\net45\Hyak.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Azure.Common">
-      <HintPath>..\packages\Microsoft.Azure.Common.2.0.4\lib\net40\Microsoft.Azure.Common.dll</HintPath>
+    <Reference Include="Microsoft.Azure.Common, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Azure.Common.2.1.0\lib\net45\Microsoft.Azure.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Azure.Common.NetFramework">
-      <HintPath>..\packages\Microsoft.Azure.Common.2.0.4\lib\net40\Microsoft.Azure.Common.NetFramework.dll</HintPath>
+    <Reference Include="Microsoft.Azure.Common.NetFramework, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Azure.Common.2.1.0\lib\net45\Microsoft.Azure.Common.NetFramework.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Azure.Management.Storage">
       <HintPath>..\imports\Microsoft.Azure.Management.Storage.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Azure.ResourceManager">
+    <Reference Include="Microsoft.Azure.ResourceManager, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.Azure.Management.Resources.2.17.0-preview\lib\net40\Microsoft.Azure.ResourceManager.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Data.Edm, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Data.Edm.5.6.0\lib\net40\Microsoft.Data.Edm.dll</HintPath>
+    <Reference Include="Microsoft.Data.Edm, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Data.Edm.5.6.4\lib\net40\Microsoft.Data.Edm.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Data.OData, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Data.OData.5.6.0\lib\net40\Microsoft.Data.OData.dll</HintPath>
+    <Reference Include="Microsoft.Data.OData, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Data.OData.5.6.4\lib\net40\Microsoft.Data.OData.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Data.Services.Client, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Data.Services.Client.5.6.0\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
+    <Reference Include="Microsoft.Data.Services.Client, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Data.Services.Client.5.6.4\lib\net40\Microsoft.Data.Services.Client.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Threading.Tasks">
+    <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory, Version=2.14.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.IdentityModel.Clients.ActiveDirectory.2.14.201151115\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory.WindowsForms, Version=2.14.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.IdentityModel.Clients.ActiveDirectory.2.14.201151115\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.WindowsForms.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Threading.Tasks, Version=1.0.12.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.Bcl.Async.1.0.168\lib\net40\Microsoft.Threading.Tasks.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Threading.Tasks.Extensions">
+    <Reference Include="Microsoft.Threading.Tasks.Extensions, Version=1.0.12.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.Bcl.Async.1.0.168\lib\net40\Microsoft.Threading.Tasks.Extensions.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Threading.Tasks.Extensions.Desktop">
+    <Reference Include="Microsoft.Threading.Tasks.Extensions.Desktop, Version=1.0.168.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.Bcl.Async.1.0.168\lib\net40\Microsoft.Threading.Tasks.Extensions.Desktop.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\AzCopy\dmlib\internal\imports\VisualStudio\VS10RTM\MsTest\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Common">
-      <HintPath>..\packages\Microsoft.WindowsAzure.Common.1.4.1\lib\net40\Microsoft.WindowsAzure.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Common.NetFramework">
-      <HintPath>..\packages\Microsoft.WindowsAzure.Common.1.4.1\lib\net40\Microsoft.WindowsAzure.Common.NetFramework.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Configuration, Version=1.8.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.WindowsAzure.ConfigurationManager.1.8.0.0\lib\net35-full\Microsoft.WindowsAzure.Configuration.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Management">
-      <HintPath>..\packages\Microsoft.WindowsAzure.Management.2.0.0\lib\net40\Microsoft.WindowsAzure.Management.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Management.Compute">
-      <HintPath>..\packages\Microsoft.WindowsAzure.Management.Compute.5.0.0\lib\net40\Microsoft.WindowsAzure.Management.Compute.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Management.MediaServices">
-      <HintPath>..\packages\Microsoft.WindowsAzure.Management.MediaServices.2.0.0\lib\net40\Microsoft.WindowsAzure.Management.MediaServices.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Management.Monitoring">
-      <HintPath>..\packages\Microsoft.WindowsAzure.Management.Monitoring.1.0.0\lib\net40\Microsoft.WindowsAzure.Management.Monitoring.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Management.Network">
-      <HintPath>..\packages\Microsoft.WindowsAzure.Management.Network.3.0.0\lib\net40\Microsoft.WindowsAzure.Management.Network.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Management.Scheduler">
-      <HintPath>..\packages\Microsoft.WindowsAzure.Management.Scheduler.3.0.0\lib\net40\Microsoft.WindowsAzure.Management.Scheduler.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Management.Sql">
-      <HintPath>..\packages\Microsoft.WindowsAzure.Management.Sql.3.0.0\lib\net40\Microsoft.WindowsAzure.Management.Sql.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Management.Storage, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.WindowsAzure.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Microsoft.WindowsAzure.Management.Storage.3.2.2\lib\net40\Microsoft.WindowsAzure.Management.Storage.dll</HintPath>
+      <HintPath>..\packages\Microsoft.WindowsAzure.Common.1.4.1\lib\net45\Microsoft.WindowsAzure.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Management.WebSites">
-      <HintPath>..\packages\Microsoft.WindowsAzure.Management.WebSites.3.0.0\lib\net40\Microsoft.WindowsAzure.Management.WebSites.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Storage, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="Microsoft.WindowsAzure.Common.NetFramework, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\WindowsAzure.Storage.4.0.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
+      <HintPath>..\packages\Microsoft.WindowsAzure.Common.1.4.1\lib\net45\Microsoft.WindowsAzure.Common.NetFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Configuration, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.WindowsAzure.ConfigurationManager.3.1.0\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Management, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.WindowsAzure.Management.4.1.1\lib\net40\Microsoft.WindowsAzure.Management.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Management.Compute, Version=9.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.WindowsAzure.Management.Compute.9.2.1\lib\net40\Microsoft.WindowsAzure.Management.Compute.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Management.MediaServices, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.WindowsAzure.Management.MediaServices.4.1.0\lib\net40\Microsoft.WindowsAzure.Management.MediaServices.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Management.Monitoring, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.WindowsAzure.Management.Monitoring.4.1.0\lib\net40\Microsoft.WindowsAzure.Management.Monitoring.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Management.Network, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.WindowsAzure.Management.Network.6.1.2\lib\net40\Microsoft.WindowsAzure.Management.Network.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Management.Scheduler, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.WindowsAzure.Management.Scheduler.6.1.0\lib\net40\Microsoft.WindowsAzure.Management.Scheduler.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Management.Sql, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.WindowsAzure.Management.Sql.5.1.0\lib\net40\Microsoft.WindowsAzure.Management.Sql.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Management.Storage, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.WindowsAzure.Management.Storage.5.1.1\lib\net40\Microsoft.WindowsAzure.Management.Storage.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Management.WebSites, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.WindowsAzure.Management.WebSites.4.0.0\lib\net40\Microsoft.WindowsAzure.Management.WebSites.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Storage, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\WindowsAzure.Storage.4.3.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Wtt.Log, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8a96d095ee9fe264">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\azcopy\dmlib\internal\imports\WTT\2.6\Logger\amd64\Microsoft.Wtt.Log.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+    <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.6.0.4\lib\net40\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.7.0.1-beta2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
     </Reference>
     <Reference Include="System.Data" />
-    <Reference Include="System.IO">
-      <HintPath>..\packages\Microsoft.Bcl.1.1.9\lib\net40\System.IO.dll</HintPath>
-    </Reference>
     <Reference Include="system.management.automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\imports\system.management.automation.dll</HintPath>
     </Reference>
     <Reference Include="System.Net" />
-    <Reference Include="System.Net.Http, Version=2.2.28.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.Extensions, Version=2.2.29.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Microsoft.Net.Http.2.2.28\lib\net40\System.Net.Http.dll</HintPath>
+      <HintPath>..\packages\Microsoft.Net.Http.2.2.29\lib\net45\System.Net.Http.Extensions.dll</HintPath>
     </Reference>
-    <Reference Include="System.Net.Http.Extensions">
-      <HintPath>..\packages\Microsoft.Net.Http.2.2.28\lib\net40\System.Net.Http.Extensions.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Net.Http.Primitives">
-      <HintPath>..\packages\Microsoft.Net.Http.2.2.28\lib\net40\System.Net.Http.Primitives.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Net.Http.WebRequest, Version=2.2.28.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+    <Reference Include="System.Net.Http.Primitives, Version=4.2.29.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Microsoft.Net.Http.2.2.28\lib\net40\System.Net.Http.WebRequest.dll</HintPath>
+      <HintPath>..\packages\Microsoft.Net.Http.2.2.29\lib\net45\System.Net.Http.Primitives.dll</HintPath>
     </Reference>
-    <Reference Include="System.Runtime">
-      <HintPath>..\packages\Microsoft.Bcl.1.1.9\lib\net40\System.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Spatial, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Spatial.5.6.0\lib\net40\System.Spatial.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Threading.Tasks">
-      <HintPath>..\packages\Microsoft.Bcl.1.1.9\lib\net40\System.Threading.Tasks.dll</HintPath>
+    <Reference Include="System.Net.Http.WebRequest" />
+    <Reference Include="System.Spatial, Version=5.6.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\System.Spatial.5.6.4\lib\net40\System.Spatial.dll</HintPath>
     </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
@@ -308,7 +325,6 @@
     </Content>
     <Content Include="TestData.xml">
       <SubType>Designer</SubType>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Compile Include="Util\CloudBlobUtil.cs" />
     <Compile Include="Util\CloudQueueUtil.cs" />
