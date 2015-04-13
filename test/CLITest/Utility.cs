@@ -17,13 +17,13 @@ namespace Management.Storage.ScenarioTest
     using System;
     using System.Collections;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
     using System.Linq;
-    using System.Reflection;
+    using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using System.Threading;
     using Management.Storage.ScenarioTest.Util;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.Azure;
+    using Microsoft.IdentityModel.Clients.ActiveDirectory;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Auth;
     using Microsoft.WindowsAzure.Storage.Blob;
@@ -203,6 +203,20 @@ namespace Management.Storage.ScenarioTest
         public static string GenConnectionString(string StorageAccountName, string StorageAccountKey)
         {
             return String.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}", StorageAccountName, StorageAccountKey);
+        }
+
+        public static TokenCloudCredentials GetTokenCloudCredential(string managementEndpoint = "https://management.azure.com/")
+        {
+            var token = GetAuthorizationHeader(Test.Data.Get("AADRealm"), managementEndpoint);
+            return new TokenCloudCredentials(Test.Data.Get("AzureSubscriptionID"), token);
+        }
+
+        public static CertificateCloudCredentials GetCertificateCloudCredential()
+        {
+            string certFile = Test.Data.Get("ManagementCert");
+            string certPassword = Test.Data.Get("CertPassword");
+            X509Certificate2 cert = new X509Certificate2(certFile, certPassword);
+            return new CertificateCloudCredentials(Test.Data.Get("AzureSubscriptionID"), cert);
         }
 
         /// <summary>
@@ -994,6 +1008,15 @@ namespace Management.Storage.ScenarioTest
             }
 
             return true;
+        }
+
+        internal static string GetAuthorizationHeader(string tenant, string managementEndpoint)
+        {
+            var context = new AuthenticationContext(string.Format("https://login.windows.net/{0}", tenant));
+            var user = new UserCredential(Test.Data.Get("AADUser"), Test.Data.Get("AADPassword"));
+            var result = context.AcquireToken(resource: managementEndpoint, clientId: Test.Data.Get("AADClient"), userCredential: user);
+
+            return result.CreateAuthorizationHeader().Substring("Bearer ".Length);
         }
 
         public static class Permission

@@ -1,29 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using Microsoft.Azure;
-using Microsoft.Azure.Common.Authentication;
-using Microsoft.Azure.Common.Authentication.Models;
-using Microsoft.Azure.Management.Resources;
-using Microsoft.Azure.Management.Resources.Models;
-using MS.Test.Common.MsTestLib;
-
-namespace Management.Storage.ScenarioTest.Util
+﻿namespace Management.Storage.ScenarioTest.Util
 {
+    using Microsoft.Azure.Management.Resources;
+    using Microsoft.Azure.Management.Resources.Models;
+
     class ResourceManagerWrapper
     {
         private ResourceManagementClient resourceManager;
 
         public ResourceManagerWrapper()
         {
-            string certFile = Test.Data.Get("ManagementCert");
-            string certPassword = Test.Data.Get("CertPassword");
-            X509Certificate2 cert = new X509Certificate2(certFile, certPassword);
-            CertificateCloudCredentials credentials = new CertificateCloudCredentials(Test.Data.Get("AzureSubscriptionID"), cert);
-            resourceManager = new ResourceManagementClient(credentials);
+            resourceManager = new ResourceManagementClient(Utility.GetTokenCloudCredential());
         }
 
         public void CreateResourceGroup(string resourceGroupName, string location)
