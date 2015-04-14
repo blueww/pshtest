@@ -75,19 +75,7 @@ namespace Management.Storage.ScenarioTest
                 }
                 agent.ImportAzureSubscription(settingFile);
 
-                string subscriptionID = Test.Data.Get("AzureSubscriptionID");
-                if (!string.IsNullOrEmpty(subscriptionID))
-                {
-                    agent.SetActiveSubscription(subscriptionID);
-                }
-                else
-                {
-                    string subscriptionName = Test.Data.Get("AzureSubscriptionName");
-                    if (!string.IsNullOrEmpty(subscriptionName))
-                    {
-                        agent.SetActiveSubscription(subscriptionName);
-                    }
-                }
+                SetActiveSubscription();
 
                 accountImported = true;
             }
@@ -1435,6 +1423,24 @@ namespace Management.Storage.ScenarioTest
             finally
             {
                 DeleteAccountWrapper(accountName);
+            }
+        }
+
+        protected void SetActiveSubscription()
+        {
+            NodeJSAgent nodeAgent = (NodeJSAgent)agent;
+            string subscriptionID = Test.Data.Get("AzureSubscriptionID");
+            if (!string.IsNullOrEmpty(subscriptionID))
+            {
+                nodeAgent.SetActiveSubscription(subscriptionID);
+            }
+            else
+            {
+                string subscriptionName = Test.Data.Get("AzureSubscriptionName");
+                if (!string.IsNullOrEmpty(subscriptionName))
+                {
+                    nodeAgent.SetActiveSubscription(subscriptionName);
+                }
             }
         }
 
