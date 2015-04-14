@@ -1,5 +1,6 @@
 ﻿namespace Management.Storage.ScenarioTest.Util
 {
+    using Microsoft.Azure.Common.Authentication;
     using Microsoft.Azure.Management.Resources;
     using Microsoft.Azure.Management.Resources.Models;
 
@@ -9,7 +10,9 @@
 
         public ResourceManagerWrapper()
         {
-            resourceManager = new ResourceManagementClient(Utility.GetTokenCloudCredential());
+            resourceManager = AzureSession.ClientFactory.CreateClient<ResourceManagementClient>(
+                Utility.GetProfile(),
+                Microsoft.Azure.Common.Authentication.Models.AzureEnvironment.Endpoint.ResourceManager);
         }
 
         public void CreateResourceGroup(string resourceGroupName, string location)
