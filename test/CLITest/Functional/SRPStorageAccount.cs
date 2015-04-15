@@ -62,7 +62,15 @@ namespace Management.Storage.ScenarioTest
             {
                 agent.Logout();
                 agent.Login();
-                SetActiveSubscription();
+                if (lang == Language.NodeJS)
+                {
+                    SetActiveSubscription();
+                }
+                else
+                {
+                    string subscriptionID = Test.Data.Get("AzureSubscriptionID");
+                    agent.SetActiveSubscription(subscriptionID);
+                }
 
                 isLogin = true;
             }

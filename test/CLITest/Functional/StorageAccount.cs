@@ -1620,7 +1620,7 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(response.StatusCode == HttpStatusCode.OK, string.Format("Account {0} should be created successfully.", accountName));
 
             Test.Assert(agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, newAccountType),
-                string.Format("Setting stoarge account {0} in resource group {1} to type {2} should succeed", accountName, newAccountType));
+                string.Format("Setting storage account {0} in resource group {1} to type {2} should succeed", accountName, resourceGroupName, newAccountType));
         }
 
         private void ValidateSRPAccount(string accountName, string location, string accountType)

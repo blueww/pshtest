@@ -23,6 +23,7 @@ using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Reflection;
+using System.Security;
 using System.Text;
 using Management.Storage.ScenarioTest.Util;
 using Microsoft.Azure.Management.Storage.Models;
@@ -2878,12 +2879,42 @@ namespace Management.Storage.ScenarioTest
         }
         public override bool Login()
         {
-            throw new NotImplementedException();
+            string password = Test.Data.Get("AADPassword");
+            
+            SecureString securePassword = null;
+
+            unsafe
+            {
+                fixed (char* chPassword = password.ToCharArray())
+                {
+                    securePassword = new SecureString(chPassword, password.Length);
+                }
+            }
+
+            PSCredential psCredential = new PSCredential(Test.Data.Get("AADUser"), securePassword);
+
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Add-AzureAccount");
+            ps.BindParameter("Credential", psCredential);
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ps.Invoke();
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
         }
 
         public override void Logout()
         {
-            throw new NotImplementedException();
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Remove-AzureAccount");
+            ps.BindParameter("Name", Test.Data.Get("AADUser"));
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+            ps.Invoke();
         }
 
         public override bool ShowAzureStorageAccountConnectionString(string accountName, string resourceGroupName = null)
