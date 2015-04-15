@@ -153,15 +153,14 @@ namespace Management.Storage.ScenarioTest
             Test.Info("NodeJS command: \"{0}\" {1}", p.StartInfo.FileName, p.StartInfo.Arguments);
         }
 
-        internal void ImportAzureSubscription()
+        public override void ImportAzureSubscription(string settingFile)
         {
-            string settingFile = Test.Data.Get("AzureSubscriptionPath");
             RunNodeJSProcess(string.Format("import \"{0}\"", settingFile), needAccountParam: false, category: "account");
         }
 
-        internal void SetActiveSubscription(string nameOrID)
+        public override void SetActiveSubscription(string subscriptionId)
         {
-            RunNodeJSProcess(string.Format("set \"{0}\"", nameOrID), needAccountParam: false, category: "account");
+            RunNodeJSProcess(string.Format("set \"{0}\"", subscriptionId), needAccountParam: false, category: "account");
         }
 
         internal bool RunNodeJSProcess(string argument, bool force = false, bool needAccountParam = true, string category = "storage")
@@ -292,7 +291,7 @@ namespace Management.Storage.ScenarioTest
                     foreach (string line in lines)
                     {
                         int index = line.IndexOf(':');
-                        if (index != -1)
+                        if (index != -1 && line[index + 1] != '/')
                         {
                             output += string.Format("{0}_{1}:\'{2}\',\n", lineIndex++, line.Substring(0, index).Trim(), line.Substring(index + 1).Trim());
                         }
@@ -333,6 +332,23 @@ namespace Management.Storage.ScenarioTest
         public override bool ChangeCLIMode(Constants.Mode mode)
         {
             return RunNodeJSProcess(string.Format("mode {0} --json", mode), needAccountParam: false, category: "config");
+        }
+
+        public override bool Login()
+        {
+            return RunNodeJSProcess(string.Format("-u {0} -p {1}", Test.Data.Get("AADUser"), Test.Data.Get("AADPassword")), needAccountParam: false, category: "login");
+        }
+
+        public override void Logout()
+        {
+            try
+            {
+                RunNodeJSProcess(string.Format("{0}", Test.Data.Get("AADUser")), needAccountParam: false, category: "logout");
+            }
+            catch (Exception ex)
+            {
+                Test.Info("Logout exception: {0}\n Info: {1}", ex,  Output);
+            }
         }
 
         public override bool ShowAzureStorageAccountConnectionString(string argument, string resourceGroupName = null)
@@ -471,7 +487,7 @@ namespace Management.Storage.ScenarioTest
             string command = string.Format("account delete {0}", accountName);
             command = appendStringOption(command, "--resource-group", resourceGroupName);
 
-            return RunNodeJSProcess(command, needAccountParam: false);
+            return RunNodeJSProcess(command, force: true, needAccountParam: false);
         }
 
         public override bool ShowSRPAzureStorageAccount(string resourceGroupName, string accountName)

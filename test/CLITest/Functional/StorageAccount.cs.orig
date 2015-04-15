@@ -29,8 +29,12 @@ namespace Management.Storage.ScenarioTest
     using Microsoft.WindowsAzure.Management.Storage;
     using Microsoft.WindowsAzure.Management.Storage.Models;
     using MS.Test.Common.MsTestLib;
-    using SRPModel = Microsoft.Azure.Management.Storage.Models;
+<<<<<<< HEAD
+    using Newtonsoft.Json;
     using StorageTestLib;
+=======
+    using SRPModel = Microsoft.Azure.Management.Storage.Models;
+>>>>>>> 8a5c3632867847894db426e8207fc7c14744ea69
 
     /// <summary>
     /// this class contains all the account parameter settings for Node.js commands
@@ -62,24 +66,53 @@ namespace Management.Storage.ScenarioTest
 
         public override void OnTestSetup()
         {
+<<<<<<< HEAD
             string settingFile = Test.Data.Get("AzureSubscriptionPath");
             string subscriptionId = Test.Data.Get("AzureSubscriptionID");
 
             if (!accountImported)
             {
-
-                if (lang == Language.NodeJS)
-                {
-                    NodeJSAgent nodeAgent = (NodeJSAgent)agent;
-                    nodeAgent.ChangeCLIMode(Constants.Mode.asm);
-                }
                 agent.ImportAzureSubscription(settingFile);
+=======
+            if (!accountImported && lang == Language.NodeJS)
+            {
+                NodeJSAgent nodeAgent = (NodeJSAgent)agent;
+                agent.ChangeCLIMode(Constants.Mode.asm);
+                nodeAgent.ImportAzureSubscription();
+>>>>>>> 8a5c3632867847894db426e8207fc7c14744ea69
 
-                SetActiveSubscription();
+                string subscriptionID = Test.Data.Get("AzureSubscriptionID");
+                if (!string.IsNullOrEmpty(subscriptionID))
+                {
+                    agent.SetActiveSubscription(subscriptionID);
+                }
+                else
+                {
+                    string subscriptionName = Test.Data.Get("AzureSubscriptionName");
+                    if (!string.IsNullOrEmpty(subscriptionName))
+                    {
+                        agent.SetActiveSubscription(subscriptionName);
+                    }
+                }
 
                 accountImported = true;
             }
+<<<<<<< HEAD
 
+            if (lang == Language.NodeJS)
+            {
+                NodeJSAgent nodeAgent = (NodeJSAgent)agent;
+                if (isResourceMode)
+                {
+                    nodeAgent.ChangeCLIMode(Constants.Mode.arm);
+                }
+                else
+                {
+                    nodeAgent.ChangeCLIMode(Constants.Mode.asm);
+                }
+            }
+=======
+>>>>>>> 8a5c3632867847894db426e8207fc7c14744ea69
         }
 
         private bool accountImported = false;
@@ -1426,24 +1459,6 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        protected void SetActiveSubscription()
-        {
-            NodeJSAgent nodeAgent = (NodeJSAgent)agent;
-            string subscriptionID = Test.Data.Get("AzureSubscriptionID");
-            if (!string.IsNullOrEmpty(subscriptionID))
-            {
-                nodeAgent.SetActiveSubscription(subscriptionID);
-            }
-            else
-            {
-                string subscriptionName = Test.Data.Get("AzureSubscriptionName");
-                if (!string.IsNullOrEmpty(subscriptionName))
-                {
-                    nodeAgent.SetActiveSubscription(subscriptionName);
-                }
-            }
-        }
-
         private void CreateAndValidateAccount(string accountName, string label, string description, string location, string affinityGroup, string accountType, bool? geoReplication = null)
         {
             try
@@ -1596,6 +1611,11 @@ namespace Management.Storage.ScenarioTest
             {
                 // Use service management client to check the existing account for a global search
                 response = accountUtils.StorageClient.StorageAccounts.Get(accountName);
+            }
+            catch (Hyak.Common.CloudException ex)
+            {
+                Test.Assert(ex.Error.Code.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
+                createdAccounts.Add(accountName);
             }
             catch (Hyak.Common.CloudException ex)
             {
