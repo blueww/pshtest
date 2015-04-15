@@ -389,6 +389,40 @@ namespace Management.Storage.ScenarioTest
             return GetStorageContext(ps.Invoke());
         }
 
+        public override void ImportAzureSubscription(string settingPath)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            ps.AddCommand("Import-AzurePublishSettingsFile");
+            ps.BindParameter("PublishSettingsFile", settingPath);
+            
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ParseContainerCollection(ps.Invoke());
+            ParseErrorMessages(ps);
+
+            if (ps.HadErrors)
+            {
+                throw new InvalidOperationException("Failed to import azure subscription.");
+            }
+        }
+
+        public override void SetActiveSubscription(string subscriptionId)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            ps.AddCommand("Select-AzureSubscription");
+            ps.BindParameter("SubscriptionId", subscriptionId);
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ParseContainerCollection(ps.Invoke());
+            ParseErrorMessages(ps);
+
+            if (ps.HadErrors)
+            {
+                throw new InvalidOperationException("Failed to import azure subscription.");
+            }
+        }
+
         public bool NewAzureStorageContext(string StorageAccountName, string StorageAccountKey, string endPoint = "")
         {
             PowerShell ps = GetPowerShellInstance();
@@ -2839,6 +2873,15 @@ namespace Management.Storage.ScenarioTest
         #endregion
 
         public override bool ChangeCLIMode(Constants.Mode mode)
+        {
+            throw new NotImplementedException();
+        }
+        public override bool Login()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Logout()
         {
             throw new NotImplementedException();
         }

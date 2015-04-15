@@ -35,7 +35,7 @@ namespace Management.Storage.ScenarioTest
             isResourceMode = true;
             StorageAccountTest.StorageAccountTestInit(testContext);
 
-            resourceLocation = accountUtils.GenerateAccountLocation(string.Empty);
+            resourceLocation = accountUtils.GenerateAccountLocation(Constants.AccountType.Standard_GRS);
             resourceManager = new ResourceManagerWrapper();
             resourceGroupName = accountUtils.GenerateResourceGroupName();
             resourceManager.CreateResourceGroup(resourceGroupName, resourceLocation);
@@ -53,9 +53,20 @@ namespace Management.Storage.ScenarioTest
 
         public override void OnTestSetup()
         {
-            base.OnTestSetup();
-            agent.ChangeCLIMode(Constants.Mode.arm);
+            NodeJSAgent nodeAgent = (NodeJSAgent)agent;
+            nodeAgent.ChangeCLIMode(Constants.Mode.arm);
+
+            if (!isLogin)
+            {
+                agent.Logout();
+                agent.Login();
+                SetActiveSubscription();
+
+                isLogin = true;
+            }
         }
+
+        private bool isLogin = false;
         #endregion
     }
 }

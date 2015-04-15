@@ -1,12 +1,7 @@
 ﻿namespace Management.Storage.ScenarioTest.Util
 {
     using System;
-    using System.Security.Cryptography.X509Certificates;
-    using Microsoft.WindowsAzure;
     using Microsoft.WindowsAzure.Management.Storage;
-    using Microsoft.WindowsAzure.Management.Storage.Models;
-    using MS.Test.Common.MsTestLib;
-    using SRPCredentials = Microsoft.Azure;
     using SRPManagement = Microsoft.Azure.Management.Storage;
 
     public class AccountUtils

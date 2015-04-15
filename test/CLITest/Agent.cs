@@ -76,6 +76,14 @@ namespace Management.Storage.ScenarioTest
 
         public abstract bool ChangeCLIMode(Constants.Mode mode);
 
+        public abstract void ImportAzureSubscription(string settingFile);
+
+        public abstract void SetActiveSubscription(string subscriptionId);
+        
+        public abstract bool Login();
+
+        public abstract void Logout();
+
         #region Account Keys
         public abstract bool ShowAzureStorageAccountConnectionString(string accountName, string resourceGroupName = null);
 
