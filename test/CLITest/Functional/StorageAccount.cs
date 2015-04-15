@@ -1431,6 +1431,24 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+        protected void SetActiveSubscription()
+        {
+            NodeJSAgent nodeAgent = (NodeJSAgent)agent;
+            string subscriptionID = Test.Data.Get("AzureSubscriptionID");
+            if (!string.IsNullOrEmpty(subscriptionID))
+            {
+                nodeAgent.SetActiveSubscription(subscriptionID);
+            }
+            else
+            {
+                string subscriptionName = Test.Data.Get("AzureSubscriptionName");
+                if (!string.IsNullOrEmpty(subscriptionName))
+                {
+                    nodeAgent.SetActiveSubscription(subscriptionName);
+                }
+            }
+        }
+
         private void CreateAndValidateAccount(string accountName, string label, string description, string location, string affinityGroup, string accountType, bool? geoReplication = null)
         {
             try

@@ -2876,6 +2876,15 @@ namespace Management.Storage.ScenarioTest
         {
             throw new NotImplementedException();
         }
+        public override bool Login()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Logout()
+        {
+            throw new NotImplementedException();
+        }
 
         public override bool ShowAzureStorageAccountConnectionString(string accountName, string resourceGroupName = null)
         {
