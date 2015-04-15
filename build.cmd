@@ -1,8 +1,8 @@
 set PRODUCT=%1
 
-cd azcopy
-msbuild /t:Rebuild /p:Configuration=Debug AzCopy.sln
-cd ..
+# cd azcopy
+# msbuild /t:Rebuild /p:Configuration=Debug AzCopy.sln
+# cd ..
 
 cd test
 msbuild /t:Rebuild /p:Configuration=Debug CliTest.sln
