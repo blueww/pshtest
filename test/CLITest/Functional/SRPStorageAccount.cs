@@ -16,8 +16,6 @@ namespace Management.Storage.ScenarioTest
 {
     using System.Security.Cryptography.X509Certificates;
     using Management.Storage.ScenarioTest.Util;
-    using Microsoft.Azure;
-    using Microsoft.Azure.Management.Resources;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using MS.Test.Common.MsTestLib;
 
