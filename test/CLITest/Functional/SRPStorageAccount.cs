@@ -35,7 +35,7 @@ namespace Management.Storage.ScenarioTest
             isResourceMode = true;
             StorageAccountTest.StorageAccountTestInit(testContext);
 
-            resourceLocation = accountUtils.GenerateAccountLocation(Constants.AccountType.Standard_GRS);
+            resourceLocation = accountUtils.GenerateAccountLocation(Constants.AccountType.Standard_GRS, true);
             resourceManager = new ResourceManagerWrapper();
             resourceGroupName = accountUtils.GenerateResourceGroupName();
             resourceManager.CreateResourceGroup(resourceGroupName, resourceLocation);
