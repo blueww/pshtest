@@ -87,9 +87,9 @@ namespace Management.Storage.ScenarioTest
         #region Account Keys
         public abstract bool ShowAzureStorageAccountConnectionString(string accountName, string resourceGroupName = null);
 
-        public abstract bool ShowAzureStorageAccountKeys(string accountName, string resourceGroupName = null);
+        public abstract bool ShowAzureStorageAccountKeys(string accountName);
 
-        public abstract bool RenewAzureStorageAccountKeys(string accountName, Constants.AccountKeyType type, string resourceGroupName = null);
+        public abstract bool RenewAzureStorageAccountKeys(string accountName, Constants.AccountKeyType type);
         #endregion
 
         #region Account
@@ -111,6 +111,10 @@ namespace Management.Storage.ScenarioTest
         public abstract bool DeleteSRPAzureStorageAccount(string resourceGroup, string accountName);
 
         public abstract bool ShowSRPAzureStorageAccount(string resourceGroup, string accountName);
+
+        public abstract bool ShowSRPAzureStorageAccountKeys(string resourceGroup, string accountName);
+
+        public abstract bool RenewSRPAzureStorageAccountKeys(string resourceGroupName, string accountName, Constants.AccountKeyType type);
         #endregion
 
         #region Container

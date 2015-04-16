@@ -16,8 +16,6 @@ namespace Management.Storage.ScenarioTest
 {
     using System.Security.Cryptography.X509Certificates;
     using Management.Storage.ScenarioTest.Util;
-    using Microsoft.Azure;
-    using Microsoft.Azure.Management.Resources;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using MS.Test.Common.MsTestLib;
 
@@ -35,7 +33,7 @@ namespace Management.Storage.ScenarioTest
             isResourceMode = true;
             StorageAccountTest.StorageAccountTestInit(testContext);
 
-            resourceLocation = accountUtils.GenerateAccountLocation(Constants.AccountType.Standard_GRS);
+            resourceLocation = accountUtils.GenerateAccountLocation(Constants.AccountType.Standard_GRS, true);
             resourceManager = new ResourceManagerWrapper();
             resourceGroupName = accountUtils.GenerateResourceGroupName();
             resourceManager.CreateResourceGroup(resourceGroupName, resourceLocation);
@@ -53,14 +51,26 @@ namespace Management.Storage.ScenarioTest
 
         public override void OnTestSetup()
         {
-            NodeJSAgent nodeAgent = (NodeJSAgent)agent;
-            nodeAgent.ChangeCLIMode(Constants.Mode.arm);
+            base.OnTestSetup();
+
+            if (lang == Language.NodeJS)
+            {
+                agent.ChangeCLIMode(Constants.Mode.arm);
+            }
 
             if (!isLogin)
             {
                 agent.Logout();
                 agent.Login();
-                SetActiveSubscription();
+                if (lang == Language.NodeJS)
+                {
+                    SetActiveSubscription();
+                }
+                else
+                {
+                    string subscriptionID = Test.Data.Get("AzureSubscriptionID");
+                    agent.SetActiveSubscription(subscriptionID);
+                }
 
                 isLogin = true;
             }

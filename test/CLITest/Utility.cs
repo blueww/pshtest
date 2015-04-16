@@ -17,12 +17,16 @@ namespace Management.Storage.ScenarioTest
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
+    using System.Security;
     using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using System.Threading;
     using Management.Storage.ScenarioTest.Util;
     using Microsoft.Azure;
+    using Microsoft.Azure.Common.Authentication;
+    using Microsoft.Azure.Common.Authentication.Models;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Auth;
@@ -205,10 +209,30 @@ namespace Management.Storage.ScenarioTest
             return String.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}", StorageAccountName, StorageAccountKey);
         }
 
-        public static TokenCloudCredentials GetTokenCloudCredential(string managementEndpoint = "https://management.azure.com/")
+        public static AzureProfile GetProfile()
         {
-            var token = GetAuthorizationHeader(Test.Data.Get("AADRealm"), managementEndpoint);
-            return new TokenCloudCredentials(Test.Data.Get("AzureSubscriptionID"), token);
+            AzureProfile azureProfile = new AzureProfile(Path.Combine(AzureSession.ProfileDirectory, AzureSession.ProfileFile));
+            ProfileClient profileClient = new ProfileClient(azureProfile);
+
+            string passwd = Test.Data.Get("AADPassword");
+
+            SecureString securePassword = null;
+
+            unsafe 
+            {
+                fixed (char* ppw = passwd.ToCharArray())
+                {
+                    securePassword = new SecureString(ppw, passwd.Length);
+                }
+            }
+
+            profileClient.AddAccountAndLoadSubscriptions(new AzureAccount()
+            {
+                Id = Test.Data.Get("AADUser"),
+                Type = AzureAccount.AccountType.User
+            }, profileClient.GetEnvironmentOrDefault(null), securePassword);
+
+            return profileClient.Profile;
         }
 
         public static CertificateCloudCredentials GetCertificateCloudCredential()
@@ -1008,15 +1032,6 @@ namespace Management.Storage.ScenarioTest
             }
 
             return true;
-        }
-
-        internal static string GetAuthorizationHeader(string tenant, string managementEndpoint)
-        {
-            var context = new AuthenticationContext(string.Format("https://login.windows.net/{0}", tenant));
-            var user = new UserCredential(Test.Data.Get("AADUser"), Test.Data.Get("AADPassword"));
-            var result = context.AcquireToken(resource: managementEndpoint, clientId: Test.Data.Get("AADClient"), userCredential: user);
-
-            return result.CreateAuthorizationHeader().Substring("Bearer ".Length);
         }
 
         public static class Permission
