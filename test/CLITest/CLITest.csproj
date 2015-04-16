@@ -318,6 +318,7 @@
     </Content>
     <Content Include="TestData.xml">
       <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Compile Include="Util\CloudBlobUtil.cs" />
     <Compile Include="Util\CloudQueueUtil.cs" />
