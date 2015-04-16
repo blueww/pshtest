@@ -1636,7 +1636,7 @@ namespace Management.Storage.ScenarioTest
             SRPModel.StorageAccount account = response.StorageAccount;
             Test.Assert(accountName == account.Name, string.Format("Expected account name is {0} and actually it is {1}", accountName, account.Name));
 
-            Test.Assert(Constants.AccountTypes[(int)account.AccountType].Equals(accountType),
+            Test.Assert(accountUtils.mapAccountType(Constants.AccountTypes[(int)account.AccountType]).Equals(accountType),
                 string.Format("Expected account type is {0} and actually it is {1}", accountType, account.AccountType));
 
             if (!string.IsNullOrEmpty(location))
