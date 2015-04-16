@@ -67,15 +67,16 @@ namespace Management.Storage.ScenarioTest
 
             if (!accountImported)
             {
-
                 if (lang == Language.NodeJS)
                 {
                     NodeJSAgent nodeAgent = (NodeJSAgent)agent;
                     nodeAgent.ChangeCLIMode(Constants.Mode.asm);
                 }
+
                 agent.ImportAzureSubscription(settingFile);
 
-                SetActiveSubscription();
+                string subscriptionID = Test.Data.Get("AzureSubscriptionID");
+                agent.SetActiveSubscription(subscriptionID);
 
                 accountImported = true;
             }
@@ -709,6 +710,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -725,10 +727,11 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
-        public void FTAccount102_CreateAccount_Localtion()
+        public void FTAccount102_CreateAccount_Location()
         {
             string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
@@ -736,9 +739,10 @@ namespace Management.Storage.ScenarioTest
             string affinityGroup = null;
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
 
-            foreach (FieldInfo info in typeof(Constants.Location).GetFields())
+            string[] locationsArray = isResourceMode ? Constants.SRPLocations : Constants.Locations;
+
+            foreach (var location in locationsArray)
             {
-                string location = info.GetRawConstantValue() as string;
                 CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType);
             }
         }
@@ -768,6 +772,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -777,11 +782,15 @@ namespace Management.Storage.ScenarioTest
             string description = "Storage Account Test Account Type";
             string affinityGroup = null;
 
-            foreach (FieldInfo info in typeof(Constants.AccountType).GetFields())
+            foreach (var accountType in Constants.AccountTypes)
             {
+                if (isResourceMode && accountType.Equals(Constants.AccountType.Premium_LRS))
+                {
+                    continue;
+                }
+
                 string accountName = accountUtils.GenerateAccountName();
-                string accountType = accountUtils.mapAccountType(info.GetRawConstantValue() as string);
-                string location = accountUtils.GenerateAccountLocation(accountType);
+                string location = accountUtils.GenerateAccountLocation(accountType, false);
                 CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType);
             }
         }
@@ -897,6 +906,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -994,7 +1004,7 @@ namespace Management.Storage.ScenarioTest
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Set Type";
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Premium_LRS);
-            string location = accountUtils.GenerateAccountLocation(accountType);
+            string location = accountUtils.GenerateAccountLocation(accountType, false);
             string affinityGroup = null;
 
             try
@@ -1053,8 +1063,8 @@ namespace Management.Storage.ScenarioTest
         public void FTAccount301_DeleteAccount_ExistingAccount()
         {
             string accountName = accountUtils.GenerateAccountName();  
-            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());
-            string location = accountUtils.GenerateAccountLocation(accountType);
+            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode));
+            string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
 
             try
             {
@@ -1135,8 +1145,8 @@ namespace Management.Storage.ScenarioTest
         public void FTAccount401_GetAccount_ShowAnExistingAccount()
         {
             string accountName = accountUtils.GenerateAccountName();    
-            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());
-            string location = accountUtils.GenerateAccountLocation(accountType);
+            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode));
+            string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
 
             try
             {
@@ -1180,9 +1190,9 @@ namespace Management.Storage.ScenarioTest
             {
                 for (int i = 0; i < accountCount; i++)
                 {                                                    
-                    accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());
+                    accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode));
                     accountName = accountUtils.GenerateAccountName();
-                    location = accountUtils.GenerateAccountLocation(accountType);
+                    location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
 
                     if (isResourceMode)
                     {
@@ -1240,7 +1250,7 @@ namespace Management.Storage.ScenarioTest
                     string.Format("Listing stoarge accounts in non-existing resoruce group {0} should fail", nonExsitingGroupName));
 
                 Test.Assert(!agent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
-                    string.Format("Showing non-existing stoarge account {0} in resoruce group {1} should fail", accountName, resourceGroupName));
+                    string.Format("Showing non-existing stoarge account {0} in resource group {1} should fail", accountName, resourceGroupName));
             }
             else
             {
@@ -1252,8 +1262,8 @@ namespace Management.Storage.ScenarioTest
             {
                 if (isResourceMode)
                 {
-                    string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());
-                    string location = accountUtils.GenerateAccountLocation(accountType);
+                    string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode));
+                    string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
                     CreateNewSRPAccount(accountName, location, accountType);
                     Test.Assert(!agent.ShowSRPAzureStorageAccount(nonExsitingGroupName, accountName),
                         string.Format("Showing the existing stoarge account {0} in non-existing resoruce group {1} should fail", accountName, nonExsitingGroupName));
@@ -1273,15 +1283,15 @@ namespace Management.Storage.ScenarioTest
         public void FTAccount501_AccountKey_ListKeys()
         {
             string accountName = accountUtils.GenerateAccountName();
-            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());   
-            string location = accountUtils.GenerateAccountLocation(accountType);
+            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode));
+            string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
 
             try
             {
                 if (isResourceMode)
                 {
                     CreateNewSRPAccount(accountName, location, accountType);
-                    Test.Assert(agent.ShowAzureStorageAccountKeys(accountName, resourceGroupName),
+                    Test.Assert(agent.ShowSRPAzureStorageAccountKeys(resourceGroupName, accountName),
                         string.Format("Showing keys of the stoarge account {0} in resoruce group {1} should succeed", accountName, resourceGroupName));
                 }
                 else
@@ -1313,16 +1323,16 @@ namespace Management.Storage.ScenarioTest
             if (isResourceMode)
             {
                 string nonExsitingGroupName = accountUtils.GenerateResourceGroupName();
-                Test.Assert(!agent.ShowAzureStorageAccountKeys(accountName, nonExsitingGroupName),
+                Test.Assert(!agent.ShowSRPAzureStorageAccountKeys(resourceGroupName, accountName),
                     string.Format("Listing keys of the non-existing stoarge account {0} in non-existing resoruce group {1} should fail", accountName, nonExsitingGroupName));
 
-                Test.Assert(!agent.ShowAzureStorageAccountKeys(accountName, resourceGroupName),
-                    string.Format("Listint keys of the non-existing stoarge account {0} in resoruce group {1} should fail", accountName, resourceGroupName));
+                Test.Assert(!agent.ShowSRPAzureStorageAccountKeys(resourceGroupName, accountName),
+                    string.Format("Listint keys of the non-existing stoarge account {0} in resource group {1} should fail", accountName, resourceGroupName));
             }
             else
             {
                 Test.Assert(!agent.ShowAzureStorageAccountKeys(accountName),
-                    string.Format("Listing kyes of the stoarge accounts {0} should fail", accountName));
+                    string.Format("Listing keys of the stoarge accounts {0} should fail", accountName));
             }
 
             ExpectedContainErrorMessage(string.Format("The storage account '{0}' was not found", accountName));
@@ -1336,17 +1346,17 @@ namespace Management.Storage.ScenarioTest
         public void FTAccount503_AccountKey_RenewKeys()
         {
             string accountName = accountUtils.GenerateAccountName();
-            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());
-            string location = accountUtils.GenerateAccountLocation(accountType);
+            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode));
+            string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
 
             try
             {
                 if (isResourceMode)
                 {
                     CreateNewSRPAccount(accountName, location, accountType);
-                    Test.Assert(agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Primary, resourceGroupName),
+                    Test.Assert(agent.RenewSRPAzureStorageAccountKeys(resourceGroupName, accountName, Constants.AccountKeyType.Primary),
                         string.Format("Renewing the primary key of the stoarge account {0} in resoruce group {1} should succeed", accountName, resourceGroupName));
-                    Test.Assert(agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Secondary, resourceGroupName),
+                    Test.Assert(agent.RenewSRPAzureStorageAccountKeys(resourceGroupName, accountName, Constants.AccountKeyType.Secondary),
                         string.Format("Renewing the secondary key of the stoarge account {0} in resoruce group {1} should succeed", accountName, resourceGroupName));
                 }
                 else
@@ -1380,10 +1390,10 @@ namespace Management.Storage.ScenarioTest
             if (isResourceMode)
             {
                 string nonExsitingGroupName = accountUtils.GenerateResourceGroupName();
-                Test.Assert(!agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Primary, nonExsitingGroupName),
+                Test.Assert(!agent.RenewSRPAzureStorageAccountKeys(nonExsitingGroupName, accountName, Constants.AccountKeyType.Primary),
                     string.Format("Renewing the primary key of the non-existing stoarge account {0} in non-existing resoruce group {1} should fail", accountName, nonExsitingGroupName));
 
-                Test.Assert(!agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Secondary, resourceGroupName),
+                Test.Assert(!agent.RenewSRPAzureStorageAccountKeys(resourceGroupName, accountName, Constants.AccountKeyType.Secondary),
                     string.Format("Renewing the secondary key of the non-existing stoarge account {0} in resoruce group {1} should fail", accountName, resourceGroupName));
             }
             else
@@ -1398,15 +1408,15 @@ namespace Management.Storage.ScenarioTest
 
             try
             {
-                string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType());
-                string location = accountUtils.GenerateAccountLocation(accountType);
+                string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode));
+                string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
                 accountName = accountUtils.GenerateAccountName();
 
                 if (isResourceMode)
                 {
                     CreateNewSRPAccount(accountName, location, accountType);
 
-                    Test.Assert(agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Invalid, resourceGroupName) && agent.Output.Count == 0,
+                    Test.Assert(agent.RenewSRPAzureStorageAccountKeys(resourceGroupName, accountName, Constants.AccountKeyType.Invalid) && agent.Output.Count == 0,
                         string.Format("Renewing an invalid key type of the stoarge account {0} in resoruce group {1} should fail", accountName, resourceGroupName));
                 }
                 else
@@ -1615,7 +1625,7 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(response.StatusCode == HttpStatusCode.OK, string.Format("Account {0} should be created successfully.", accountName));
 
             Test.Assert(agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, newAccountType),
-                string.Format("Setting stoarge account {0} in resource group {1} to type {2} should succeed", accountName, newAccountType));
+                string.Format("Setting storage account {0} in resource group {1} to type {2} should succeed", accountName, resourceGroupName, newAccountType));
         }
 
         private void ValidateSRPAccount(string accountName, string location, string accountType)

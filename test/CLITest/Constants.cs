@@ -60,6 +60,13 @@ namespace Management.Storage.ScenarioTest
                                                         Location.SoutheastAsia,
                                                         Location.EastAsia };
 
+        public static readonly string[] SRPLocations = { Location.WestUS,
+                                                        Location.EastUS,
+                                                        Location.SoutheastAsia,
+                                                        Location.EastAsia,                                                        
+                                                        Location.NorthEurope,
+                                                        Location.WestEurope };
+
         /// <summary>
         /// used for Set/Get Service Properties
         /// </summary>

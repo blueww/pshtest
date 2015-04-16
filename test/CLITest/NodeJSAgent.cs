@@ -363,20 +363,22 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        public override bool ShowAzureStorageAccountKeys(string accountName, string resourceGroupName = null)
+        public override bool ShowAzureStorageAccountKeys(string accountName)
         {
-
-            if (string.IsNullOrEmpty(resourceGroupName))
-            {
-                return RunNodeJSProcess(string.Format("account keys list {0}", accountName), needAccountParam: false);
-            }
-            else
-            {
-                return RunNodeJSProcess(string.Format("account keys list {0} --resoruce-group {1}", accountName, resourceGroupName), needAccountParam: false);
-            }
+            return RunNodeJSProcess(string.Format("account keys list {0}", accountName), needAccountParam: false);
         }
 
-        public override bool RenewAzureStorageAccountKeys(string accountName, Constants.AccountKeyType type = Constants.AccountKeyType.Primary, string resourceGroupName = null)
+        public override bool ShowSRPAzureStorageAccountKeys(string resourceGroupName, string accountName)
+        {
+            return RunNodeJSProcess(string.Format("account keys list {0} --resoruce-group {1}", accountName, resourceGroupName), needAccountParam: false);
+        }
+
+        public override bool RenewAzureStorageAccountKeys(string accountName, Constants.AccountKeyType type)
+        {
+            return this.RenewSRPAzureStorageAccountKeys(null, accountName, type);
+        }
+
+        public override bool RenewSRPAzureStorageAccountKeys(string resourceGroupName, string accountName, Constants.AccountKeyType type)
         {
             string command = string.Format("account keys renew {0}", accountName);
             if (type == Constants.AccountKeyType.Primary)

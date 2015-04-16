@@ -23,6 +23,7 @@ using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Reflection;
+using System.Security;
 using System.Text;
 using Management.Storage.ScenarioTest.Util;
 using Microsoft.Azure.Management.Storage.Models;
@@ -2878,12 +2879,42 @@ namespace Management.Storage.ScenarioTest
         }
         public override bool Login()
         {
-            throw new NotImplementedException();
+            string password = Test.Data.Get("AADPassword");
+            
+            SecureString securePassword = null;
+
+            unsafe
+            {
+                fixed (char* chPassword = password.ToCharArray())
+                {
+                    securePassword = new SecureString(chPassword, password.Length);
+                }
+            }
+
+            PSCredential psCredential = new PSCredential(Test.Data.Get("AADUser"), securePassword);
+
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Add-AzureAccount");
+            ps.BindParameter("Credential", psCredential);
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ps.Invoke();
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
         }
 
         public override void Logout()
         {
-            throw new NotImplementedException();
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Remove-AzureAccount");
+            ps.BindParameter("Name", Test.Data.Get("AADUser"));
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+            ps.Invoke();
         }
 
         public override bool ShowAzureStorageAccountConnectionString(string accountName, string resourceGroupName = null)
@@ -2891,12 +2922,12 @@ namespace Management.Storage.ScenarioTest
             throw new NotImplementedException();
         }
 
-        public override bool ShowAzureStorageAccountKeys(string accountName, string resourceGroupName = null)
+        public override bool ShowAzureStorageAccountKeys(string accountName)
         {
             throw new NotImplementedException();
         }
 
-        public override bool RenewAzureStorageAccountKeys(string accountName, Constants.AccountKeyType type = Constants.AccountKeyType.Primary, string resourceGroupName = null)
+        public override bool RenewAzureStorageAccountKeys(string accountName, Constants.AccountKeyType type)
         {
             throw new NotImplementedException();
         }
@@ -2983,6 +3014,59 @@ namespace Management.Storage.ScenarioTest
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
 
             ParseBlobCollection(ps.Invoke());
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
+        }
+
+        public override bool ShowSRPAzureStorageAccountKeys(string resourceGroup, string accountName)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Get-AzureStorageAccountKey");
+            ps.BindParameter("ResourceGroupName", resourceGroup);
+            ps.BindParameter("Name", accountName);
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ParseBlobCollection(ps.Invoke());
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
+        }
+
+        public override bool RenewSRPAzureStorageAccountKeys(string resourceGroup, string accountName, Constants.AccountKeyType type)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("New-AzureStorageAccountKey");
+            ps.BindParameter("ResourceGroupName", resourceGroup);
+            ps.BindParameter("Name", accountName);
+            
+            if (Constants.AccountKeyType.Primary == type)
+            {
+                ps.BindParameter("KeyName", "key1");
+            }
+            else if (Constants.AccountKeyType.Secondary == type)
+            {
+                ps.BindParameter("KeyName", "key2");
+            }
+            else
+            {
+                ps.BindParameter("KeyName", "invalid");
+            }
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            try
+            {
+                ParseBlobCollection(ps.Invoke());
+            }
+            catch (System.Management.Automation.ParameterBindingException)
+            {
+                return false;
+            }
+
             ParseErrorMessages(ps);
 
             return !ps.HadErrors;
