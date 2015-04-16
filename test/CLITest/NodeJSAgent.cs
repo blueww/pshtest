@@ -359,7 +359,7 @@ namespace Management.Storage.ScenarioTest
             }
             else
             {
-                return RunNodeJSProcess(string.Format("account connectionstring show {0} --resoruce-group {1}", argument, resourceGroupName), needAccountParam: false);
+                return RunNodeJSProcess(string.Format("account connectionstring show {0} --resource-group {1}", argument, resourceGroupName), needAccountParam: false);
             }
         }
 
@@ -370,7 +370,7 @@ namespace Management.Storage.ScenarioTest
 
         public override bool ShowSRPAzureStorageAccountKeys(string resourceGroupName, string accountName)
         {
-            return RunNodeJSProcess(string.Format("account keys list {0} --resoruce-group {1}", accountName, resourceGroupName), needAccountParam: false);
+            return RunNodeJSProcess(string.Format("account keys list {0} --resource-group {1}", accountName, resourceGroupName), needAccountParam: false);
         }
 
         public override bool RenewAzureStorageAccountKeys(string accountName, Constants.AccountKeyType type)
@@ -394,7 +394,7 @@ namespace Management.Storage.ScenarioTest
                 command = appendStringOption(command, "--INVALIDTYPE", string.Empty, onlyNonEmpty: false);
             }
 
-            command = appendStringOption(command, "--resoruce-group", resourceGroupName);
+            command = appendStringOption(command, "--resource-group", resourceGroupName);
             return RunNodeJSProcess(command, needAccountParam: false);
         }
 
