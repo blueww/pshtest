@@ -14,10 +14,12 @@
 
 namespace Management.Storage.ScenarioTest
 {
-    using System.Security.Cryptography.X509Certificates;
+    using System;
+    using System.Threading;
     using Management.Storage.ScenarioTest.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using MS.Test.Common.MsTestLib;
+    using SRPModel = Microsoft.Azure.Management.Storage.Models;
 
     /// <summary>
     /// this class contains all the account parameter settings for Node.js commands
@@ -37,6 +39,13 @@ namespace Management.Storage.ScenarioTest
             resourceManager = new ResourceManagerWrapper();
             resourceGroupName = accountUtils.GenerateResourceGroupName();
             resourceManager.CreateResourceGroup(resourceGroupName, resourceLocation);
+
+            accountNameForConnectionStringTest = accountUtils.GenerateAccountName();
+
+            var parameters = new SRPModel.StorageAccountCreateParameters(SRPModel.AccountType.StandardGRS, Constants.Location.EastAsia);
+            accountUtils.SRPStorageClient.StorageAccounts.CreateAsync(resourceGroupName, accountNameForConnectionStringTest, parameters, CancellationToken.None).Wait();
+            var keys = accountUtils.SRPStorageClient.StorageAccounts.ListKeysAsync(resourceGroupName, accountNameForConnectionStringTest, CancellationToken.None).Result;
+            primaryKeyForConnectionStringTest = keys.StorageAccountKeys.Key1;
         }
 
         private static ResourceManagerWrapper resourceManager;
@@ -45,14 +54,21 @@ namespace Management.Storage.ScenarioTest
         [ClassCleanup()]
         public static void SRPStorageAccountTestCleanup()
         {
-            resourceManager.DeleteResourceGroup(resourceGroupName);
+            try
+            {
+                accountUtils.SRPStorageClient.StorageAccounts.DeleteAsync(resourceGroupName, accountNameForConnectionStringTest, CancellationToken.None).Wait();
+                resourceManager.DeleteResourceGroup(resourceGroupName);
+            }
+            catch (Exception ex)
+            {
+                Test.Info(string.Format("SRP cleanup exception: {0}", ex));
+            }
+
             StorageAccountTest.StorageAccountTestCleanup();
         }
 
         public override void OnTestSetup()
         {
-            base.OnTestSetup();
-
             if (lang == Language.NodeJS)
             {
                 agent.ChangeCLIMode(Constants.Mode.arm);
@@ -60,8 +76,20 @@ namespace Management.Storage.ScenarioTest
 
             if (!isLogin)
             {
-                agent.Logout();
-                agent.Login();
+                int retry = 0;
+                do
+                {
+                    if (agent.HadErrors)
+                    {
+                        Thread.Sleep(5000);
+                        Test.Info(string.Format("Retry login... Count:{0}", retry));
+                    }
+
+                    agent.Logout();
+                    agent.Login();
+                }
+                while (agent.HadErrors && retry++ < 5);
+
                 if (lang == Language.NodeJS)
                 {
                     SetActiveSubscription();
