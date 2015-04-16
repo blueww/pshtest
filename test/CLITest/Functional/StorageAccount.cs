@@ -739,9 +739,10 @@ namespace Management.Storage.ScenarioTest
             string affinityGroup = null;
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
 
-            foreach (FieldInfo info in typeof(Constants.Location).GetFields())
+            string[] locationsArray = isResourceMode ? Constants.SRPLocations : Constants.Locations;
+
+            foreach (var location in locationsArray)
             {
-                string location = info.GetRawConstantValue() as string;
                 CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType);
             }
         }
@@ -781,10 +782,14 @@ namespace Management.Storage.ScenarioTest
             string description = "Storage Account Test Account Type";
             string affinityGroup = null;
 
-            foreach (FieldInfo info in typeof(Constants.AccountType).GetFields())
+            foreach (var accountType in Constants.AccountTypes)
             {
+                if (isResourceMode && accountType.Equals(Constants.AccountType.Premium_LRS))
+                {
+                    continue;
+                }
+
                 string accountName = accountUtils.GenerateAccountName();
-                string accountType = accountUtils.mapAccountType(info.GetRawConstantValue() as string);
                 string location = accountUtils.GenerateAccountLocation(accountType, false);
                 CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType);
             }
@@ -1322,12 +1327,12 @@ namespace Management.Storage.ScenarioTest
                     string.Format("Listing keys of the non-existing stoarge account {0} in non-existing resoruce group {1} should fail", accountName, nonExsitingGroupName));
 
                 Test.Assert(!agent.ShowSRPAzureStorageAccountKeys(resourceGroupName, accountName),
-                    string.Format("Listint keys of the non-existing stoarge account {0} in resoruce group {1} should fail", accountName, resourceGroupName));
+                    string.Format("Listint keys of the non-existing stoarge account {0} in resource group {1} should fail", accountName, resourceGroupName));
             }
             else
             {
                 Test.Assert(!agent.ShowAzureStorageAccountKeys(accountName),
-                    string.Format("Listing kyes of the stoarge accounts {0} should fail", accountName));
+                    string.Format("Listing keys of the stoarge accounts {0} should fail", accountName));
             }
 
             ExpectedContainErrorMessage(string.Format("The storage account '{0}' was not found", accountName));

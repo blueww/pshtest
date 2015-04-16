@@ -3042,7 +3042,7 @@ namespace Management.Storage.ScenarioTest
             ps.AddCommand("New-AzureStorageAccountKey");
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
-
+            
             if (Constants.AccountKeyType.Primary == type)
             {
                 ps.BindParameter("KeyName", "key1");
@@ -3058,7 +3058,15 @@ namespace Management.Storage.ScenarioTest
 
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
 
-            ParseBlobCollection(ps.Invoke());
+            try
+            {
+                ParseBlobCollection(ps.Invoke());
+            }
+            catch (System.Management.Automation.ParameterBindingException)
+            {
+                return false;
+            }
+
             ParseErrorMessages(ps);
 
             return !ps.HadErrors;
