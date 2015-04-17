@@ -8,6 +8,7 @@
   <logverbose>true</logverbose>
   <logwarning>true</logwarning>
   <logerror>true</logerror>
+  <IsResourceMode></IsResourceMode>
 
   <ResourceModuleFilePath>C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager\AzureResourceManager.psd1</ResourceModuleFilePath>
   <ManagementCert></ManagementCert>
