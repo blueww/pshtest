@@ -1014,7 +1014,14 @@ namespace Management.Storage.ScenarioTest
 
         internal static bool IsEqualPolicy<T>(T actualPolicy, Utility.RawStoredAccessPolicy expectedPolicy)
         {
-            object[] parameter = {expectedPolicy.Permission};
+            string permissionTmp = expectedPolicy.Permission;
+
+            if (actualPolicy is SharedAccessTablePolicy)
+            {
+                permissionTmp = expectedPolicy.Permission.Replace('q', 'r');
+            }
+
+            object[] parameter = { permissionTmp };
             var permission = typeof(T).GetMethod("PermissionsFromString").Invoke(null, parameter);
             bool equal = IsEqualTime(((dynamic)actualPolicy).SharedAccessStartTime, expectedPolicy.StartTime);
             equal = equal && IsEqualTime(((dynamic)actualPolicy).SharedAccessExpiryTime, expectedPolicy.ExpiryTime);
