@@ -41,7 +41,7 @@ namespace Management.Storage.ScenarioTest.Common
 
         protected Agent agent;
         protected static Language lang;
-        protected static bool? isResourceMode = null;
+        protected static bool isResourceMode = false;
 
         private TestContext testContextInstance;
 
@@ -129,24 +129,17 @@ namespace Management.Storage.ScenarioTest.Common
             //add the language specific initialization
             lang = AgentFactory.GetLanguage(testContext.Properties);
 
-            if (!isResourceMode.HasValue)
-            {
-                string mode = Test.Data.Get("IsResourceMode");
+            string mode = Test.Data.Get("IsResourceMode");
 
-                if (!string.IsNullOrEmpty(mode))
-                {
-                    isResourceMode = bool.Parse(mode);
-                }
-                else
-                {
-                    isResourceMode = false;
-                }
+            if (!string.IsNullOrEmpty(mode))
+            {
+                isResourceMode = bool.Parse(mode);
             }
 
             if (lang == Language.PowerShell)
             {
                 string moduleFilePath = null;
-                if (isResourceMode.Value)
+                if (isResourceMode)
                 {
                     // import module
                     moduleFilePath = Test.Data.Get("ResourceModuleFilePath");
