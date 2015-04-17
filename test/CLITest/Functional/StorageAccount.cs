@@ -43,6 +43,11 @@ namespace Management.Storage.ScenarioTest
         [ClassInitialize()]
         public static void StorageAccountTestInit(TestContext testContext)
         {
+            if (!isResourceMode.HasValue)
+            {
+                isResourceMode = false;
+            }
+
             TestBase.TestClassInitialize(testContext);
             NodeJSAgent.AgentConfig.UseEnvVar = false;
 
@@ -788,7 +793,7 @@ namespace Management.Storage.ScenarioTest
                 }
 
                 string accountName = accountUtils.GenerateAccountName();
-                string location = accountUtils.GenerateAccountLocation(accountType, false);
+                string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode.Value);
                 CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType);
             }
         }
@@ -1413,7 +1418,8 @@ namespace Management.Storage.ScenarioTest
                     string.Format("Listing keys of the stoarge accounts {0} should fail", accountName));
             }
 
-            ExpectedContainErrorMessage(string.Format("The storage account '{0}' was not found", accountName));
+            string errorMessage = lang == Language.PowerShell ? "Resource not found." : string.Format("The storage account '{0}' was not found", accountName);
+            ExpectedContainErrorMessage(errorMessage);
         }
 
         [TestMethod]
@@ -1482,7 +1488,8 @@ namespace Management.Storage.ScenarioTest
                     string.Format("Renewing the secondary key of the stoarge account {0} should fail", accountName));
             }
 
-            ExpectedContainErrorMessage(string.Format("The storage account '{0}' was not found", accountName));
+            string errorMessage = lang == Language.PowerShell ? "Resource not found." : string.Format("The storage account '{0}' was not found", accountName);
+            ExpectedContainErrorMessage(errorMessage);
 
             try
             {
@@ -1494,8 +1501,18 @@ namespace Management.Storage.ScenarioTest
                 {
                     CreateNewSRPAccount(accountName, location, accountType);
 
-                    Test.Assert(agent.RenewSRPAzureStorageAccountKeys(resourceGroupName, accountName, Constants.AccountKeyType.Invalid) && agent.Output.Count == 0,
-                        string.Format("Renewing an invalid key type of the stoarge account {0} in resource group {1} should fail", accountName, resourceGroupName));
+                    bool succeeded = agent.RenewSRPAzureStorageAccountKeys(resourceGroupName, accountName, Constants.AccountKeyType.Invalid);
+
+                    if (lang == Language.NodeJS)
+                    {
+                        Test.Assert(succeeded && agent.Output.Count == 0,
+                            string.Format("Renewing an invalid key type of the stoarge account {0} in resource group {1} should fail", accountName, resourceGroupName));
+                    }
+                    else
+                    {
+                        Test.Assert(!succeeded,
+                            string.Format("Renewing an invalid key type of the stoarge account {0} in resource group {1} should fail", accountName, resourceGroupName));
+                    }
                 }
                 else
                 {
