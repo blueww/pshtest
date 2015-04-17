@@ -632,7 +632,14 @@
                 getContentAction(cloudFile, destination);
                 var result = agent.Invoke();
                 agent.AssertNoError();
-                result.AssertNoResult();
+                if (lang == Language.NodeJS)
+                {
+                    result.AssertObjectCollection(obj => result.AssertCloudFile(obj, cloudFileName));
+                }
+                else
+                {
+                    result.AssertNoResult();
+                }
 
                 string destinationMD5 = FileUtil.GetFileContentMD5(destination);
                 Test.Assert(
