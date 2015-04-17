@@ -232,6 +232,8 @@ namespace Management.Storage.ScenarioTest
                 Type = AzureAccount.AccountType.User
             }, profileClient.GetEnvironmentOrDefault(null), securePassword);
 
+            profileClient.SetSubscriptionAsDefault(Test.Data.Get("AzureSubscriptionName"), Test.Data.Get("AADUser"));
+
             return profileClient.Profile;
         }
 
