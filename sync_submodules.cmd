@@ -4,7 +4,7 @@ git submodule update
 echo "update submodule azcopy"
 cd azcopy
 git fetch
-git reset origin/cli_base --hard
+git reset origin/appendblob --hard
 cd ..
 echo "update submodule Powershell"
 cd PowerShell
@@ -14,9 +14,10 @@ cd ..
 echo "update submodule xplat"
 cd Xplat
 git fetch
-git reset origin/next --hard
+git reset origin/appendblob --hard
 cd ..
 
+if [%1] == [DEV] GOTO :END
 if [%1] == [JENKINS] GOTO :JENKINS
 
 :LOCAL
