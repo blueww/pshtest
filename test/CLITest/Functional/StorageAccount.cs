@@ -794,6 +794,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -884,6 +885,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -912,6 +914,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -956,6 +959,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -981,6 +985,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -1008,6 +1013,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]

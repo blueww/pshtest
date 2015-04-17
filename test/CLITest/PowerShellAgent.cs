@@ -2924,32 +2924,158 @@ namespace Management.Storage.ScenarioTest
 
         public override bool ShowAzureStorageAccountKeys(string accountName)
         {
-            throw new NotImplementedException();
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Get-AzureStorageKey");
+            ps.BindParameter("StorageAccountName", accountName);
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ParseCollection(ps.Invoke());
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
         }
 
         public override bool RenewAzureStorageAccountKeys(string accountName, Constants.AccountKeyType type)
         {
-            throw new NotImplementedException();
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("New-AzureStorageKey");
+            ps.BindParameter("StorageAccountName", accountName);
+
+            if (type == Constants.AccountKeyType.Primary)
+            {
+                ps.BindParameter("KeyType", "Primary");
+            }
+            else if (type == Constants.AccountKeyType.Secondary)
+            {
+                ps.BindParameter("KeyType", "Secondary");
+            }
+            else
+            {
+                ps.BindParameter("KeyType", "Invalid");
+            }
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            try
+            {
+                ParseCollection(ps.Invoke());
+            }
+            catch (System.Management.Automation.ParameterBindingException)
+            {
+                return false;
+            }
+
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
         }
 
         public override bool CreateAzureStorageAccount(string accountName, string subscription, string label, string description, string location, string affinityGroup, string type, bool? geoReplication = null)
         {
-            throw new NotImplementedException();
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("New-AzureStorageAccount");
+            ps.BindParameter("StorageAccountName", accountName);
+            ps.BindParameter("Type", type);
+
+            if (null != description)
+            {
+                ps.BindParameter("Description", description);
+            }
+
+            if (null != label)
+            {
+                ps.BindParameter("Label", label);
+            }
+
+            if (null != location)
+            {
+                ps.BindParameter("Location", location);
+            }
+
+            if (null != affinityGroup)
+            {
+                ps.BindParameter("AffinityGroup", affinityGroup);
+            }
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ParseCollection(ps.Invoke());
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
         }
 
         public override bool SetAzureStorageAccount(string accountName, string label, string description, string type, bool? geoReplication = null)
         {
-            throw new NotImplementedException();
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Set-AzureStorageAccount");
+            ps.BindParameter("StorageAccountName", accountName);
+
+            if (null != type)
+            {
+                ps.BindParameter("Type", type);
+            }
+
+            if (null != description)
+            {
+                ps.BindParameter("Description", description);
+            }
+
+            if (null != label)
+            {
+                ps.BindParameter("Label", label);
+            }
+
+            if (null != geoReplication)
+            {
+                ps.BindParameter("GeoReplicationEnabled", geoReplication.Value.ToString());
+            }
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ParseCollection(ps.Invoke());
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
         }
 
         public override bool DeleteAzureStorageAccount(string accountName)
         {
-            throw new NotImplementedException();
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Remove-AzureStorageAccount");
+            ps.BindParameter("StorageAccountName", accountName);
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ParseCollection(ps.Invoke());
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
         }
 
         public override bool ShowAzureStorageAccount(string accountName)
         {
-            throw new NotImplementedException();
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Get-AzureStorageAccount");
+
+            if (!string.IsNullOrEmpty(accountName))
+            {
+                ps.BindParameter("StorageAccountName", accountName);
+            }
+
+            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            ParseCollection(ps.Invoke());
+            ParseErrorMessages(ps);
+
+            return !ps.HadErrors;
         }
 
         public override bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string type, string location)
