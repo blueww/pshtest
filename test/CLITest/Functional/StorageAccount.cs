@@ -233,7 +233,7 @@ namespace Management.Storage.ScenarioTest
             // Act
             // TODO: Investigate sometimes the result is true and the error message is only "\n".
             string argument = string.Format("{0} -s", accountNameForConnectionStringTest);
-            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument) && (nodeAgent.Output.Count != 0);
+            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument, resourceGroupName) && (nodeAgent.Output.Count != 0);
 
             // Assert
             Test.Assert(!result, Utility.GenComparisonData("azure storage account connectionstring show -s", false));
@@ -254,7 +254,7 @@ namespace Management.Storage.ScenarioTest
 
             // Act
             string argument = string.Format("{0} -s {1}", accountNameForConnectionStringTest, subscription);
-            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument);
+            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument, resourceGroupName);
 
             // Assert
             string expect = string.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}", accountNameForConnectionStringTest, primaryKeyForConnectionStringTest);
@@ -277,7 +277,7 @@ namespace Management.Storage.ScenarioTest
 
             // Act
             string argument = string.Format("{0} -s \"{1}\"", accountNameForConnectionStringTest, subscription);
-            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument);
+            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument, resourceGroupName);
 
             // Assert
             string expect = string.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}", accountNameForConnectionStringTest, primaryKeyForConnectionStringTest);
@@ -300,7 +300,7 @@ namespace Management.Storage.ScenarioTest
 
             // Act
             string argument = string.Format("{0} -s \"{1}\"", accountNameForConnectionStringTest, subscription);
-            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument);
+            result = nodeAgent.ShowAzureStorageAccountConnectionString(argument, resourceGroupName);
 
             // Assert
             Test.Assert(nodeAgent.ErrorMessages[0].Contains("was not found"), "The subscription should not be found.");
