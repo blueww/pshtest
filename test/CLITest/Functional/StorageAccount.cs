@@ -54,6 +54,11 @@ namespace Management.Storage.ScenarioTest
 
         private List<string> createdAccounts = new List<string>();
 
+        private const string PSHInvalidAccountTypeError =
+            "Cannot validate argument on parameter 'Type'. The argument \"{0}\" does not belong to the set \"Standard_LRS,Standard_ZRS,Standard_GRS,Standard_RAGRS,Premium_LRS\" specified by the ValidateSet attribute.";
+
+        private const string NodeJSInvalidTypeError = "Invalid value: {0}. Options are: LRS,ZRS,GRS,RAGRS,PLRS";
+
         #region Additional test attributes
 
         [ClassInitialize()]
@@ -1024,7 +1029,8 @@ namespace Management.Storage.ScenarioTest
                     string.Format("Creating existing stoarge account {0} in location {1} should fail", accountName, location));
             }
 
-            ExpectedContainErrorMessage(string.Format("Invalid value: {0}. Options are: LRS,ZRS,GRS,RAGRS,PLRS", accountType));
+            string errorMessageFormat = Language.PowerShell == lang ? PSHInvalidAccountTypeError : NodeJSInvalidTypeError;
+            ExpectedContainErrorMessage(string.Format(errorMessageFormat, accountType));
         }
 
         [TestMethod]
@@ -1094,7 +1100,9 @@ namespace Management.Storage.ScenarioTest
                     string.Format("Setting stoarge account {0} to type {1} should fail", accountName, nonExistingType));
             }
 
-            ExpectedContainErrorMessage(string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", nonExistingType));
+
+            string errorMessageFormat = Language.PowerShell == lang ? PSHInvalidAccountTypeError : NodeJSInvalidTypeError;
+            ExpectedContainErrorMessage(string.Format(errorMessageFormat, nonExistingType));
         }
 
         [TestMethod]
@@ -1133,7 +1141,7 @@ namespace Management.Storage.ScenarioTest
                     {
                         errorMsg = string.Format("Storage account type cannot be changed from Standard-ZRS to {0} or vice versa", info.Name.Replace('_', '-'));
                         Test.Assert(!agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, newAccountType),
-                            string.Format("Setting stoarge account {0} to type {1} should fail", accountName, newAccountType));
+                            string.Format("Setting storage account {0} to type {1} should fail", accountName, newAccountType));
                     }
                     else
                     {
@@ -1142,15 +1150,24 @@ namespace Management.Storage.ScenarioTest
                             string.Format("Setting stoarge account {0} to type {1} should fail", accountName, newAccountType));
                     }
 
-                    if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS) ||
-                        newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
+                    if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS))
                     {
-                        ExpectedContainErrorMessage(string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", newAccountType));
+                        errorMsg = Language.PowerShell == lang ?
+                            "Storage account type Standard-ZRS cannot be changed." :
+                            string.Format(NodeJSInvalidTypeError, newAccountType);
+                    }
+                    else if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
+                    {
+                        errorMsg = Language.PowerShell == lang ?
+                            "The AccountType Premium_LRS is invalid." :
+                            string.Format(NodeJSInvalidTypeError, newAccountType);
                     }
                     else
                     {
                         ExpectedContainErrorMessage(errorMsg);
                     }
+
+                    ExpectedContainErrorMessage(errorMsg);
                 }
             }
             finally
@@ -1221,6 +1238,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -1229,12 +1247,25 @@ namespace Management.Storage.ScenarioTest
             string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Set Type";
+            string location = Constants.Location.EastAsia;
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
+
+            if (isResourceMode)
+            {
+                this.CreateNewSRPAccount(accountName, location, accountType);
+            }
+            else
+            {
+                this.CreateNewAccount(accountName, label, description, location, null, accountType);
+            }
+
+            WaitForAccountAvailableToSet();
 
             // No need to create a real accout for NodeJS as it won't pass the parameter validation
             string[] newAccountTypes = { Constants.AccountType.Standard_ZRS, Constants.AccountType.Premium_LRS };
-            foreach (string accountType in newAccountTypes)
+            foreach (string targetAccountType in newAccountTypes)
             {
-                string type = accountUtils.mapAccountType(accountType);
+                string type = accountUtils.mapAccountType(targetAccountType);
 
                 if (isResourceMode)
                 {
@@ -1247,7 +1278,22 @@ namespace Management.Storage.ScenarioTest
                         string.Format("Setting stoarge account {0} to type {1} should fail", accountName, type));
                 }
 
-                ExpectedContainErrorMessage(string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", type));
+                string errorMessage = string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", type);
+
+                if (Language.PowerShell == lang)
+                {
+                    if (string.Equals(Constants.AccountType.Standard_ZRS, type))
+                    {
+                        errorMessage = "Storage account type cannot be changed from Standard-LRS to Standard-ZRS or vice versa.";
+                    }
+
+                    if (string.Equals(Constants.AccountType.Premium_LRS, type))
+                    {
+                        errorMessage = "The AccountType Premium_LRS is invalid.";
+                    }
+                }
+
+                ExpectedContainErrorMessage(errorMessage);
             }
         }
 
@@ -1815,7 +1861,7 @@ namespace Management.Storage.ScenarioTest
             }
 
             Test.Assert(agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
-                string.Format("Creating stoarge account {0} in the resource group {1} at location {2} should succeed", accountName, resourceGroupName, location));
+                string.Format("Creating storage account {0} in the resource group {1} at location {2} should succeed", accountName, resourceGroupName, location));
         }
 
         private void SetSRPAccount(string accountName, string newAccountType)
