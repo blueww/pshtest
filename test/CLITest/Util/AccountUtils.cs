@@ -7,7 +7,7 @@
 
     public class AccountUtils
     {
-        private static string[] ForbiddenWordsInAccountName = { "msn", "fuck", "shit", "cunt", "cum", "nigger", "kkk" };
+        private static string[] ForbiddenWordsInAccountName = { "msn", "fuck", "shit", "cunt", "cum", "nigger", "kkk", "pedo" };
         private static Tuple<int, int> ValidNameRange = new Tuple<int, int>((int)'a', (int)'z');
         private static Random random = new Random();
 

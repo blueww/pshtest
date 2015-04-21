@@ -278,6 +278,11 @@ namespace Management.Storage.ScenarioTest.Common
 
         public delegate void Validator(string s);
 
+        public void ExpectedNotFoundErrorMessage()
+        {
+            ExpectedContainErrorMessage("Resource not found");
+        }
+
         /// <summary>
         /// Expect returned error message is the specified error message
         /// </summary>
