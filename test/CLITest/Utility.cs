@@ -211,27 +211,13 @@ namespace Management.Storage.ScenarioTest
 
         public static AzureProfile GetProfile()
         {
+            AzureSession.ClientFactory.AddAction(new RPRegistrationAction());
+            AzureSession.DataStore = new DiskDataStore();
+            AzureSession.TokenCache = new ProtectedFileTokenCache(Path.Combine(AzureSession.ProfileDirectory, AzureSession.TokenCacheFile));
+
             AzureProfile azureProfile = new AzureProfile(Path.Combine(AzureSession.ProfileDirectory, AzureSession.ProfileFile));
             ProfileClient profileClient = new ProfileClient(azureProfile);
-
-            string passwd = Test.Data.Get("AADPassword");
-
-            SecureString securePassword = null;
-
-            unsafe 
-            {
-                fixed (char* ppw = passwd.ToCharArray())
-                {
-                    securePassword = new SecureString(ppw, passwd.Length);
-                }
-            }
-
-            profileClient.AddAccountAndLoadSubscriptions(new AzureAccount()
-            {
-                Id = Test.Data.Get("AADUser"),
-                Type = AzureAccount.AccountType.User
-            }, profileClient.GetEnvironmentOrDefault(null), securePassword);
-
+            
             profileClient.SetSubscriptionAsDefault(Test.Data.Get("AzureSubscriptionName"), Test.Data.Get("AADUser"));
 
             return profileClient.Profile;
