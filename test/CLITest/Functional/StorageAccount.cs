@@ -132,8 +132,12 @@ namespace Management.Storage.ScenarioTest
                             Test.Info(string.Format("Retry login... Count:{0}", retry));
                         }
 
-                        agent.Logout();
-                        agent.Login();
+                        //TODO: We are using local cached token as credentials for now, 
+                        // so disable logout and login here. In the future, we'll still need 
+                        // to log on before any test cases running..
+
+                        //agent.Logout();
+                        //agent.Login();
                     }
                     while (agent.HadErrors && retry++ < 5);
 
