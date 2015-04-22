@@ -907,9 +907,18 @@ namespace Management.Storage.ScenarioTest
                 if (isResourceMode)
                 {
                     CreateNewSRPAccount(accountName, location, accountType);
-                    Test.Assert(!agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
-                        string.Format("Creating existing stoarge account {0} in location {1} should fail", accountName, location));
-                    ExpectedContainErrorMessage(string.Format("The storage account named {0} is already taken", accountName));
+                    Test.Assert(agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
+                        string.Format("Creating an stoarge account {0} in location {1} with the same properties with an existing account should succeed", accountName, location));
+
+                    string newLocation = Constants.Location.WestUS;
+                    Test.Assert(!agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, newLocation),
+                        string.Format("Creating an existing stoarge account {0} in location {1} should fail", accountName, newLocation));
+                    ExpectedContainErrorMessage(string.Format("Invalid Resource location '{0}'. The Resource already exists in location '{1}'", newLocation, location.Replace(" ", "").ToLower()));
+
+                    string newType = accountUtils.mapAccountType(Constants.AccountType.Standard_RAGRS);;
+                    Test.Assert(!agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, newType, location),
+                        string.Format("Creating an existing stoarge account {0} in location {1} should fail", accountName, newLocation));
+                    ExpectedContainErrorMessage(string.Format("The storage account named {0} already exists under the subscription", accountName));
                 }
                 else
                 {
@@ -919,7 +928,7 @@ namespace Management.Storage.ScenarioTest
                     string affinityGroup = null;
                     CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
                     Test.Assert(!agent.CreateAzureStorageAccount(accountName, subscriptionId, label, description, location, affinityGroup, accountType),
-                        string.Format("Creating existing stoarge account {0} in location {1} should fail", accountName, location));
+                        string.Format("Creating an existing stoarge account {0} in location {1} should fail", accountName, location));
                     ExpectedContainErrorMessage(string.Format("A storage account named '{0}' already exists in the subscription", accountName));
                 }
             }
