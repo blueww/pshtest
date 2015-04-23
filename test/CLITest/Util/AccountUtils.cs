@@ -1,9 +1,13 @@
 ﻿namespace Management.Storage.ScenarioTest.Util
 {
     using System;
+    using System.Net;
+    using System.Threading;
     using Microsoft.Azure.Common.Authentication;
     using Microsoft.WindowsAzure.Management.Storage;
+    using MS.Test.Common.MsTestLib;
     using SRPManagement = Microsoft.Azure.Management.Storage;
+    using SRPModel = Microsoft.Azure.Management.Storage.Models;
 
     public class AccountUtils
     {
@@ -119,6 +123,23 @@
             }
 
             return type;
+        }
+
+        public void ValidateSRPAccount(string resourceGroupName, string accountName, string location, string accountType)
+        {
+            SRPModel.StorageAccountGetPropertiesResponse response = this.SRPStorageClient.StorageAccounts.GetPropertiesAsync(resourceGroupName, accountName, CancellationToken.None).Result;
+            Test.Assert(response.StatusCode == HttpStatusCode.OK, string.Format("Account {0} should be created successfully.", accountName));
+
+            SRPModel.StorageAccount account = response.StorageAccount;
+            Test.Assert(accountName == account.Name, string.Format("Expected account name is {0} and actually it is {1}", accountName, account.Name));
+
+            Test.Assert(this.mapAccountType(Constants.AccountTypes[(int)account.AccountType]).Equals(accountType),
+                string.Format("Expected account type is {0} and actually it is {1}", accountType, account.AccountType));
+
+            if (!string.IsNullOrEmpty(location))
+            {
+                Test.Assert(location == account.Location, string.Format("Expected location is {0} and actually it is {1}", location, account.Location));
+            }
         }
 
         private string GenerateAvailableAccountName()
