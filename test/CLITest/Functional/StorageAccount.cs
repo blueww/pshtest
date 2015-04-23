@@ -57,7 +57,9 @@ namespace Management.Storage.ScenarioTest
         private const string PSHInvalidAccountTypeError =
             "Cannot validate argument on parameter 'Type'. The argument \"{0}\" does not belong to the set \"Standard_LRS,Standard_ZRS,Standard_GRS,Standard_RAGRS,Premium_LRS\" specified by the ValidateSet attribute.";
 
-        private const string NodeJSInvalidTypeError = "Invalid value: {0}. Options are: LRS,ZRS,GRS,RAGRS,PLRS";
+        private const string NodeJSInvalidCreateTypeError = "Invalid value: {0}. Options are: LRS,ZRS,GRS,RAGRS,PLRS";
+
+        private const string NodeJSInvalidSetTypeError = "Invalid value: {0}. Options are: LRS,GRS,RAGRS";
 
         #region Additional test attributes
 
@@ -1050,7 +1052,7 @@ namespace Management.Storage.ScenarioTest
                     string.Format("Creating existing stoarge account {0} in location {1} should fail", accountName, location));
             }
 
-            string errorMessageFormat = Language.PowerShell == lang ? PSHInvalidAccountTypeError : NodeJSInvalidTypeError;
+            string errorMessageFormat = Language.PowerShell == lang ? PSHInvalidAccountTypeError : NodeJSInvalidCreateTypeError;
             ExpectedContainErrorMessage(string.Format(errorMessageFormat, accountType));
         }
 
@@ -1122,7 +1124,7 @@ namespace Management.Storage.ScenarioTest
             }
 
 
-            string errorMessageFormat = Language.PowerShell == lang ? PSHInvalidAccountTypeError : NodeJSInvalidTypeError;
+            string errorMessageFormat = Language.PowerShell == lang ? PSHInvalidAccountTypeError : NodeJSInvalidSetTypeError;
             ExpectedContainErrorMessage(string.Format(errorMessageFormat, nonExistingType));
         }
 
@@ -1175,13 +1177,13 @@ namespace Management.Storage.ScenarioTest
                     {
                         errorMsg = Language.PowerShell == lang ?
                             "Storage account type Standard-ZRS cannot be changed." :
-                            string.Format(NodeJSInvalidTypeError, newAccountType);
+                            string.Format(NodeJSInvalidSetTypeError, newAccountType);
                     }
                     else if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
                     {
                         errorMsg = Language.PowerShell == lang ?
                             "The AccountType Premium_LRS is invalid." :
-                            string.Format(NodeJSInvalidTypeError, newAccountType);
+                            string.Format(NodeJSInvalidSetTypeError, newAccountType);
                     }
                     else
                     {
@@ -1244,7 +1246,7 @@ namespace Management.Storage.ScenarioTest
                     if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS) ||
                         newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
                     {
-                        ExpectedContainErrorMessage(string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", newAccountType));
+                        ExpectedContainErrorMessage(string.Format(NodeJSInvalidSetTypeError, newAccountType));
                     }
                     else
                     {
@@ -1299,7 +1301,7 @@ namespace Management.Storage.ScenarioTest
                         string.Format("Setting stoarge account {0} to type {1} should fail", accountName, type));
                 }
 
-                string errorMessage = string.Format("Invalid value: {0}. Options are: LRS,GRS,RAGRS", type);
+                string errorMessage = string.Format(NodeJSInvalidSetTypeError, type);
 
                 if (Language.PowerShell == lang)
                 {
@@ -1694,7 +1696,7 @@ namespace Management.Storage.ScenarioTest
                     string affinityGroup = string.Empty;
                     CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
 
-                    Test.Assert(!agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Invalid) && agent.Output.Count == 0,
+                    Test.Assert(agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Invalid) && agent.Output.Count == 0,
                         string.Format("Renewing an invalid key type of the stoarge account {0} should fail", accountName));
                 }
             }
