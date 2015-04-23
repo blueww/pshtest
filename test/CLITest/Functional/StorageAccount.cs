@@ -118,7 +118,15 @@ namespace Management.Storage.ScenarioTest
                     agent.ChangeCLIMode(Constants.Mode.arm);
                 }
 
-                if (!isLogin)
+                bool needLogin = false;
+                string autoLogin = Test.Data.Get("AutoLogin");
+
+                if (!string.IsNullOrEmpty(autoLogin))
+                {
+                    needLogin = bool.Parse(autoLogin);
+                }
+
+                if (!isLogin && needLogin)
                 {
                     int retry = 0;
                     do
@@ -129,8 +137,12 @@ namespace Management.Storage.ScenarioTest
                             Test.Info(string.Format("Retry login... Count:{0}", retry));
                         }
 
-                        agent.Logout();
-                        agent.Login();
+                        //TODO: We are using local cached token as credentials for now, 
+                        // so disable logout and login here. In the future, we'll still need 
+                        // to log on before any test cases running..
+
+                        //agent.Logout();
+                        //agent.Login();
                     }
                     while (agent.HadErrors && retry++ < 5);
 
@@ -900,8 +912,18 @@ namespace Management.Storage.ScenarioTest
                 if (isResourceMode)
                 {
                     CreateNewSRPAccount(accountName, location, accountType);
-                    Test.Assert(!agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
-                        string.Format("Creating existing stoarge account {0} in location {1} should fail", accountName, location));
+                    Test.Assert(agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
+                        string.Format("Creating an stoarge account {0} in location {1} with the same properties with an existing account should succeed", accountName, location));
+
+                    string newLocation = Constants.Location.WestUS;
+                    Test.Assert(!agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, newLocation),
+                        string.Format("Creating an existing stoarge account {0} in location {1} should fail", accountName, newLocation));
+                    ExpectedContainErrorMessage(string.Format("Invalid Resource location '{0}'. The Resource already exists in location '{1}'", newLocation, location.Replace(" ", "").ToLower()));
+
+                    string newType = accountUtils.mapAccountType(Constants.AccountType.Standard_RAGRS);;
+                    Test.Assert(!agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, newType, location),
+                        string.Format("Creating an existing stoarge account {0} in location {1} should fail", accountName, newLocation));
+                    ExpectedContainErrorMessage(string.Format("The storage account named {0} already exists under the subscription", accountName));
                 }
                 else
                 {
@@ -911,10 +933,9 @@ namespace Management.Storage.ScenarioTest
                     string affinityGroup = null;
                     CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
                     Test.Assert(!agent.CreateAzureStorageAccount(accountName, subscriptionId, label, description, location, affinityGroup, accountType),
-                        string.Format("Creating existing stoarge account {0} in location {1} should fail", accountName, location));
+                        string.Format("Creating an existing stoarge account {0} in location {1} should fail", accountName, location));
+                    ExpectedContainErrorMessage(string.Format("A storage account named '{0}' already exists in the subscription", accountName));
                 }
-
-                ExpectedContainErrorMessage(string.Format("A storage account named '{0}' already exists in the subscription", accountName));
             }
             finally
             {
@@ -1209,7 +1230,7 @@ namespace Management.Storage.ScenarioTest
 
                     if (isResourceMode)
                     {
-                        errorMsg = string.Format("Storage account type cannot be changed from Premium-LRS to {0} or vice versa", info.Name.Replace('_', '-'));
+                        errorMsg = string.Format("Storage account type cannot be changed from Provisioned-LRS to {0} or vice versa", info.Name.Replace('_', '-'));
                         Test.Assert(!agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, newAccountType),
                             string.Format("Setting stoarge account {0} to type {1} should fail", accountName, newAccountType));
                     }
@@ -1735,7 +1756,7 @@ namespace Management.Storage.ScenarioTest
                 {
                     CreateNewSRPAccount(accountName, location, originalAccountType);
                     ValidateSRPAccount(accountName, location, originalAccountType);
-                    
+
                     WaitForAccountAvailableToSet();
 
                     SetSRPAccount(accountName, newAccountType);
