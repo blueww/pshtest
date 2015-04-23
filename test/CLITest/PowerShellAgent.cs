@@ -3098,7 +3098,17 @@ namespace Management.Storage.ScenarioTest
             
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
 
-            ParseBlobCollection(ps.Invoke());
+            try
+            {
+                ParseBlobCollection(ps.Invoke());
+            }
+            catch (ParameterBindingException ex)
+            {
+                _ErrorMessages.Clear();
+                _ErrorMessages.Add(ex.Message);
+                return false;
+            }
+
             ParseErrorMessages(ps);
 
             return !ps.HadErrors;
@@ -3115,7 +3125,17 @@ namespace Management.Storage.ScenarioTest
 
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
 
-            ParseBlobCollection(ps.Invoke());
+            try
+            {
+                ParseBlobCollection(ps.Invoke());
+            }
+            catch (ParameterBindingException ex)
+            {
+                _ErrorMessages.Clear();
+                _ErrorMessages.Add(ex.Message);
+                return false;
+            }
+
             ParseErrorMessages(ps);
 
             return !ps.HadErrors;
