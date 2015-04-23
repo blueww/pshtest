@@ -668,7 +668,14 @@
                 setContentAction(fileShare, cloudFileName);
                 var result = agent.Invoke();
                 agent.AssertNoError();
-                result.AssertNoResult();
+                if (lang == Language.NodeJS)
+                {
+                    result.AssertObjectCollection(obj => result.AssertCloudFile(obj, cloudFileName));
+                }
+                else
+                {
+                    result.AssertNoResult();
+                }
 
                 var file = fileShare.GetRootDirectoryReference().GetFileReference(cloudFileName);
                 Test.Assert(file.Exists(), "File should exist after setting content.");
