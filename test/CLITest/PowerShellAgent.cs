@@ -174,7 +174,15 @@ namespace Management.Storage.ScenarioTest
             //TODO add tests for positional parameter
             ps.AddCommand("Import-AzurePublishSettingsFile");
             ps.BindParameter("PublishSettingsFile", filePath);
-            ps.AddStatement();
+            ps.Invoke();
+
+            if (ps.Streams.Error.Count > 0)
+            {
+                Test.Error("Can't set current storage account to {0} in subscription {1}. Exception: {2}", storageAccountName, subscriptionName, ps.Streams.Error[0].Exception.Message);
+                return;
+            }
+
+            ps = PowerShell.Create(_InitState);
             ps.AddCommand("Set-AzureSubscription");
             ps.BindParameter("SubscriptionName", subscriptionName);
             ps.BindParameter("CurrentStorageAccount", storageAccountName);

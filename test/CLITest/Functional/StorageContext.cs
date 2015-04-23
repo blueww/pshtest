@@ -148,7 +148,7 @@ namespace Management.Storage.ScenarioTest.Functional
         {
             PowerShellAgent.RemoveAzureSubscriptionIfExists();
 
-            CLICommonBVT.SaveAndCleanSubScriptionAndEnvConnectionString();
+            CLICommonBVT.SaveAndCleanEnvConnectionString();
 
             string containerName = Utility.GenNameString("container");
             CloudBlobContainer container = blobUtil.CreateContainer(containerName);
