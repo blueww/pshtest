@@ -249,7 +249,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
         {
             StorageAccount = null;
             TestBase.TestClassInitialize(testContext);
-            CLICommonBVT.SaveAndCleanSubScriptionAndEnvConnectionString();
+            CLICommonBVT.SaveAndCleanEnvConnectionString();
             StorageAccountName = Test.Data.Get("StorageAccountName");
             StorageEndPoint = Test.Data.Get("StorageEndPoint").Trim();
 
