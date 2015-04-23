@@ -1729,7 +1729,7 @@ namespace Management.Storage.ScenarioTest
                 if (isResourceMode)
                 {
                     CreateNewSRPAccount(accountName, location, accountType);
-                    ValidateSRPAccount(accountName, location, accountType);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType);
                 }
                 else
                 {
@@ -1755,12 +1755,12 @@ namespace Management.Storage.ScenarioTest
                 if (isResourceMode)
                 {
                     CreateNewSRPAccount(accountName, location, originalAccountType);
-                    ValidateSRPAccount(accountName, location, originalAccountType);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalAccountType);
 
                     WaitForAccountAvailableToSet();
 
                     SetSRPAccount(accountName, newAccountType);
-                    ValidateSRPAccount(accountName, null, newAccountType);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, null, newAccountType);
                 }
                 else
                 {
@@ -1892,23 +1892,6 @@ namespace Management.Storage.ScenarioTest
 
             Test.Assert(agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, newAccountType),
                 string.Format("Setting storage account {0} in resource group {1} to type {2} should succeed", accountName, resourceGroupName, newAccountType));
-        }
-
-        private void ValidateSRPAccount(string accountName, string location, string accountType)
-        {
-            SRPModel.StorageAccountGetPropertiesResponse response = accountUtils.SRPStorageClient.StorageAccounts.GetPropertiesAsync(resourceGroupName, accountName, CancellationToken.None).Result;
-            Test.Assert(response.StatusCode == HttpStatusCode.OK, string.Format("Account {0} should be created successfully.", accountName));
-
-            SRPModel.StorageAccount account = response.StorageAccount;
-            Test.Assert(accountName == account.Name, string.Format("Expected account name is {0} and actually it is {1}", accountName, account.Name));
-
-            Test.Assert(accountUtils.mapAccountType(Constants.AccountTypes[(int)account.AccountType]).Equals(accountType),
-                string.Format("Expected account type is {0} and actually it is {1}", accountType, account.AccountType));
-
-            if (!string.IsNullOrEmpty(location))
-            {
-                Test.Assert(location == account.Location, string.Format("Expected location is {0} and actually it is {1}", location, account.Location));
-            }
         }
 
         private void DeleteSRPAccount(string accountName)

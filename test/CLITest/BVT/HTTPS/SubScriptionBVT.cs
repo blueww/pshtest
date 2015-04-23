@@ -83,7 +83,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
         {
             string resourceGroupName = AccountUtils.GenerateResourceGroupName();
             string accountName = AccountUtils.GenerateAccountName();
-            string location = Constants.Locations[random.Next(0, Constants.Locations.Length)];
+            string location = Constants.SRPLocations[random.Next(0, Constants.SRPLocations.Length)];
 
             try
             {
@@ -91,7 +91,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
                 Test.Assert(agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, Constants.AccountType.Standard_LRS, location),
                     "Create account {0} of resource group {1} should succeeded.", accountName, resourceGroupName);
 
-                this.ValidateAccount(resourceGroupName, accountName);
+                AccountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, Constants.AccountType.Standard_LRS);
             }
             finally
             {
@@ -106,7 +106,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
         {
             string resourceGroupName = AccountUtils.GenerateResourceGroupName();
             string accountName = AccountUtils.GenerateAccountName();
-            string location = Constants.Locations[random.Next(0, Constants.Locations.Length)];
+            string location = Constants.SRPLocations[random.Next(0, Constants.SRPLocations.Length)];
 
             try
             {
@@ -120,23 +120,13 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
                 Test.Assert(agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, Constants.AccountType.Standard_GRS),
                     "Set account {0} of resource group {1} should succeeded.", accountName, resourceGroupName);
 
-                this.ValidateAccount(resourceGroupName, accountName);
+                AccountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, Constants.AccountType.Standard_GRS);
             }
             finally
             {
                 AccountUtils.SRPStorageClient.StorageAccounts.Delete(resourceGroupName, accountName);
                 ResourceManager.DeleteResourceGroup(resourceGroupName);
             }
-        }
-
-        private void ValidateAccount(string resourceGroupName, string accountName)
-        {
-            StorageAccount account = AccountUtils.SRPStorageClient.StorageAccounts.GetProperties(resourceGroupName, accountName).StorageAccount;
-
-            List<StorageAccount> accountList = new List<StorageAccount>();
-            accountList.Add(account);
-
-            agent.OutputValidation(accountList);
         }
     }
 }
