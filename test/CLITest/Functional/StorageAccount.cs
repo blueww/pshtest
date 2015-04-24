@@ -942,7 +942,7 @@ namespace Management.Storage.ScenarioTest
                 }
 
                 string accountName = accountUtils.GenerateAccountName();
-                string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
+                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode);
                 CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountUtils.mapAccountType(accountType));
             }
         }
