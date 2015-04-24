@@ -47,7 +47,7 @@ namespace Management.Storage.ScenarioTest
         public static List<string> TablePermissionNode = new List<string>() { "r", "a", "u", "d" };
         public static List<string> QueuePermission = new List<string>() { "r", "a", "u", "p" };
 
-        internal static int RetryLimit = 6;
+        internal static int RetryLimit = 7;
 
         /// <summary>
         /// Generate a random string for azure object name
@@ -536,6 +536,11 @@ namespace Management.Storage.ScenarioTest
             }
             while (retry <= RetryLimit);
 
+            if (retry > RetryLimit)
+            {
+                Test.Warn("Has been up to retry limit, this case may fail due to setting has not taken effect yet.");
+            }
+
             return properties;
         }
 
@@ -576,6 +581,11 @@ namespace Management.Storage.ScenarioTest
                 }
             }
             while (retry <= RetryLimit);
+
+            if (retry > RetryLimit)
+            {
+                Test.Warn("Has been up to retry limit, this case may fail due to setting has not taken effect yet.");
+            }
 
             return properties;
         }
