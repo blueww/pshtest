@@ -76,57 +76,5 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             Test.Assert(string.IsNullOrEmpty(key), string.Format("env connection string {0} should be null or empty", key));
             Test.Assert(PowerShellAgent.Context == null, "PowerShell context should be null when running bvt against Subscription");
         }
-
-        [TestMethod()]
-        [TestCategory(Tag.BVT)]
-        public void CreateSRPAccount()
-        {
-            string resourceGroupName = AccountUtils.GenerateResourceGroupName();
-            string accountName = AccountUtils.GenerateAccountName();
-            string location = Constants.SRPLocations[random.Next(0, Constants.SRPLocations.Length)];
-
-            try
-            {
-                ResourceManager.CreateResourceGroup(resourceGroupName, location);
-                Test.Assert(agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, Constants.AccountType.Standard_LRS, location),
-                    "Create account {0} of resource group {1} should succeeded.", accountName, resourceGroupName);
-
-                AccountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, Constants.AccountType.Standard_LRS);
-            }
-            finally
-            {
-                AccountUtils.SRPStorageClient.StorageAccounts.Delete(resourceGroupName, accountName);
-                ResourceManager.DeleteResourceGroup(resourceGroupName);
-            }
-        }
-
-        [TestMethod()]
-        [TestCategory(Tag.BVT)]
-        public void SetSRPAccount()
-        {
-            string resourceGroupName = AccountUtils.GenerateResourceGroupName();
-            string accountName = AccountUtils.GenerateAccountName();
-            string location = Constants.SRPLocations[random.Next(0, Constants.SRPLocations.Length)];
-
-            try
-            {
-                ResourceManager.CreateResourceGroup(resourceGroupName, location);
-                AccountUtils.SRPStorageClient.StorageAccounts.Create(resourceGroupName, accountName, new StorageAccountCreateParameters()
-                    {
-                        AccountType = AccountType.StandardLRS,
-                        Location = location
-                    });
-
-                Test.Assert(agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, Constants.AccountType.Standard_GRS),
-                    "Set account {0} of resource group {1} should succeeded.", accountName, resourceGroupName);
-
-                AccountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, Constants.AccountType.Standard_GRS);
-            }
-            finally
-            {
-                AccountUtils.SRPStorageClient.StorageAccounts.Delete(resourceGroupName, accountName);
-                ResourceManager.DeleteResourceGroup(resourceGroupName);
-            }
-        }
     }
 }
