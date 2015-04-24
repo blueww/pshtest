@@ -91,7 +91,7 @@ namespace Management.Storage.ScenarioTest.BVT
             lang = AgentFactory.GetLanguage(testContext.Properties);
             if (lang == Language.PowerShell)
             {
-                SaveAndCleanEnvConnectionString();
+                SaveAndCleanSubScriptionAndEnvConnectionString();
 
                 //Clean Storage Context
                 Test.Info("Clean storage context in PowerShell");
@@ -108,9 +108,11 @@ namespace Management.Storage.ScenarioTest.BVT
         /// Save azure subscription and env connection string. So the current settings can't impact our tests.
         /// </summary>
         //TODO move to TestBase
-        public static void SaveAndCleanEnvConnectionString()
+        public static void SaveAndCleanSubScriptionAndEnvConnectionString()
         {
             Test.Info("Clean Azure Subscription and save env connection string");
+
+            PowerShellAgent.RemoveAzureSubscriptionIfExists();
 
             //set env connection string
             //TODO A little bit trivial, move to CLITestBase class
