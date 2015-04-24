@@ -32,9 +32,6 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
     [TestClass]
     class SubScriptionBVT : CLICommonBVT
     {
-        private static AccountUtils AccountUtils;
-        private static ResourceManagerWrapper ResourceManager; 
-
         [ClassInitialize()]
         public static void SubScriptionBVTClassInitialize(TestContext testContext)
         {
@@ -45,9 +42,6 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             SetUpStorageAccount = TestBase.GetCloudStorageAccountFromConfig(useHttps: useHttps);
             CLICommonBVT.CLICommonBVTInitialize(testContext);
             SetupSubscription();
-
-            ResourceManager = new ResourceManagerWrapper();
-            AccountUtils = new AccountUtils(lang);
         }
 
         /// <summary>
