@@ -146,8 +146,6 @@ namespace Management.Storage.ScenarioTest.Functional
         [TestCategory(PsTag.StorageContext)]
         public void RunCmdletWithoutStorageContext()
         {
-            PowerShellAgent.RemoveAzureSubscriptionIfExists();
-
             CLICommonBVT.SaveAndCleanEnvConnectionString();
 
             string containerName = Utility.GenNameString("container");
