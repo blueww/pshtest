@@ -128,25 +128,24 @@ namespace Management.Storage.ScenarioTest
                     needLogin = bool.Parse(autoLogin);
                 }
 
-                if (!isLogin && needLogin)
+                if (!isLogin)
                 {
-                    int retry = 0;
-                    do
+                    if (needLogin)
                     {
-                        if (agent.HadErrors)
+                        int retry = 0;
+                        do
                         {
-                            Thread.Sleep(5000);
-                            Test.Info(string.Format("Retry login... Count:{0}", retry));
+                            if (agent.HadErrors)
+                            {
+                                Thread.Sleep(5000);
+                                Test.Info(string.Format("Retry login... Count:{0}", retry));
+                            }
+
+                            agent.Logout();
+                            agent.Login();
                         }
-
-                        //TODO: We are using local cached token as credentials for now, 
-                        // so disable logout and login here. In the future, we'll still need 
-                        // to log on before any test cases running..
-
-                        //agent.Logout();
-                        //agent.Login();
+                        while (agent.HadErrors && retry++ < 5);
                     }
-                    while (agent.HadErrors && retry++ < 5);
 
                     if (lang == Language.NodeJS)
                     {
