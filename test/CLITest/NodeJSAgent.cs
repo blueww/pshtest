@@ -210,9 +210,9 @@ namespace Management.Storage.ScenarioTest
 
             if (!string.IsNullOrEmpty(error))
             {
-                if (error.Equals(UnlockKeyChainOutput))
+                if (error.StartsWith(UnlockKeyChainOutput))
                 {
-                    error = string.Empty;
+                    error = error.Remove(0, UnlockKeyChainOutput.Length);
                 }
                 else
                 {
