@@ -18,6 +18,7 @@
   <AADUser>xtestlab@microsoft.com</AADUser>
   <AADPassword></AADPassword>
   <AutoLogin></AutoLogin>
+  <LoginAppPATH>D:\powershell\SaveTokenCache\SaveTokenCache.exe</LoginAppPATH>
   <AzureSubscriptionPath></AzureSubscriptionPath>
   <AzureSubscriptionName></AzureSubscriptionName>
   <AzureSubscriptionID></AzureSubscriptionID>
