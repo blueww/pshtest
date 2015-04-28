@@ -59,7 +59,14 @@
             this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName, true);
             var result = agent.Invoke();
             this.agent.AssertNoError();
-            result.AssertNoResult();
+            if (lang == Language.NodeJS)
+            {
+                result.AssertObjectCollection(obj => result.AssertCloudFile(obj, cloudFileName));
+            }
+            else
+            {
+                result.AssertNoResult();
+            }
         }
 
         /// <summary>

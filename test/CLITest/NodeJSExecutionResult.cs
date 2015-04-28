@@ -129,7 +129,7 @@ namespace Management.Storage.ScenarioTest
             var fileObject = fileObj as Dictionary<string, object>;
             Test.Assert(fileObject != null, "Output object should be an instance of Dictionary<string, object> class.");
 
-            string fileObjectName = (string)fileObject["name"];
+            string fileObjectName = fileObject.ContainsKey("name") ? fileObject["name"] as string : (fileObject.ContainsKey("directory") ? fileObject["directory"] as string : string.Empty);
 
             Test.Assert(fileObjectName.Equals(fileName, StringComparison.OrdinalIgnoreCase), "Name of the file object should match the given parameter. Expected: {0}, Actual: {1}", fileName, fileObjectName);
         }
@@ -139,7 +139,7 @@ namespace Management.Storage.ScenarioTest
             var fileObject = fileObj as Dictionary<string, object>;
             Test.Assert(fileObject != null, "Output object should be an instance of Dictionary<string, object> class.");
 
-            string fileObjectBaseName = (string)fileObject["name"];
+            string fileObjectBaseName = fileObject.ContainsKey("name") ? fileObject["name"] as string : (fileObject.ContainsKey("directory") ? fileObject["directory"] as string : string.Empty);
 
             CloudFile matchingFile = files.FirstOrDefault(file => file.Name.Equals(fileObjectBaseName, StringComparison.OrdinalIgnoreCase));
             Test.Assert(matchingFile != null, "Output CloudFile object {0} was not found in the expecting list.", fileObjectBaseName);
