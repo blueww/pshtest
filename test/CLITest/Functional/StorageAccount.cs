@@ -69,15 +69,24 @@ namespace Management.Storage.ScenarioTest
             TestBase.TestClassInitialize(testContext);
 
             NodeJSAgent.AgentConfig.UseEnvVar = false;
-
+            
             managementClient = new ManagementClient(Utility.GetCertificateCloudCredential());
-            accountUtils = new AccountUtils(lang);
 
             accountNameForConnectionStringTest = Test.Data.Get("StorageAccountName");
             primaryKeyForConnectionStringTest = Test.Data.Get("StorageAccountKey");
 
             if (isResourceMode)
             {
+                string appPath = Test.Data.Get("LoginAppPath");
+
+                if (!string.IsNullOrEmpty(appPath))
+                {
+                    Test.Info("Calling {0} to save credential token", appPath);
+                    TestHelper.RunCmd(appPath, null);
+                }
+
+                accountUtils = new AccountUtils(lang);
+
                 resourceLocation = accountUtils.GenerateAccountLocation(Constants.AccountType.Standard_GRS, true);
                 resourceManager = new ResourceManagerWrapper();
                 resourceGroupName = accountUtils.GenerateResourceGroupName();
@@ -183,57 +192,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         #endregion
-
-        [TestMethod()]
-        [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.NodeJSServiceAccount)]
-        [TestCategory(CLITag.NodeJSResourceAccount)]
-        public void CreateSRPAccount()
-        {
-            string accountName = accountUtils.GenerateAccountName();
-            string location = Constants.SRPLocations[random.Next(0, Constants.SRPLocations.Length)];
-
-            try
-            {
-                Test.Assert(agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, Constants.AccountType.Standard_LRS, location),
-                    "Create account {0} of resource group {1} should succeeded.", accountName, resourceGroupName);
-
-                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, Constants.AccountType.Standard_LRS);
-            }
-            finally
-            {
-                this.DeleteSRPAccount(accountName);
-            }
-        }
-
-        [TestMethod()]
-        [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.NodeJSServiceAccount)]
-        [TestCategory(CLITag.NodeJSResourceAccount)]
-        public void SetSRPAccount()
-        {
-            string accountName = accountUtils.GenerateAccountName();
-            string location = Constants.SRPLocations[random.Next(0, Constants.SRPLocations.Length)];
-
-            try
-            {
-                this.CreateNewSRPAccount(accountName, location, Constants.AccountType.Standard_LRS);
-
-                WaitForAccountAvailableToSet();
-
-                Test.Assert(agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, Constants.AccountType.Standard_GRS),
-                    "Set account {0} of resource group {1} should succeeded.", accountName, resourceGroupName);
-
-                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, Constants.AccountType.Standard_GRS);
-            }
-            finally
-            {
-                this.DeleteSRPAccount(accountName);
-            }
-        }
-
+        
         /// <summary>
         /// Sprint 35 Test Spec: 1.1; 1.2
         /// </summary>

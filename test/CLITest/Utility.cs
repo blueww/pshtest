@@ -217,6 +217,35 @@ namespace Management.Storage.ScenarioTest
 
             AzureProfile azureProfile = new AzureProfile(Path.Combine(AzureSession.ProfileDirectory, AzureSession.ProfileFile));
             ProfileClient profileClient = new ProfileClient(azureProfile);
+
+            string passwd = Test.Data.Get("AADPassword");
+
+            if (!string.IsNullOrEmpty(passwd))
+            {
+                SecureString securePassword = null;
+
+                unsafe
+                {
+                    fixed (char* ppw = passwd.ToCharArray())
+                    {
+                        securePassword = new SecureString(ppw, passwd.Length);
+                    }
+                }
+
+                try
+                {
+                    profileClient.AddAccountAndLoadSubscriptions(new AzureAccount()
+                    {
+                        Id = Test.Data.Get("AADUser"),
+                        Type = AzureAccount.AccountType.User
+                    }, profileClient.GetEnvironmentOrDefault(null), securePassword);
+                }
+                catch (Exception ex)
+                {
+                    Test.Info("Got exception when try to logon {0}", ex.Message);
+                    Test.Info("For we can load token from disk cache, ignore this error here.");
+                }
+            }
             
             profileClient.SetSubscriptionAsDefault(Test.Data.Get("AzureSubscriptionName"), Test.Data.Get("AADUser"));
 
