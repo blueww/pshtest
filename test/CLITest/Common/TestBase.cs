@@ -41,6 +41,7 @@ namespace Management.Storage.ScenarioTest.Common
 
         protected Agent agent;
         protected static Language lang;
+        protected static bool isResourceMode = false;
 
         private TestContext testContextInstance;
 
@@ -127,10 +128,28 @@ namespace Management.Storage.ScenarioTest.Common
         {
             //add the language specific initialization
             lang = AgentFactory.GetLanguage(testContext.Properties);
+
+            string mode = Test.Data.Get("IsResourceMode");
+
+            if (!string.IsNullOrEmpty(mode))
+            {
+                isResourceMode = bool.Parse(mode);
+            }
+
             if (lang == Language.PowerShell)
             {
-                // import module
-                string moduleFilePath = Test.Data.Get("ModuleFilePath");
+                string moduleFilePath = null;
+                if (isResourceMode)
+                {
+                    // import module
+                    moduleFilePath = Test.Data.Get("ResourceModuleFilePath");
+                }
+                else
+                {
+                    // import module
+                    moduleFilePath = Test.Data.Get("ModuleFilePath");
+                }
+
                 if (!string.IsNullOrWhiteSpace(moduleFilePath))
                 {
                     PowerShellAgent.ImportModule(moduleFilePath);
@@ -258,6 +277,11 @@ namespace Management.Storage.ScenarioTest.Common
         #endregion
 
         public delegate void Validator(string s);
+
+        public void ExpectedNotFoundErrorMessage()
+        {
+            ExpectedContainErrorMessage("Resource not found");
+        }
 
         /// <summary>
         /// Expect returned error message is the specified error message

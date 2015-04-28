@@ -416,7 +416,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 }
 
                 string invalidName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
-                Test.Assert(!agent.RemoveAzureStorageContainerStoredAccessPolicy(container.Name, FileNamingGenerator.GenerateValidASCIIOptionValue(65)),
+                Test.Assert(!agent.RemoveAzureStorageContainerStoredAccessPolicy(container.Name, invalidName),
                     "Remove stored access policy with name length larger than 64 should fail");
                 if (lang == Language.PowerShell)
                 {
@@ -424,6 +424,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 }
                 else
                 {
+                    invalidName = Utility.SqueezeSpaces(invalidName);
                     ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", invalidName));
                 }
 

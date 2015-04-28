@@ -112,7 +112,7 @@ namespace Management.Storage.ScenarioTest.BVT
         public static void SaveAndCleanSubScriptionAndEnvConnectionString()
         {
             Test.Info("Clean Azure Subscription and save env connection string");
-            //can't restore the azure subscription files
+
             PowerShellAgent.RemoveAzureSubscriptionIfExists();
 
             //set env connection string
