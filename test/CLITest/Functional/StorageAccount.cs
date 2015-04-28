@@ -942,7 +942,7 @@ namespace Management.Storage.ScenarioTest
                 }
 
                 string accountName = accountUtils.GenerateAccountName();
-                string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
+                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode);
                 CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountUtils.mapAccountType(accountType));
             }
         }
@@ -1729,6 +1729,8 @@ namespace Management.Storage.ScenarioTest
 
                     if (lang == Language.NodeJS)
                     {
+                        // Invalid parameter prompt is in normal output on Windows, but in error output on Linux/Mac
+                        succeeded = (AgentFactory.GetOSType() == OSType.Windows) ? succeeded == true : succeeded == false;
                         Test.Assert(succeeded && agent.Output.Count == 0,
                             string.Format("Renewing an invalid key type of the stoarge account {0} in resource group {1} should fail", accountName, resourceGroupName));
                     }
@@ -1745,7 +1747,11 @@ namespace Management.Storage.ScenarioTest
                     string affinityGroup = string.Empty;
                     CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
 
-                    Test.Assert(agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Invalid) && agent.Output.Count == 0,
+                    // Invalid parameter prompt is in normal output on Windows, but in error output on Linux/Mac
+                    bool result = agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Invalid);
+                    result = (AgentFactory.GetOSType() == OSType.Windows) ? result == true : result == false;
+
+                    Test.Assert(result && agent.Output.Count == 0,
                         string.Format("Renewing an invalid key type of the stoarge account {0} should fail", accountName));
                 }
             }

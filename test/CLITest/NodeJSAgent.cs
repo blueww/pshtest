@@ -47,6 +47,9 @@ namespace Management.Storage.ScenarioTest
         private const string ExportPathCommand = " export PATH=$PATH:/usr/local/bin/;";
         private const string DOUBLE_SPACE = "CLITEST_DOUBLESPACE_INDICATOR";
 
+        private static string UnlockKeyChainCommand = string.Format(" security -v unlock-keychain \"-p\" \"{0}\";", Test.Data.Get("UserName"));
+        private static string UnlockKeyChainOutput = string.Format("unlock-keychain \"-p\" \"{0}\"\n", Test.Data.Get("UserName"));
+
         private static int DefaultMaxWaitingTime = 600000;  // in miliseconds
 
         private static Hashtable ExpectedErrorMsgTableNodeJS = new Hashtable() {
@@ -129,6 +132,7 @@ namespace Management.Storage.ScenarioTest
 
                 if (AgentOSType == OSType.Mac)
                 {
+                    p.StartInfo.Arguments += UnlockKeyChainCommand;
                     p.StartInfo.Arguments += ExportPathCommand;
                 }
 
@@ -206,7 +210,14 @@ namespace Management.Storage.ScenarioTest
 
             if (!string.IsNullOrEmpty(error))
             {
-                Test.Verbose("Error:\n{0}", error);
+                if (error.StartsWith(UnlockKeyChainOutput))
+                {
+                    error = error.Remove(0, UnlockKeyChainOutput.Length);
+                }
+                else
+                {
+                    Test.Verbose("Error:\n{0}", error);
+                }
             }
 
             Test.Verbose("Node Output:\n{0}", output);
@@ -331,7 +342,7 @@ namespace Management.Storage.ScenarioTest
 
         public override bool ChangeCLIMode(Constants.Mode mode)
         {
-            return RunNodeJSProcess(string.Format("mode {0} --json", mode), needAccountParam: false, category: "config");
+            return RunNodeJSProcess(string.Format("mode {0}", mode), needAccountParam: false, category: "config");
         }
 
         public override bool Login()
