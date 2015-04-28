@@ -66,27 +66,27 @@ namespace Management.Storage.ScenarioTest
         [ClassInitialize()]
         public static void StorageAccountTestInit(TestContext testContext)
         {
+            string appPath = Test.Data.Get("LoginAppPath");
+
+            if (!string.IsNullOrEmpty(appPath))
+            {
+                Test.Info("Calling {0} to save credential token", appPath);
+                TestHelper.RunCmd(appPath, null);
+            }
+
             TestBase.TestClassInitialize(testContext);
 
             NodeJSAgent.AgentConfig.UseEnvVar = false;
-            
+
             managementClient = new ManagementClient(Utility.GetCertificateCloudCredential());
+
+            accountUtils = new AccountUtils(lang, isResourceMode);
 
             accountNameForConnectionStringTest = Test.Data.Get("StorageAccountName");
             primaryKeyForConnectionStringTest = Test.Data.Get("StorageAccountKey");
 
             if (isResourceMode)
             {
-                string appPath = Test.Data.Get("LoginAppPath");
-
-                if (!string.IsNullOrEmpty(appPath))
-                {
-                    Test.Info("Calling {0} to save credential token", appPath);
-                    TestHelper.RunCmd(appPath, null);
-                }
-
-                accountUtils = new AccountUtils(lang);
-
                 resourceLocation = accountUtils.GenerateAccountLocation(Constants.AccountType.Standard_GRS, true);
                 resourceManager = new ResourceManagerWrapper();
                 resourceGroupName = accountUtils.GenerateResourceGroupName();
