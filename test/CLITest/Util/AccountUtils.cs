@@ -149,6 +149,7 @@
 
             do
             {
+                regenerate = false;
                 name = "clitest" + FileNamingGenerator.GenerateNameFromRange(random.Next(10, 18), ValidNameRange);
 
                 foreach (string forbiddenWord in ForbiddenWordsInAccountName)
