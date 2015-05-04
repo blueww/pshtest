@@ -63,8 +63,7 @@ namespace Management.Storage.ScenarioTest
         public static readonly string[] SRPLocations = { Location.WestUS,
                                                         Location.EastUS,
                                                         Location.SoutheastAsia,
-                                                        Location.EastAsia,                                                        
-                                                        Location.NorthEurope,
+                                                        Location.EastAsia,
                                                         Location.WestEurope };
 
         /// <summary>
