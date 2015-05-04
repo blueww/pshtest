@@ -129,17 +129,9 @@ namespace Management.Storage.ScenarioTest
                     agent.ChangeCLIMode(Constants.Mode.arm);
                 }
 
-                bool needLogin = false;
-                string autoLogin = Test.Data.Get("AutoLogin");
-
-                if (!string.IsNullOrEmpty(autoLogin))
-                {
-                    needLogin = bool.Parse(autoLogin);
-                }
-
                 if (!isLogin)
                 {
-                    if (needLogin)
+                    if (Utility.GetAutoLogin())
                     {
                         int retry = 0;
                         do
