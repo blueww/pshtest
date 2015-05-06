@@ -29,15 +29,22 @@
 
         private Language language = Language.PowerShell;
 
-        public AccountUtils(Language language)
+        public AccountUtils(Language language, bool isResourceMode)
         {
-            StorageClient = AzureSession.ClientFactory.CreateClient<StorageManagementClient>(
-                Utility.GetProfile(),
-                Microsoft.Azure.Common.Authentication.Models.AzureEnvironment.Endpoint.ServiceManagement);
+            if (isResourceMode)
+            {
+                StorageClient = AzureSession.ClientFactory.CreateClient<StorageManagementClient>(
+                    Utility.GetProfile(),
+                    Microsoft.Azure.Common.Authentication.Models.AzureEnvironment.Endpoint.ServiceManagement);
 
-            SRPStorageClient = AzureSession.ClientFactory.CreateClient<SRPManagement.StorageManagementClient>(
-                Utility.GetProfile(),
-                Microsoft.Azure.Common.Authentication.Models.AzureEnvironment.Endpoint.ResourceManager);
+                SRPStorageClient = AzureSession.ClientFactory.CreateClient<SRPManagement.StorageManagementClient>(
+                    Utility.GetProfile(),
+                    Microsoft.Azure.Common.Authentication.Models.AzureEnvironment.Endpoint.ResourceManager);
+            }
+            else
+            {
+                StorageClient = new StorageManagementClient(Utility.GetCertificateCloudCredential());
+            }
 
             this.language = language;
         }

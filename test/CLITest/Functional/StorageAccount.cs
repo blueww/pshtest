@@ -66,27 +66,27 @@ namespace Management.Storage.ScenarioTest
         [ClassInitialize()]
         public static void StorageAccountTestInit(TestContext testContext)
         {
+            string appPath = Test.Data.Get("LoginAppPath");
+
+            if (!string.IsNullOrEmpty(appPath))
+            {
+                Test.Info("Calling {0} to save credential token", appPath);
+                TestHelper.RunCmd(appPath, null);
+            }
+
             TestBase.TestClassInitialize(testContext);
 
             NodeJSAgent.AgentConfig.UseEnvVar = false;
-            
+
             managementClient = new ManagementClient(Utility.GetCertificateCloudCredential());
+
+            accountUtils = new AccountUtils(lang, isResourceMode);
 
             accountNameForConnectionStringTest = Test.Data.Get("StorageAccountName");
             primaryKeyForConnectionStringTest = Test.Data.Get("StorageAccountKey");
 
             if (isResourceMode)
             {
-                string appPath = Test.Data.Get("LoginAppPath");
-
-                if (!string.IsNullOrEmpty(appPath))
-                {
-                    Test.Info("Calling {0} to save credential token", appPath);
-                    TestHelper.RunCmd(appPath, null);
-                }
-
-                accountUtils = new AccountUtils(lang);
-
                 resourceLocation = accountUtils.GenerateAccountLocation(Constants.AccountType.Standard_GRS, true);
                 resourceManager = new ResourceManagerWrapper();
                 resourceGroupName = accountUtils.GenerateResourceGroupName();
@@ -1170,7 +1170,7 @@ namespace Management.Storage.ScenarioTest
 
                     if (isResourceMode)
                     {
-                        errorMsg = string.Format("Storage account type cannot be changed from Standard-ZRS to {0} or vice versa", info.Name.Replace('_', '-'));
+                        errorMsg = string.Format("Storage account type cannot be changed from Standard-ZRS to {0} or vice versa", ConvertAccountType(info.Name));
                         Test.Assert(!agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, newAccountType),
                             string.Format("Setting storage account {0} to type {1} should fail", accountName, newAccountType));
                     }
@@ -1181,21 +1181,20 @@ namespace Management.Storage.ScenarioTest
                             string.Format("Setting stoarge account {0} to type {1} should fail", accountName, newAccountType));
                     }
 
-                    if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS))
+                    if (Language.NodeJS == lang)
                     {
-                        errorMsg = Language.PowerShell == lang ?
-                            "Storage account type Standard-ZRS cannot be changed." :
-                            string.Format(NodeJSInvalidSetTypeError, newAccountType);
-                    }
-                    else if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
-                    {
-                        errorMsg = Language.PowerShell == lang ?
-                            "The AccountType Premium_LRS is invalid." :
-                            string.Format(NodeJSInvalidSetTypeError, newAccountType);
+                        if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS) ||
+                            newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
+                        {
+                            errorMsg = string.Format(NodeJSInvalidSetTypeError, newAccountType);
+                        }
                     }
                     else
                     {
-                        ExpectedContainErrorMessage(errorMsg);
+                        if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS))
+                        {
+                            errorMsg = "Storage account type Standard-ZRS cannot be changed.";
+                        }
                     }
 
                     ExpectedContainErrorMessage(errorMsg);
@@ -1208,6 +1207,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -1251,15 +1251,23 @@ namespace Management.Storage.ScenarioTest
                             string.Format("Setting stoarge account {0} to type {1} should fail", accountName, newAccountType));
                     }
 
-                    if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS) ||
-                        newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
+                    if (Language.NodeJS == lang)
                     {
-                        ExpectedContainErrorMessage(string.Format(NodeJSInvalidSetTypeError, newAccountType));
+                        if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS) ||
+                            newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
+                        {
+                            errorMsg = string.Format(NodeJSInvalidSetTypeError, newAccountType);
+                        }
                     }
                     else
-                    {
-                        ExpectedContainErrorMessage(errorMsg);
+                    { 
+                        if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
+                        {
+                            errorMsg = "Storage account type Provisioned-LRS cannot be changed.";
+                        }
                     }
+                    
+                    ExpectedContainErrorMessage(errorMsg);
                 }
             }
             finally
@@ -1309,19 +1317,11 @@ namespace Management.Storage.ScenarioTest
                         string.Format("Setting stoarge account {0} to type {1} should fail", accountName, type));
                 }
 
-                string errorMessage = string.Format(NodeJSInvalidSetTypeError, type);
+                string errorMessage = string.Format("Storage account type cannot be changed from Standard-LRS to {0} or vice versa.", ConvertAccountType(targetAccountType)); 
 
-                if (Language.PowerShell == lang)
+                if (Language.NodeJS == lang)
                 {
-                    if (string.Equals(Constants.AccountType.Standard_ZRS, type))
-                    {
-                        errorMessage = "Storage account type cannot be changed from Standard-LRS to Standard-ZRS or vice versa.";
-                    }
-
-                    if (string.Equals(Constants.AccountType.Premium_LRS, type))
-                    {
-                        errorMessage = "The AccountType Premium_LRS is invalid.";
-                    }
+                    errorMessage = string.Format(NodeJSInvalidSetTypeError, type);
                 }
 
                 ExpectedContainErrorMessage(errorMessage);
@@ -2076,6 +2076,18 @@ namespace Management.Storage.ScenarioTest
             {
                 Thread.Sleep(60000);
             }
+        }
+
+        private string ConvertAccountType(string accountType)
+        {
+            string accountTypeInErrorMessage = accountType.Replace('_', '-');
+
+            if (Language.PowerShell == lang)
+            {
+                return accountTypeInErrorMessage.Replace("Premium", "Provisioned");
+            }
+
+            return accountTypeInErrorMessage;
         }
 
         private enum ServiceType { Blob, Queue, Table, File }
