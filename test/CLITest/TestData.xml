@@ -3,38 +3,54 @@
   <wttlogger>true</wttlogger>
   <consolelogger>true</consolelogger>
   <filelogger>true</filelogger>
-  <logfilename>__Powershell__Functional__</logfilename>
+  <logfilename>__CLI__Test__</logfilename>
   <loginfo>true</loginfo>
   <logverbose>true</logverbose>
   <logwarning>true</logwarning>
   <logerror>true</logerror>
+  
+  <!-- These settings are for both resource mode and service mode for the subscription information -->
   <IsResourceMode></IsResourceMode>
+  <AzureSubscriptionName></AzureSubscriptionName>
+  <AzureSubscriptionID></AzureSubscriptionID>
 
-  <ResourceModuleFilePath>C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager\AzureResourceManager.psd1</ResourceModuleFilePath>
-  <ManagementCert></ManagementCert>
-  <CertPassword></CertPassword>
+  <!-- These settings are only for resource mode which requires AAD authentication -->
   <AADRealm>72f988bf-86f1-41af-91ab-2d7cd011db47</AADRealm>
   <AADClient>f64ce98e-0381-4800-b914-1022149a2fa5</AADClient>
   <AADUser>xtestlab@microsoft.com</AADUser>
   <AADPassword></AADPassword>
   <AutoLogin></AutoLogin>
   <LoginAppPath>D:\powershell\SaveTokenCache\SaveTokenCache.exe</LoginAppPath>
+
+  <!-- These settings are only for service mode which accepts certificate authentication -->
+  <ManagementCert></ManagementCert>
+  <CertPassword></CertPassword>
   <AzureSubscriptionPath></AzureSubscriptionPath>
-  <AzureSubscriptionName></AzureSubscriptionName>
-  <AzureSubscriptionID></AzureSubscriptionID>
-  <SubscriptionStorageAccountName></SubscriptionStorageAccountName>
+
+  <!-- These settings are for Powershell only -->
+  <PSSnapInName></PSSnapInName>
+  <ModuleFilePath></ModuleFilePath>
+  <ResourceModuleFilePath>C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager\AzureResourceManager.psd1</ResourceModuleFilePath>
+
+  <!-- These settings are for platform specific -->
+  <PLinkPath></PLinkPath>
+  <UserName></UserName>
+  <HostName></HostName>
+  <Port>22</Port>
+  <PrivateKeyPath></PrivateKeyPath>
+  <AgentOS></AgentOS>
+
+  <!-- The following settings are for storage data tests -->
   <StorageAccountName>testaccount1</StorageAccountName>
   <StorageAccountKey>FjUfNl1KiJttbXlsdkMzBTC7WagvrRM9/g6UPBuy0ypCpAbYTL6/KA+dI/7gyoWvLFYmah3IviUP1jykOHHOlA==</StorageAccountKey>
   <StorageConnectionString>DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/testaccount1;QueueEndpoint=http://127.0.0.1:10001/testaccount1;TableEndpoint=http://127.0.0.1:10002/testaccount1;FileEndpoint=http://127.0.0.1:10004/testaccount1;AccountName=testaccount1;AccountKey=FjUfNl1KiJttbXlsdkMzBTC7WagvrRM9/g6UPBuy0ypCpAbYTL6/KA+dI/7gyoWvLFYmah3IviUP1jykOHHOlA==</StorageConnectionString>
   <StorageConnectionString2></StorageConnectionString2>
   <Pre42StorageConnectionString></Pre42StorageConnectionString>
-  <ModuleFilePath></ModuleFilePath>
   <StorageEndPoint>core.windows.net</StorageEndPoint>
   <SecondaryStorageAccountName></SecondaryStorageAccountName>
   <SecondaryStorageAccountKey></SecondaryStorageAccountKey>
   <SecondaryStorageEndPoint>core.windows.net</SecondaryStorageEndPoint>
 
-  <PSSnapInName></PSSnapInName>
   <NodeWorkingDirectory>.</NodeWorkingDirectory>
   <BigFileUri>http://xdmtest.blob.core.windows.net/public/Fedora-18-x86_64-Live-Desktop.iso</BigFileUri>
   <HttpsCopyHosts>core.windows.net</HttpsCopyHosts>
@@ -64,10 +80,4 @@
   </TestClass>
   <FileName>testfile</FileName>
   <FolderName>testfolder</FolderName>
-  <PLinkPath></PLinkPath>
-  <UserName></UserName>
-  <HostName></HostName>
-  <Port>22</Port>
-  <PrivateKeyPath></PrivateKeyPath>
-  <AgentOS>windows</AgentOS>
 </TestConfig>
