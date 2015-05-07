@@ -530,7 +530,14 @@
                 if (assertNoError)
                 {
                     agent.AssertNoError();
-                    result.AssertNoResult();
+                    if (lang == Language.NodeJS)
+                    {
+                        result.AssertObjectCollection(obj => result.AssertCloudFile(obj, sourceFile.Name));
+                    }
+                    else
+                    {
+                        result.AssertNoResult();
+                    }
 
                     if (File.Exists(destination))
                     {
