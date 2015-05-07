@@ -82,8 +82,7 @@ namespace Management.Storage.ScenarioTest
 
             accountUtils = new AccountUtils(lang, isResourceMode);
 
-            accountNameForConnectionStringTest = Test.Data.Get("StorageAccountName");
-            primaryKeyForConnectionStringTest = Test.Data.Get("StorageAccountKey");
+            accountNameForConnectionStringTest = accountUtils.GenerateAccountName();
 
             if (isResourceMode)
             {
@@ -98,6 +97,17 @@ namespace Management.Storage.ScenarioTest
                 accountUtils.SRPStorageClient.StorageAccounts.CreateAsync(resourceGroupName, accountNameForConnectionStringTest, parameters, CancellationToken.None).Wait();
                 var keys = accountUtils.SRPStorageClient.StorageAccounts.ListKeysAsync(resourceGroupName, accountNameForConnectionStringTest, CancellationToken.None).Result;
                 primaryKeyForConnectionStringTest = keys.StorageAccountKeys.Key1;
+            }
+            else 
+            {
+                var parameters = new StorageAccountCreateParameters();
+                parameters.Name = accountNameForConnectionStringTest;
+                parameters.Label = "Test account in service mode";
+                parameters.AccountType = Constants.AccountType.Standard_GRS;
+                parameters.Location = Constants.Location.WestUS;
+                accountUtils.StorageClient.StorageAccounts.CreateAsync(parameters).Wait();
+                var keys = accountUtils.StorageClient.StorageAccounts.GetKeysAsync(accountNameForConnectionStringTest).Result;
+                primaryKeyForConnectionStringTest = keys.PrimaryKey;
             }
         }
 
@@ -114,6 +124,17 @@ namespace Management.Storage.ScenarioTest
                 catch (Exception ex)
                 {
                     Test.Info(string.Format("SRP cleanup exception: {0}", ex));
+                }
+            }
+            else
+            {
+                try
+                {
+                    accountUtils.StorageClient.StorageAccounts.DeleteAsync(accountNameForConnectionStringTest).Wait();
+                }
+                catch (Exception ex)
+                {
+                    Test.Info(string.Format("Account cleanup exception: {0}", ex));
                 }
             }
 

@@ -53,33 +53,6 @@
             OnTestSetup();
         }
 
-        public override void OnTestSetup()
-        {
-            if (!accountImported && lang == Language.NodeJS)
-            {
-                NodeJSAgent nodeAgent = (NodeJSAgent)agent;
-                nodeAgent.ImportAzureSubscription(Test.Data.Get("AzureSubscriptionPath"));
-
-                string subscriptionID = Test.Data.Get("AzureSubscriptionID");
-                if (!string.IsNullOrEmpty(subscriptionID))
-                {
-                    nodeAgent.SetActiveSubscription(subscriptionID);
-                }
-                else
-                {
-                    string subscriptionName = Test.Data.Get("AzureSubscriptionName");
-                    if (!string.IsNullOrEmpty(subscriptionName))
-                    {
-                        nodeAgent.SetActiveSubscription(subscriptionName);
-                    }
-                }
-            }
-
-            accountImported = true;
-        }
-
-        private bool accountImported = false;
-
         /// <summary>
         /// Generate temp files
         /// </summary>

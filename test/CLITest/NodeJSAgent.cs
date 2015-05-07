@@ -1844,12 +1844,23 @@ namespace Management.Storage.ScenarioTest
         ///-------------------------------------
         public override void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, bool useHttps = true)
         {
+            this.SetStorageContextWithSASToken(StorageAccountName, sasToken, null, useHttps);
+        }
+
+        public override void SetStorageContextWithSASToken(string StorageAccountName, string sasToken,  string endpoint,  bool useHttps = true)
+        {
             AgentConfig.AccountName = StorageAccountName;
             AgentConfig.SAS = sasToken;
         }
 
         public override string SetContextWithSASToken(string accountName, CloudBlobUtil blobUtil, StorageObjectType objectType,
             string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null)
+        {
+            return this.SetContextWithSASToken(accountName, blobUtil, objectType, null, policy, permission, startTime, expiryTime);
+        }
+
+        public override string SetContextWithSASToken(string accountName, CloudBlobUtil blobUtil, StorageObjectType objectType,
+            string endpoint, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null)
         {
             string sastoken = string.Empty;
             switch (objectType)
