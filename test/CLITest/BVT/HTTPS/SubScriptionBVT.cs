@@ -14,8 +14,15 @@
 
 namespace Management.Storage.ScenarioTest.BVT.HTTPS
 {
+    using System.Collections.Generic;
+    using System.Security.Cryptography.X509Certificates;
     using Management.Storage.ScenarioTest.Common;
+    using Management.Storage.ScenarioTest.Util;
+    using Microsoft.Azure.Management.Resources;
+    using Microsoft.Azure.Management.Storage;
+    using Microsoft.Azure.Management.Storage.Models;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.WindowsAzure;
     using MS.Test.Common.MsTestLib;
     using StorageTestLib;
 

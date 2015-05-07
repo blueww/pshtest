@@ -17,13 +17,17 @@ namespace Management.Storage.ScenarioTest
     using System;
     using System.Collections;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
+    using System.IO;
     using System.Linq;
-    using System.Reflection;
+    using System.Security;
+    using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using System.Threading;
     using Management.Storage.ScenarioTest.Util;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.Azure;
+    using Microsoft.Azure.Common.Authentication;
+    using Microsoft.Azure.Common.Authentication.Models;
+    using Microsoft.IdentityModel.Clients.ActiveDirectory;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Auth;
     using Microsoft.WindowsAzure.Storage.Blob;
@@ -43,7 +47,7 @@ namespace Management.Storage.ScenarioTest
         public static List<string> TablePermissionNode = new List<string>() { "r", "a", "u", "d" };
         public static List<string> QueuePermission = new List<string>() { "r", "a", "u", "p" };
 
-        internal static int RetryLimit = 6;
+        internal static int RetryLimit = 7;
 
         /// <summary>
         /// Generate a random string for azure object name
@@ -203,6 +207,57 @@ namespace Management.Storage.ScenarioTest
         public static string GenConnectionString(string StorageAccountName, string StorageAccountKey)
         {
             return String.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}", StorageAccountName, StorageAccountKey);
+        }
+
+        public static AzureProfile GetProfile()
+        {
+            AzureSession.ClientFactory.AddAction(new RPRegistrationAction());
+            AzureSession.DataStore = new DiskDataStore();
+            AzureSession.TokenCache = new ProtectedFileTokenCache(Path.Combine(AzureSession.ProfileDirectory, AzureSession.TokenCacheFile));
+
+            AzureProfile azureProfile = new AzureProfile(Path.Combine(AzureSession.ProfileDirectory, AzureSession.ProfileFile));
+            ProfileClient profileClient = new ProfileClient(azureProfile);
+
+            string passwd = Test.Data.Get("AADPassword");
+
+            if (!string.IsNullOrEmpty(passwd))
+            {
+                SecureString securePassword = null;
+
+                unsafe
+                {
+                    fixed (char* ppw = passwd.ToCharArray())
+                    {
+                        securePassword = new SecureString(ppw, passwd.Length);
+                    }
+                }
+
+                try
+                {
+                    profileClient.AddAccountAndLoadSubscriptions(new AzureAccount()
+                    {
+                        Id = Test.Data.Get("AADUser"),
+                        Type = AzureAccount.AccountType.User
+                    }, profileClient.GetEnvironmentOrDefault(null), securePassword);
+                }
+                catch (Exception ex)
+                {
+                    Test.Info("Got exception when try to logon {0}", ex.Message);
+                    Test.Info("For we can load token from disk cache, ignore this error here.");
+                }
+            }
+            
+            profileClient.SetSubscriptionAsDefault(Test.Data.Get("AzureSubscriptionName"), Test.Data.Get("AADUser"));
+
+            return profileClient.Profile;
+        }
+
+        public static CertificateCloudCredentials GetCertificateCloudCredential()
+        {
+            string certFile = Test.Data.Get("ManagementCert");
+            string certPassword = Test.Data.Get("CertPassword");
+            X509Certificate2 cert = new X509Certificate2(certFile, certPassword);
+            return new CertificateCloudCredentials(Test.Data.Get("AzureSubscriptionID"), cert);
         }
 
         /// <summary>
@@ -510,6 +565,11 @@ namespace Management.Storage.ScenarioTest
             }
             while (retry <= RetryLimit);
 
+            if (retry > RetryLimit)
+            {
+                Test.Warn("Has been up to retry limit, this case may fail due to setting has not taken effect yet.");
+            }
+
             return properties;
         }
 
@@ -550,6 +610,11 @@ namespace Management.Storage.ScenarioTest
                 }
             }
             while (retry <= RetryLimit);
+
+            if (retry > RetryLimit)
+            {
+                Test.Warn("Has been up to retry limit, this case may fail due to setting has not taken effect yet.");
+            }
 
             return properties;
         }
@@ -974,7 +1039,14 @@ namespace Management.Storage.ScenarioTest
 
         internal static bool IsEqualPolicy<T>(T actualPolicy, Utility.RawStoredAccessPolicy expectedPolicy)
         {
-            object[] parameter = {expectedPolicy.Permission};
+            string permissionTmp = expectedPolicy.Permission;
+
+            if (actualPolicy is SharedAccessTablePolicy)
+            {
+                permissionTmp = expectedPolicy.Permission.Replace('q', 'r');
+            }
+
+            object[] parameter = { permissionTmp };
             var permission = typeof(T).GetMethod("PermissionsFromString").Invoke(null, parameter);
             bool equal = IsEqualTime(((dynamic)actualPolicy).SharedAccessStartTime, expectedPolicy.StartTime);
             equal = equal && IsEqualTime(((dynamic)actualPolicy).SharedAccessExpiryTime, expectedPolicy.ExpiryTime);
