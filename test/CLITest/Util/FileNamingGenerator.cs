@@ -45,6 +45,8 @@
                       !x.IsAbstract)
             .Select(x => Activator.CreateInstance(x, InvalidFileNameCharacters)).Cast<UnicodeGenerator>().ToArray();
 
+        private static Random RandomGen = new Random();
+
         public static IEnumerable<string> GenerateValidateUnicodeName(int length)
         {
             if (AgentFactory.GetOSType() != OSType.Windows)
@@ -112,8 +114,7 @@
 
         public static string GenerateASCIINameWithInvalidCharacters(int length)
         {
-            Random r = new Random();
-            int numberOfInavlidCharacters = r.Next(1, length);
+            int numberOfInavlidCharacters = RandomGen.Next(1, length);
             int numberOfValidCharacters = length - numberOfInavlidCharacters;
             StringBuilder sb = new StringBuilder(GenerateNameFromRange(numberOfValidCharacters, ValidASCIIRange));
             var invalidCharList = new List<char>(InvalidFileNameCharacters);
@@ -132,8 +133,8 @@
 
             for (int i = 0; i < numberOfInavlidCharacters; i++)
             {
-                int position = r.Next(sb.Length);
-                char invalidCharacter = invalidCharList[r.Next(invalidCharList.Count)];
+                int position = RandomGen.Next(sb.Length);
+                char invalidCharacter = invalidCharList[RandomGen.Next(invalidCharList.Count)];
                 sb.Insert(position, invalidCharacter);
             }
 

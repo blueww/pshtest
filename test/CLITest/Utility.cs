@@ -17,13 +17,17 @@ namespace Management.Storage.ScenarioTest
     using System;
     using System.Collections;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
+    using System.IO;
     using System.Linq;
-    using System.Reflection;
+    using System.Security;
+    using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using System.Threading;
     using Management.Storage.ScenarioTest.Util;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.Azure;
+    using Microsoft.Azure.Common.Authentication;
+    using Microsoft.Azure.Common.Authentication.Models;
+    using Microsoft.IdentityModel.Clients.ActiveDirectory;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Auth;
     using Microsoft.WindowsAzure.Storage.Blob;
@@ -43,7 +47,7 @@ namespace Management.Storage.ScenarioTest
         public static List<string> TablePermissionNode = new List<string>() { "r", "a", "u", "d" };
         public static List<string> QueuePermission = new List<string>() { "r", "a", "u", "p" };
 
-        internal static int RetryLimit = 6;
+        internal static int RetryLimit = 7;
 
         /// <summary>
         /// Generate a random string for azure object name
@@ -205,6 +209,52 @@ namespace Management.Storage.ScenarioTest
             return String.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}", StorageAccountName, StorageAccountKey);
         }
 
+        public static AzureProfile GetProfile()
+        {
+            AzureSession.ClientFactory.AddAction(new RPRegistrationAction());
+            AzureSession.DataStore = new DiskDataStore();
+            AzureSession.TokenCache = new ProtectedFileTokenCache(Path.Combine(AzureSession.ProfileDirectory, AzureSession.TokenCacheFile));
+
+            AzureProfile azureProfile = new AzureProfile(Path.Combine(AzureSession.ProfileDirectory, AzureSession.ProfileFile));
+            ProfileClient profileClient = new ProfileClient(azureProfile);
+
+            if (GetAutoLogin())
+            {
+                string passwd = Test.Data.Get("AADPassword");
+
+                if (!string.IsNullOrEmpty(passwd))
+                {
+                    SecureString securePassword = null;
+
+                    unsafe
+                    {
+                        fixed (char* ppw = passwd.ToCharArray())
+                        {
+                            securePassword = new SecureString(ppw, passwd.Length);
+                        }
+                    }
+
+                    profileClient.AddAccountAndLoadSubscriptions(new AzureAccount()
+                    {
+                        Id = Test.Data.Get("AADUser"),
+                        Type = AzureAccount.AccountType.User
+                    }, profileClient.GetEnvironmentOrDefault(null), securePassword);
+                }
+            }
+            
+            profileClient.SetSubscriptionAsDefault(Test.Data.Get("AzureSubscriptionName"), Test.Data.Get("AADUser"));
+
+            return profileClient.Profile;
+        }
+
+        public static CertificateCloudCredentials GetCertificateCloudCredential()
+        {
+            string certFile = Test.Data.Get("ManagementCert");
+            string certPassword = Test.Data.Get("CertPassword");
+            X509Certificate2 cert = new X509Certificate2(certFile, certPassword);
+            return new CertificateCloudCredentials(Test.Data.Get("AzureSubscriptionID"), cert);
+        }
+
         /// <summary>
         /// Generate the data for output comparison
         /// </summary> 
@@ -321,6 +371,18 @@ namespace Management.Storage.ScenarioTest
                 throw e;
             }
             return bytes;
+        }
+
+        public static bool GetAutoLogin()
+        {
+            string autoLogin = Test.Data.Get("AutoLogin");
+
+            if (!string.IsNullOrEmpty(autoLogin))
+            {
+                return bool.Parse(autoLogin);
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -510,6 +572,11 @@ namespace Management.Storage.ScenarioTest
             }
             while (retry <= RetryLimit);
 
+            if (retry > RetryLimit)
+            {
+                Test.Warn("Has been up to retry limit, this case may fail due to setting has not taken effect yet.");
+            }
+
             return properties;
         }
 
@@ -550,6 +617,11 @@ namespace Management.Storage.ScenarioTest
                 }
             }
             while (retry <= RetryLimit);
+
+            if (retry > RetryLimit)
+            {
+                Test.Warn("Has been up to retry limit, this case may fail due to setting has not taken effect yet.");
+            }
 
             return properties;
         }
@@ -795,6 +867,16 @@ namespace Management.Storage.ScenarioTest
             {
                 throw new Exception("Unknown Service Type!");
             }
+        }
+
+        public static string SqueezeSpaces(string value)
+        {
+            while (value.IndexOf("  ") != -1)
+            {
+                value = value.Replace("  ", " ");
+            }
+
+            return value;
         }
 
         /// <summary>

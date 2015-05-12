@@ -1,4 +1,5 @@
 git submodule init
+git submodule sync
 git submodule update
 
 echo "update submodule azcopy"
@@ -14,7 +15,7 @@ cd ..
 echo "update submodule xplat"
 cd Xplat
 git fetch
-git reset origin/next --hard
+git reset origin/dev --hard
 cd ..
 
 if [%1] == [JENKINS] GOTO :JENKINS
