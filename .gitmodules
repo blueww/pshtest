@@ -3,7 +3,7 @@
 	url = https://github.com/wastoresh/azure-storage-azcopy-pr.git
 [submodule "PowerShell"]
 	path = PowerShell
-	url = https://github.com/wastoresh/azure-powershell.git
+	url = https://github.com/wastoresh/azure-powershell-pr.git
 [submodule "Xplat"]
 	path = Xplat
-	url = https://github.com/wastoresh/azure-xplat-cli.git
+	url = https://github.com/wastoresh/azure-xplat-cli-pr.git

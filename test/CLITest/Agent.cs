@@ -17,6 +17,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Management.Storage.ScenarioTest.Util;
+using Microsoft.Azure.Management.Storage.Models;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.File;
 using Microsoft.WindowsAzure.Storage.Queue;
@@ -73,12 +74,47 @@ namespace Management.Storage.ScenarioTest
                 expectedErrorMessage, ErrorMessages[0]));
         }
 
+        public abstract bool ChangeCLIMode(Constants.Mode mode);
+
+        public abstract void ImportAzureSubscription(string settingFile);
+
+        public abstract void SetActiveSubscription(string subscriptionId);
+        
+        public abstract bool Login();
+
+        public abstract void Logout();
+
+        #region Account Keys
+        public abstract bool ShowAzureStorageAccountConnectionString(string accountName, string resourceGroupName = null);
+
+        public abstract bool ShowAzureStorageAccountKeys(string accountName);
+
+        public abstract bool RenewAzureStorageAccountKeys(string accountName, Constants.AccountKeyType type);
+        #endregion
+
         #region Account
-        public abstract bool ShowAzureStorageAccountConnectionString(string accountName);
 
-        public abstract bool createAzureStorageAccount(string accountName, string subscription, string label, string description, string location, string affinityGroup, string type, bool? geoReplication = null);
+        public abstract bool CreateAzureStorageAccount(string accountName, string subscription, string label, string description, string location, string affinityGroup, string type, bool? geoReplication = null);
 
-        public abstract bool setAzureStorageAccount(string accountName, string label, string description, string type, bool? geoReplication = null);
+        public abstract bool SetAzureStorageAccount(string accountName, string label, string description, string type, bool? geoReplication = null);
+
+        public abstract bool DeleteAzureStorageAccount(string accountName);
+
+        public abstract bool ShowAzureStorageAccount(string accountName);
+        #endregion
+
+        #region SRPAccount
+        public abstract bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string type, string location);
+
+        public abstract bool SetSRPAzureStorageAccount(string resourceGroupName, string accountName, string accountType);
+
+        public abstract bool DeleteSRPAzureStorageAccount(string resourceGroup, string accountName);
+
+        public abstract bool ShowSRPAzureStorageAccount(string resourceGroup, string accountName);
+
+        public abstract bool ShowSRPAzureStorageAccountKeys(string resourceGroup, string accountName);
+
+        public abstract bool RenewSRPAzureStorageAccountKeys(string resourceGroupName, string accountName, Constants.AccountKeyType type);
         #endregion
 
         #region Container
@@ -228,6 +264,11 @@ namespace Management.Storage.ScenarioTest
         public abstract string SetContextWithSASToken(string accountName, CloudBlobUtil blobUtil, StorageObjectType objectType,
             string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null);
 
+        public abstract string SetContextWithSASToken(string accountName, CloudBlobUtil blobUtil, StorageObjectType objectType,
+            string endpoint, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null);
+
+        public abstract void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, string endpoint, bool useHttps = true);
+
         public abstract void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, bool useHttps = true);
         #endregion
 
@@ -275,6 +316,7 @@ namespace Management.Storage.ScenarioTest
         public abstract void OutputValidation(IEnumerable<ICloudBlob> blobs);
         public abstract void OutputValidation(IEnumerable<CloudTable> tables);
         public abstract void OutputValidation(IEnumerable<CloudQueue> queues);
+        public virtual void OutputValidation(IEnumerable<StorageAccount> accounts) { throw new NotImplementedException(NotImplemented); }
         public virtual void OutputValidation(ServiceProperties serviceProperties, string propertiesType) { throw new NotImplementedException(NotImplemented); }
         #endregion
 
