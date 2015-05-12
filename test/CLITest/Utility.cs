@@ -218,32 +218,27 @@ namespace Management.Storage.ScenarioTest
             AzureProfile azureProfile = new AzureProfile(Path.Combine(AzureSession.ProfileDirectory, AzureSession.ProfileFile));
             ProfileClient profileClient = new ProfileClient(azureProfile);
 
-            string passwd = Test.Data.Get("AADPassword");
-
-            if (!string.IsNullOrEmpty(passwd))
+            if (GetAutoLogin())
             {
-                SecureString securePassword = null;
+                string passwd = Test.Data.Get("AADPassword");
 
-                unsafe
+                if (!string.IsNullOrEmpty(passwd))
                 {
-                    fixed (char* ppw = passwd.ToCharArray())
+                    SecureString securePassword = null;
+
+                    unsafe
                     {
-                        securePassword = new SecureString(ppw, passwd.Length);
+                        fixed (char* ppw = passwd.ToCharArray())
+                        {
+                            securePassword = new SecureString(ppw, passwd.Length);
+                        }
                     }
-                }
 
-                try
-                {
                     profileClient.AddAccountAndLoadSubscriptions(new AzureAccount()
                     {
                         Id = Test.Data.Get("AADUser"),
                         Type = AzureAccount.AccountType.User
                     }, profileClient.GetEnvironmentOrDefault(null), securePassword);
-                }
-                catch (Exception ex)
-                {
-                    Test.Info("Got exception when try to logon {0}", ex.Message);
-                    Test.Info("For we can load token from disk cache, ignore this error here.");
                 }
             }
             
@@ -376,6 +371,18 @@ namespace Management.Storage.ScenarioTest
                 throw e;
             }
             return bytes;
+        }
+
+        public static bool GetAutoLogin()
+        {
+            string autoLogin = Test.Data.Get("AutoLogin");
+
+            if (!string.IsNullOrEmpty(autoLogin))
+            {
+                return bool.Parse(autoLogin);
+            }
+
+            return false;
         }
 
         /// <summary>
