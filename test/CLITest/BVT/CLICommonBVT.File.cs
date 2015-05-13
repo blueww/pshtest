@@ -1,6 +1,8 @@
 ﻿namespace Management.Storage.ScenarioTest.BVT
 {
     using System;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
     using Management.Storage.ScenarioTest.Util;
@@ -522,6 +524,65 @@
             });
         }
 
+        /// <summary>
+        /// Test Plan 8.48 BVT
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
+        public void NewShareStoredPolicyTest()
+        {
+            SharedAccessPolicyTest((share, samplePolicy) =>
+                {
+                    Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                        "Create stored access policy in file share should succeed");
+                    Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
+
+                    SharedAccessFilePolicies expectedPolicies = new SharedAccessFilePolicies();
+                    expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission));
+
+                    Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, samplePolicy);
+
+                    Utility.ValidateStoredAccessPolicies<SharedAccessFilePolicy>(share.GetPermissions().SharedAccessPolicies, expectedPolicies);
+                });
+        }
+
+        /// <summary>
+        /// Test Plan 8.49 BVT
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
+        public void GetShareStoredPolicyTest()
+        {
+            SharedAccessPolicyTest((share, samplePolicy) =>
+                {
+                    Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                        "Create stored access policy in file share should succeed");
+                    Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
+
+                    SharedAccessFilePolicies expectedPolicies = new SharedAccessFilePolicies();
+                    expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission));
+
+                    Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, samplePolicy);
+
+                    Test.Assert(agent.GetAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName),
+                        "Get stored access policy in file share should succeed");
+                    Test.Info("Get stored access policy:{0}", samplePolicy.PolicyName);
+
+                    SharedAccessFilePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission);
+                    Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
+                    comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessFilePolicy>(policy, samplePolicy.PolicyName));
+                    agent.OutputValidation(comp);
+                });
+        }
+
         private void NewDirectoryTest(Action<CloudFileShare, string> newDirectoryAction)
         {
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
@@ -689,6 +750,34 @@
             finally
             {
                 agent.Dispose();
+                fileUtil.DeleteFileShareIfExists(fileShareName);
+            }
+        }
+
+        private void SharedAccessPolicyTest(Action<CloudFileShare, Utility.RawStoredAccessPolicy> testAction)
+        {
+            if (!this.ShouldRunFileTest())
+            {
+                return;
+            }
+
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip NewShareStoredPolicyTest as Azure emulator does not support stored access policy");
+                return;
+            }
+
+            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
+            CloudFileShare share = fileUtil.EnsureFileShareExists(fileShareName);
+            Utility.ClearStoredAccessPolicy<CloudFileShare>(share);
+            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessFilePolicy>(lang == Language.NodeJS)[0];
+
+            try
+            {
+                testAction(share, samplePolicy);
+            }
+            finally
+            {
                 fileUtil.DeleteFileShareIfExists(fileShareName);
             }
         }

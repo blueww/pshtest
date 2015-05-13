@@ -2844,6 +2844,38 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+        public override bool NewAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions, DateTime? startTime, DateTime? expiryTime)
+        {
+            this.Clear();
+
+            this.shell.AddCommand("New-AzureStorageShareStoredAccessPolicy");
+            this.shell.BindParameter("ShareName", shareName);
+            this.shell.BindParameter("Policy", policyName);
+            this.shell.BindParameter("Permission", permissions);
+            this.shell.BindParameter("StartTime", startTime);
+            this.shell.BindParameter("ExpiryTime", expiryTime);
+            
+            ParseCollection(this.shell.Invoke());
+            ParseErrorMessages(this.shell);
+
+            return !this.shell.HadErrors;
+        }
+
+        public override bool GetAzureStorageShareStoredAccessPolicy(string shareName, string policyName)
+        {
+            this.Clear();
+
+            this.shell.AddCommand("Get-AzureStorageShareStoredAccessPolicy");
+            this.shell.BindParameter("ShareName", shareName);
+            this.shell.BindParameter("Policy", policyName);
+
+            ParseCollection(this.shell.Invoke());
+            ParseErrorMessages(this.shell);
+
+            return !this.shell.HadErrors;
+
+        }
+
         public override IExecutionResult Invoke(IEnumerable input = null, bool traceCommand = true)
         {
             if (traceCommand)

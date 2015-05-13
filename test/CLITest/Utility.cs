@@ -696,7 +696,8 @@ namespace Management.Storage.ScenarioTest
                 permission2 = "aud";
                 permission3 = "ud";
             }
-            else if (typeof(T) == typeof(SharedAccessBlobPolicy))
+            else if ((typeof(T) == typeof(SharedAccessBlobPolicy))
+                || (typeof(T) == typeof(SharedAccessFilePolicy)))
             {
                 permission1 = "rwdl";
                 permission2 = "wdl";
@@ -768,6 +769,12 @@ namespace Management.Storage.ScenarioTest
                 permissions.SharedAccessPolicies.Clear();
                 ((CloudQueue)(Object)serviceRef).SetPermissions(permissions);
             }
+            else if (typeof(T) == typeof(CloudFileShare))
+            {
+                FileSharePermissions permissions = ((CloudFileShare)(Object)serviceRef).GetPermissions();
+                permissions.SharedAccessPolicies.Clear();
+                ((CloudFileShare)(Object)serviceRef).SetPermissions(permissions);
+            }
             else
             {
                 throw new Exception("Unknown Service Type!");
@@ -778,7 +785,8 @@ namespace Management.Storage.ScenarioTest
         {
             if (!(typeof(T) == typeof(SharedAccessTablePolicy) ||
                typeof(T) == typeof(SharedAccessBlobPolicy) ||
-               typeof(T) == typeof(SharedAccessQueuePolicy)))
+               typeof(T) == typeof(SharedAccessQueuePolicy) ||
+               typeof(T) == typeof(SharedAccessFilePolicy)))
             {
                 throw new Exception("Unknown Policy Type!");
             }
@@ -801,7 +809,8 @@ namespace Management.Storage.ScenarioTest
         {
             if (!(typeof(T) == typeof(SharedAccessTablePolicy) ||
                typeof(T) == typeof(SharedAccessBlobPolicy) ||
-               typeof(T) == typeof(SharedAccessQueuePolicy)))
+               typeof(T) == typeof(SharedAccessQueuePolicy) ||
+               typeof(T) == typeof(SharedAccessFilePolicy)))
             {
                 throw new Exception("Unknown Policy Type!");
             }
@@ -1023,6 +1032,12 @@ namespace Management.Storage.ScenarioTest
                     else if (typeof(T) == typeof(CloudQueue))
                     { 
                         SharedAccessQueuePolicy output = null;
+                        match = ((dynamic)resource).GetPermissions().SharedAccessPolicies.TryGetValue(expectedPolicy.PolicyName, out output);
+                        policy = output;
+                    }
+                    else if (typeof(T) == typeof(CloudFileShare))
+                    {
+                        SharedAccessFilePolicy output = null;
                         match = ((dynamic)resource).GetPermissions().SharedAccessPolicies.TryGetValue(expectedPolicy.PolicyName, out output);
                         policy = output;
                     }
