@@ -401,6 +401,10 @@ namespace Management.Storage.ScenarioTest
 
         public abstract void UploadFile(string fileShareName, string source, string path, bool overwrite = false, bool passThru = false, object contextObject = null);
 
+        public abstract bool NewAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions, DateTime? startTime, DateTime? expiryTime);
+
+        public abstract bool GetAzureStorageShareStoredAccessPolicy(string shareName, string policyName);
+
         public abstract void AssertNoError();
 
         public abstract IExecutionResult Invoke(IEnumerable input = null, bool traceCommand = true);

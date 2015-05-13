@@ -1493,6 +1493,16 @@ namespace Management.Storage.ScenarioTest
             this.RunNodeJSProcess(sb.ToString(), overwrite, needAccountParam: needAccountParam);
         }
 
+        public override bool NewAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions, DateTime? startTime, DateTime? expiryTime)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool GetAzureStorageShareStoredAccessPolicy(string shareName, string policyName)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void AssertNoError()
         {
             Test.Assert(!this.HadErrors, "Should execute command without error.");
