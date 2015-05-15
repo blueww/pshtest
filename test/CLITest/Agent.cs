@@ -405,6 +405,11 @@ namespace Management.Storage.ScenarioTest
 
         public abstract bool GetAzureStorageShareStoredAccessPolicy(string shareName, string policyName);
 
+        public abstract bool RemoveAzureStorageShareStoredAccessPolicy(string shareName, string policyName);
+
+        public abstract bool SetAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions,
+            DateTime? startTime, DateTime? expiryTime, bool noStartTime = false, bool noExpiryTime = false);
+
         public abstract void AssertNoError();
 
         public abstract IExecutionResult Invoke(IEnumerable input = null, bool traceCommand = true);

@@ -5,6 +5,7 @@
     using System.Collections.ObjectModel;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using Management.Storage.ScenarioTest.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Microsoft.WindowsAzure.Storage.File;
@@ -535,8 +536,9 @@
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewShareStoredPolicyTest()
         {
-            SharedAccessPolicyTest((share, samplePolicy) =>
+            SharedAccessPolicyTest((share, samplePolicies) =>
                 {
+                    var samplePolicy = samplePolicies[0];
                     Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                         "Create stored access policy in file share should succeed");
                     Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
@@ -561,15 +563,13 @@
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void GetShareStoredPolicyTest()
         {
-            SharedAccessPolicyTest((share, samplePolicy) =>
+            SharedAccessPolicyTest((share, samplePolicies) =>
                 {
+                    var samplePolicy = samplePolicies[0];
                     Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                         "Create stored access policy in file share should succeed");
                     Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
-
-                    SharedAccessFilePolicies expectedPolicies = new SharedAccessFilePolicies();
-                    expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission));
-
+                    
                     Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, samplePolicy);
 
                     Test.Assert(agent.GetAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName),
@@ -581,6 +581,81 @@
                     comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessFilePolicy>(policy, samplePolicy.PolicyName));
                     agent.OutputValidation(comp);
                 });
+        }
+
+        /// <summary>
+        /// Test Plan 8.50 BVT
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
+        public void RemoveShareStoredPolicyTest()
+        {
+            SharedAccessPolicyTest((share, samplePolicies) =>
+            {
+                var samplePolicy = samplePolicies[0];
+                Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                    "Create stored access policy in file share should succeed");
+                Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
+                
+                Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, samplePolicy);
+
+                Test.Assert(agent.RemoveAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName),
+                    "Remove stored access policy in file share should succeed");
+                Test.Info("Removed stored access policy:{0}", samplePolicy.PolicyName);
+
+                Thread.Sleep(30000);
+
+                FileSharePermissions permissions = share.GetPermissions();
+                Test.Assert(!permissions.SharedAccessPolicies.ContainsKey(samplePolicy.PolicyName), "Policy {0} should not exist anymore.", samplePolicy.PolicyName);
+            });
+        }
+
+        /// <summary>
+        /// Test Plan 8.50 BVT
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
+        public void SetShareStoredPolicyTest()
+        {
+            SharedAccessPolicyTest((share, samplePolicies) =>
+            {
+                var samplePolicy1 = samplePolicies[0];
+                var samplePolicy2 = samplePolicies[1];
+                Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy1.PolicyName, samplePolicy1.Permission, 
+                    samplePolicy1.StartTime, samplePolicy1.ExpiryTime),
+                    "Create stored access policy in file share should succeed");
+                Test.Info("Created stored access policy:{0}", samplePolicy1.PolicyName);
+
+                Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, samplePolicy1);
+
+                Test.Assert(agent.SetAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy1.PolicyName, samplePolicy2.Permission,
+                    samplePolicy2.StartTime, samplePolicy2.ExpiryTime),
+                    "Set stored access policy in file share should succeed");
+                Test.Info("Set stored access policy:{0}", samplePolicy1.PolicyName);
+
+                Utility.RawStoredAccessPolicy policyTemp = new Utility.RawStoredAccessPolicy(samplePolicy2);
+                policyTemp.PolicyName = samplePolicy1.PolicyName;
+                Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, policyTemp);
+
+                //get the policy and validate
+                SharedAccessFilePolicies expectedPolicies = new SharedAccessFilePolicies();
+                expectedPolicies.Add(samplePolicy1.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(samplePolicy2.StartTime, samplePolicy2.ExpiryTime, samplePolicy2.Permission));
+                Utility.ValidateStoredAccessPolicies<SharedAccessFilePolicy>(share.GetPermissions().SharedAccessPolicies, expectedPolicies);
+
+                //validate the output
+                SharedAccessFilePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(samplePolicy2.StartTime, samplePolicy2.ExpiryTime, samplePolicy2.Permission);
+                Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
+                comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessFilePolicy>(policy, samplePolicy1.PolicyName));
+                agent.OutputValidation(comp);
+            });
         }
 
         private void NewDirectoryTest(Action<CloudFileShare, string> newDirectoryAction)
@@ -754,7 +829,7 @@
             }
         }
 
-        private void SharedAccessPolicyTest(Action<CloudFileShare, Utility.RawStoredAccessPolicy> testAction)
+        private void SharedAccessPolicyTest(Action<CloudFileShare, List<Utility.RawStoredAccessPolicy>> testAction)
         {
             if (!this.ShouldRunFileTest())
             {
@@ -770,11 +845,10 @@
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
             CloudFileShare share = fileUtil.EnsureFileShareExists(fileShareName);
             Utility.ClearStoredAccessPolicy<CloudFileShare>(share);
-            Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessFilePolicy>(lang == Language.NodeJS)[0];
 
             try
             {
-                testAction(share, samplePolicy);
+                testAction(share, Utility.SetUpStoredAccessPolicyData<SharedAccessFilePolicy>(lang == Language.NodeJS));
             }
             finally
             {
