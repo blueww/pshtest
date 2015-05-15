@@ -233,6 +233,7 @@
     <Compile Include="Functional\CloudFile\GetAzureStorageFileTest.cs" />
     <Compile Include="Functional\CloudFile\MountTest.cs" />
     <Compile Include="Functional\CloudFile\InvalidParameterTest.cs" />
+    <Compile Include="Functional\CloudFile\NewAzureStorageShareStoredAccessPolicyTest.cs" />
     <Compile Include="Functional\CloudFile\ParameterSetNotMatchTest.cs" />
     <Compile Include="Functional\CloudFile\RemoveAzureStorageFileTest.cs" />
     <Compile Include="Functional\CloudFile\GetAzureStorageShareTest.cs" />
