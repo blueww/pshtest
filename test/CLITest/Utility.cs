@@ -875,6 +875,10 @@ namespace Management.Storage.ScenarioTest
             {
                 SetupAccessPolicyPermission((SharedAccessQueuePolicy)(Object)policy, permission);
             }
+            else if (typeof(T) == typeof(SharedAccessFilePolicy))
+            {
+                SetupAccessPolicyPermission((SharedAccessFilePolicy)(Object)policy, permission);
+            }
             else
             {
                 throw new Exception("Unknown Service Type!");
@@ -950,6 +954,38 @@ namespace Management.Storage.ScenarioTest
                         break;
                     case Permission.List:
                         policy.Permissions |= SharedAccessBlobPermissions.List;
+                        break;
+                    default:
+                        throw new Exception("Unknown Permission Type!");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Set up shared access policy permission for SharedAccessFilePolicy
+        /// </summary>
+        /// <param name="policy">SharedAccessFilePolicy object</param>
+        /// <param name="permission">Permission</param>
+        internal static void SetupAccessPolicyPermission(SharedAccessFilePolicy policy, string permission)
+        {
+            if (string.IsNullOrEmpty(permission)) return;
+            policy.Permissions = SharedAccessFilePermissions.None;
+            permission = permission.ToLower();
+            foreach (char op in permission)
+            {
+                switch (op)
+                {
+                    case Permission.Read:
+                        policy.Permissions |= SharedAccessFilePermissions.Read;
+                        break;
+                    case Permission.Write:
+                        policy.Permissions |= SharedAccessFilePermissions.Write;
+                        break;
+                    case Permission.Delete:
+                        policy.Permissions |= SharedAccessFilePermissions.Delete;
+                        break;
+                    case Permission.List:
+                        policy.Permissions |= SharedAccessFilePermissions.List;
                         break;
                     default:
                         throw new Exception("Unknown Permission Type!");
@@ -1149,6 +1185,14 @@ namespace Management.Storage.ScenarioTest
                 StartTime = startTime;
                 ExpiryTime = expiryTime;
                 Permission = permission;
+            }
+
+            public RawStoredAccessPolicy(RawStoredAccessPolicy accessPolicy)
+            {
+                this.PolicyName = accessPolicy.PolicyName;
+                this.StartTime = accessPolicy.StartTime;
+                this.ExpiryTime = accessPolicy.ExpiryTime;
+                this.Permission = accessPolicy.Permission;
             }
 
         }

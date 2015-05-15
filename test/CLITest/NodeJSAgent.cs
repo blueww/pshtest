@@ -1503,6 +1503,17 @@ namespace Management.Storage.ScenarioTest
             throw new NotImplementedException();
         }
 
+        public override bool RemoveAzureStorageShareStoredAccessPolicy(string shareName, string policyName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool SetAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions,
+            DateTime? startTime, DateTime? expiryTime, bool noStartTime = false, bool noExpiryTime = false)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void AssertNoError()
         {
             Test.Assert(!this.HadErrors, "Should execute command without error.");

@@ -2876,6 +2876,49 @@ namespace Management.Storage.ScenarioTest
 
         }
 
+        public override bool RemoveAzureStorageShareStoredAccessPolicy(string shareName, string policyName)
+        {
+            this.Clear();
+
+            this.shell.AddCommand("Remove-AzureStorageShareStoredAccessPolicy");
+            this.shell.BindParameter("ShareName", shareName);
+            this.shell.BindParameter("Policy", policyName);
+
+            ParseCollection(this.shell.Invoke());
+            ParseErrorMessages(this.shell);
+
+            return !this.shell.HadErrors;
+        }
+
+        public override bool SetAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions,
+            DateTime? startTime, DateTime? expiryTime, bool noStartTime = false, bool noExpiryTime = false)
+        {
+            this.Clear();
+
+            this.shell.AddCommand("Set-AzureStorageShareStoredAccessPolicy");
+            this.shell.BindParameter("ShareName", shareName);
+            this.shell.BindParameter("Policy", policyName);
+            this.shell.BindParameter("Permission", permissions);
+
+            if (startTime.HasValue)
+            {
+                this.shell.BindParameter("StartTime", startTime.Value);
+            }
+
+            if (expiryTime.HasValue)
+            {
+                this.shell.BindParameter("ExpiryTime", expiryTime.Value);
+            }
+
+            this.shell.BindParameter("NoStartTime", noStartTime);
+            this.shell.BindParameter("NoExpiryTime", noExpiryTime);
+
+            ParseCollection(this.shell.Invoke());
+            ParseErrorMessages(this.shell);
+
+            return !this.shell.HadErrors;
+        }
+
         public override IExecutionResult Invoke(IEnumerable input = null, bool traceCommand = true)
         {
             if (traceCommand)
