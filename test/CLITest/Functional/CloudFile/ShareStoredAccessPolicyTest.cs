@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Management.Storage.ScenarioTest.Common;
 using Management.Storage.ScenarioTest.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -9,17 +10,17 @@ using StorageTestLib;
 
 namespace Management.Storage.ScenarioTest.Functional.CloudFile
 {
-    public class NewAzureStorageShareStoredAccessPolicyTest : TestBase
+    public class ShareStoredAccessPolicyTest : TestBase
     {
         [ClassInitialize]
-        public static void NewAzureStorageShareStoredAccessPolicyTestInitialize(TestContext context)
+        public static void ShareStoredAccessPolicyTest(TestContext context)
         {
             StorageAccount = Utility.ConstructStorageAccountFromConnectionString();
             TestBase.TestClassInitialize(context);
         }
 
         [ClassCleanup]
-        public static void NewAzureStorageShareStoredAccessPolicyTestCleanup()
+        public static void ShareStoredAccessPolicyTest()
         {
             TestBase.TestClassCleanup();
         }
@@ -148,6 +149,88 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 fileUtil.DeleteFileShareIfExists(shareName);
                 Test.Assert(!agent.NewAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p", 5), null, null, null), "Create stored access policy against non-existing share should fail");
                 ExpectedContainErrorMessage("The specified share does not exist");
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        /// <summary>
+        /// Test plan, positive functional 8.49
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.StoredAccessPolicy)]
+        public void GetPolicyVariations()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+            Utility.ClearStoredAccessPolicy<CloudFileShare>(share);
+
+            try
+            {
+                //empty policies
+                Test.Assert(agent.GetAzureStorageContainerStoredAccessPolicy(shareName, null),
+                    "Get stored access policy in container should succeed");
+                Test.Info("Get stored access policy");
+                Assert.IsTrue(agent.Output.Count == 0);
+
+                //get all policies
+                List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessFilePolicy>();
+                Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
+                foreach (Utility.RawStoredAccessPolicy samplePolicy in samplePolicies)
+                {
+                    CreateStoredAccessPolicy(samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime, share, false);
+                    SharedAccessFilePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission);
+                    comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessFilePolicy>(policy, samplePolicy.PolicyName));
+                }
+
+                Test.Assert(agent.GetAzureStorageShareStoredAccessPolicy(shareName, null),
+                    "Get stored access policy in share should succeed");
+                Test.Info("Get stored access policy");
+                agent.OutputValidation(comp);
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        /// <summary>
+        /// Test plan, negative functional 8.49
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.StoredAccessPolicy)]
+        public void GetPolicyInvalid()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+            Utility.ClearStoredAccessPolicy<CloudFileShare>(share);
+
+            try
+            {
+                string policyName = "policy";
+                Test.Assert(!agent.GetAzureStorageShareStoredAccessPolicy(shareName, policyName),
+                    "Get non-existing stored access policy should fail");
+                ExpectedContainErrorMessage("Can not find policy");
+
+                string invalidName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
+                Test.Assert(!agent.GetAzureStorageShareStoredAccessPolicy(shareName, invalidName),
+                    "Get stored access policy with name length larger than 64 should fail");
+                ExpectedContainErrorMessage("Can not find policy");
+
+                Test.Assert(!agent.GetAzureStorageShareStoredAccessPolicy("SHARE", policyName),
+                    "Get stored access policy from invalid share name should fail");
+                ExpectedContainErrorMessage("The specifed resource name contains invalid characters");
+                
+                fileUtil.DeleteFileShareIfExists(shareName);
+                Test.Assert(!agent.GetAzureStorageContainerStoredAccessPolicy(shareName, policyName),
+                    "Get stored access policy from invalid share name should fail");
+                ExpectedContainErrorMessage("The specified share does not exist.");
             }
             finally
             {
