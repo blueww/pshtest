@@ -409,6 +409,12 @@ namespace Management.Storage.ScenarioTest
 
         public abstract bool SetAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions,
             DateTime? startTime, DateTime? expiryTime, bool noStartTime = false, bool noExpiryTime = false);
+        
+        public abstract bool NewAzureStorageShareSAS(string shareName, string policyName, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false);
+
+        public virtual string GetAzureStorageShareSasFromCmd(string containerName, string policy, string permission = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
 
         public abstract void AssertNoError();
 

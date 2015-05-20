@@ -49,6 +49,7 @@ namespace Management.Storage.ScenarioTest
         public static List<string> TablePermissionPS = new List<string>() { "r", "q", "a", "u", "d" };
         public static List<string> TablePermissionNode = new List<string>() { "r", "a", "u", "d" };
         public static List<string> QueuePermission = new List<string>() { "r", "a", "u", "p" };
+        public static List<string> SharePermission = new List<string>() { "r", "w", "d", "l" };
 
         internal static int RetryLimit = 7;
 
