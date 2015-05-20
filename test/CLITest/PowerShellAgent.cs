@@ -2854,6 +2854,8 @@ namespace Management.Storage.ScenarioTest
             this.shell.BindParameter("Permission", permissions);
             this.shell.BindParameter("StartTime", startTime);
             this.shell.BindParameter("ExpiryTime", expiryTime);
+
+            AddCommonParameters(this.shell);
             
             ParseCollection(this.shell.Invoke());
             ParseErrorMessages(this.shell);
@@ -2869,6 +2871,8 @@ namespace Management.Storage.ScenarioTest
             this.shell.BindParameter("ShareName", shareName);
             this.shell.BindParameter("Policy", policyName);
 
+            AddCommonParameters(this.shell);
+
             ParseCollection(this.shell.Invoke());
             ParseErrorMessages(this.shell);
 
@@ -2883,6 +2887,8 @@ namespace Management.Storage.ScenarioTest
             this.shell.AddCommand("Remove-AzureStorageShareStoredAccessPolicy");
             this.shell.BindParameter("ShareName", shareName);
             this.shell.BindParameter("Policy", policyName);
+
+            AddCommonParameters(this.shell);
 
             ParseCollection(this.shell.Invoke());
             ParseErrorMessages(this.shell);
@@ -2913,10 +2919,63 @@ namespace Management.Storage.ScenarioTest
             this.shell.BindParameter("NoStartTime", noStartTime);
             this.shell.BindParameter("NoExpiryTime", noExpiryTime);
 
+            AddCommonParameters(this.shell);
+
             ParseCollection(this.shell.Invoke());
             ParseErrorMessages(this.shell);
 
             return !this.shell.HadErrors;
+        }
+
+        public override bool NewAzureStorageShareSAS(string shareName, string policyName, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            this.Clear();
+
+            this.shell.AddCommand("New-AzureStorageShareSASToken");
+            this.shell.BindParameter("ShareName", shareName);
+            this.shell.BindParameter("Policy", policyName);
+
+            if (null != permissions)
+            {
+                this.shell.BindParameter("Permission", permissions);
+            }
+
+            if (startTime.HasValue)
+            {
+                this.shell.BindParameter("StartTime", startTime.Value);
+            }
+
+            if (expiryTime.HasValue)
+            {
+                this.shell.BindParameter("ExpiryTime", expiryTime.Value);
+            }
+
+            this.shell.BindParameter("FullUri", fulluri);
+
+            AddCommonParameters(this.shell);
+
+            ParseCollection(this.shell.Invoke());
+            ParseErrorMessages(this.shell);
+
+            return !this.shell.HadErrors;
+        }
+
+        public override string GetAzureStorageShareSasFromCmd(string shareName, string policyName, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            Test.Assert(NewAzureStorageShareSAS(shareName, policyName, permissions, startTime, expiryTime, fulluri),
+                    "Generate share sas token should succeed");
+            if (Output.Count != 0)
+            {
+                string sasToken = Output[0][Constants.SASTokenKey].ToString();
+                Test.Info("Generated sas token: {0}", sasToken);
+                return sasToken;
+            }
+            else
+            {
+                throw new InvalidOperationException("Fail to generate sas token.");
+            }
         }
 
         public override IExecutionResult Invoke(IEnumerable input = null, bool traceCommand = true)

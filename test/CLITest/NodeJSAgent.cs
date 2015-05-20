@@ -1514,6 +1514,12 @@ namespace Management.Storage.ScenarioTest
             throw new NotImplementedException();
         }
 
+        public override bool NewAzureStorageShareSAS(string shareName, string policyName, string permissions = null,
+           DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void AssertNoError()
         {
             Test.Assert(!this.HadErrors, "Should execute command without error.");

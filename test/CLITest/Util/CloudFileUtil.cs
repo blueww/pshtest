@@ -9,6 +9,7 @@
     using System.Security.Cryptography;
     using System.Text;
     using System.Threading;
+    using Management.Storage.ScenarioTest.Common;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Auth;
     using Microsoft.WindowsAzure.Storage.File;
@@ -377,6 +378,71 @@
                     file.UploadFromFile(source, FileMode.Open);
                 }
             }
+        }
+
+        public void ValidateShareReadableWithSasToken(CloudFileShare share, string fileName, string sasToken)
+        {
+            Test.Info("Verify share read permission");
+            CloudFile file = share.GetRootDirectoryReference().GetFileReference(fileName);
+
+            if (!file.Exists())
+            {
+                PrepareFileInternal(file, null);
+            }
+
+            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(share.ServiceClient.Credentials.AccountName, sasToken);
+            CloudFileClient sasClient = sasAccount.CreateCloudFileClient();
+            CloudFileShare sasShare = sasClient.GetShareReference(share.Name);
+            CloudFile sasFile = sasShare.GetRootDirectoryReference().GetFileReference(fileName);
+            sasFile.FetchAttributes();
+            long buffSize = sasFile.Properties.Length;
+            byte[] buffer = new byte[buffSize];
+            MemoryStream ms = new MemoryStream(buffer);
+            sasFile.DownloadRangeToStream(ms, 0, buffSize);
+            string md5 = Utility.GetBufferMD5(buffer);
+            TestBase.ExpectEqual(sasFile.Properties.ContentMD5, md5, "content md5");
+        }
+
+        public void ValidateShareWriteableWithSasToken(CloudFileShare share, string sastoken)
+        {
+            Test.Info("Verify share write permission");
+            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(share.ServiceClient.Credentials.AccountName, sastoken);
+            CloudFileShare sasShare = sasAccount.CreateCloudFileClient().GetShareReference(share.Name);
+            string sasFileName = Utility.GenNameString("sasFile");
+            CloudFile sasFile = sasShare.GetRootDirectoryReference().GetFileReference(sasFileName);
+            long fileSize = 1024 * 1024;
+            sasFile.Create(fileSize);
+            CloudFile retrievedFile = share.GetRootDirectoryReference().GetFileReference(sasFileName);
+            retrievedFile.FetchAttributes();
+            TestBase.ExpectEqual(fileSize, retrievedFile.Properties.Length, "blob size");
+        }
+
+        public void ValidateShareDeleteableWithSasToken(CloudFileShare share, string sastoken)
+        {
+            Test.Info("Verify share delete permission");
+            string fileName = Utility.GenNameString("file");
+            CloudFile file = CreateFile(share, fileName);
+
+            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(share.ServiceClient.Credentials.AccountName, sastoken);
+            CloudFileShare sasShare = sasAccount.CreateCloudFileClient().GetShareReference(share.Name);
+
+            CloudFile sasFile = sasShare.GetRootDirectoryReference().GetFileReference(fileName);
+            sasFile.Delete();
+
+            Test.Assert(!file.Exists(), "blob should not exist");
+        }
+
+        public void ValidateShareListableWithSasToken(CloudFileShare share, string sastoken)
+        {
+            Test.Info("Verify share list permission");
+            string fileName = Utility.GenNameString("file");
+            CloudFile file = CreateFile(share, fileName);
+
+            int fileCount = share.GetRootDirectoryReference().ListFilesAndDirectories().Count();
+            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(share.ServiceClient.Credentials.AccountName, sastoken);
+            CloudFileShare sasShare = sasAccount.CreateCloudFileClient().GetShareReference(share.Name);
+            int retrievedFileCount = sasShare.GetRootDirectoryReference().ListFilesAndDirectories().Count();
+            TestBase.ExpectEqual(fileCount, retrievedFileCount, "File count");
         }
     }
 }
