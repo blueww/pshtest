@@ -413,8 +413,12 @@ namespace Management.Storage.ScenarioTest
         public abstract bool NewAzureStorageShareSAS(string shareName, string policyName, string permissions = null,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false);
 
-        public virtual string GetAzureStorageShareSasFromCmd(string containerName, string policy, string permission = null,
+        public virtual string GetAzureStorageShareSasFromCmd(string shareName, string policy, string permission = null,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
+
+        public abstract bool SetAzureStorageShareQuota(string shareName, int quota);
+
+        public abstract bool SetAzureStorageShareQuota(CloudFileShare share, int quota);
 
         public abstract void AssertNoError();
 

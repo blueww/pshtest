@@ -2978,6 +2978,36 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+        public override bool SetAzureStorageShareQuota(string shareName, int quota)
+        {
+            this.Clear();
+
+            this.shell.AddCommand("Set-AzureStorageShareQuota");
+            this.shell.BindParameter("ShareName", shareName);
+            this.shell.BindParameter("Quota", quota);
+
+            AddCommonParameters(this.shell);
+
+            ParseCollection(this.shell.Invoke());
+            ParseErrorMessages(this.shell);
+
+            return !this.shell.HadErrors;
+        }
+
+        public override bool SetAzureStorageShareQuota(CloudFileShare share, int quota)
+        {
+            this.Clear();
+
+            this.shell.AddCommand("Set-AzureStorageShareQuota");
+            this.shell.BindParameter("Share", share);
+            this.shell.BindParameter("Quota", quota);
+            
+            ParseCollection(this.shell.Invoke());
+            ParseErrorMessages(this.shell);
+
+            return !this.shell.HadErrors;
+        }
+
         public override IExecutionResult Invoke(IEnumerable input = null, bool traceCommand = true)
         {
             if (traceCommand)
