@@ -230,6 +230,7 @@
     <Compile Include="Functional\Blob\SetContainerAcl.cs" />
     <Compile Include="Functional\Blob\StartCopy.cs" />
     <Compile Include="Functional\Blob\StopCopy.cs" />
+    <Compile Include="Functional\CloudFile\ShareQuotaTest.cs" />
     <Compile Include="Functional\CloudFile\GetAzureStorageFileTest.cs" />
     <Compile Include="Functional\CloudFile\MountTest.cs" />
     <Compile Include="Functional\CloudFile\InvalidParameterTest.cs" />

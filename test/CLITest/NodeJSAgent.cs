@@ -1520,6 +1520,16 @@ namespace Management.Storage.ScenarioTest
             throw new NotImplementedException();
         }
 
+        public override bool SetAzureStorageShareQuota(string shareName, int quota)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool SetAzureStorageShareQuota(CloudFileShare share, int quota)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void AssertNoError()
         {
             Test.Assert(!this.HadErrors, "Should execute command without error.");
