@@ -19,6 +19,7 @@ namespace Management.Storage.ScenarioTest
         Container,
         Blob,
         Queue,
-        Table
+        Table,
+        File
     };
 }

@@ -2869,7 +2869,11 @@ namespace Management.Storage.ScenarioTest
 
             this.shell.AddCommand("Get-AzureStorageShareStoredAccessPolicy");
             this.shell.BindParameter("ShareName", shareName);
-            this.shell.BindParameter("Policy", policyName);
+
+            if (null != policyName)
+            {
+                this.shell.BindParameter("Policy", policyName);
+            }
 
             AddCommonParameters(this.shell);
 
@@ -2927,14 +2931,18 @@ namespace Management.Storage.ScenarioTest
             return !this.shell.HadErrors;
         }
 
-        public override bool NewAzureStorageShareSAS(string shareName, string policyName, string permissions = null,
+        public override bool NewAzureStorageShareSAS(string shareName, string policyName = null, string permissions = null,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
         {
             this.Clear();
 
             this.shell.AddCommand("New-AzureStorageShareSASToken");
             this.shell.BindParameter("ShareName", shareName);
-            this.shell.BindParameter("Policy", policyName);
+
+            if (null != policyName)
+            {
+                this.shell.BindParameter("Policy", policyName);
+            }
 
             if (null != permissions)
             {
