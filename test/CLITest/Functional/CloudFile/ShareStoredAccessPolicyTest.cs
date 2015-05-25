@@ -174,8 +174,8 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             try
             {
                 //empty policies
-                Test.Assert(agent.GetAzureStorageContainerStoredAccessPolicy(shareName, null),
-                    "Get stored access policy in container should succeed");
+                Test.Assert(agent.GetAzureStorageShareStoredAccessPolicy(shareName, null),
+                    "Get stored access policy in share should succeed");
                 Test.Info("Get stored access policy");
                 Assert.IsTrue(agent.Output.Count == 0);
 
