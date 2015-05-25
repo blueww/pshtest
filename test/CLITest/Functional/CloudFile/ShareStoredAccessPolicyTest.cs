@@ -174,8 +174,8 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             try
             {
                 //empty policies
-                Test.Assert(agent.GetAzureStorageContainerStoredAccessPolicy(shareName, null),
-                    "Get stored access policy in container should succeed");
+                Test.Assert(agent.GetAzureStorageShareStoredAccessPolicy(shareName, null),
+                    "Get stored access policy in share should succeed");
                 Test.Info("Get stored access policy");
                 Assert.IsTrue(agent.Output.Count == 0);
 
@@ -707,10 +707,21 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 });
 
                 share.SetPermissions(permission);
-                string sasToken = agent.GetAzureStorageShareSasFromCmd(shareName, policyName);
                 Test.Info("Sleep and wait for sas policy taking effect");
                 double lifeTime = 1;
                 Thread.Sleep(TimeSpan.FromMinutes(lifeTime));
+                string sasToken = agent.GetAzureStorageShareSasFromCmd(shareName, policyName);
+                ValidateSasToken(share, "r", sasToken);
+
+                permission.SharedAccessPolicies[policyName] = new SharedAccessFilePolicy()
+                {
+                    Permissions = SharedAccessFilePermissions.Read,
+                };
+                Test.Info("Sleep and wait for sas policy taking effect");
+
+                Thread.Sleep(30000);
+
+                sasToken = agent.GetAzureStorageShareSasFromCmd(shareName, policyName, null, null, DateTime.Now.Add(sasLifeTime));
                 ValidateSasToken(share, "r", sasToken);
             }
             finally
@@ -835,6 +846,57 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             {
                 fileUtil.DeleteFileShareIfExists(shareName);
             }
+        }
+
+        /// <summary>
+        /// Generate SAS of a share with only limited access right(read,write,delete,list,none)
+        ///     Verify access with the non-granted right to this blob is denied
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        public void NewShareSasNegativeTest()
+        {
+            DateTime startTime = DateTime.Now.AddMinutes(-1);
+            DateTime expiryTime = startTime.AddMinutes(30);
+            string sharePermission = "r";
+            string policyName = Utility.GenNameString("p");
+
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                Utility.ClearStoredAccessPolicy<CloudFileShare>(share);
+                Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(shareName, policyName, sharePermission, startTime, expiryTime),
+                    "Create stored access policy to a share should succeed");
+                Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, new Utility.RawStoredAccessPolicy(policyName, startTime, expiryTime, sharePermission));
+
+                Test.Assert(!agent.NewAzureStorageShareSAS(shareName, policyName, startTime:startTime),
+                    "Create sas with Policy and start time should failed.");
+                ExpectedContainErrorMessage("This start time field must be omitted if it has been specified in an associated stored access policy.");
+
+                Test.Assert(!agent.NewAzureStorageShareSAS(shareName, policyName, sharePermission),
+                    "Create sas with Policy and permission should failed.");
+                ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters");
+
+                Test.Assert(!agent.NewAzureStorageShareSAS(shareName, policyName, expiryTime:expiryTime),
+                    "Create sas with Policy and expiry time should failed.");
+                ExpectedContainErrorMessage("This expiry time field must be omitted if it has been specified in an associated stored access policy.");
+
+                fileUtil.DeleteFileShareIfExists(shareName); 
+                Test.Assert(agent.NewAzureStorageShareSAS(shareName, null, sharePermission, startTime, expiryTime),
+                        "Create sas on a non-exist share without policy should succeed.");
+
+                Test.Assert(agent.NewAzureStorageShareSAS(shareName, policyName),
+                        "Create sas on a non-exist share with policy should fail.");
+                ExpectedContainErrorMessage("The specified share does not exist.");
+
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }            
         }
 
         private void GenerateSasTokenAndValidate(string sharePermission)
