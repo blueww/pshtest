@@ -29,8 +29,7 @@
 
   <!-- These settings are for Powershell only -->
   <PSSnapInName></PSSnapInName>
-  <ModuleFilePath></ModuleFilePath>
-  <ResourceModuleFilePath>C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\ResourceManager\AzureResourceManager\AzureResourceManager.psd1</ResourceModuleFilePath>
+  <ModuleFileFolder>C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\</ModuleFileFolder>  
 
   <!-- These settings are for platform specific -->
   <PLinkPath></PLinkPath>
