@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using Management.Storage.ScenarioTest.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -29,7 +30,7 @@ namespace Management.Storage.ScenarioTest
             TestBase.TestClassInitialize(testContext);
 
             // import module
-            string moduleFilePath = Test.Data.Get("ModuleFilePath");
+            string moduleFilePath = Path.Combine(Test.Data.Get("ModuleFileFolder"), Constants.ServiceModulePath);
             PowerShellAgent.ImportModule(moduleFilePath);
 
             //set the default storage context

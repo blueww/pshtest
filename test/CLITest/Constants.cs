@@ -102,6 +102,9 @@ namespace Management.Storage.ScenarioTest
         public const string PAGE_BLOB_UNIT = "G_PAGE";
         public const string FILE_UNIT = "G_FILE";
 
+        public const string ResourceModulePath = "ResourceManager\\AzureResourceManager\\AzureResourceManager.psd1";
+        public const string ServiceModulePath = "ServiceManagement\\Azure\\Azure.psd1";
+
         public const int Iterations = 5;
     }
 }
