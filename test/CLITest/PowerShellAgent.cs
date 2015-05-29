@@ -1070,7 +1070,7 @@ namespace Management.Storage.ScenarioTest
         public override bool StartAzureStorageBlobCopy(string sourceUri, string destContainerName, string destBlobName, object destContext = null, bool force = true)
         {
             PowerShell ps = GetPowerShellInstance();
-            ps.AddCommand("Start-CopyAzureStorageBlob");
+            ps.AddCommand("Start-AzureStorageBlobCopy");
             ps.BindParameter("SrcUri", sourceUri);
             ps.BindParameter("DestContainer", destContainerName);
             ps.BindParameter("DestBlob", destBlobName);
@@ -1089,7 +1089,7 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
-            ps.AddCommand("Start-CopyAzureStorageBlob");
+            ps.AddCommand("Start-AzureStorageBlobCopy");
             ps.BindParameter("SrcContainer", srcContainerName);
             ps.BindParameter("SrcBlob", srcBlobName);
             ps.BindParameter("DestContainer", destContainerName);
@@ -1103,7 +1103,7 @@ namespace Management.Storage.ScenarioTest
         public override bool StartAzureStorageBlobCopy(ICloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true)
         {
             PowerShell ps = GetPowerShellInstance();
-            ps.AddCommand("Start-CopyAzureStorageBlob");
+            ps.AddCommand("Start-AzureStorageBlobCopy");
             ps.BindParameter("ICloudBlob", srcBlob);
             ps.BindParameter("DestContainer", destContainerName);
             ps.BindParameter("Force", force);
@@ -1142,7 +1142,7 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
 
-            ps.AddCommand("Stop-CopyAzureStorageBlob");
+            ps.AddCommand("Stop-AzureStorageBlobCopy");
             ps.BindParameter("Container", containerName);
             ps.BindParameter("Blob", blobName);
             ps.BindParameter("CopyId", copyId);
