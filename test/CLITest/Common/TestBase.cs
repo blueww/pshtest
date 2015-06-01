@@ -13,6 +13,7 @@
 // ----------------------------------------------------------------------------------
 
 using System;
+using System.IO;
 using Management.Storage.ScenarioTest.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage;
@@ -138,21 +139,12 @@ namespace Management.Storage.ScenarioTest.Common
 
             if (lang == Language.PowerShell)
             {
-                string moduleFilePath = null;
-                if (isResourceMode)
-                {
-                    // import module
-                    moduleFilePath = Test.Data.Get("ResourceModuleFilePath");
-                }
-                else
-                {
-                    // import module
-                    moduleFilePath = Test.Data.Get("ModuleFilePath");
-                }
+                string moduleFileFolder = Test.Data.Get("ModuleFileFolder");
 
-                if (!string.IsNullOrWhiteSpace(moduleFilePath))
+                if (!string.IsNullOrWhiteSpace(moduleFileFolder))
                 {
-                    PowerShellAgent.ImportModule(moduleFilePath);
+                    string relativePath = isResourceMode ? Constants.ResourceModulePath : Constants.ServiceModulePath;
+                    PowerShellAgent.ImportModule(Path.Combine(moduleFileFolder, relativePath));
                 }
 
                 string snapInName = Test.Data.Get("PSSnapInName");
