@@ -28,6 +28,7 @@ using System.Text;
 using Management.Storage.ScenarioTest.Util;
 using Microsoft.Azure.Management.Storage.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.WindowsAzure.Commands.Storage.Model.ResourceModel;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.File;
@@ -1226,6 +1227,37 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("RetentionDays", metricsRetentionDays);
 
             ps.BindParameter("PassThru", passThru);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool SetAzureStorageCORSRules(Constants.ServiceType serviceType, PSCorsRule[] corsRules)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Set-AzureStorageCORSRule");
+            ps.BindParameter("ServiceType", serviceType.ToString());
+            ps.BindParameter("CorsRules", corsRules);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool GetAzureStorageCORSRules(Constants.ServiceType serviceType)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Get-AzureStorageCORSRule");
+            ps.BindParameter("ServiceType", serviceType.ToString());
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool RemoveAzureStorageCORSRules(Constants.ServiceType serviceType)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Remove-AzureStorageCORSRule");
+            ps.BindParameter("ServiceType", serviceType.ToString());
 
             return InvokeStoragePowerShell(ps);
         }

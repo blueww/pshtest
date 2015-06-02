@@ -292,6 +292,7 @@
     <Compile Include="PsTag.cs" />
     <Compile Include="StorageObjectType.cs" />
     <Compile Include="Utility.cs" />
+    <Compile Include="Util\CORSRuleUtil.cs" />
     <Compile Include="Util\ResourceManagerWrapper.cs" />
     <Compile Include="Util\UtilBase.cs" />
     <Compile Include="Util\CloudFileUtil.cs" />
