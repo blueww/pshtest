@@ -35,6 +35,7 @@ using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 using System.Text.RegularExpressions;
+using Microsoft.WindowsAzure.Commands.Storage.Model.ResourceModel;
 
 namespace Management.Storage.ScenarioTest
 {
@@ -1736,6 +1737,21 @@ namespace Management.Storage.ScenarioTest
             loggingOption += delete ? " --delete " : " --delete-off ";
 
             return loggingOption;
+        }
+
+        public override bool SetAzureStorageCORSRules(Constants.ServiceType serviceType, PSCorsRule[] corsRules)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool GetAzureStorageCORSRules(Constants.ServiceType serviceType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool RemoveAzureStorageCORSRules(Constants.ServiceType serviceType)
+        {
+            throw new NotImplementedException();
         }
 
         public override void OutputValidation(ServiceProperties serviceProperties, string propertiesType)
