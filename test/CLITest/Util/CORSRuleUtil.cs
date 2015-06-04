@@ -46,7 +46,7 @@ namespace Management.Storage.ScenarioTest.Util
 
             if (!definedHeaderCount.HasValue)
             {
-                definedHeaderCount = rd.Next(largeHeaders? 3: 1, largeHeaders ? 65 - prefixedHeaderCount.Value : 3);
+                definedHeaderCount = rd.Next(1, largeHeaders ? 65 : 4);
             }
 
             string[] headers = new string[prefixedHeaderCount.Value + definedHeaderCount.Value];
@@ -111,7 +111,7 @@ namespace Management.Storage.ScenarioTest.Util
             {
                 if (methodValue != CorsHttpMethods.None && (methods & methodValue) != 0)
                 {
-                    methodList.Add(methodValue.ToString());
+                    methodList.Add(RandomStringCase(methodValue.ToString()));
                 }
             }
 
@@ -173,6 +173,24 @@ namespace Management.Storage.ScenarioTest.Util
                     return;
                 }
             }
+        }
+
+        private static string RandomStringCase(string input)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var value in input.ToArray())
+            {
+                if (rd.Next(0, 2) == 0)
+                {
+                    sb.Append(value.ToString().ToUpper());
+                }
+                else
+                {
+                    sb.Append(value.ToString().ToLower());
+                }
+            }
+
+            return sb.ToString();
         }
 
         private static bool ValidateStrings(string[] expectedStrings, string[] acturalStrings, bool ignoreCase)
