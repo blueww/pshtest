@@ -29,6 +29,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
         }
 
         private const string NoOriginNoMethod0MaxCacheAgeError = "A CORS rule must contain at least one allowed origin and allowed method, and MaxAgeInSeconds cannot have a value less than zero.";
+        private const string CORSRuleInvalidError = "CORS rules setting is invalid. Please reference to \"https://msdn.microsoft.com/en-us/library/azure/hh452235.aspx\" to get detailed information.";
         
         [TestMethod]
         [TestCategory(Tag.Function)]
@@ -172,6 +173,112 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule without allowed origin to {0} service should fail", serviceType);
 
             ExpectedContainErrorMessage(NoOriginNoMethod0MaxCacheAgeError);
+
+            // No allowed methods
+            corsRules[0].AllowedOrigins = CORSRuleUtil.GetRandomOrigins();
+            corsRules[0].AllowedMethods = null;
+
+            serviceType = GetRandomServiceType();
+            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule without allowed method to {0} service should fail", serviceType);
+
+            ExpectedContainErrorMessage(NoOriginNoMethod0MaxCacheAgeError);
+
+            // Max age in second is negative.
+            corsRules[0].AllowedMethods = CORSRuleUtil.GetRandomMethods();
+            corsRules[0].MaxAgeInSeconds = -1;
+
+            serviceType = GetRandomServiceType();
+            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule to {0} service should fail when max age is negative.", serviceType);
+
+            ExpectedContainErrorMessage(NoOriginNoMethod0MaxCacheAgeError);
+
+            // Length of one of allowed origins is greater than 256
+            corsRules[0].MaxAgeInSeconds = random.Next(1, 1000);
+            corsRules[0].AllowedOrigins = CORSRuleUtil.GetRandomOrigins();
+            corsRules[0].AllowedOrigins[0] = Utility.GenNameString("origin", 251);
+
+            serviceType = GetRandomServiceType();
+            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule to {0} service should fail, when allowed origin length is greater than 256.", serviceType);
+            ExpectedContainErrorMessage(CORSRuleInvalidError);
+
+            //Count of allowed origin is more than 64.
+            corsRules[0].AllowedOrigins = CORSRuleUtil.GetRandomOrigins(random.Next(65, 100));
+
+            serviceType = GetRandomServiceType();
+            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Allowed origins count is greater than 64, set cors rule {0} service should fail", serviceType);
+            ExpectedContainErrorMessage(CORSRuleInvalidError);
+
+            // Invalid method name
+            string invalidMethodName = Utility.GenNameString("");
+            corsRules[0].AllowedOrigins = CORSRuleUtil.GetRandomOrigins();
+            corsRules[0].AllowedMethods = CORSRuleUtil.GetRandomMethods();
+            corsRules[0].AllowedMethods[0] = invalidMethodName;
+
+            serviceType = GetRandomServiceType();
+            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Inalid method name, set cors rule to {0} service should fail", serviceType);
+            ExpectedContainErrorMessage(string.Format("'{0}' is an invalid HTTP method", invalidMethodName));
+
+            // More than 2 prefixed allowed headers
+            corsRules[0].AllowedMethods = CORSRuleUtil.GetRandomMethods();
+            corsRules[0].AllowedHeaders = CORSRuleUtil.GetRandomHeaders(null, random.Next(3, 10));
+
+            serviceType = GetRandomServiceType();
+            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "More than 2 prefixed allowed headers, set cors rule to {0} service should fail", serviceType);
+            ExpectedContainErrorMessage(CORSRuleInvalidError);
+
+            // More than 64 defined allowed headers
+            corsRules[0].AllowedHeaders = CORSRuleUtil.GetRandomHeaders(random.Next(65, 100));
+
+            serviceType = GetRandomServiceType();
+            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "More than 64 defined allowed headers, set cors rule to {0} service should fail", serviceType);
+            ExpectedContainErrorMessage(CORSRuleInvalidError);
+
+            // Allowed header length greater than 256
+            corsRules[0].AllowedHeaders = CORSRuleUtil.GetRandomHeaders();
+            corsRules[0].AllowedHeaders[0] = Utility.GenNameString("header", 251);
+
+            serviceType = GetRandomServiceType();
+            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Allowed header length greater than 256, set cors rule to {0} service should fail", serviceType);
+            ExpectedContainErrorMessage(CORSRuleInvalidError);
+
+            // More than 2 prefixed exposed headers
+            corsRules[0].AllowedMethods = CORSRuleUtil.GetRandomMethods();
+            corsRules[0].ExposedHeaders = CORSRuleUtil.GetRandomHeaders(null, random.Next(3, 10));
+
+            serviceType = GetRandomServiceType();
+            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "More than 2 prefixed exposed headers, set cors rule to {0} service should fail", serviceType);
+            ExpectedContainErrorMessage(CORSRuleInvalidError);
+
+            // More than 64 defined exposed headers
+            corsRules[0].ExposedHeaders = CORSRuleUtil.GetRandomHeaders(random.Next(65, 100));
+
+            serviceType = GetRandomServiceType();
+            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "More than 64 defined exposed headers, set cors rule to {0} service should fail", serviceType);
+            ExpectedContainErrorMessage(CORSRuleInvalidError);
+
+            // Exposed header length greater than 256
+            corsRules[0].ExposedHeaders = CORSRuleUtil.GetRandomHeaders();
+            corsRules[0].ExposedHeaders[0] = Utility.GenNameString("header", 251);
+
+            serviceType = GetRandomServiceType();
+            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Exposed header length greater than 256, set cors rule to {0} service should fail", serviceType);
+            ExpectedContainErrorMessage(CORSRuleInvalidError);
+
+            // big total size
+            corsRules[0].AllowedOrigins = CORSRuleUtil.GetRandomOrigins(null, true);
+            corsRules[0].AllowedHeaders = CORSRuleUtil.GetRandomHeaders(null, null, true);
+            corsRules[0].ExposedHeaders = CORSRuleUtil.GetRandomHeaders(null, null, true);
+
+            serviceType = GetRandomServiceType();
+            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Exposed header length greater than 256, set cors rule to {0} service should fail", serviceType);
+            ExpectedContainErrorMessage(CORSRuleInvalidError);
+
+            // 6 CORS ruls
+            corsRules = CORSRuleUtil.GetRandomValidCORSRules(6);
+
+            serviceType = GetRandomServiceType();
+            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "6 CORS rules, set cors rule to {0} service should fail", serviceType);
+            ExpectedContainErrorMessage(CORSRuleInvalidError);
         }
 
         private void ValidateCORSRuleSetGet(PSCorsRule[] corsRules)
