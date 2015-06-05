@@ -2939,6 +2939,57 @@ namespace Management.Storage.ScenarioTest
             this.shell.AddCommand("New-AzureStorageShareSASToken");
             this.shell.BindParameter("ShareName", shareName);
 
+            this.AddSASTokenParameter(policyName, permissions, startTime, expiryTime, fulluri);
+
+            AddCommonParameters(this.shell);
+
+            ParseCollection(this.shell.Invoke());
+            ParseErrorMessages(this.shell);
+
+            return !this.shell.HadErrors;
+        }
+
+        public override bool NewAzureStorageFileSAS(string shareName, string filePath, string policyName = null, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            this.Clear();
+
+            this.shell.AddCommand("New-AzureStorageFileSASToken");
+            this.shell.BindParameter("ShareName", shareName);
+
+            this.shell.BindParameter("Path", filePath);
+
+            this.AddSASTokenParameter(policyName, permissions, startTime, expiryTime, fulluri);
+
+            AddCommonParameters(this.shell);
+
+            ParseCollection(this.shell.Invoke());
+            ParseErrorMessages(this.shell);
+
+            return !this.shell.HadErrors;
+        }
+
+        public override bool NewAzureStorageFileSAS(CloudFile file, string policyName = null, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            this.Clear();
+
+            this.shell.AddCommand("New-AzureStorageFileSASToken");
+            this.shell.BindParameter("File", file);
+
+            this.AddSASTokenParameter(policyName, permissions, startTime, expiryTime, fulluri);
+
+            AddCommonParameters(this.shell);
+
+            ParseCollection(this.shell.Invoke());
+            ParseErrorMessages(this.shell);
+
+            return !this.shell.HadErrors;
+        }
+
+        private void AddSASTokenParameter(string policyName, string permissions,
+            DateTime? startTime, DateTime? expiryTime, bool fulluri)
+        {
             if (null != policyName)
             {
                 this.shell.BindParameter("Policy", policyName);
@@ -2960,13 +3011,15 @@ namespace Management.Storage.ScenarioTest
             }
 
             this.shell.BindParameter("FullUri", fulluri);
+        }
 
-            AddCommonParameters(this.shell);
+        public override string GetAzureStorageFileSasFromCmd(string shareName, string filePath, string policy, string permission = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            Test.Assert(NewAzureStorageFileSAS(shareName, filePath, policy, permission, startTime, expiryTime, fulluri),
+                    "Generate file sas token should succeed");
 
-            ParseCollection(this.shell.Invoke());
-            ParseErrorMessages(this.shell);
-
-            return !this.shell.HadErrors;
+            return this.PassSASToken();
         }
 
         public override string GetAzureStorageShareSasFromCmd(string shareName, string policyName, string permissions = null,
@@ -2974,6 +3027,12 @@ namespace Management.Storage.ScenarioTest
         {
             Test.Assert(NewAzureStorageShareSAS(shareName, policyName, permissions, startTime, expiryTime, fulluri),
                     "Generate share sas token should succeed");
+
+            return this.PassSASToken();
+        }
+
+        private string PassSASToken()
+        {
             if (Output.Count != 0)
             {
                 string sasToken = Output[0][Constants.SASTokenKey].ToString();

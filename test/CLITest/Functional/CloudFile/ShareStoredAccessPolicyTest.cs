@@ -6,6 +6,7 @@ using Management.Storage.ScenarioTest.Common;
 using Management.Storage.ScenarioTest.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage;
+using StorageFile = Microsoft.WindowsAzure.Storage.File;
 using Microsoft.WindowsAzure.Storage.File;
 using MS.Test.Common.MsTestLib;
 using StorageTestLib;
@@ -51,8 +52,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 {
                     CreateStoredAccessPolicyAndValidate(policyName, permission, startTime, expiryTime, shareName, false);
                 }
-
-                CreateStoredAccessPolicyAndValidate(Utility.GenNameString("p", 4), null, null, null, "$root", false);
             }
             finally
             {
@@ -470,7 +469,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 //modify start time to future
                 startTime = DateTime.Today.AddDays(2);
-                agent.SetAzureStorageShareStoredAccessPolicy(blobUtil.Container.Name, policyName, null, startTime, null);
+                agent.SetAzureStorageShareStoredAccessPolicy(shareName, policyName, null, startTime, null);
                 Test.Info("Sleep and wait for sas policy taking effect");
                 Thread.Sleep(TimeSpan.FromMinutes(lifeTime));
 
@@ -770,7 +769,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             {
                 DateTime start = DateTime.UtcNow;
                 DateTime end = start.AddHours(1.0);
-                Test.Assert(!agent.NewAzureStorageShareSAS(blobUtil.Container.Name, string.Empty, "l", end, start),
+                Test.Assert(!agent.NewAzureStorageShareSAS(shareName, string.Empty, "l", end, start),
                         "Generate share sas token with invalid should fail");
                 ExpectedStartsWithErrorMessage("The expiry time of the specified access policy should be greater than start time");
             }
@@ -806,7 +805,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         /// <summary>
         /// Generate SAS of a share with only limited access right(read,write,delete,list,none)
-        ///     Verify access with the non-granted right to this blob is denied
+        ///     Verify access with the non-granted right to this file is denied
         /// </summary>
         [TestMethod()]
         [TestCategory(Tag.Function)]
@@ -850,7 +849,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         /// <summary>
         /// Generate SAS of a share with only limited access right(read,write,delete,list,none)
-        ///     Verify access with the non-granted right to this blob is denied
+        ///     Verify access with the non-granted right to this file is denied
         /// </summary>
         [TestMethod()]
         [TestCategory(Tag.Function)]
@@ -899,6 +898,336 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             }            
         }
 
+        /// <summary>
+        /// Generate SAS of a file with only limited access right(read, write,delete)
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        public void NewFileSasWithPermission()
+        {
+            //File read permission
+            string permission = "r";
+            GenerateFileSasTokenAndValidate(permission);
+
+            //File write permission
+            permission = "w";
+            GenerateFileSasTokenAndValidate(permission);
+
+            //File delete permission
+            permission = "d";
+            GenerateFileSasTokenAndValidate(permission);
+            
+            //Random combination
+            permission = Utility.GenRandomCombination(Utility.FilePermission);
+            GenerateSasTokenAndValidate(permission);
+        }
+
+        /// <summary>
+        /// Generate SAS of a file with a limited time period
+        /// Wait for the time expiration
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        public void NewFileSasWithLifeTime()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            double lifeTime = 3; //Minutes
+            const double deltaTime = 0.5;
+            DateTime startTime = DateTime.Now.AddMinutes(lifeTime);
+            DateTime expiryTime = startTime.AddMinutes(lifeTime);
+
+            try
+            {
+                string fileName = Utility.GenNameString("file");
+                var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
+                string permissions = Utility.GenRandomCombination(Utility.FilePermission);
+                string sastoken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions, startTime, expiryTime);
+                try
+                {
+                    ValidateFileSasToken(file, permissions, sastoken);
+                    Test.Error(string.Format("Access file should fail since the start time is {0}, but now is {1}",
+                        startTime.ToUniversalTime().ToString(), DateTime.UtcNow.ToString()));
+                }
+                catch (StorageException e)
+                {
+                    Test.Info(e.Message);
+                    ExpectEqual(e.RequestInformation.HttpStatusCode, 403, "(403) Forbidden");
+                }
+
+                Test.Info("Sleep and wait for the sas token start time");
+                Thread.Sleep(TimeSpan.FromMinutes(lifeTime + deltaTime));
+                ValidateFileSasToken(file, permissions, sastoken);
+                Test.Info("Sleep and wait for sas token expiry time");
+                Thread.Sleep(TimeSpan.FromMinutes(lifeTime + deltaTime));
+
+                try
+                {
+                    ValidateFileSasToken(file, permissions, sastoken);
+                    Test.Error(string.Format("Access file should fail since the expiry time is {0}, but now is {1}",
+                        expiryTime.ToUniversalTime().ToString(), DateTime.UtcNow.ToString()));
+                }
+                catch (StorageException e)
+                {
+                    Test.Info(e.Message);
+                    ExpectEqual(e.RequestInformation.HttpStatusCode, 403, "(403) Forbidden");
+                }
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        /// <summary>
+        /// Generate SAS of a file by policy
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        public void NewFileSasWithPolicy()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("file");
+                var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
+
+                TimeSpan sasLifeTime = TimeSpan.FromMinutes(10);
+                FileSharePermissions permission = new FileSharePermissions();
+                string policyName = Util.FileNamingGenerator.GenerateValidateASCIIName(64);
+
+                permission.SharedAccessPolicies.Add(policyName, new SharedAccessFilePolicy
+                {
+                    SharedAccessExpiryTime = DateTime.Now.Add(sasLifeTime),
+                    Permissions = SharedAccessFilePermissions.Read,
+                });
+
+                share.SetPermissions(permission);
+                Test.Info("Sleep and wait for sas policy taking effect");
+                double lifeTime = 1;
+                Thread.Sleep(TimeSpan.FromMinutes(lifeTime));
+                string sasToken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, policyName);
+                ValidateFileSasToken(file, "r", sasToken);
+
+                permission.SharedAccessPolicies[policyName] = new SharedAccessFilePolicy()
+                {
+                    Permissions = SharedAccessFilePermissions.Read,
+                };
+                Test.Info("Sleep and wait for sas policy taking effect");
+
+                Thread.Sleep(30000);
+
+                sasToken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, policyName, null, null, DateTime.Now.Add(sasLifeTime));
+                ValidateFileSasToken(file, "r", sasToken);
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        /// <summary>
+        /// Generate SAS of a file of a non-existing policy
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        public void NewFileSasWithNonExistPolicy()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("file");
+                var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
+
+                string policyName = Utility.GenNameString("nonexistpolicy");
+
+                Test.Assert(!agent.NewAzureStorageFileSAS(shareName, fileName, policyName, string.Empty),
+                    "Generate file sas token with non-exist policy should fail");
+                ExpectedEqualErrorMessage(string.Format("Invalid access policy '{0}'.", policyName));
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        /// <summary>
+        /// Generate SAS of a file with expiry time before start time
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        public void NewFileSasWithInvalidLifeTime()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("file");
+                var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
+
+                DateTime start = DateTime.UtcNow;
+                DateTime end = start.AddHours(1.0);
+                Test.Assert(!agent.NewAzureStorageFileSAS(shareName, fileName, string.Empty, "l", end, start),
+                        "Generate file sas token with invalid should fail");
+                ExpectedStartsWithErrorMessage("The expiry time of the specified access policy should be greater than start time");
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        /// <summary>
+        /// Return full uri with SAS token
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        public void NewFileSasWithFullUri()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("file");
+                var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
+
+                string permissions = Utility.GenRandomCombination(Utility.FilePermission);
+                string fullUri = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions);
+                string sasToken = (lang == Language.PowerShell ? fullUri.Substring(fullUri.IndexOf("?")) : fullUri);
+                ValidateFileSasToken(file, permissions, sasToken);
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        /// <summary>
+        /// Generate SAS of a file with only limited access right(read,write,delete,list,none)
+        ///     Verify access with the non-granted right to this file is denied
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        public void NewFileSasWithLimitedPermission()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("file");
+                var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
+
+                //File read permission
+                string permissions = "r";
+                string limitedPermission = "wd";
+                string sastoken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions);
+                ValidateFileLimitedSasPermission(file, limitedPermission, sastoken);
+
+                //File write permission
+                permissions = "w";
+                limitedPermission = "rd";
+                sastoken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions);
+                ValidateLimitedSasPermission(share, limitedPermission, sastoken);
+
+                //File delete permission
+                permissions = "d";
+                limitedPermission = "rw";
+                sastoken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions);
+                ValidateLimitedSasPermission(share, limitedPermission, sastoken);
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        /// <summary>
+        /// Generate SAS of a file with only limited access right(read,write,delete,none)
+        ///     Verify access with the non-granted right to this file is denied
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        public void NewFileSasNegativeTest()
+        {
+            DateTime startTime = DateTime.Now.AddMinutes(-1);
+            DateTime expiryTime = startTime.AddMinutes(30);
+            string sharePermission = "r";
+            string policyName = Utility.GenNameString("p");
+
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                Utility.ClearStoredAccessPolicy<CloudFileShare>(share);
+                Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(shareName, policyName, sharePermission, startTime, expiryTime),
+                    "Create stored access policy to a share should succeed");
+                Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, new Utility.RawStoredAccessPolicy(policyName, startTime, expiryTime, sharePermission));
+
+                string fileName = Utility.GenNameString("file");
+                var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
+
+                Test.Assert(!agent.NewAzureStorageFileSAS(shareName, fileName, policyName, startTime: startTime),
+                    "Create sas with Policy and start time should failed.");
+                ExpectedContainErrorMessage("This start time field must be omitted if it has been specified in an associated stored access policy.");
+
+                Test.Assert(!agent.NewAzureStorageFileSAS(shareName, fileName, policyName, sharePermission),
+                    "Create sas with Policy and permission should failed.");
+                ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters");
+
+                Test.Assert(!agent.NewAzureStorageFileSAS(shareName, fileName, policyName, expiryTime: expiryTime),
+                    "Create sas with Policy and expiry time should failed.");
+                ExpectedContainErrorMessage("This expiry time field must be omitted if it has been specified in an associated stored access policy.");
+
+                fileUtil.DeleteFileIfExists(share, fileName);
+                Test.Assert(agent.NewAzureStorageFileSAS(shareName, fileName, null, sharePermission, startTime, expiryTime),
+                        "Create sas on a non-exist file without policy should succeed.");
+
+                Test.Assert(agent.NewAzureStorageFileSAS(shareName, fileName, policyName),
+                        "Create sas on a non-exist file with policy should fail.");
+                ExpectedContainErrorMessage("The specified file does not exist.");
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        private void GenerateFileSasTokenAndValidate(string permission)
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("file");
+                var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
+                string sastoken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permission);
+                ValidateFileSasToken(file, permission, sastoken);
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+        
+
         private void GenerateSasTokenAndValidate(string sharePermission)
         {
             string shareName = Utility.GenNameString("share");
@@ -912,6 +1241,25 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             finally
             {
                 fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+        
+        private void ValidateFileSasToken(StorageFile.CloudFile file, string permissions, string sasToken)
+        {
+            foreach (char permission in permissions.ToLower())
+            {
+                switch (permission)
+                {
+                    case 'r':
+                        fileUtil.ValidateFileReadableWithSasToken(file, sasToken);
+                        break;
+                    case 'w':
+                        fileUtil.ValidateFileWriteableWithSasToken(file, sasToken);
+                        break;
+                    case 'd':
+                        fileUtil.ValidateFileDeleteableWithSasToken(file, sasToken);
+                        break;
+                }
             }
         }
 
@@ -933,6 +1281,29 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     case 'l':
                         fileUtil.ValidateShareListableWithSasToken(share, sasToken);
                         break;
+                }
+            }
+        }
+
+        private void ValidateFileLimitedSasPermission(StorageFile.CloudFile file,
+            string limitedPermission, string sasToken)
+        {
+            try
+            {
+                ValidateFileSasToken(file, limitedPermission, sasToken);
+                Test.Error("sastoken '{0}' should not contain the permission {1}", limitedPermission);
+            }
+            catch (StorageException e)
+            {
+                Test.Info(e.Message);
+                if (403 == e.RequestInformation.HttpStatusCode || 404 == e.RequestInformation.HttpStatusCode)
+                {
+                    Test.Info("Limited permission sas token should not access storage objects. {0}", e.RequestInformation.HttpStatusMessage);
+                }
+                else
+                {
+                    Test.Error("Limited permission sas token should return 403 or 404, but actually it's {0} {1}",
+                        e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage);
                 }
             }
         }
