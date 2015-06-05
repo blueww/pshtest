@@ -1520,6 +1520,30 @@ namespace Management.Storage.ScenarioTest
             throw new NotImplementedException();
         }
 
+        public override string GetAzureStorageShareSasFromCmd(string shareName, string policy, string permission = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool NewAzureStorageFileSAS(string shareName, string filePath, string policyName = null, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool NewAzureStorageFileSAS(CloudFile file, string policyName = null, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string GetAzureStorageFileSasFromCmd(string shareName, string filePath, string policy, string permission = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool SetAzureStorageShareQuota(string shareName, int quota)
         {
             throw new NotImplementedException();
