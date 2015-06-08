@@ -137,7 +137,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             Validator validator;
             if (lang == Language.PowerShell)
             {
-                errorMessage = string.Format("Can not find blob '{0}' in container '{1}'.", blobName, srcContainerName);
+                errorMessage = string.Format("Can not find blob '{0}' in container '{1}', or the blob type is unsupported.", blobName, srcContainerName);
                 validator = ExpectedEqualErrorMessage;
             }
             else
@@ -183,9 +183,18 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 ((CloudBlockBlob)destBlob).StartCopyFromBlob((CloudBlockBlob)srcBlob);
             }
-            else
+            else if (destBlob.BlobType == StorageBlob.BlobType.PageBlob)
             {
                 ((CloudPageBlob)destBlob).StartCopyFromBlob((CloudPageBlob)srcBlob);
+            }
+            else if (destBlob.BlobType == StorageBlob.BlobType.AppendBlob)
+            {
+                ((CloudAppendBlob)destBlob).StartCopy((CloudAppendBlob)srcBlob);
+            }
+            else
+            {
+                Test.Error(string.Format("Invalid blob type: {0}", destBlob.BlobType));
+                return;
             }
 
             Test.Assert(agent.GetAzureStorageBlobCopyState("$root", destBlob.Name, true), "Get copy state in $root container should succeed.");
@@ -243,7 +252,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 object context;
                 if (lang == Language.PowerShell)
                 {
-                    destBlob = (CloudBlob)agent.Output[0]["CloudBlob"];
+                    destBlob = (CloudBlob)agent.Output[0]["ICloudBlob"];
                     //make sure this context is different from the PowerShell.Context
                     context = agent.Output[0]["Context"];
                     Test.Assert(PowerShellAgent.Context != context, "make sure you are using different context for cross account copy");
@@ -311,7 +320,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             CloudBlobContainer Container = blobUtil.CreateContainer();
             string ContainerName = Container.Name;
-            string BlobName = Utility.GenNameString("blockblob");
+            string BlobName = Utility.GenNameString("blob");
             CloudBlob Blob = blobUtil.CreateBlockBlob(Container, BlobName);
             
             string uri = Test.Data.Get("BigFileUri");
@@ -321,7 +330,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 return;
             }
-
+            
             Blob.StartCopyFromBlob(new Uri(uri));
 
             int maxMonitorCount = 3; 

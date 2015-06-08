@@ -10,14 +10,15 @@ cd ..
 echo "update submodule Powershell"
 cd PowerShell
 git fetch
-git reset origin/filesas --hard
+git reset origin/sprint51 --hard
 cd ..
 echo "update submodule xplat"
 cd Xplat
 git fetch
-git reset origin/dev --hard
+git reset origin/appendblob --hard
 cd ..
 
+if [%1] == [DEV] GOTO :END
 if [%1] == [JENKINS] GOTO :JENKINS
 
 :LOCAL

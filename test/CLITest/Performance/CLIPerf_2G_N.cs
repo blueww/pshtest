@@ -153,6 +153,26 @@ namespace Management.Storage.ScenarioTest
             Run(o);
         }
 
+        #region append blob
+        [TestMethod]
+        [TestCategory(PsTag.Perf)]
+        [Timeout(7200000)]
+        public void UploadHttpAppend()
+        {
+            var o = new AppendBlobUploadOperation(new PowerShellAgent(), BlobHelper);
+            Run(o);
+        }
+
+        [TestMethod]
+        [TestCategory(PsTag.Perf)]
+        public void DownloadHttpAppend()
+        {
+            var o = new AppendBlobDownloadOperation(new PowerShellAgent(), BlobHelper);
+            Run(o);
+        }
+
+        #endregion
+
         public void Run(ICLIOperation operation)
         {
             var fileNumTime = new Dictionary<int, double>();

@@ -18,7 +18,6 @@
         [ClassInitialize]
         public static void GetAzureStorageShareTestInitialize(TestContext context)
         {
-            StorageAccount = Utility.ConstructStorageAccountFromConnectionString();
             TestBase.TestClassInitialize(context);
         }
 
