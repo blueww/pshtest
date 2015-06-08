@@ -15,7 +15,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [ClassInitialize]
         public static void ShareStoredAccessPolicyTestInitialize(TestContext context)
         {
-            StorageAccount = Utility.ConstructStorageAccountFromConnectionString();
             TestBase.TestClassInitialize(context);
             share = fileUtil.EnsureFileShareExists(shareName);
         }
