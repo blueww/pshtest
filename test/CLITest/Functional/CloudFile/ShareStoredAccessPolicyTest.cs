@@ -13,6 +13,7 @@ using StorageTestLib;
 
 namespace Management.Storage.ScenarioTest.Functional.CloudFile
 {
+    [TestClass]
     public class ShareStoredAccessPolicyTest : TestBase
     {
         [ClassInitialize]

@@ -848,7 +848,8 @@ namespace Management.Storage.ScenarioTest
         {
             if (!(typeof(T) == typeof(SharedAccessTablePolicy) ||
                 typeof(T) == typeof(SharedAccessBlobPolicy) ||
-                typeof(T) == typeof(SharedAccessQueuePolicy)))
+                typeof(T) == typeof(SharedAccessQueuePolicy) ||
+                typeof(T) == typeof(SharedAccessFilePolicy)))
             {
                 throw new Exception("Unknown Service Type!");
             }

@@ -7,6 +7,7 @@ using StorageTestLib;
 
 namespace Management.Storage.ScenarioTest.Functional.CloudFile
 {
+    [TestClass]
     public class ShareQuotaTest : TestBase
     {
         private const int MinQuota = 1;

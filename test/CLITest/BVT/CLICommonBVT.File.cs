@@ -647,11 +647,18 @@
 
                 //get the policy and validate
                 SharedAccessFilePolicies expectedPolicies = new SharedAccessFilePolicies();
-                expectedPolicies.Add(samplePolicy1.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(samplePolicy2.StartTime, samplePolicy2.ExpiryTime, samplePolicy2.Permission));
+                expectedPolicies.Add(samplePolicy1.PolicyName, 
+                    Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(
+                    samplePolicy2.StartTime ?? samplePolicy1.StartTime, 
+                    samplePolicy2.ExpiryTime ?? samplePolicy1.ExpiryTime, 
+                    samplePolicy2.Permission));
                 Utility.ValidateStoredAccessPolicies<SharedAccessFilePolicy>(share.GetPermissions().SharedAccessPolicies, expectedPolicies);
 
                 //validate the output
-                SharedAccessFilePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(samplePolicy2.StartTime, samplePolicy2.ExpiryTime, samplePolicy2.Permission);
+                SharedAccessFilePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(
+                    samplePolicy2.StartTime ?? samplePolicy1.StartTime,
+                    samplePolicy2.ExpiryTime ?? samplePolicy1.ExpiryTime, 
+                    samplePolicy2.Permission);
                 Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
                 comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessFilePolicy>(policy, samplePolicy1.PolicyName));
                 agent.OutputValidation(comp);
