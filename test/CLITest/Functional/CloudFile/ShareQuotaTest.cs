@@ -114,6 +114,52 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 fileUtil.DeleteFileShareIfExists(shareName);
             }
         }
+        
+        /// <summary>
+        /// Negative functional test case 8.58
+        /// </summary>
+        [TestMethod]
+        [TestCategory(PsTag.File)]
+        [TestCategory(Tag.Function)]
+        public void SetQuotaNegativeTest()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                fileUtil.CleanupDirectory(share.GetRootDirectoryReference());
+
+                // Quota less than minimum value
+                int quota = random.Next(0 - MaxQuota, MinQuota);
+                Test.Assert(!agent.SetAzureStorageShareQuota(shareName, quota),
+                    "Set quota with value of less than 1 to a share should fail.");
+                ExpectedContainErrorMessage(string.Format("The {0} argument is less than the minimum allowed range of 1.", quota));
+                
+                // Quota greater than maximum value
+                quota = random.Next(MaxQuota + 1, int.MaxValue);
+                Test.Assert(!agent.SetAzureStorageShareQuota(shareName, quota),
+                    "Set quota with value of greater than 5120 to a share should fail.");
+                ExpectedContainErrorMessage("The argument 'Quota' is larger than maximum of '5120'");
+
+                // Share not exist
+                string nonExistShareName = Utility.GenNameString("share");
+                fileUtil.DeleteFileShareIfExists(nonExistShareName);
+                quota = random.Next(MinQuota, MaxQuota);
+                Test.Assert(!agent.SetAzureStorageShareQuota(nonExistShareName, quota),
+                    "Set quota to a non-exist share should fail.");
+                ExpectedContainErrorMessage("The specified share does not exist");
+
+                string notValidShareName = "SHARE";
+                Test.Assert(!agent.SetAzureStorageShareQuota(nonExistShareName, quota),
+                    "Set quota to a not valid share name should fail.");
+                ExpectedContainErrorMessage(string.Format("The given share name/prefix '{0}' is not a valid name for a file share of Microsoft Azure File Service.", notValidShareName));
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
 
         private void ValidateShareQuota(CloudFileShare share, int quota)
         {
