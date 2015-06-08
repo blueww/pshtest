@@ -48,16 +48,16 @@ namespace Management.Storage.ScenarioTest
         protected bool _UseContextParam = true;  // decide whether to specify the Context parameter
 
         private static Hashtable ExpectedErrorMsgTablePS = new Hashtable() {
-                {"GetBlobContentWithNotExistsBlob", "Can not find blob '{0}' in container '{1}'."},
-                {"GetBlobContentWithNotExistsContainer", "Can not find blob '{0}' in container '{1}'."},
-                {"GetNonExistingBlob", "Can not find blob '{0}' in container '{1}'."},
+                {"GetBlobContentWithNotExistsBlob", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
+                {"GetBlobContentWithNotExistsContainer", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
+                {"GetNonExistingBlob", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
                 {"RemoveBlobWithLease", "The remote server returned an error: (412)"},
-                {"SetBlobContentWithInvalidBlobType", "Blob type of the blob reference doesn't match blob type of the blob. HTTP Status Code: 200"},
+                {"SetBlobContentWithInvalidBlobType", "User specified blob type does not match the blob type of the existing destination blob."},
                 {"SetPageBlobWithInvalidFileSize", "File size {0} bytes is invalid for PageBlob, must be a multiple of 512 bytes"},
                 {"CreateExistingContainer", "Container '{0}' already exists."},
                 {"CreateInvalidContainer", "Container name '{0}' is invalid."},
                 {"RemoveNonExistingContainer", "Can not find the container '{0}'."},
-                {"RemoveNonExistingBlob", "Can not find blob '{0}' in container '{1}'."},
+                {"RemoveNonExistingBlob", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
                 {"SetBlobContentWithInvalidBlobName", "Blob name '{0}' is invalid."},
                 {"SetContainerAclWithInvalidName", "Container name '{0}' is invalid."},
                 {"CreateExistingTable", "Table '{0}' already exists."},
@@ -821,6 +821,10 @@ namespace Management.Storage.ScenarioTest
             {
                 ps.BindParameter("BlobType", "Page");
             }
+            else if (Type == BlobType.AppendBlob)
+            {
+                ps.BindParameter("BlobType", "Append");
+            }
 
             if (ConcurrentCount != -1)
             {
@@ -851,6 +855,10 @@ namespace Management.Storage.ScenarioTest
             else if (blobType == BlobType.PageBlob)
             {
                 ps.BindParameter("BlobType", "Page");
+            }
+            else if (blobType == BlobType.AppendBlob)
+            {
+                ps.BindParameter("BlobType", "Append");
             }
 
             if (concurrentCount != -1)
@@ -1545,9 +1553,9 @@ namespace Management.Storage.ScenarioTest
                                 "CloudBlobContainer Column {0}: {1} = {2}", str, comp[i][str], Output[i][str]);
                             break;
 
-                        case "CloudBlob":
+                        case "ICloudBlob":
                             Test.Assert(CompareEntity((CloudBlob)comp[i][str], (CloudBlob)Output[i][str]),
-                                "CloudBlob Column {0}: {1} = {2}", str, comp[i][str], Output[i][str]);
+                                "ICloudBlob Column {0}: {1} = {2}", str, comp[i][str], Output[i][str]);
                             break;
 
                         case "Permission":
@@ -1682,7 +1690,7 @@ namespace Management.Storage.ScenarioTest
             int count = 0;
             foreach (CloudBlob blob in blobs)
             {
-                Test.Assert(CompareEntity(blob, (CloudBlob)Output[count]["CloudBlob"]), string.Format("CloudBlob equality checking for blob '{0}'", blob.Name));
+                Test.Assert(CompareEntity(blob, (CloudBlob)Output[count]["ICloudBlob"]), string.Format("CloudBlob equality checking for blob '{0}'", blob.Name));
                 ++count;
             }
         }
@@ -2332,7 +2340,9 @@ namespace Management.Storage.ScenarioTest
 
             foreach (var propertyInfo in typeof(T).GetProperties())
             {
-                if (propertyInfo.Name.Equals("ServiceClient"))
+                if (propertyInfo.Name.Equals("ServiceClient")
+                    || propertyInfo.Name.Equals("Container")
+                    || propertyInfo.Name.Equals("Parent"))
                     continue;
 
                 object o1 = null;
@@ -2357,6 +2367,7 @@ namespace Management.Storage.ScenarioTest
                     if (v1.GetType() == typeof(CloudBlobContainer)
                         || v1.GetType() == typeof(CloudBlockBlob)
                         || v1.GetType() == typeof(CloudPageBlob)
+                        || v1.GetType() == typeof(CloudAppendBlob)
                         || v1.GetType() == typeof(CloudQueue)
                         || v1.GetType() == typeof(CloudTable)
                         || v1.GetType() == typeof(CloudFileShare)
@@ -2373,7 +2384,8 @@ namespace Management.Storage.ScenarioTest
                 else if (propertyInfo.Name.Equals("Properties"))
                 {
                     if (v1.GetType() == typeof(CloudBlockBlob)
-                        || v1.GetType() == typeof(CloudPageBlob))
+                        || v1.GetType() == typeof(CloudPageBlob)
+                        || v1.GetType() == typeof(CloudAppendBlob))
                     {
                         bResult = CompareEntity((BlobProperties)o1, (BlobProperties)o2);
                     }

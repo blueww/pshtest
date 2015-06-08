@@ -278,6 +278,35 @@ namespace Management.Storage.ScenarioTest.Util
             Test.Info(string.Format("create block blob '{0}' in container '{1}'", blobName, container.Name));
             return blockBlob;
         }
+        
+        /// <summary>
+        /// create a new append blob with random properties and metadata
+        /// </summary>
+        /// <param name="container">CloudBlobContainer object</param>
+        /// <param name="blobName">blob name</param>
+        /// <returns>CloudAppendBlob object</returns>
+        public CloudAppendBlob CreateAppendBlob(CloudBlobContainer container, string blobName)
+        {
+            CloudAppendBlob appendBlob = container.GetAppendBlobReference(blobName);
+
+            int maxSize = 1024 * 1024;
+            int size = random.Next(maxSize);
+            appendBlob.Create();
+
+            byte[] buffer = new byte[size];
+            // fill in random data
+            random.NextBytes(buffer);
+            using (MemoryStream ms = new MemoryStream(buffer))
+            {
+                appendBlob.UploadFromStream(ms);
+            }
+
+            string md5sum = Convert.ToBase64String(Helper.GetMD5(buffer));
+            appendBlob.Properties.ContentMD5 = md5sum;
+            GenerateBlobPropertiesAndMetaData(appendBlob);
+            Test.Info(string.Format("create append blob '{0}' in container '{1}', md5 = {2}", blobName, container.Name, md5sum));
+            return appendBlob;
+        }
 
         /// <summary>
         /// generate random blob properties and metadata
@@ -320,9 +349,17 @@ namespace Management.Storage.ScenarioTest.Util
             {
                 return CreateBlockBlob(container, blobName);
             }
-            else
+            else if (type == StorageBlob.BlobType.PageBlob)
             {
                 return CreatePageBlob(container, blobName);
+            }
+            else if (type == StorageBlob.BlobType.AppendBlob)
+            {
+                return CreateAppendBlob(container, blobName);
+            }
+            else
+            {
+                throw new InvalidOperationException(string.Format("Invalid blob type: {0}", type));
             }
         }
 
@@ -374,20 +411,56 @@ namespace Management.Storage.ScenarioTest.Util
 
             if (type == StorageBlobType.Unspecified)
             {
-                type = (random.Next(0, 2) == 0) ? StorageBlobType.PageBlob : StorageBlobType.BlockBlob;
+                int randomValue = random.Next(1, 4);
+                switch (randomValue)
+                {
+                    case 1:
+                        type = StorageBlobType.PageBlob;
+                        break;
+                    case 2:
+                        type = StorageBlobType.BlockBlob;
+                        break;
+                    case 3:
+                        type = StorageBlobType.AppendBlob;
+                        break;
+                    default:
+                        break;
+                }
             }
             
             if (type == StorageBlobType.PageBlob)
             {
                 return CreatePageBlob(container, blobName);
             }
-            else
+            else if (type == StorageBlobType.BlockBlob)
             {
                 return CreateBlockBlob(container, blobName);
             }
+            else if (type == StorageBlobType.AppendBlob)
+            {
+                return CreateAppendBlob(container, blobName);
+            }
+            else
+            {
+                throw new InvalidOperationException(string.Format("Invalid blob type: {0}", type));
+            }
         }
 
-
+        public CloudBlob GetRandomBlobReference(CloudBlobContainer container, string blobName)
+        {
+            int randomValue = random.Next(1, 4);
+            switch (randomValue)
+            {
+                case 1:
+                    return container.GetPageBlobReference(blobName);
+                case 2:
+                    return container.GetBlockBlobReference(blobName);
+                case 3:
+                    return container.GetAppendBlobReference(blobName);
+                default:
+                    throw new InvalidOperationException(string.Format("Invalid blob type: {0}", randomValue));
+            }
+        }
 
         /// <summary>
         /// convert blob name into valid file name
@@ -475,6 +548,9 @@ namespace Management.Storage.ScenarioTest.Util
                 case StorageBlob.BlobType.PageBlob:
                     snapshot = ((CloudPageBlob)blob).CreateSnapshot();
                     break;
+                case StorageBlob.BlobType.AppendBlob:
+                    snapshot = ((CloudAppendBlob)blob).CreateSnapshot();
+                    break;
                 default:
                     throw new ArgumentException(string.Format("Unsupport blob type {0} when create snapshot", blob.BlobType));
             }
@@ -559,16 +635,17 @@ namespace Management.Storage.ScenarioTest.Util
 
         public static CloudBlob GetBlob(CloudBlobContainer container, string blobName, StorageBlobType blobType)
         {
-            CloudBlob blob = null;
-            if (blobType == StorageBlobType.BlockBlob)
+            switch (blobType)
             {
-                blob = container.GetBlockBlobReference(blobName);
+                case StorageBlobType.BlockBlob:
+                    return container.GetBlockBlobReference(blobName);
+                case StorageBlobType.PageBlob:
+                    return container.GetPageBlobReference(blobName);
+                case StorageBlobType.AppendBlob:
+                    return container.GetAppendBlobReference(blobName);
+                default:
+                    throw new InvalidOperationException(string.Format("Invalid blob type: {0}", blobType));
             }
-            else
-            {
-                blob = container.GetPageBlobReference(blobName);
-            }
-            return blob;
         }
 
         /// <summary>
@@ -743,9 +820,17 @@ namespace Management.Storage.ScenarioTest.Util
             {
                 sasBlob = sasContainer.GetBlockBlobReference(blob.Name);
             }
-            else
+            else if (blob.BlobType == StorageBlobType.PageBlob)
             {
                 sasBlob = sasContainer.GetPageBlobReference(blob.Name);
+            }
+            else if (blob.BlobType == StorageBlobType.AppendBlob)
+            {
+                sasBlob = sasContainer.GetAppendBlobReference(blob.Name);
+            }
+            else
+            {
+                throw new InvalidOperationException(string.Format("Invalid blob type: {0}", blob.BlobType));
             }
             
             return sasBlob;

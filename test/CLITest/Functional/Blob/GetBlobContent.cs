@@ -88,16 +88,24 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             ContainerName = Utility.GenNameString("container");
             BlobName = Utility.GenNameString("blob");
             CloudBlobContainer container = blobUtil.CreateContainer(ContainerName);
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference(BlobName);
+            CloudBlob blobRef = blobUtil.GetRandomBlobReference(container, BlobName);
+
             // Create or overwrite the "myblob" blob with contents from a local file.
             using (var fileStream = System.IO.File.OpenRead(filePath))
             {
-                blockBlob.UploadFromStream(fileStream);
+                blobRef.UploadFromStream(fileStream);
+            }
+            
+            blobRef.FetchAttributes();
+
+            if (null == blobRef.Properties.ContentMD5)
+            {
+                blobRef.Properties.ContentMD5 = FileUtil.GetFileContentMD5(filePath);
+                blobRef.SetProperties();
             }
 
             File.Delete(filePath);
-            blockBlob.FetchAttributes();
-            Blob = blockBlob;
+            Blob = blobRef;
             Container = container;
         }
 
@@ -256,7 +264,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 for (int i = 0; i < snapshotCount; i++)
                 {
-                    CloudBlob blob = ((CloudBlockBlob)Blob).CreateSnapshot();
+                    CloudBlob blob = Blob.Snapshot();
                     blobs.Add(blob);
                 }
 
@@ -369,6 +377,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             DownloadBlobWithSpeicialChars(BlobType.BlockBlob);
             DownloadBlobWithSpeicialChars(BlobType.PageBlob);
+            DownloadBlobWithSpeicialChars(BlobType.AppendBlob);
         }
 
         public void DownloadBlobWithSpeicialChars(BlobType blobType)
@@ -406,6 +415,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             DownloadBlobWithZeroSize(BlobType.BlockBlob);
             DownloadBlobWithZeroSize(BlobType.PageBlob);
+            DownloadBlobWithZeroSize(BlobType.AppendBlob);
         }
 
         public void DownloadBlobWithZeroSize(BlobType blobType)
