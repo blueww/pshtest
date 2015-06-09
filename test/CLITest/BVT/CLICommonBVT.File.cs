@@ -622,6 +622,8 @@
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetShareStoredPolicyTest()
         {
@@ -641,19 +643,18 @@
                     "Set stored access policy in file share should succeed");
                 Test.Info("Set stored access policy:{0}", samplePolicy1.PolicyName);
 
-                Utility.RawStoredAccessPolicy policyTemp = new Utility.RawStoredAccessPolicy(samplePolicy2);
-                policyTemp.PolicyName = samplePolicy1.PolicyName;
-                Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, policyTemp);
+                Utility.RawStoredAccessPolicy expectedPolicy = Utility.GetExpectedStoredAccessPolicy(samplePolicy1, samplePolicy2);
+                Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, expectedPolicy);
 
                 //get the policy and validate
                 SharedAccessFilePolicies expectedPolicies = new SharedAccessFilePolicies();
-                expectedPolicies.Add(samplePolicy1.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(samplePolicy2.StartTime, samplePolicy2.ExpiryTime, samplePolicy2.Permission));
+                expectedPolicies.Add(samplePolicy1.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(expectedPolicy.StartTime, expectedPolicy.ExpiryTime, expectedPolicy.Permission));
                 Utility.ValidateStoredAccessPolicies<SharedAccessFilePolicy>(share.GetPermissions().SharedAccessPolicies, expectedPolicies);
 
                 //validate the output
-                SharedAccessFilePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(samplePolicy2.StartTime, samplePolicy2.ExpiryTime, samplePolicy2.Permission);
+                SharedAccessFilePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(expectedPolicy.StartTime, expectedPolicy.ExpiryTime, expectedPolicy.Permission);
                 Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
-                comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessFilePolicy>(policy, samplePolicy1.PolicyName));
+                comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessFilePolicy>(policy, expectedPolicy.PolicyName));
                 agent.OutputValidation(comp);
             });
         }

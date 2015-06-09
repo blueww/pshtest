@@ -7,6 +7,7 @@ using StorageTestLib;
 
 namespace Management.Storage.ScenarioTest.Functional.CloudFile
 {
+    [TestClass]
     public class StoredAccessPolicyWithoutPermissionsTest : TestBase
     {
         static string shareName = Utility.GenNameString("share");

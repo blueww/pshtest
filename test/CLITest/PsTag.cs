@@ -112,6 +112,8 @@ namespace Management.Storage.ScenarioTest
         public const string NewBlobSas = "nodejsnewblobsas";
         public const string NewQueueSas = "nodejsnewqueuesas";
         public const string NewTableSas = "nodejsnewtablesas";
+        public const string NewShareSas = "nodejsnewsharesas";
+        public const string NewFileSas = "nodejsnewfilesas";
         public const string SASInterop = "nodejssasinterop";
 
         public const string StoredAccessPolicy = "nodejsstoredaccesspolicy";

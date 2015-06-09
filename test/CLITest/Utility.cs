@@ -750,6 +750,15 @@ namespace Management.Storage.ScenarioTest
             return sampleStordAccessPolicies;
         }
 
+        public static RawStoredAccessPolicy GetExpectedStoredAccessPolicy(RawStoredAccessPolicy originPolicy, RawStoredAccessPolicy newPolicy)
+        {
+            return new RawStoredAccessPolicy(
+                originPolicy.PolicyName,
+                newPolicy.StartTime ?? originPolicy.StartTime,
+                newPolicy.ExpiryTime ?? originPolicy.ExpiryTime,
+                newPolicy.Permission ?? originPolicy.Permission);
+        }
+
         public static void ClearStoredAccessPolicy<T>(T serviceRef)
         {
             if (typeof(T) == typeof(CloudTable))
@@ -847,7 +856,8 @@ namespace Management.Storage.ScenarioTest
         {
             if (!(typeof(T) == typeof(SharedAccessTablePolicy) ||
                 typeof(T) == typeof(SharedAccessBlobPolicy) ||
-                typeof(T) == typeof(SharedAccessQueuePolicy)))
+                typeof(T) == typeof(SharedAccessQueuePolicy) ||
+                typeof(T) == typeof(SharedAccessFilePolicy)))
             {
                 throw new Exception("Unknown Service Type!");
             }
