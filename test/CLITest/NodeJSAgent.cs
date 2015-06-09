@@ -1503,6 +1503,57 @@ namespace Management.Storage.ScenarioTest
             this.RunNodeJSProcess(sb.ToString(), overwrite, needAccountParam: needAccountParam);
         }
 
+        public override bool NewAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions, DateTime? startTime, DateTime? expiryTime)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool GetAzureStorageShareStoredAccessPolicy(string shareName, string policyName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool RemoveAzureStorageShareStoredAccessPolicy(string shareName, string policyName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool SetAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions,
+            DateTime? startTime, DateTime? expiryTime, bool noStartTime = false, bool noExpiryTime = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool NewAzureStorageShareSAS(string shareName, string policyName, string permissions = null,
+           DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string GetAzureStorageShareSasFromCmd(string shareName, string policy, string permission = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool NewAzureStorageFileSAS(string shareName, string filePath, string policyName = null, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool NewAzureStorageFileSAS(CloudFile file, string policyName = null, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string GetAzureStorageFileSasFromCmd(string shareName, string filePath, string policy, string permission = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool SetAzureStorageShareQuota(string shareName, int quota)
         {
             string command = string.Format("share set {0} --quota ", shareName, quota);

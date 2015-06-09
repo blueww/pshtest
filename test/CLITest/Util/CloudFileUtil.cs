@@ -450,5 +450,50 @@
             int retrievedFileCount = sasShare.GetRootDirectoryReference().ListFilesAndDirectories().Count();
             TestBase.ExpectEqual(fileCount, retrievedFileCount, "File count");
         }
+
+        /// <summary>
+        /// Validate the read permission in the sas token for the the specified file
+        /// </summary>
+        public void ValidateFileReadableWithSasToken(CloudFile file, string sasToken)
+        {
+            Test.Info("Verify file read permission");
+            CloudFile sasFile = new CloudFile(file.Uri, new StorageCredentials(sasToken));
+            long buffSize = sasFile.Properties.Length;
+            byte[] buffer = new byte[buffSize];
+            MemoryStream ms = new MemoryStream(buffer);
+            sasFile.DownloadRangeToStream(ms, 0, buffSize);
+            string md5 = Utility.GetBufferMD5(buffer);
+            TestBase.ExpectEqual(sasFile.Properties.ContentMD5, md5, "content md5");
+        }
+
+        /// <summary>
+        /// Validate the write permission in the sas token for the the specified file
+        /// </summary>
+        internal void ValidateFileWriteableWithSasToken(CloudFile file, string sasToken)
+        {
+            Test.Info("Verify file write permission");
+            CloudFile sasFile = new CloudFile(file.Uri, new StorageCredentials(sasToken));
+            DateTimeOffset? lastModifiedTime = sasFile.Properties.LastModified;
+            long buffSize = 1024 * 1024;
+            byte[] buffer = new byte[buffSize];
+            (new Random()).NextBytes(buffer);
+            MemoryStream ms = new MemoryStream(buffer);
+            sasFile.UploadFromStream(ms);
+            file.FetchAttributes();
+            DateTimeOffset? newModifiedTime = file.Properties.LastModified;
+            TestBase.ExpectNotEqual(lastModifiedTime.ToString(), newModifiedTime.ToString(), "Last modified time");
+        }
+
+        /// <summary>
+        /// Validate the delete permission in the sas token for the the specified file
+        /// </summary>
+        internal void ValidateFileDeleteableWithSasToken(CloudFile file, string sasToken)
+        {
+            Test.Info("Verify file delete permission");
+            Test.Assert(file.Exists(), "The file should exist");
+            CloudFile sasFile = new CloudFile(file.Uri, new StorageCredentials(sasToken));
+            sasFile.Delete();
+            Test.Assert(!file.Exists(), "The file should not exist after deleting with sas token");
+        }
     }
 }
