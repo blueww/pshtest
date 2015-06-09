@@ -1567,6 +1567,31 @@ namespace Management.Storage.ScenarioTest
             throw new NotImplementedException();
         }
 
+        public override bool StartFileCopyFromBlob(string containerName, string blobName, string shareName, string filePath, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopyFromBlob(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopyFromFile(string srcShareName, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool GetFileCopyState(string shareName, string filePath, bool waitForComplete = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool GetFileCopyState(CloudFile file, bool waitForComplete = false)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void AssertNoError()
         {
             Test.Assert(!this.HadErrors, "Should execute command without error.");

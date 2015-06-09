@@ -23,7 +23,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         }
 
         [ClassCleanup]
-        public static void ShareStoredAccessPolicyTestInitialize()
+        public static void ShareStoredAccessPolicyTestCleanup()
         {
             TestBase.TestClassCleanup();
         }
