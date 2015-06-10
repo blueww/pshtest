@@ -19,9 +19,11 @@ namespace Management.Storage.ScenarioTest.BVT
     using System.Collections.ObjectModel;
     using System.Diagnostics;
     using System.IO;
+    using System.Threading;
     using Management.Storage.ScenarioTest.Common;
     using Management.Storage.ScenarioTest.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.WindowsAzure.Commands.Storage.Model.ResourceModel;
     using Microsoft.WindowsAzure.Storage.Blob;
     using Microsoft.WindowsAzure.Storage.Queue;
     using Microsoft.WindowsAzure.Storage.Shared.Protocol;
@@ -1949,5 +1951,63 @@ namespace Management.Storage.ScenarioTest.BVT
             }
         }
 
+        /// <summary>
+        /// Test plan, BVT 8.30
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        public void CORSRuleManagementTest()
+        {
+            this.CORSRulesTest(Constants.ServiceType.Blob, 5);
+            this.CORSRulesTest(Constants.ServiceType.Table, 3);
+            this.CORSRulesTest(Constants.ServiceType.Queue, 1);
+        }
+
+        private void CORSRulesTest (Constants.ServiceType serviceType, int corsRuleCount)
+        {
+            try
+            {
+                PSCorsRule[] corsRules = CORSRuleUtil.GetRandomValidCORSRules(corsRuleCount);
+
+                Test.Assert(agent.SetAzureStorageCORSRules(serviceType, corsRules),
+                    "Set 5 Cors rules to {0} service should succeed.", serviceType);
+
+                Test.Assert(agent.GetAzureStorageCORSRules(serviceType),
+                    "Get CORS rules from {0} service should succeed.", serviceType);
+
+                PSCorsRule[] acturalRules = agent.Output[0]["_baseObject"] as PSCorsRule[];
+
+                CORSRuleUtil.ValidateCORSRules(corsRules, acturalRules);
+
+                Test.Assert(agent.RemoveAzureStorageCORSRules(serviceType),
+                    "Remove CORS rules of {0} service should succeed.", serviceType);
+
+                Test.Assert(agent.GetAzureStorageCORSRules(serviceType),
+                    "Get CORS rules from {0} service should succeed.", serviceType);
+
+                acturalRules = agent.Output[0]["_baseObject"] as PSCorsRule[];
+                Test.Assert(acturalRules.Length == 0, "CORS rule count of {1} service should be 0, actually it's {0}", acturalRules.Length, serviceType);
+            }
+            finally
+            {
+                ServiceProperties sp = new ServiceProperties();
+                sp.Clean();
+                sp.Cors = new CorsProperties();
+                sp.Cors.CorsRules.Clear();
+
+                switch (serviceType)
+                {
+                    case Constants.ServiceType.Blob:
+                        CommonStorageAccount.CreateCloudBlobClient().SetServiceProperties(sp);
+                        break;
+                    case Constants.ServiceType.Queue:
+                        CommonStorageAccount.CreateCloudQueueClient().SetServiceProperties(sp);
+                        break;
+                    case Constants.ServiceType.Table:
+                        CommonStorageAccount.CreateCloudTableClient().SetServiceProperties(sp);
+                        break;
+                }
+            }
+        }
     }
 }
