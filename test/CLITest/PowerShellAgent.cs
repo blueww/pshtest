@@ -290,12 +290,17 @@ namespace Management.Storage.ScenarioTest
             SetStorageContext(ps);
         }
 
+        public override void SetStorageContextWithSASTokenInConnectionString(CloudStorageAccount StorageAccount, string sasToken)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, bool useHttps = true)
         {
             this.SetStorageContextWithSASToken(StorageAccountName, sasToken, null, useHttps);
         }
 
-        public override void SetStorageContextWithSASToken(string StorageAccountName, string sasToken,  string endpoint,  bool useHttps = true)
+        public override void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, string endpoint, bool useHttps = true)
         {
             PowerShell ps = PowerShell.Create(_InitState);
             ps.AddCommand("New-AzureStorageContext");

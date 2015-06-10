@@ -334,9 +334,15 @@
 
         private static void PrepareFileInternal(CloudFile file, string source)
         {
+            FileRequestOptions options = new FileRequestOptions() { StoreFileContentMD5 = true };
             if (source == null)
             {
-                file.Create(1024);
+                int buffSize = 1024;
+                byte[] buffer = new byte[buffSize];
+                Random random = new Random();
+                random.NextBytes(buffer);
+
+                file.UploadFromByteArray(buffer, 0, buffSize, options: options);
             }
             else
             {
@@ -375,7 +381,7 @@
                 if (AgentOSType == OSType.Windows)
                 {
                     file.Create(FileUtil.GetFileSize(source));
-                    file.UploadFromFile(source, FileMode.Open);
+                    file.UploadFromFile(source, FileMode.Open, options: options);
                 }
             }
         }
