@@ -62,7 +62,8 @@ namespace Management.Storage.ScenarioTest
         /// <returns>a random string for azure object name</returns>
         public static string GenNameString(string prefix, int len = 8)
         {
-            return prefix + Guid.NewGuid().ToString().Replace("-", "").Substring(0, len);
+            string guidString = Guid.NewGuid().ToString().Replace("-", "");
+            return prefix + guidString.Substring(0, Math.Min(len, guidString.Length));
         }
 
         /// <summary>
@@ -748,6 +749,15 @@ namespace Management.Storage.ScenarioTest
             sampleStordAccessPolicies.Add(new RawStoredAccessPolicy(policy5, startTime5, expiryTime5, permission5));
 
             return sampleStordAccessPolicies;
+        }
+
+        public static RawStoredAccessPolicy GetExpectedStoredAccessPolicy(RawStoredAccessPolicy originPolicy, RawStoredAccessPolicy newPolicy)
+        {
+            return new RawStoredAccessPolicy(
+                originPolicy.PolicyName,
+                newPolicy.StartTime ?? originPolicy.StartTime,
+                newPolicy.ExpiryTime ?? originPolicy.ExpiryTime,
+                newPolicy.Permission ?? originPolicy.Permission);
         }
 
         public static void ClearStoredAccessPolicy<T>(T serviceRef)

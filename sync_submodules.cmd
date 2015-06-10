@@ -15,7 +15,7 @@ cd ..
 echo "update submodule xplat"
 cd Xplat
 git fetch
-git reset origin/appendblob --hard
+git reset origin/filesas --hard
 cd ..
 
 if [%1] == [DEV] GOTO :END

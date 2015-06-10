@@ -340,6 +340,16 @@ namespace Management.Storage.ScenarioTest
             return command + string.Format(" {0} ", optionName);
         }
 
+        internal string appendDateTimeOption(string command, string optionName, DateTime? date)
+        {
+            if (date.HasValue)
+            {
+                command = appendStringOption(command, optionName, date.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"));
+            }
+
+            return command;
+        }
+
         public override bool ChangeCLIMode(Constants.Mode mode)
         {
             return RunNodeJSProcess(string.Format("mode {0}", mode), needAccountParam: false, category: "config");
@@ -1441,7 +1451,7 @@ namespace Management.Storage.ScenarioTest
 
         public override void ListFiles(CloudFileDirectory directory, string path = null)
         {
-            throw new NotImplementedException();
+            this.ListFiles(directory.Share.Name, directory.Name + '/' + path);
         }
 
         public override void DownloadFile(CloudFile file, string destination, bool overwrite = false)
@@ -1506,65 +1516,16 @@ namespace Management.Storage.ScenarioTest
             this.RunNodeJSProcess(sb.ToString(), overwrite, needAccountParam: needAccountParam);
         }
 
-        public override bool NewAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions, DateTime? startTime, DateTime? expiryTime)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool GetAzureStorageShareStoredAccessPolicy(string shareName, string policyName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool RemoveAzureStorageShareStoredAccessPolicy(string shareName, string policyName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool SetAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions,
-            DateTime? startTime, DateTime? expiryTime, bool noStartTime = false, bool noExpiryTime = false)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool NewAzureStorageShareSAS(string shareName, string policyName, string permissions = null,
-           DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override string GetAzureStorageShareSasFromCmd(string shareName, string policy, string permission = null,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool NewAzureStorageFileSAS(string shareName, string filePath, string policyName = null, string permissions = null,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool NewAzureStorageFileSAS(CloudFile file, string policyName = null, string permissions = null,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override string GetAzureStorageFileSasFromCmd(string shareName, string filePath, string policy, string permission = null,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
-        {
-            throw new NotImplementedException();
-        }
-
         public override bool SetAzureStorageShareQuota(string shareName, int quota)
         {
-            throw new NotImplementedException();
+            string command = string.Format("share set {0} --quota {1}", shareName, quota);
+
+            return RunNodeJSProcess(command);
         }
 
         public override bool SetAzureStorageShareQuota(CloudFileShare share, int quota)
         {
-            throw new NotImplementedException();
+            return SetAzureStorageShareQuota(share.Name, quota);
         }
 
         public override void AssertNoError()
@@ -1908,10 +1869,25 @@ namespace Management.Storage.ScenarioTest
             this.SetStorageContextWithSASToken(StorageAccountName, sasToken, null, useHttps);
         }
 
-        public override void SetStorageContextWithSASToken(string StorageAccountName, string sasToken,  string endpoint,  bool useHttps = true)
+        public override void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, string endpoint,  bool useHttps = true)
         {
             AgentConfig.AccountName = StorageAccountName;
             AgentConfig.SAS = sasToken;
+        }
+
+        public override void SetStorageContextWithSASTokenInConnectionString(CloudStorageAccount StorageAccount, string sasToken)
+        {
+            if (sasToken.StartsWith("?"))
+            {
+                sasToken = sasToken.Substring(1);
+            }
+
+            AgentConfig.ConnectionStr = string.Format("BlobEndpoint={0};FileEndpoint={1};TableEndpoint={2};QueueEndpoint={3};SharedAccessSignature={4}",
+                StorageAccount.BlobEndpoint,
+                StorageAccount.FileEndpoint,
+                StorageAccount.TableEndpoint,
+                StorageAccount.QueueEndpoint,
+                sasToken);
         }
 
         public override string SetContextWithSASToken(string accountName, CloudBlobUtil blobUtil, StorageObjectType objectType,
@@ -1959,6 +1935,32 @@ namespace Management.Storage.ScenarioTest
             command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy);
 
             return RunNodeJSProcess(command);
+        }
+
+        public override bool NewAzureStorageShareSAS(string shareName, string policyName, string permissions = null,
+           DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            string command = string.Format("share sas create {0}", shareName);
+
+            command = GetGeneralSASCmd(command, permissions, startTime, expiryTime, policyName);
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override bool NewAzureStorageFileSAS(string shareName, string filePath, string policyName = null, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            string command = string.Format("file sas create {0} {1}", shareName, filePath);
+
+            command = GetGeneralSASCmd(command, permissions, startTime, expiryTime, policyName);
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override bool NewAzureStorageFileSAS(CloudFile file, string policyName = null, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            return NewAzureStorageFileSAS(file.Share.Name, CloudFileUtil.GetFullPath(file), policyName, permissions, startTime, expiryTime, fulluri);
         }
 
         public override bool NewAzureStorageTableSAS(string name, string policy, string permission,
@@ -2039,6 +2041,40 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+        public override string GetAzureStorageShareSasFromCmd(string shareName, string policy, string permission = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            NewAzureStorageShareSAS(shareName, policy, permission, startTime, expiryTime, fulluri);
+            if (Output.Count != 0)
+            {
+                string sasToken = Output[0][Constants.SASTokenKeyNode].ToString();
+                Test.Info("Generated sas token: {0}", sasToken);
+                return sasToken;
+            }
+            else
+            {
+                Test.Info("Fail to generate sas token.");
+                return string.Empty;
+            }
+        }
+
+        public override string GetAzureStorageFileSasFromCmd(string shareName, string filePath, string policy, string permission = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            NewAzureStorageFileSAS(shareName, filePath, policy, permission, startTime, expiryTime, fulluri);
+            if (Output.Count != 0)
+            {
+                string sasToken = Output[0][Constants.SASTokenKeyNode].ToString();
+                Test.Info("Generated sas token: {0}", sasToken);
+                return sasToken;
+            }
+            else
+            {
+                Test.Info("Fail to generate sas token.");
+                return string.Empty;
+            }
+        }
+
         public override string GetQueueSasFromCmd(string queueName, string policy, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
         {
@@ -2084,18 +2120,26 @@ namespace Management.Storage.ScenarioTest
                     permission = "r";
                 }
 
-                command += " --permissions " + permission +
-                    " --expiry " + (expiryTime.HasValue ? expiryTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ") : DateTime.UtcNow.AddHours(1).ToString("yyyy-MM-ddTHH:mm:ssZ"));
+                command = appendStringOption(command, "--permissions", permission);
+
+                if (expiryTime.HasValue)
+                {
+                    command = appendDateTimeOption(command, "--expiry", expiryTime);
+                }
+                else
+                {
+                    command = appendDateTimeOption(command, "--expiry", DateTime.UtcNow.AddHours(1));
+                }
             }
             else
             {
-                command += " --policy " + policy;
+                command = appendStringOption(command, "--policy", policy, quoted: true);
+
+                command = appendStringOption(command, "--permissions", permission);
+                command = appendDateTimeOption(command, "--expiry", expiryTime);
             }
 
-            if (startTime.HasValue)
-            {
-                command += " --start " + startTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ");
-            }
+            command = appendDateTimeOption(command, "--start", startTime);
 
             return command;
         }
@@ -2167,6 +2211,27 @@ namespace Management.Storage.ScenarioTest
             DateTime? startTime = null, DateTime? expiryTime = null, bool NoStartTime = false, bool NoExpiryTime = false)
         {
             return SetAzureStorageStoredAccessPolicy("container", containerName, policyName, permission, startTime, expiryTime, NoStartTime, NoExpiryTime);
+        }
+
+        public override bool NewAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions, DateTime? startTime, DateTime? expiryTime)
+        {
+            return NewAzureStorageStoredAccessPolicy("share", shareName, policyName, permissions, startTime, expiryTime);
+        }
+
+        public override bool GetAzureStorageShareStoredAccessPolicy(string shareName, string policyName)
+        {
+            return GetAzureStorageStoredAccessPolicy("share", shareName, policyName);
+        }
+
+        public override bool RemoveAzureStorageShareStoredAccessPolicy(string shareName, string policyName)
+        {
+            return RemoveAzureStorageStoredAccessPolicy("share", shareName, policyName, true);
+        }
+
+        public override bool SetAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions,
+            DateTime? startTime, DateTime? expiryTime, bool noStartTime = false, bool noExpiryTime = false)
+        {
+            return SetAzureStorageStoredAccessPolicy("share", shareName, policyName, permissions, startTime, expiryTime, noStartTime, noExpiryTime);
         }
 
         internal bool GetAzureStorageStoredAccessPolicy(string resourceType, string resourceName, string policyName)
