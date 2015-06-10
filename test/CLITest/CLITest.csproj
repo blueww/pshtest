@@ -90,6 +90,9 @@
       <HintPath>..\..\AzCopy\dmlib\internal\imports\VisualStudio\VS10RTM\MsTest\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.WindowsAzure.Commands.Storage">
+      <HintPath>..\..\PowerShell\src\Package\$(Configuration)\ServiceManagement\Azure\Storage\Microsoft.WindowsAzure.Commands.Storage.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.WindowsAzure.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.WindowsAzure.Common.1.4.1\lib\net45\Microsoft.WindowsAzure.Common.dll</HintPath>
@@ -221,6 +224,7 @@
     <Compile Include="Functional\Blob\SetContainerAcl.cs" />
     <Compile Include="Functional\Blob\StartCopy.cs" />
     <Compile Include="Functional\Blob\StopCopy.cs" />
+    <Compile Include="Functional\CloudFile\FileAsyncCopyTest.cs" />
     <Compile Include="Functional\CloudFile\ShareQuotaTest.cs" />
     <Compile Include="Functional\CloudFile\GetAzureStorageFileTest.cs" />
     <Compile Include="Functional\CloudFile\MountTest.cs" />
@@ -237,6 +241,7 @@
     <Compile Include="Functional\CloudFile\ShareStoredAccessPolicyTest.cs" />
     <Compile Include="Functional\CloudFile\StoredAccessPolicyWithoutPermissionsTest.cs" />
     <Compile Include="Functional\Queue\QueueStoredAccessPolicy.cs" />
+    <Compile Include="Functional\Service\ServiceCORSRule.cs" />
     <Compile Include="Functional\StorageAccount.cs" />
     <Compile Include="Functional\Table\TableStoredAccessPolicy.cs" />
     <Compile Include="IExecutionError.cs" />
@@ -281,6 +286,7 @@
     <Compile Include="PsTag.cs" />
     <Compile Include="StorageObjectType.cs" />
     <Compile Include="Utility.cs" />
+    <Compile Include="Util\CORSRuleUtil.cs" />
     <Compile Include="Util\ResourceManagerWrapper.cs" />
     <Compile Include="Util\UtilBase.cs" />
     <Compile Include="Util\CloudFileUtil.cs" />

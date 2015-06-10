@@ -1,19 +1,20 @@
 ﻿namespace Management.Storage.ScenarioTest.Util
 {
     using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using System.Security.Cryptography;
-    using System.Text;
-    using System.Threading;
-    using Management.Storage.ScenarioTest.Common;
-    using Microsoft.WindowsAzure.Storage;
-    using Microsoft.WindowsAzure.Storage.Auth;
-    using Microsoft.WindowsAzure.Storage.File;
-    using MS.Test.Common.MsTestLib;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading;
+using Management.Storage.ScenarioTest.Common;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.File;
+using MS.Test.Common.MsTestLib;
 
     public class CloudFileUtil : UtilBase
     {
@@ -29,11 +30,15 @@
 
         private const string MockupAccountKey = @"FjUfNl1KiJttbXlsdkMzBTC7WagvrRM1/g6UPBuy0ypCpAbYTL6/KA+dI/7gyoWvLFYmah3IviUP1jykOHHOlA==";
 
+        private static char[] InvalidPathChars = new char[] { '"', '\\', ':', '|', '<', '>', '*', '?' };
+
         private static int seed;
 
         private CloudStorageAccount account;
 
         private CloudFileClient client;
+
+        private Random rd = new Random();
 
         public CloudFileUtil(CloudStorageAccount account)
         {
@@ -243,7 +248,17 @@
 
         public CloudFile CreateFile(CloudFileShare fileShare, string fileName, string source = null)
         {
-            var file = fileShare.GetRootDirectoryReference().GetFileReference(fileName.Trim('/'));
+            string[] path = fileName.Split('/');
+
+            var dir = fileShare.GetRootDirectoryReference();
+
+            for (int i = 0; i < path.Length - 1; ++i)
+            {
+                dir = dir.GetDirectoryReference(path[i]);
+                dir.Create();
+            }
+
+            var file = dir.GetFileReference(path[path.Length - 1]);
             PrepareFileInternal(file, source);
             return file;
         }
@@ -293,6 +308,126 @@
             }
         }
 
+        public CloudFile GetFileReference(CloudFileDirectory dir, string filePath)
+        {
+            string[] path = filePath.Split('/');
+
+            var localDir = dir;
+
+            for (int i = 0; i < path.Length - 1; ++i)
+            {
+                localDir = localDir.GetDirectoryReference(path[i]);
+            }
+
+            return localDir.GetFileReference(path[path.Length - 1]);
+        }
+
+        public string ResolveFileName(CloudBlob blob)
+        {
+            // 1) Unescape original string, original string is UrlEncoded.
+            // 2) Replace Azure directory separator with Windows File System directory separator.
+            // 3) Trim spaces at the end of the file name.
+            string destinationRelativePath = EscapeInvalidCharacters(blob.Name);
+
+            // Split into path + filename parts.
+            int lastSlash = destinationRelativePath.LastIndexOf("/", StringComparison.Ordinal);
+
+            string destinationFileName;
+            string destinationPath;
+
+            if (-1 == lastSlash)
+            {
+                destinationPath = string.Empty;
+                destinationFileName = destinationRelativePath;
+            }
+            else
+            {
+                destinationPath = destinationRelativePath.Substring(0, lastSlash + 1);
+                destinationFileName = destinationRelativePath.Substring(lastSlash + 1);
+            }
+
+            // Append snapshot time to filename.
+            destinationFileName = AppendSnapShotToFileName(destinationFileName, blob.SnapshotTime);
+
+            // Combine path and filename back together again.
+            destinationRelativePath = string.Format("{0}/{1}", destinationPath, destinationFileName);
+
+            return destinationRelativePath;
+        }
+
+        private string EscapeInvalidCharacters(string fileName)
+        {            
+            StringBuilder sb = new StringBuilder();
+            char separator = '/';
+            string escapedSeparator = string.Format("%{0:X2}", (int)separator);
+
+            bool followSeparator = false;
+            char[] fileNameChars = fileName.ToCharArray();
+            int lastIndex = fileNameChars.Length - 1;
+
+            for (int i = 0; i < fileNameChars.Length; ++i)
+            {
+                if (fileNameChars[i] == separator)
+                {
+                    if (followSeparator || (0 == i) || (lastIndex == i))
+                    {
+                        sb.Append(escapedSeparator);
+                    }
+                    else
+                    {
+                        sb.Append(fileNameChars[i]);
+                    }
+
+                    followSeparator = true;
+                }
+                else
+                {
+                    followSeparator = false;
+                    sb.Append(fileNameChars[i]);
+                }
+            }
+
+            fileName = sb.ToString();
+
+            if (null != InvalidPathChars)
+            {
+                // Replace invalid characters with %HH, with HH being the hexadecimal
+                // representation of the invalid character.
+                foreach (char c in InvalidPathChars)
+                {
+                    fileName = fileName.Replace(c.ToString(), string.Format("%{0:X2}", (int)c));
+                }
+            }
+
+            return fileName;
+        }
+
+        /// <summary>
+        /// Append snapshot time to a file name.
+        /// </summary>
+        /// <param name="fileName">Original file name.</param>
+        /// <param name="snapshotTime">Snapshot time to append.</param>
+        /// <returns>A file name with appended snapshot time.</returns>
+        private static string AppendSnapShotToFileName(string fileName, DateTimeOffset? snapshotTime)
+        {
+            string resultName = fileName;
+
+            if (snapshotTime.HasValue)
+            {
+                string pathAndFileNameNoExt = Path.ChangeExtension(fileName, null);
+                string extension = Path.GetExtension(fileName);
+                string timeStamp = string.Format("{0:u}", snapshotTime.Value);
+
+                resultName = string.Format(
+                    "{0} ({1}){2}",
+                    pathAndFileNameNoExt,
+                    timeStamp.Replace(":", string.Empty).TrimEnd(new char[] { 'Z' }),
+                    extension);
+            }
+
+            return resultName;
+        }
+
 
         /// <summary>
         /// Implementation of get full path.
@@ -332,16 +467,14 @@
             return new Uri(originalUri.ToString().Replace(originalAccountName, newAccountName));
         }
 
-        private static void PrepareFileInternal(CloudFile file, string source)
+        private void PrepareFileInternal(CloudFile file, string source)
         {
             FileRequestOptions options = new FileRequestOptions() { StoreFileContentMD5 = true };
             if (source == null)
             {
                 int buffSize = 1024;
                 byte[] buffer = new byte[buffSize];
-                Random random = new Random();
-                random.NextBytes(buffer);
-
+                rd.NextBytes(buffer);
                 file.UploadFromByteArray(buffer, 0, buffSize, options: options);
             }
             else
@@ -384,6 +517,32 @@
                     file.UploadFromFile(source, FileMode.Open, options: options);
                 }
             }
+
+            GeneratePropertiesAndMetaData(file);
+        }
+
+        private void GeneratePropertiesAndMetaData(CloudFile file)
+        {
+            file.Properties.ContentEncoding = Utility.GenNameString("encoding");
+            file.Properties.ContentLanguage = Utility.GenNameString("lang");
+
+            int minMetaCount = 1;
+            int maxMetaCount = 5;
+            int minMetaValueLength = 10;
+            int maxMetaValueLength = 20;
+            int count = rd.Next(minMetaCount, maxMetaCount);
+
+            for (int i = 0; i < count; i++)
+            {
+                string metaKey = Utility.GenNameString("metatest");
+                int valueLength = rd.Next(minMetaValueLength, maxMetaValueLength);
+                string metaValue = Utility.GenNameString("metavalue-", valueLength);
+                file.Metadata.Add(metaKey, metaValue);
+            }
+
+            file.SetProperties();
+            file.SetMetadata();
+            file.FetchAttributes();
         }
 
         public void ValidateShareReadableWithSasToken(CloudFileShare share, string fileName, string sasToken)
