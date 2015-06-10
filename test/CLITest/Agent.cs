@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Management.Storage.ScenarioTest.Util;
 using Microsoft.Azure.Management.Storage.Models;
+using Microsoft.WindowsAzure.Commands.Storage.Model.ResourceModel;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.File;
 using Microsoft.WindowsAzure.Storage.Queue;
@@ -216,7 +217,7 @@ namespace Management.Storage.ScenarioTest
         public abstract bool RemoveAzureStorageTable(string[] TableNames, bool Force = true);
         #endregion
 
-        #region Logging & Metrics APIs
+        #region Service Properties APIs
         ///-------------------------------------
         /// Logging & Metrics APIs
         ///-------------------------------------
@@ -228,6 +229,10 @@ namespace Management.Storage.ScenarioTest
             string loggingVersion = "", bool passThru = false) { return false; }
         public virtual bool SetAzureStorageServiceMetrics(Constants.ServiceType serviceType, Constants.MetricsType metricsType, string metricsLevel = "", string metricsRetentionDays = "",
             string metricsVersion = "", bool passThru = false) { return false; }
+
+        public abstract bool SetAzureStorageCORSRules(Constants.ServiceType serviceType, PSCorsRule[] corsRules);
+        public abstract bool GetAzureStorageCORSRules(Constants.ServiceType serviceType);
+        public abstract bool RemoveAzureStorageCORSRules(Constants.ServiceType serviceType);
         #endregion
 
         #region SAS token APIs
