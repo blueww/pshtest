@@ -291,7 +291,7 @@ namespace Management.Storage.ScenarioTest.Util
 
             int maxSize = 1024 * 1024;
             int size = random.Next(maxSize);
-            appendBlob.Create();
+            appendBlob.CreateOrReplace();
 
             byte[] buffer = new byte[size];
             // fill in random data
