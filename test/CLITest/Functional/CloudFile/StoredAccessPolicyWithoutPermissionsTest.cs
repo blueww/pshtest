@@ -35,7 +35,14 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 SharedAccessExpiryTime = DateTimeOffset.UtcNow.AddHours(1)
             });
 
-            this.agent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sasToken);
+            if (lang == Language.PowerShell)
+            {
+                this.agent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sasToken);
+            }
+            else
+            {
+                this.agent.SetStorageContextWithSASTokenInConnectionString(StorageAccount, sasToken);
+            }
         }
 
         /// <summary>
@@ -45,26 +52,38 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
         public void ManageStoredAccessPolicy()
         {
             DateTime? expiryTime = DateTime.Today.AddDays(10);
             string permission = "rwdl";
 
+            string errorMsg = string.Empty;
+            if (lang == Language.PowerShell)
+            {
+                errorMsg = "The specified share does not exist";
+            }
+            else
+            {
+                errorMsg = "The specified resource does not exist";
+            }
+
             Test.Assert(!agent.NewAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p"), permission, null, expiryTime),
                 "Should fail to new a stored access policy to share with sas token credentials");
-            ExpectedContainErrorMessage("The specified share does not exist");
+            ExpectedContainErrorMessage(errorMsg);
 
             Test.Assert(!agent.GetAzureStorageShareStoredAccessPolicy(shareName, null),
                 "Should fail to get stored access policy on a share with sas token credentials");
-            ExpectedContainErrorMessage("The specified share does not exist");
+            ExpectedContainErrorMessage(errorMsg);
 
             Test.Assert(!agent.RemoveAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p")),
                 "Should fail to remove stored access policy on a share with sas token credentials");
-            ExpectedContainErrorMessage("The specified share does not exist");
+            ExpectedContainErrorMessage(errorMsg);
 
             Test.Assert(!agent.SetAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p"), permission, null, null),
                 "Should fail to set stored access policy on a share with sas token credentials");
-            ExpectedContainErrorMessage("The specified share does not exist");
+            ExpectedContainErrorMessage(errorMsg);
         }
     }
 }

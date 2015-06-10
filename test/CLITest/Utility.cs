@@ -62,7 +62,8 @@ namespace Management.Storage.ScenarioTest
         /// <returns>a random string for azure object name</returns>
         public static string GenNameString(string prefix, int len = 8)
         {
-            return prefix + Guid.NewGuid().ToString().Replace("-", "").Substring(0, len);
+            string guidString = Guid.NewGuid().ToString().Replace("-", "");
+            return prefix + guidString.Substring(0, Math.Min(len, guidString.Length));
         }
 
         /// <summary>
