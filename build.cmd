@@ -4,11 +4,6 @@ set PRODUCT=%1
 # msbuild /t:Rebuild /p:Configuration=Debug AzCopy.sln
 # cd ..
 
-cd test
-msbuild /t:Rebuild /p:Configuration=Debug CliTest.sln
-cd ..
-
-
 if [%PRODUCT%] == [xPlat] GOTO :xPlat
 if [%PRODUCT%] == [PSH] GOTO :PSH
 
@@ -27,3 +22,9 @@ popd
 msbuild /t:rebuild /p:Configuration=Release .\Xplat\tools\windows\azure-cli.sln
 
 :END
+
+cd test
+msbuild /t:Rebuild /p:Configuration=Debug CliTest.sln
+cd ..
+
+
