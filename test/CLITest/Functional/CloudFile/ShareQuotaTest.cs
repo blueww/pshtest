@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.File;
+using Microsoft.WindowsAzure.Storage.File.Protocol;
 using MS.Test.Common.MsTestLib;
 using StorageTestLib;
 
@@ -29,9 +30,10 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         /// <summary>
         /// Positive functional test case 8.58
         /// </summary>
-        [TestMethod]
-        [TestCategory(PsTag.File)]
+        [TestMethod]         
         [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.File)]
         public void SetQuotaValueTest()
         {
             string shareName = Utility.GenNameString("share");
@@ -76,12 +78,13 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         /// <summary>
         /// Positive functional test case 8.58
         /// </summary>
-        [TestMethod]
-        [TestCategory(PsTag.File)]
+        [TestMethod]          
         [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.File)]
         public void SetQuotaWithDiffShareNameTest()
         {
-            string shareName = Utility.GenNameString("", 80);
+            string shareName = Utility.GenNameString("");
             CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
 
             try
@@ -163,7 +166,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 return;
             }
 
-            Test.Error("Actual quota is larger than expected.");
+            Test.Warn(string.Format("Actual quota is larger than expected. The share usage is {0}", share.GetStats().Usage));
         }
     }
 }

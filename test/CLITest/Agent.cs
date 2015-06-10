@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Management.Storage.ScenarioTest.Util;
 using Microsoft.Azure.Management.Storage.Models;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.File;
 using Microsoft.WindowsAzure.Storage.Queue;
@@ -270,6 +271,8 @@ namespace Management.Storage.ScenarioTest
         public abstract void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, string endpoint, bool useHttps = true);
 
         public abstract void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, bool useHttps = true);
+
+        public abstract void SetStorageContextWithSASTokenInConnectionString(CloudStorageAccount StorageAccount, string sasToken);
         #endregion
 
         #region Stored Access Policy APIs
