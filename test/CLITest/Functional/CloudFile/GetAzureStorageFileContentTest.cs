@@ -532,7 +532,7 @@
                     agent.AssertNoError();
                     if (lang == Language.NodeJS)
                     {
-                        result.AssertObjectCollection(obj => result.AssertCloudFile(obj, sourceFile.Name));
+                        result.AssertObjectCollection(obj => result.AssertCloudFile(obj, CloudFileUtil.GetFullPath(sourceFile)));
                     }
                     else
                     {
