@@ -217,7 +217,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             }
             
             Test.Info(String.Format("Copy Big file to blob '{0}'", blob.Name));
-            blob.StartCopyFromBlob(new Uri(uri));
+            blob.StartCopy(new Uri(uri));
             Test.Assert(blob.CopyState.Status == CopyStatus.Pending, String.Format("The copy status should be pending, actually it's {0}", blob.CopyState.Status));
 
             return blob.CopyState.CopyId;

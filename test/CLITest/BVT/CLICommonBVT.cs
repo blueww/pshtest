@@ -737,12 +737,12 @@ namespace Management.Storage.ScenarioTest.BVT
             {
                 case StorageBlob.BlobType.BlockBlob:
                     CloudBlockBlob blockBlob = blobUtil.Container.GetBlockBlobReference(destBlobName);
-                    blockBlob.StartCopyFromBlob((CloudBlockBlob)blobUtil.Blob);
+                    blockBlob.StartCopy((CloudBlockBlob)blobUtil.Blob);
                     destBlob = blockBlob;
                     break;
                 case StorageBlob.BlobType.PageBlob:
                     CloudPageBlob pageBlob = blobUtil.Container.GetPageBlobReference(destBlobName);
-                    pageBlob.StartCopyFromBlob((CloudPageBlob)blobUtil.Blob);
+                    pageBlob.StartCopy((CloudPageBlob)blobUtil.Blob);
                     destBlob = pageBlob;
                     break;
                 case StorageBlob.BlobType.AppendBlob:
