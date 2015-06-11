@@ -180,6 +180,11 @@ using MS.Test.Common.MsTestLib;
             return this.client.ListShares(prefix, ShareListingDetails.All);
         }
 
+        public CloudFileShare GetShareReference(string shareName)
+        {
+            return this.client.GetShareReference(shareName);
+        }
+
         public CloudFileShare EnsureFileShareExists(string fileShareName)
         {
             const int retryInterval = 5000;
