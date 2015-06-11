@@ -1574,7 +1574,91 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps);
         }
 
-        public override bool StartFileCopyFromBlob(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true)
+        public override bool StartFileCopy(CloudFileShare share, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("SrcShare", share);
+            ps.BindParameter("SrcFilePath", srcFilePath);
+            ps.BindParameter("DestShareName", shareName);
+
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                ps.BindParameter("DestFilePath", filePath);
+            }
+
+            if (null != destContext)
+            {
+                ps.BindParameter("DestContext", destContext);
+            }
+
+            ps.BindParameter("Force", force);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool StartFileCopy(CloudFileDirectory dir, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("SrcDir", dir);
+            ps.BindParameter("SrcFilePath", srcFilePath);
+            ps.BindParameter("DestShareName", shareName);
+
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                ps.BindParameter("DestFilePath", filePath);
+            }
+
+            if (null != destContext)
+            {
+                ps.BindParameter("DestContext", destContext);
+            }
+
+            ps.BindParameter("Force", force);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool StartFileCopy(CloudFile srcFile, string shareName, string filePath, object destContext, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("SrcFile", srcFile);
+            ps.BindParameter("DestShareName", shareName);
+
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                ps.BindParameter("DestFilePath", filePath);
+            }
+
+            if (null != destContext)
+            {
+                ps.BindParameter("DestContext", destContext);
+            }
+
+            ps.BindParameter("Force", force);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool StartFileCopy(CloudFile srcFile, CloudFile destFile, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("SrcFile", srcFile);
+            ps.BindParameter("DestFile", destFile);
+
+            ps.BindParameter("Force", force);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool StartFileCopy(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true)
         {
             PowerShell ps = GetPowerShellInstance();
 
@@ -1600,6 +1684,19 @@ namespace Management.Storage.ScenarioTest
             return ps.HadErrors;
         }
 
+        public override bool StartFileCopy(CloudBlob blob, CloudFile destFile, object destContext, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("SrcBlob", blob);
+            ps.BindParameter("DestFile", destFile);
+
+            ps.BindParameter("Force", force);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
         public override bool StartFileCopyFromBlob(string containerName, string blobName, string shareName, string filePath, object destContext, bool force = true)
         {
             PowerShell ps = GetPowerShellInstance();
@@ -1613,6 +1710,38 @@ namespace Management.Storage.ScenarioTest
             {
                 ps.BindParameter("DestFilePath", filePath);
             }
+
+            if (null != destContext)
+            {
+                ps.BindParameter("DestContext", destContext);
+            }
+
+            ps.BindParameter("Force", force);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool StartFileCopy(string uri, CloudFile destFile, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("AbsoluteUri", uri);
+            ps.BindParameter("DestFile", destFile);
+
+            ps.BindParameter("Force", force);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool StartFileCopy(string uri, string destShareName, string destFilePath, object destContext, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("AbsoluteUri", uri);
+            ps.BindParameter("DestShareName", destShareName);
+            ps.BindParameter("DestFilePath", destFilePath);
 
             if (null != destContext)
             {
