@@ -63,7 +63,16 @@ namespace Management.Storage.ScenarioTest
         public static string GenNameString(string prefix, int len = 8)
         {
             string guidString = Guid.NewGuid().ToString().Replace("-", "");
-            return prefix + guidString.Substring(0, Math.Min(len, guidString.Length));
+
+            string nameString = prefix;
+
+            while (len > 0)
+            {
+                nameString = nameString + guidString.Substring(0, Math.Min(len, guidString.Length));
+                len -= Math.Min(len, guidString.Length);
+            }
+
+            return nameString;
         }
 
         /// <summary>

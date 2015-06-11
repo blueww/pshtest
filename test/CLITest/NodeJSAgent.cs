@@ -1534,12 +1534,47 @@ namespace Management.Storage.ScenarioTest
             throw new NotImplementedException();
         }
 
-        public override bool StartFileCopyFromBlob(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true)
+        public override bool StartFileCopy(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopy(CloudBlob blob, CloudFile destFile, object destContext, bool force = true)
         {
             throw new NotImplementedException();
         }
 
         public override bool StartFileCopyFromFile(string srcShareName, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopy(CloudFileShare share, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopy(CloudFileDirectory dir, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopy(CloudFile srcFile, string shareName, string filePath, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopy(CloudFile srcFile, CloudFile destFile, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopy(string uri, string destShareName, string destFilePath, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopy(string uri, CloudFile destFile, bool force = true)
         {
             throw new NotImplementedException();
         }
