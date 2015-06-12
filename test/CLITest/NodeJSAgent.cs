@@ -1534,6 +1534,11 @@ namespace Management.Storage.ScenarioTest
             throw new NotImplementedException();
         }
 
+        public override bool StartFileCopy(CloudBlobContainer container, string blobName, string shareName, string filePath, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool StartFileCopy(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true)
         {
             throw new NotImplementedException();

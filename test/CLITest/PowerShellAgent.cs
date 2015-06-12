@@ -1658,6 +1658,33 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps);
         }
 
+        public override bool StartFileCopy(CloudBlobContainer container, string blobName, string shareName, string filePath, object destContext, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("SrcContainer", container);
+            ps.BindParameter("SrcBlobName", blobName);
+            ps.BindParameter("DestShareName", shareName);
+
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                ps.BindParameter("DestFilePath", filePath);
+            }
+
+            if (null != destContext)
+            {
+                ps.BindParameter("DestContext", destContext);
+            }
+
+            ps.BindParameter("Force", force);
+
+            ParseCollection(ps.Invoke());
+            ParseErrorMessages(ps);
+
+            return ps.HadErrors;
+        }
+
         public override bool StartFileCopy(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true)
         {
             PowerShell ps = GetPowerShellInstance();
