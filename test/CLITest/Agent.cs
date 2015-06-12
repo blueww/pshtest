@@ -439,6 +439,8 @@ namespace Management.Storage.ScenarioTest
 
         public abstract bool StartFileCopyFromBlob(string containerName, string blobName, string shareName, string filePath, object destContext, bool force = true);
 
+        public abstract bool StartFileCopy(CloudBlobContainer container, string blobName, string shareName, string filePath, object destContext, bool force = true);
+
         public abstract bool StartFileCopy(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true);
 
         public abstract bool StartFileCopy(CloudBlob blob, CloudFile destFile, object destContext, bool force = true);

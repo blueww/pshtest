@@ -95,6 +95,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     fileUtil.CreateFile(share.GetRootDirectoryReference(), destFilePath);
                 }
 
+
                 copyAction();
 
                 destFile.FetchAttributes();
