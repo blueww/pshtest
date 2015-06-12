@@ -76,7 +76,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 if (blob.IsSnapshot)
                 {
-                    Test.Assert(agent.StartFileCopyFromBlob(blob, destShareName, destFilePath, PowerShellAgent.Context),
+                    Test.Assert(agent.StartFileCopy(blob, destShareName, destFilePath, PowerShellAgent.Context),
                         "Copy from blob to file shoule succeed.");
 
                     Test.Assert(agent.GetFileCopyState(destShareName, actualDestPath), "Get file copy state should succeed");                     
