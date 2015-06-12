@@ -242,6 +242,7 @@
     <Compile Include="Functional\CloudFile\RemoveAzureStorageFileShareTest.cs" />
     <Compile Include="Functional\CloudFile\ShareStoredAccessPolicyTest.cs" />
     <Compile Include="Functional\CloudFile\StoredAccessPolicyWithoutPermissionsTest.cs" />
+    <Compile Include="Functional\InvalidCredentialCases.cs" />
     <Compile Include="Functional\Queue\QueueStoredAccessPolicy.cs" />
     <Compile Include="Functional\Service\ServiceCORSRule.cs" />
     <Compile Include="Functional\StorageAccount.cs" />
