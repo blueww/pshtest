@@ -1626,6 +1626,8 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
 
+            AttachPipeline(ps);
+
             ps.AddCommand("Start-AzureStorageFileCopy");
             ps.BindParameter("SrcFile", srcFile);
             ps.BindParameter("DestShareName", shareName);
@@ -1648,6 +1650,8 @@ namespace Management.Storage.ScenarioTest
         public override bool StartFileCopy(CloudFile srcFile, CloudFile destFile, bool force = true)
         {
             PowerShell ps = GetPowerShellInstance();
+
+            AttachPipeline(ps);
 
             ps.AddCommand("Start-AzureStorageFileCopy");
             ps.BindParameter("SrcFile", srcFile);
@@ -1689,6 +1693,8 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
 
+            AttachPipeline(ps);
+
             ps.AddCommand("Start-AzureStorageFileCopy");
             ps.BindParameter("SrcBlob", blob);
             ps.BindParameter("DestShareName", shareName);
@@ -1714,6 +1720,8 @@ namespace Management.Storage.ScenarioTest
         public override bool StartFileCopy(CloudBlob blob, CloudFile destFile, object destContext, bool force = true)
         {
             PowerShell ps = GetPowerShellInstance();
+
+            AttachPipeline(ps);
 
             ps.AddCommand("Start-AzureStorageFileCopy");
             ps.BindParameter("SrcBlob", blob);
@@ -1783,6 +1791,8 @@ namespace Management.Storage.ScenarioTest
         public override bool GetFileCopyState(string shareName, string filePath, bool waitForComplete = false)
         {
             PowerShell ps = GetPowerShellInstance();
+
+            AttachPipeline(ps);
 
             ps.AddCommand("Get-AzureStorageFileCopyState");
             ps.BindParameter("ShareName", shareName);
