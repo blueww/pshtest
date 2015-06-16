@@ -183,6 +183,10 @@ namespace Management.Storage.ScenarioTest
         public abstract bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, object destContext = null, bool force = true);
         public abstract bool StartAzureStorageBlobCopy(CloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true);
 
+        public abstract bool StartAzureStorageBlobCopyFromFile(string srcShareName, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true);
+        public abstract bool StartAzureStorageBlobCopy(CloudFileShare srcShare, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true);
+        public abstract bool StartAzureStorageBlobCopy(CloudFile srcFile, string destContainerName, string destBlobName, object destContext = null, bool force = true);
+
         public abstract bool GetAzureStorageBlobCopyState(string containerName, string blobName, bool waitForComplete);
         public abstract bool GetAzureStorageBlobCopyState(CloudBlob blob, object context, bool waitForComplete);
         public abstract bool StopAzureStorageBlobCopy(string containerName, string blobName, string copyId, bool force);
