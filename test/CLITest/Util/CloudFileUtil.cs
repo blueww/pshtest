@@ -82,6 +82,14 @@ using MS.Test.Common.MsTestLib;
             return file.Name.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries).Last();
         }
 
+        public static string GetFullPath(CloudFile file)
+        { 
+            List<string> fileName = new List<string>();
+            fileName.Add(file.Name);
+
+            return GetFullPathInternal(file.Parent, fileName);
+        }
+
         /// <summary>
         /// Gets the full path of a directory.
         /// </summary>
