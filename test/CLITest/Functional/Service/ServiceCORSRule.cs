@@ -341,6 +341,28 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             serviceType = GetRandomServiceType();
             Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "6 CORS rules, set cors rule to {0} service should fail", serviceType);
             ExpectedContainErrorMessage(CORSRuleInvalidError);
+
+            // Invalid Service Type
+            corsRules = CORSRuleUtil.GetRandomValidCORSRules(random.Next(1, 5));
+
+            Test.Assert(!agent.SetAzureStorageCORSRules(Constants.ServiceType.InvalidService, corsRules), "Set cors rules to invalid service type should fail.");
+            ExpectedContainErrorMessage("Unable to match the identifier name InValid to a valid enumerator name.  Specify one of the following enumerator names and try again: Blob, Table, Queue, File");
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void GetCORSRulesNegativeTest()
+        {
+            Test.Assert(!agent.GetAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Get CORS rules of invalid service type should fail.");
+            ExpectedContainErrorMessage("Unable to match the identifier name InValid to a valid enumerator name.  Specify one of the following enumerator names and try again: Blob, Table, Queue, File");
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void RemoveCORSRulesNegativeTest()
+        {
+            Test.Assert(!agent.RemoveAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Remove CORS rules of invalid service type should fail.");
+            ExpectedContainErrorMessage("Unable to match the identifier name InValid to a valid enumerator name.  Specify one of the following enumerator names and try again: Blob, Table, Queue, File");
         }
 
         [TestMethod]
@@ -406,7 +428,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
         {
             var serviceTypes = Enum.GetValues(typeof(Constants.ServiceType));
 
-            return (Constants.ServiceType)serviceTypes.GetValue(random.Next(0, serviceTypes.Length));
+            return (Constants.ServiceType)serviceTypes.GetValue(random.Next(0, serviceTypes.Length - 1));
         }
 
         private void OverwriteCORSRules(Action<Constants.ServiceType> setCORSRules, Constants.ServiceType serviceType)

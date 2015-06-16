@@ -1127,6 +1127,49 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps);
         }
 
+        public override bool StartAzureStorageBlobCopyFromFile(string srcShareName, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            ps.AddCommand("Start-CopyAzureStorageBlob");
+            ps.BindParameter("SrcShareName", srcShareName);
+            ps.BindParameter("SrcFilePath", srcFilePath);
+            ps.BindParameter("DestContainer", destContainerName);
+            ps.BindParameter("Force", force);
+            ps.BindParameter("DestBlob", destBlobName);
+            ps.BindParameter("DestContext", destContext);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool StartAzureStorageBlobCopy(CloudFileShare srcShare, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            ps.AddCommand("Start-CopyAzureStorageBlob");
+            ps.BindParameter("SrcShare", srcShare);
+            ps.BindParameter("SrcFilePath", srcFilePath);
+            ps.BindParameter("DestContainer", destContainerName);
+            ps.BindParameter("Force", force);
+            ps.BindParameter("DestBlob", destBlobName);
+            ps.BindParameter("DestContext", destContext);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool StartAzureStorageBlobCopy(CloudFile srcFile, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+
+            ps.AddCommand("Start-CopyAzureStorageBlob");
+            ps.BindParameter("SrcFile", srcFile);
+            ps.BindParameter("DestContainer", destContainerName);
+            ps.BindParameter("Force", force);
+            ps.BindParameter("DestBlob", destBlobName);
+            ps.BindParameter("DestContext", destContext);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
         public override bool GetAzureStorageBlobCopyState(string containerName, string blobName, bool waitForComplete)
         {
             PowerShell ps = GetPowerShellInstance();
