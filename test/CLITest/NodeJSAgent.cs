@@ -853,6 +853,21 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(argument, force);
         }
 
+        public override bool StartAzureStorageBlobCopyFromFile(string srcShareName, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartAzureStorageBlobCopy(CloudFileShare srcShare, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartAzureStorageBlobCopy(CloudFile srcFile, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool GetAzureStorageBlobCopyState(string containerName, string blobName, bool waitForComplete)
         {
             return RunNodeJSProcess(string.Format("blob copy show \"{0}\" \"{1}\"", containerName, blobName));
