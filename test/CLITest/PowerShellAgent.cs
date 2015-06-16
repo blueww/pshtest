@@ -1835,8 +1835,6 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
 
-            AttachPipeline(ps);
-
             ps.AddCommand("Get-AzureStorageFileCopyState");
             ps.BindParameter("ShareName", shareName);
             ps.BindParameter("FilePath", filePath);
@@ -1850,10 +1848,49 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
 
+            AttachPipeline(ps);
+
             ps.AddCommand("Get-AzureStorageFileCopyState");
             ps.BindParameter("File", file);
 
             ps.BindParameter("WaitForComplete", waitForComplete);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool StopFileCopy(string shareName, string filePath, string copyId, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            
+            ps.AddCommand("Stop-AzureStorageFileCopy");
+            ps.BindParameter("ShareName", shareName);
+            ps.BindParameter("FilePath", filePath);
+
+            if (null != copyId)
+            {
+                ps.BindParameter("CopyId", copyId);
+            }
+
+            ps.BindParameter("Force", force);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool StopFileCopy(CloudFile file, string copyId, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            AttachPipeline(ps);
+
+            ps.AddCommand("Stop-AzureStorageFileCopy");
+            ps.BindParameter("File", file);
+
+            if (null != copyId)
+            {
+                ps.BindParameter("CopyId", copyId);
+            }
+
+            ps.BindParameter("Force", force);
 
             return InvokeStoragePowerShell(ps);
         }

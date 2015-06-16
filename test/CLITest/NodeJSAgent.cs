@@ -1609,6 +1609,16 @@ namespace Management.Storage.ScenarioTest
             throw new NotImplementedException();
         }
 
+        public override bool StopFileCopy(string shareName, string filePath, string copyId, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StopFileCopy(CloudFile file, string copyId, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void AssertNoError()
         {
             Test.Assert(!this.HadErrors, "Should execute command without error.");

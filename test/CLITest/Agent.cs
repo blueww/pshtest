@@ -467,6 +467,10 @@ namespace Management.Storage.ScenarioTest
 
         public abstract bool GetFileCopyState(CloudFile file, bool waitForComplete = false);
 
+        public abstract bool StopFileCopy(string shareName, string filePath, string copyId, bool force = true);
+
+        public abstract bool StopFileCopy(CloudFile file, string copyId, bool force = true);
+
         public abstract void AssertNoError();
 
         public abstract IExecutionResult Invoke(IEnumerable input = null, bool traceCommand = true);
