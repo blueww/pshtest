@@ -185,6 +185,10 @@ namespace Management.Storage.ScenarioTest
         public abstract bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, object destContext = null, bool force = true);
         public abstract bool StartAzureStorageBlobCopy(CloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true);
 
+        public abstract bool StartAzureStorageBlobCopyFromFile(string srcShareName, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true);
+        public abstract bool StartAzureStorageBlobCopy(CloudFileShare srcShare, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true);
+        public abstract bool StartAzureStorageBlobCopy(CloudFile srcFile, string destContainerName, string destBlobName, object destContext = null, bool force = true);
+
         public abstract bool GetAzureStorageBlobCopyState(string containerName, string blobName, bool waitForComplete);
         public abstract bool GetAzureStorageBlobCopyState(CloudBlob blob, object context, bool waitForComplete);
         public abstract bool StopAzureStorageBlobCopy(string containerName, string blobName, string copyId, bool force);
@@ -441,9 +445,25 @@ namespace Management.Storage.ScenarioTest
 
         public abstract bool StartFileCopyFromBlob(string containerName, string blobName, string shareName, string filePath, object destContext, bool force = true);
 
-        public abstract bool StartFileCopyFromBlob(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true);
+        public abstract bool StartFileCopy(CloudBlobContainer container, string blobName, string shareName, string filePath, object destContext, bool force = true);
+
+        public abstract bool StartFileCopy(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true);
+
+        public abstract bool StartFileCopy(CloudBlob blob, CloudFile destFile, object destContext, bool force = true);
 
         public abstract bool StartFileCopyFromFile(string srcShareName, string srcFilePath, string shareName, string filePath, object destContext, bool force = true);
+
+        public abstract bool StartFileCopy(CloudFileShare share, string srcFilePath, string shareName, string filePath, object destContext, bool force = true);
+
+        public abstract bool StartFileCopy(CloudFileDirectory dir, string srcFilePath, string shareName, string filePath, object destContext, bool force = true);
+
+        public abstract bool StartFileCopy(CloudFile srcFile, string shareName, string filePath, object destContext, bool force = true);
+
+        public abstract bool StartFileCopy(CloudFile srcFile, CloudFile destFile, bool force = true);
+
+        public abstract bool StartFileCopy(string uri, string destShareName, string destFilePath, object destContext, bool force = true);
+
+        public abstract bool StartFileCopy(string uri, CloudFile destFile, bool force = true);
 
         public abstract bool GetFileCopyState(string shareName, string filePath, bool waitForComplete = false);
 
