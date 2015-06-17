@@ -73,7 +73,8 @@ namespace Management.Storage.ScenarioTest
         {
             Blob,
             Queue,
-            Table
+            Table,
+            File
         };
 
         /// <summary>

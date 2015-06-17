@@ -29,6 +29,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyToExistFile()
         {
             string filePath = Utility.GenNameString("folder") + "/" + Utility.GenNameString("folder") + "/" + Utility.GenNameString("fileName");
@@ -39,6 +42,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromRootContainer()
         { 
             CopyFromBlob("$root", null, null);
@@ -48,6 +54,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromBlobSnapshot()
         {
             CloudBlobContainer container = blobUtil.CreateContainer();
@@ -62,6 +71,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         {
             string destShareName = Utility.GenNameString("share");
             CloudFileShare share = fileUtil.EnsureFileShareExists(destShareName);
+            object context = PowerShellAgent.Context ?? TestBase.StorageAccount;
 
             try
             {
@@ -76,14 +86,14 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 if (blob.IsSnapshot)
                 {
-                    Test.Assert(agent.StartFileCopyFromBlob(blob, destShareName, destFilePath, PowerShellAgent.Context),
+                    Test.Assert(agent.StartFileCopyFromBlob(blob, destShareName, destFilePath, context),
                         "Copy from blob to file shoule succeed.");
 
-                    Test.Assert(agent.GetFileCopyState(destShareName, actualDestPath), "Get file copy state should succeed");                     
+                    Test.Assert(agent.GetFileCopyState(destShareName, actualDestPath), "Get file copy state should succeed");
                 }
                 else
                 {
-                    Test.Assert(agent.StartFileCopyFromBlob(blob.Container.Name, blob.Name, destShareName, destFilePath, PowerShellAgent.Context),
+                    Test.Assert(agent.StartFileCopyFromBlob(blob.Container.Name, blob.Name, destShareName, destFilePath, context),
                         "Copy from blob to file should succeed.");
 
                     Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed");
