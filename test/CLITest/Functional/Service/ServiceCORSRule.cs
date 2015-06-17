@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Commands.Storage.Model.ResourceModel;
 using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 using MS.Test.Common.MsTestLib;
+using Newtonsoft.Json.Linq;
 using StorageTestLib;
 
 namespace Management.Storage.ScenarioTest.Functional.Service
@@ -33,6 +34,9 @@ namespace Management.Storage.ScenarioTest.Functional.Service
         
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.ServiceCORS)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.ServiceCORS)]
         public void OverwriteExistingCORSRuleOfXSCL()
         {
             Action<Constants.ServiceType> setCORSRules = (serviceType) =>
@@ -65,6 +69,9 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.ServiceCORS)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.ServiceCORS)]
         public void OverwriteExistingCORSRuleOfCmdlet()
         {
             Action<Constants.ServiceType> setCORSRules = (serviceType) =>
@@ -81,6 +88,9 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.ServiceCORS)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.ServiceCORS)]
         public void SetCORSRuleBoundaryTest()
         {
             // 64 allowed origins
@@ -148,6 +158,9 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.ServiceCORS)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.ServiceCORS)]
         public void Set0CORSRuleTest()
         {
             PSCorsRule[] corsRules = new PSCorsRule[0];
@@ -156,6 +169,9 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.ServiceCORS)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.ServiceCORS)]
         public void SetCORSRuleNegativeTest()
         {
             // No allowed origins
@@ -313,7 +329,35 @@ namespace Management.Storage.ScenarioTest.Functional.Service
                 Test.Assert(agent.GetAzureStorageCORSRules(serviceType),
                     "Get cors rules of blob service should succeed.");
 
-                PSCorsRule[] acturalRules = agent.Output[0]["_baseObject"] as PSCorsRule[];
+                PSCorsRule[] acturalRules;
+                if (lang == Language.PowerShell)
+                {
+                    acturalRules = agent.Output[0]["_baseObject"] as PSCorsRule[];
+                }
+                else
+                {
+                    List<PSCorsRule> rules = new List<PSCorsRule>();
+                    for (int i = 0; i < agent.Output.Count; i++)
+                    {
+                        PSCorsRule rule = new PSCorsRule();
+                        JArray categories = (JArray)agent.Output[i]["AllowedMethods"];
+                        rule.AllowedMethods = categories.Select(c => (string)c).ToArray();
+
+                        categories = (JArray)agent.Output[i]["AllowedOrigins"];
+                        rule.AllowedOrigins = categories.Select(c => (string)c).ToArray();
+
+                        categories = (JArray)agent.Output[i]["AllowedHeaders"];
+                        rule.AllowedHeaders = categories.Select(c => (string)c).ToArray();
+
+                        categories = (JArray)agent.Output[i]["ExposedHeaders"];
+                        rule.ExposedHeaders = categories.Select(c => (string)c).ToArray();
+
+                        rule.MaxAgeInSeconds = (int)(agent.Output[i]["MaxAgeInSeconds"] as long?);
+
+                        rules.Add(rule);
+                    }
+                    acturalRules = rules.ToArray();
+                }
 
                 CORSRuleUtil.ValidateCORSRules(newCorsRules, acturalRules);
             }

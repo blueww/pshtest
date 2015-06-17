@@ -76,6 +76,8 @@ namespace Management.Storage.ScenarioTest
                 expectedErrorMessage, ErrorMessages[0]));
         }
 
+        public object Context { get; set; }
+
         public abstract bool ChangeCLIMode(Constants.Mode mode);
 
         public abstract void ImportAzureSubscription(string settingFile);
