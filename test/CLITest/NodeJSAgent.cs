@@ -914,7 +914,7 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(command, force);
         }
 
-        public override bool StartFileCopyFromBlob(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true)
+        public bool StartFileCopyFromBlob(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true)
         {
             string command = "file copy start";
             command = appendStringOption(command, "--source-url", blob.StorageUri.PrimaryUri.AbsoluteUri, quoted: true);
@@ -965,11 +965,6 @@ namespace Management.Storage.ScenarioTest
             throw new NotImplementedException();
         }
 
-        public override bool StartFileCopyFromFile(string srcShareName, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
-        {
-            throw new NotImplementedException();
-        }
-
         public override bool StartFileCopy(CloudFileShare share, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
         {
             throw new NotImplementedException();
@@ -996,16 +991,6 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override bool StartFileCopy(string uri, CloudFile destFile, bool force = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool GetFileCopyState(string shareName, string filePath, bool waitForComplete = false)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool GetFileCopyState(CloudFile file, bool waitForComplete = false)
         {
             throw new NotImplementedException();
         }
