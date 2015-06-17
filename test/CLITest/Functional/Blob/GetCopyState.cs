@@ -181,11 +181,11 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             if (destBlob.BlobType == StorageBlob.BlobType.BlockBlob)
             {
-                ((CloudBlockBlob)destBlob).StartCopyFromBlob((CloudBlockBlob)srcBlob);
+                ((CloudBlockBlob)destBlob).StartCopy((CloudBlockBlob)srcBlob);
             }
             else if (destBlob.BlobType == StorageBlob.BlobType.PageBlob)
             {
-                ((CloudPageBlob)destBlob).StartCopyFromBlob((CloudPageBlob)srcBlob);
+                ((CloudPageBlob)destBlob).StartCopy((CloudPageBlob)srcBlob);
             }
             else if (destBlob.BlobType == StorageBlob.BlobType.AppendBlob)
             {
@@ -331,7 +331,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 return;
             }
             
-            Blob.StartCopyFromBlob(new Uri(uri));
+            Blob.StartCopy(new Uri(uri));
 
             int maxMonitorCount = 3; 
             int checkCount = 0;

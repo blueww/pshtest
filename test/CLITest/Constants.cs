@@ -74,7 +74,8 @@ namespace Management.Storage.ScenarioTest
             Blob,
             Queue,
             Table,
-            File
+            File,
+            InvalidService
         };
 
         /// <summary>

@@ -11,6 +11,8 @@
     using Microsoft.WindowsAzure.Storage.File;
     using MS.Test.Common.MsTestLib;
     using StorageTestLib;
+    using Microsoft.WindowsAzure.Storage.Blob;
+    using StorageBlob = Microsoft.WindowsAzure.Storage.Blob;
     using HttpConnectionStringBVT = Management.Storage.ScenarioTest.BVT.HTTP.ConnectionStringBVT;
     using HttpEnvConnectionStringBVT = Management.Storage.ScenarioTest.BVT.HTTP.EnvConnectionStringBVT;
     using HttpsConnectionStringBVT = Management.Storage.ScenarioTest.BVT.HTTPS.ConnectionStringBVT;
@@ -659,6 +661,269 @@
                 comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessFilePolicy>(policy, expectedPolicy.PolicyName));
                 agent.OutputValidation(comp);
             });
+        }
+        
+        /// <summary>
+        /// Test Plan 8.61 BVT
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        public void StartCopyFromBlobToFile()
+        {
+            string containerName = Utility.GenNameString("container");
+            CloudBlobContainer container = blobUtil.CreateContainer(containerName);
+            string destShareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(destShareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("fileName");
+                CloudBlob blob = blobUtil.CreateRandomBlob(container, fileName, StorageBlob.BlobType.BlockBlob);
+                CloudFile destFile = fileUtil.GetFileReference(share.GetRootDirectoryReference(), fileName);
+
+                Test.Assert(agent.StartFileCopyFromBlob(containerName, fileName, destShareName, null, PowerShellAgent.Context),
+                    "Start copy from blob to file shoule succeed.");
+
+                Test.Assert(agent.GetFileCopyState(destShareName, fileName, true),
+                    "Get copy state of file should succeed.");
+
+                this.ValidateFileCopyResult(blob, destFile);
+
+                fileName = Utility.GenNameString("fileName");
+                blob = blobUtil.CreateRandomBlob(container, fileName, StorageBlob.BlobType.AppendBlob);
+                destFile = fileUtil.GetFileReference(share.GetRootDirectoryReference(), fileName); 
+                
+                Test.Assert(agent.StartFileCopy(container, fileName, destShareName, null, PowerShellAgent.Context),
+                    "Start copy from blob to file shoule succeed.");
+
+                Test.Assert(agent.GetFileCopyState(destShareName, fileName, true),
+                    "Get copy state of file should succeed.");
+
+                this.ValidateFileCopyResult(blob, destFile);
+
+
+                string blobName = Utility.GenNameString("blobName");
+                fileName = Utility.GenNameString("fileName");
+                blob = blobUtil.CreateRandomBlob(container, fileName, StorageBlob.BlobType.PageBlob);
+                destFile = fileUtil.GetFileReference(share.GetRootDirectoryReference(), fileName);
+                Test.Assert(agent.StartFileCopy(container, fileName, destShareName, fileName, PowerShellAgent.Context),
+                    "Start copy from blob to file shoule succeed.");
+
+                Test.Assert(agent.GetFileCopyState(destShareName, fileName, true),
+                    "Get copy state of file should succeed.");
+                this.ValidateFileCopyResult(blob, destFile);
+
+            }
+            finally
+            {
+                blobUtil.RemoveContainer(containerName);
+                fileUtil.DeleteFileShareIfExists(destShareName);
+            }
+        }
+                
+        /// <summary>
+        /// Test Plan 8.61 BVT
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        public void StartCopyFromFileToFile()
+        {
+            this.ValidateFileCopyFromFile((srcFile, destFile) =>
+                {
+                    Test.Assert(agent.StartFileCopyFromFile(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), destFile.Share.Name, CloudFileUtil.GetFullPath(destFile), PowerShellAgent.Context),
+                        "Start copy from file to file should succeed.");
+
+                    Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
+                });
+
+
+            this.ValidateFileCopyFromFile((srcFile, destFile) =>
+            {
+                Test.Assert(agent.StartFileCopy(srcFile.Share, CloudFileUtil.GetFullPath(srcFile), destFile.Share.Name, CloudFileUtil.GetFullPath(destFile), PowerShellAgent.Context),
+                    "Start copy from file to file should succeed.");
+
+                Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
+            });
+
+            this.ValidateFileCopyFromFile((srcFile, destFile) =>
+                {
+                    string fileUri = agent.GetAzureStorageFileSasFromCmd(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), null, "r", null, DateTime.UtcNow.AddHours(1), true);
+
+                    Test.Assert(agent.StartFileCopy(fileUri, destFile), "Copy file to file with absolute URI should succeed.");
+
+                    Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
+                });
+        }
+
+        /// <summary>
+        /// Test Plan 8.21 BVT
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        public void CopyFromFileToBlob()
+        {
+            ValidateCopyFromFileToBlob((srcFile, destBlob) =>
+                {
+                    Test.Info("Starting copying with share name and file path to blob");
+                    Test.Assert(agent.StartAzureStorageBlobCopyFromFile(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), destBlob.Container.Name, destBlob.Name, PowerShellAgent.Context),
+                        "Start copying from file to blob should succeed.");
+
+                    Test.Assert(agent.GetAzureStorageBlobCopyState(destBlob, null, true), "Get blob copy state should succeed.");
+                });
+
+
+            ValidateCopyFromFileToBlob((srcFile, destBlob) =>
+            {
+                Test.Info("Starting copying with share instance and file path to blob");
+                Test.Assert(agent.StartAzureStorageBlobCopy(srcFile.Share, CloudFileUtil.GetFullPath(srcFile), destBlob.Container.Name, destBlob.Name, PowerShellAgent.Context),
+                    "Start copying from file to blob should succeed.");
+
+                Test.Assert(agent.GetAzureStorageBlobCopyState(destBlob, null, true), "Get blob copy state should succeed.");
+            }); 
+            
+            ValidateCopyFromFileToBlob((srcFile, destBlob) =>
+            {
+                Test.Info("Starting copying with file absolute uri to blob");
+                string fileUriWithSAS = agent.GetAzureStorageFileSasFromCmd(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), null, "r", null, DateTime.UtcNow.AddHours(1), true);
+                Test.Assert(agent.StartAzureStorageBlobCopy(fileUriWithSAS, destBlob.Container.Name, destBlob.Name, PowerShellAgent.Context),
+                    "Start copying from file to blob should succeed.");
+
+                Test.Assert(agent.GetAzureStorageBlobCopyState(destBlob, null, true), "Get blob copy state should succeed.");
+            });
+        }
+        
+        /// <summary>
+        /// Test Plan 8.21 BVT
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        public void CopyFromShareToBlob()
+        {
+            string srcShareName = Utility.GenNameString("share");
+            CloudFileShare srcShare = fileUtil.EnsureFileShareExists(srcShareName);
+
+            string destContainerName = Utility.GenNameString("container");
+            CloudBlobContainer destContainer = blobUtil.CreateContainer(destContainerName);
+
+            try
+            {
+                List<CloudFile> files = new List<CloudFile>();
+
+                for (int i = 0; i < random.Next(1, 5); ++i)
+                {
+                    string fileName = Utility.GenNameString(string.Format("fileName{0}", i));
+                    files.Add(fileUtil.CreateFile(srcShare.GetRootDirectoryReference(), fileName));
+                }
+
+                PowerShellAgent psAgent = agent as PowerShellAgent;
+                psAgent.AddPipelineScript(string.Format("Get-AzureStorageFile -ShareName {0}", srcShareName));
+
+                Test.Assert(agent.StartAzureStorageBlobCopy(srcFile: null, destContainerName: destContainerName, destBlobName: null, destContext: PowerShellAgent.Context),
+                    "Start copying from file to blob should succeed.");
+
+                psAgent.AddPipelineScript(string.Format("Get-AzureStorageBlob -Container {0}", destContainerName));
+
+                Test.Assert(agent.GetAzureStorageBlobCopyState(blob: null, context: null, waitForComplete: true),
+                    "Get blob copying state should succeed.");
+
+                foreach (var file in files)
+                {
+                    ValidateCopyingResult(file, destContainer.GetBlobReference(CloudFileUtil.GetFullPath(file)));
+                }
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(srcShareName);
+                blobUtil.RemoveContainer(destContainerName);
+            }
+        }
+
+        private void ValidateCopyingResult(CloudFile srcFile, CloudBlob destBlob)
+        {
+            srcFile.FetchAttributes();
+            destBlob.FetchAttributes();
+
+            Test.Assert(destBlob.Metadata.SequenceEqual(srcFile.Metadata), "Destination's metadata should be the same with source's");
+            Test.Assert(destBlob.Properties.ContentMD5 == srcFile.Properties.ContentMD5, "MD5 should be the same.");
+            Test.Assert(destBlob.Properties.ContentType == srcFile.Properties.ContentType, "Content type should be the same.");
+            Test.Assert(destBlob.Properties.BlobType == StorageBlob.BlobType.BlockBlob, "Destination blob should be a block blob.");
+        }
+
+        private void ValidateCopyFromFileToBlob(Action<CloudFile, CloudBlob> blobCopyAction)
+        {
+            string srcShareName = Utility.GenNameString("share");
+            CloudFileShare srcShare = fileUtil.EnsureFileShareExists(srcShareName);
+
+            string destContainerName = Utility.GenNameString("container");
+            CloudBlobContainer destContainer = blobUtil.CreateContainer(destContainerName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("fileName");
+                CloudFile srcFile = fileUtil.CreateFile(srcShare.GetRootDirectoryReference(), fileName);
+
+                string blobName = Utility.GenNameString("blobName");
+                CloudBlob destBlob = destContainer.GetBlockBlobReference(blobName);
+
+                blobCopyAction(srcFile, destBlob);
+
+                ValidateCopyingResult(srcFile, destBlob);
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(srcShareName);
+                blobUtil.RemoveContainer(destContainerName);
+            }
+        }
+
+        private void ValidateFileCopyFromFile(Action<CloudFile, CloudFile> fileCopyAction)
+        {
+            string srcShareName = Utility.GenNameString("share");
+            CloudFileShare srcShare = fileUtil.EnsureFileShareExists(srcShareName);
+
+            string destShareName = Utility.GenNameString("share");
+            CloudFileShare destShare = fileUtil.EnsureFileShareExists(destShareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("fileName");
+                CloudFile srcFile = fileUtil.CreateFile(srcShare.GetRootDirectoryReference(), fileName);
+
+                string destFileName = Utility.GenNameString("fileName");
+                CloudFile destFile = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), destFileName);
+
+                fileCopyAction(srcFile, destFile);
+
+                srcFile.FetchAttributes();
+                destFile.FetchAttributes();
+
+                Test.Assert(destFile.Metadata.SequenceEqual(srcFile.Metadata), "Destination's metadata should be the same with source's");
+                Test.Assert(destFile.Properties.ContentMD5 == srcFile.Properties.ContentMD5, "MD5 should be the same.");
+                Test.Assert(destFile.Properties.ContentType == srcFile.Properties.ContentType, "Content type should be the same.");
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(srcShareName);
+                fileUtil.DeleteFileShareIfExists(destShareName);
+            }
+        }
+
+        private void ValidateFileCopyResult(CloudBlob srcBlob, CloudFile destFile)
+        {
+            destFile.FetchAttributes();
+            srcBlob.FetchAttributes();
+
+            Test.Assert(destFile.Metadata.SequenceEqual(srcBlob.Metadata), "Destination's metadata should be the same with source's");
+            Test.Assert(destFile.Properties.ContentMD5 == srcBlob.Properties.ContentMD5, "MD5 should be the same.");
+            Test.Assert(destFile.Properties.ContentType == srcBlob.Properties.ContentType, "Content type should be the same.");
         }
 
         private void NewDirectoryTest(Action<CloudFileShare, string> newDirectoryAction)
