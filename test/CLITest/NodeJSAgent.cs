@@ -1053,6 +1053,16 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(command, force);
         }
 
+        public override bool StopFileCopy(string shareName, string filePath, string copyId, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StopFileCopy(CloudFile file, string copyId, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void OutputValidation(Collection<Dictionary<string, object>> comp)
         {
             Test.Info("Validate Dictionary objects");
