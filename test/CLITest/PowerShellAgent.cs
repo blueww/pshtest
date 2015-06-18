@@ -1163,9 +1163,13 @@ namespace Management.Storage.ScenarioTest
             ps.AddCommand("Start-CopyAzureStorageBlob");
             ps.BindParameter("SrcFile", srcFile);
             ps.BindParameter("DestContainer", destContainerName);
-            ps.BindParameter("Force", force);
             ps.BindParameter("DestBlob", destBlobName);
             ps.BindParameter("DestContext", destContext);
+
+            if (force)
+            {
+                ps.AddParameter("Force");
+            }
 
             return InvokeStoragePowerShell(ps);
         }

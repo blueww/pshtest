@@ -51,7 +51,8 @@
   <SecondaryStorageEndPoint>core.windows.net</SecondaryStorageEndPoint>
 
   <NodeWorkingDirectory>.</NodeWorkingDirectory>
-  <BigFileUri>http://xdmtest.blob.core.windows.net/public/Fedora-18-x86_64-Live-Desktop.iso</BigFileUri>
+  <BigBlobUri>http://xdmtest.blob.core.windows.net/public/Fedora-18-x86_64-Live-Desktop.iso</BigBlobUri>
+  <BigAzureFileUri>http://xdmtest.blob.core.windows.net/public/Fedora-18-x86_64-Live-Desktop.iso</BigAzureFileUri>
   <HttpsCopyHosts>core.windows.net</HttpsCopyHosts>
   <DownloadDir>.\Data\download\</DownloadDir>
   <UploadDir>.\Data\upload\</UploadDir>
