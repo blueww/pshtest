@@ -938,6 +938,32 @@
             }
         }
 
+        /// <summary>
+        /// Test Plan 8.62 BVT
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        public void StopFileCopyStateTest()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("fileName");
+                CloudFile file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
+
+                Test.Assert(!agent.GetFileCopyState(shareName, fileName), "Get file copy state should fail.");
+                ExpectedContainErrorMessage("Can not find copy task on specified file");
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
         private void ValidateCopyingResult(CloudFile srcFile, CloudBlob destBlob)
         {
             srcFile.FetchAttributes();
