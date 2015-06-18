@@ -251,6 +251,7 @@ namespace Management.Storage.ScenarioTest.Common
         public virtual void InitAgent()
         {
             agent = AgentFactory.CreateAgent(TestContext.Properties);
+            agent.Context = StorageAccount;
             Test.Start(TestContext.FullyQualifiedTestClassName, TestContext.TestName);
             OnTestSetup();
         }

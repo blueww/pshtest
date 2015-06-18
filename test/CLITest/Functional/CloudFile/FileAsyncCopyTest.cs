@@ -39,6 +39,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyToExistFile()
         {
             string filePath = Utility.GenNameString("folder") + "/" + Utility.GenNameString("folder") + "/" + Utility.GenNameString("fileName");
@@ -49,6 +52,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromRootContainer()
         { 
             CopyFromBlob("$root", null, null);
@@ -58,6 +64,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromBlobSnapshot()
         {
             CloudBlobContainer container = blobUtil.CreateContainer();
@@ -76,6 +85,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         {
             string containerName = Utility.GenNameString("container");
             string blobName = Utility.GenNameString("fileName", 1016);
+            object context = PowerShellAgent.Context ?? TestBase.StorageAccount;
 
             this.CopyFromBlob(containerName, blobName, null);
         }

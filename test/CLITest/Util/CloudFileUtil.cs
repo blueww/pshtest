@@ -267,8 +267,11 @@ using MS.Test.Common.MsTestLib;
 
             for (int i = 0; i < path.Length - 1; ++i)
             {
-                dir = dir.GetDirectoryReference(path[i]);
-                dir.Create();
+                if (!string.IsNullOrWhiteSpace(path[i]))
+                {
+                    dir = dir.GetDirectoryReference(path[i]);
+                    dir.Create();
+                }
             }
 
             var file = dir.GetFileReference(path[path.Length - 1]);
@@ -329,7 +332,10 @@ using MS.Test.Common.MsTestLib;
 
             for (int i = 0; i < path.Length - 1; ++i)
             {
-                localDir = localDir.GetDirectoryReference(path[i]);
+                if (!string.IsNullOrWhiteSpace(path[i]))
+                {
+                    localDir = localDir.GetDirectoryReference(path[i]);
+                }
             }
 
             return localDir.GetFileReference(path[path.Length - 1]);

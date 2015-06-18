@@ -103,13 +103,17 @@ namespace Management.Storage.ScenarioTest.Util
 
         public static string[] GetRandomMethods()
         {
-            CorsHttpMethods methods = (CorsHttpMethods)rd.Next(1, 512);
+            // In MSDN, it says it only supports allowed methods: Supported methods are DELETE, GET, HEAD, MERGE, POST, OPTIONS and PUT
+            // https://msdn.microsoft.com/en-us/library/azure/dn535601.aspx
+            // If it is not changed, adding "CorsHttpMethods.Get | <random>" to make sure at least one method is valid.
+            CorsHttpMethods methods = CorsHttpMethods.Get | (CorsHttpMethods)rd.Next(1, 512);
 
             List<string> methodList = new List<string>();
+            CorsHttpMethods notSupportedMethods = CorsHttpMethods.None | CorsHttpMethods.Trace | CorsHttpMethods.Connect;
 
             foreach (CorsHttpMethods methodValue in Enum.GetValues(typeof(CorsHttpMethods)).Cast<CorsHttpMethods>())
             {
-                if (methodValue != CorsHttpMethods.None && (methods & methodValue) != 0)
+                if ((methods & methodValue) != 0 && (notSupportedMethods & methodValue) == 0)
                 {
                     methodList.Add(RandomStringCase(methodValue.ToString()));
                 }
