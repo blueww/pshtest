@@ -870,34 +870,22 @@
 
                 Test.Assert(agent.StartAzureStorageBlobCopy(file, destContainer.Name, blob.Name, PowerShellAgent.Context), "Start azure storage copy from file to blob should succeed.");
 
-                while (true)
-                {
-                    blob.FetchAttributes();
-
-                    if (blob.CopyState.Status != CopyStatus.Pending)
+                WaitCopyToFinish(() =>
                     {
-                        break;
-                    }
+                        blob.FetchAttributes();
+                        return blob.CopyState;
+                    });
 
-                    Thread.Sleep(2000);
-                }
 
-                DateTimeOffset beginTime = DateTimeOffset.UtcNow;
-
-                Test.Assert(agent.GetAzureStorageBlobCopyState(blob, null, true), "Get blob copy state should succeed.");
-
-                DateTimeOffset endTime = DateTimeOffset.UtcNow;
-
-                Test.Assert(endTime - beginTime < TimeSpan.FromSeconds(2), "Get blob copy state should finish in 2 seconds.");
+                VerifyGetCopyStateFinishInTime(() =>
+                    {
+                        Test.Assert(agent.GetAzureStorageBlobCopyState(blob, null, true), "Get blob copy state should succeed.");
+                    });
 
                 CopyState actualCopyState = agent.Output[0]["_baseobject"] as CopyState;
                 CopyState expectedCopyState = blob.CopyState;
 
-                Test.Assert(string.Equals(actualCopyState.CopyId, expectedCopyState.CopyId), "Copy Id should be the same, {0} == {1}", actualCopyState.CopyId, expectedCopyState.CopyId);
-                Test.Assert(string.Equals(actualCopyState.StatusDescription, expectedCopyState.StatusDescription), "StatusDescription should be the same, {0} == {1}", actualCopyState.StatusDescription, expectedCopyState.StatusDescription);
-                Test.Assert(actualCopyState.Status == expectedCopyState.Status, "Status should be the same, {0} == {1}", actualCopyState.Status, expectedCopyState.Status);
-                Test.Assert(actualCopyState.Source == expectedCopyState.Source, "Source should be the same, {0} == {1}", actualCopyState.Source.ToString(), expectedCopyState.Source.ToString());
-                Test.Assert(string.Equals(actualCopyState.CopyId, expectedCopyState.CopyId), "Copy Id should be the same, {0} == {1}", actualCopyState.CopyId, expectedCopyState.CopyId);
+                Utility.VerifyCopyState(expectedCopyState, actualCopyState);
             }
             finally
             {
@@ -945,7 +933,7 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
-        public void StopFileCopyStateTest()
+        public void GetFileCopyStateTest()
         {
             string shareName = Utility.GenNameString("share");
             CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
@@ -957,10 +945,96 @@
 
                 Test.Assert(!agent.GetFileCopyState(shareName, fileName), "Get file copy state should fail.");
                 ExpectedContainErrorMessage("Can not find copy task on specified file");
+
+                VerifyGetCopyStateFinishInTime(() =>
+                    {
+                        Test.Assert(!agent.GetFileCopyState(shareName, fileName, true), "Get file copy state should fail.");
+                    });
+
+                ExpectedContainErrorMessage("Can not find copy task on specified file");
+
+                string destFileName = Utility.GenNameString("destFileName");
+                CloudFile destFile = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
+                Test.Assert(agent.StartFileCopy(file, destFile), "Start file copy should succeed.");
+
+                WaitCopyToFinish(() =>
+                {
+                    destFile.FetchAttributes();
+                    return destFile.CopyState;
+                });
+
+                Test.Assert(agent.GetFileCopyState(file), "Get file copy state should succeed.");
+
+                Utility.VerifyCopyState(destFile.CopyState, agent.Output[0]["_baseobject"] as CopyState);
             }
             finally
             {
                 fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        /// <summary>
+        /// Test Plan 8.63 BVT
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        public void StopFileCopyTest()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("fileName");
+                CloudFile file = fileUtil.GetFileReference(share.GetRootDirectoryReference(), fileName);
+
+                string bigBlobUri = Test.Data.Get("BigBlobUri");
+                Test.Assert(agent.StartFileCopy(bigBlobUri, file), "Start file copy should succeed.");
+
+                Test.Assert(agent.StopFileCopy(shareName, fileName, null), "Stop file copy should succeed.");
+
+                file.FetchAttributes();
+                Test.Assert(file.CopyState.Status == CopyStatus.Aborted, "copy state of the destination file should be aborted.");
+
+                fileName = Utility.GenNameString("fileName2");
+                file = fileUtil.GetFileReference(share.GetRootDirectoryReference(), fileName);
+
+                string bigFileUri = Test.Data.Get("BigAzureFileUri");
+                Test.Assert(agent.StartFileCopy(bigFileUri, file), "Start file copy from big file should succeed.");
+
+                Test.Assert(agent.StopFileCopy(file, null), "Stop file copy should succeed.");
+
+                file.FetchAttributes();
+                Test.Assert(file.CopyState.Status == CopyStatus.Aborted, "copy state of the destination file should be aborted.");
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        private void VerifyGetCopyStateFinishInTime(Action getCopyState)
+        {
+            DateTimeOffset beginTime = DateTimeOffset.UtcNow;
+            getCopyState();
+            DateTimeOffset endTime = DateTimeOffset.UtcNow;
+            Test.Assert(endTime - beginTime < TimeSpan.FromSeconds(2), "Get copy state should finish immediately");
+        }
+
+        private void WaitCopyToFinish(Func<CopyState> getCopyState)
+        {
+            while (true)
+            {
+                CopyState copyState = getCopyState();
+
+                if (copyState.Status != CopyStatus.Pending)
+                {
+                    return;
+                }
+
+                Thread.Sleep(2000);
             }
         }
 
