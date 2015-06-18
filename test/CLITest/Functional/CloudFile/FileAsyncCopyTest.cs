@@ -39,6 +39,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyToExistFile()
         {
             string filePath = Utility.GenNameString("folder") + "/" + Utility.GenNameString("folder") + "/" + Utility.GenNameString("fileName");
@@ -49,6 +52,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromRootContainer()
         { 
             CopyFromBlob("$root", null, null);
@@ -58,6 +64,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromBlobSnapshot()
         {
             CloudBlobContainer container = blobUtil.CreateContainer();
@@ -76,6 +85,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         {
             string containerName = Utility.GenNameString("container");
             string blobName = Utility.GenNameString("fileName", 1016);
+            object context = PowerShellAgent.Context ?? TestBase.StorageAccount;
 
             this.CopyFromBlob(containerName, blobName, null);
         }
@@ -179,17 +189,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
             try
             {
-                StringBuilder sb = new StringBuilder();
-                int maxDirLength = 1008;
-                while (sb.Length < maxDirLength + 1)
-                {
-                    sb.Append(Utility.GenNameString("", Math.Min(8, maxDirLength - sb.Length)));
-                    sb.Append("/");
-                }
-
-                sb.Append(Utility.GenNameString("", 1024 - sb.Length));
-
-                string srcFileName = sb.ToString();
+                string srcFileName = this.GetDeepestFilePath();
                 StorageFile.CloudFile srcFile = fileUtil.CreateFile(srcShare.GetRootDirectoryReference(), srcFileName);
 
                 string destShareName = Utility.GenNameString("destshare");
@@ -240,17 +240,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 string destShareName = Utility.GenNameString("destshare");
 
-                StringBuilder sb = new StringBuilder();
-                int maxDirLength = 1008;
-                while (sb.Length < maxDirLength + 1)
-                {
-                    sb.Append(Utility.GenNameString("", Math.Min(8, maxDirLength - sb.Length)));
-                    sb.Append("/");
-                }
-
-                sb.Append(Utility.GenNameString("", 1024 - sb.Length));
-
-                string destFilePath = sb.ToString();
+                string destFilePath = this.GetDeepestFilePath();
 
                 CloudFileShare destShare = fileUtil.GetShareReference(destShareName);
                 var destFile = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), destFilePath);
@@ -346,6 +336,153 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             {
                 fileUtil.DeleteFileShareIfExists(srcShareName);
                 fileUtil.DeleteFileShareIfExists(destShareName);
+            }
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        public void CopyFromBlobSnapshotWithTooLongName()
+        {
+            CloudBlobContainer container = blobUtil.CreateContainer();
+            string blobName = this.GetDeepestFilePath();
+            CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
+            var blobSnapshot = blob.Snapshot();
+
+            this.CopyFromBlob(blobSnapshot, null);
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        public void CopyFromBlobWithTooLongNameAndSpecialChar()
+        {
+            CloudBlobContainer container = blobUtil.CreateContainer();
+            string blobName = this.GetDeepestFilePath();
+            blobName = blobName.Substring(0, blobName.Length - 10) + "\"\\:|<>*?";
+            CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
+
+            this.CopyFromBlob(blob, null);
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        public void CopyToTheSameFile()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("fileName");
+                StorageFile.CloudFile file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
+
+                Test.Assert(agent.StartFileCopyFromFile(share.Name, fileName, share.Name, fileName, PowerShellAgent.Context),
+                    "Starting async copying from file to the same file should succeed.");
+
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        public void StartFileAsyncCopyNegativeCases()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("fileName");
+
+                // From invalid container name
+                Test.Assert(!agent.StartFileCopyFromBlob("CONTAINER", fileName, share.Name, fileName, PowerShellAgent.Context),
+                    "Starting async copying from invalid container name should fail.");
+
+                ExpectedContainErrorMessage("Container name 'CONTAINER' is invalid");
+
+                // From invalid share name
+                Test.Assert(!agent.StartFileCopyFromFile("SHARE", fileName, share.Name, fileName, PowerShellAgent.Context),
+                    "Starting async copying from invalid share name should fail.");
+
+                ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service.");
+
+                // To invalid share name
+                Test.Assert(!agent.StartFileCopyFromFile(share.Name, fileName, "SHARE", fileName, PowerShellAgent.Context),
+                    "Starting async copying to invalid share name should fail.");
+
+                ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service.");
+
+                // From null blob instance
+                Test.Assert(!agent.StartFileCopy(blob: null, shareName: shareName, filePath: fileName, destContext: PowerShellAgent.Context),
+                    "Starting async copying from null blob instance should fail.");
+
+                ExpectedContainErrorMessage("Cannot validate argument on parameter 'SrcBlob'");
+
+                // From null file instance
+                Test.Assert(!agent.StartFileCopy(srcFile: null, shareName: shareName, filePath: fileName, destContext: PowerShellAgent.Context),
+                    "Starting async copying from null file instance should fail.");
+
+                ExpectedContainErrorMessage("Cannot validate argument on parameter 'SrcFile'");
+
+                // From non-exist share
+                string nonExistShareName = Utility.GenNameString("sharename");
+                fileUtil.DeleteFileShareIfExists(nonExistShareName);
+                Test.Assert(!agent.StartFileCopyFromFile(nonExistShareName, fileName, shareName, null, PowerShellAgent.Context),
+                    "Starting async copying from non-exist file should fail.");
+
+                ExpectedContainErrorMessage("The specified share does not exist");
+
+                // From non-exist file
+                Test.Assert(!agent.StartFileCopyFromFile(shareName, fileName, shareName, null, PowerShellAgent.Context),
+                    "Starting async copying from non-exist file should fail.");
+
+                ExpectedContainErrorMessage("The specified resource does not exist");
+
+                // From non-exist directory
+                CloudFileDirectory dir = share.GetRootDirectoryReference().GetDirectoryReference("nonexist");
+                Test.Assert(!agent.StartFileCopy(dir, fileName, shareName, null, PowerShellAgent.Context),
+                    "Starting async copying from non-exist directory should fail.");
+
+                ExpectedContainErrorMessage("The specified parent path does not exist");
+
+                // From non-exist container
+                string containerName = Utility.GenNameString("container");
+                blobUtil.RemoveContainer(containerName);
+
+                Test.Assert(!agent.StartFileCopyFromBlob(containerName, fileName, shareName, null, PowerShellAgent.Context),
+                    "Starting async copying from non-exist container should fail.");
+
+                ExpectedContainErrorMessage("The specified container does not exist.");
+
+                // From non-exist blob
+                try
+                {
+                    blobUtil.CreateContainer(containerName);
+                    Test.Assert(!agent.StartFileCopyFromBlob(containerName, fileName, shareName, null, PowerShellAgent.Context),
+                        "Starting async copying from non-exist blob should fail.");
+
+                    ExpectedContainErrorMessage("The specified blob does not exist.");
+                }
+                finally 
+                {
+                    blobUtil.RemoveContainer(containerName);
+                }
+
+
+                // To null file instance
+
+                StorageFile.CloudFile file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
+                Test.Assert(!agent.StartFileCopy(file, null),
+                    "Starting async copying to null file instance should fail.");
+
+                ExpectedContainErrorMessage("Cannot validate argument on parameter 'DestFile'");
+
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
             }
         }
 
@@ -475,8 +612,16 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     }
                     else
                     {
-                        Test.Assert(agent.StartFileCopyFromBlob(blob.Container.Name, blob.Name, destShareName, destFilePath, toSecondaryAccount ? SecondaryContext : PowerShellAgent.Context),
-                            "Copy from blob to file should succeed.");
+                        if (random.Next(0, 2) == 0)
+                        {
+                            Test.Assert(agent.StartFileCopyFromBlob(blob.Container.Name, blob.Name, destShareName, destFilePath, toSecondaryAccount ? SecondaryContext : PowerShellAgent.Context),
+                                "Copy from blob to file with container name parameter set should succeed.");
+                        }
+                        else
+                        {
+                            Test.Assert(agent.StartFileCopy(blob.Container, blob.Name, destShareName, destFilePath, toSecondaryAccount ? SecondaryContext : PowerShellAgent.Context),
+                                "Copy from blob to file with container instance parameter set should succeed.");
+                        }
 
                         Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed");
                     }
@@ -566,6 +711,21 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             {
                 fileUtil.DeleteFileShareIfExists(sourceShareName);
             }
+        }
+
+        private string GetDeepestFilePath()
+        {
+            StringBuilder sb = new StringBuilder();
+            int maxDirLength = 1008;
+            while (sb.Length < maxDirLength + 1)
+            {
+                sb.Append(Utility.GenNameString("", Math.Min(8, maxDirLength - sb.Length)));
+                sb.Append("/");
+            }
+
+            sb.Append(Utility.GenNameString("", 1024 - sb.Length));
+
+            return sb.ToString();
         }
     }
 }
