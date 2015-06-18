@@ -967,32 +967,70 @@ namespace Management.Storage.ScenarioTest
 
         public override bool StartFileCopy(CloudFileShare share, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
         {
-            throw new NotImplementedException();
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-share", share.Name);
+            command = appendStringOption(command, "--source-path", srcFilePath);
+            command = appendStringOption(command, "--dest-share", shareName);
+            command = appendStringOption(command, "--dest-path", filePath);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force);
         }
 
         public override bool StartFileCopy(CloudFileDirectory dir, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
         {
-            throw new NotImplementedException();
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-share", dir.Share.Name);
+            command = appendStringOption(command, "--source-path", srcFilePath);
+            command = appendStringOption(command, "--dest-share", shareName);
+            command = appendStringOption(command, "--dest-path", filePath);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force);
         }
 
         public override bool StartFileCopy(CloudFile srcFile, string shareName, string filePath, object destContext, bool force = true)
         {
-            throw new NotImplementedException();
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-share", srcFile.Share.Name);
+            command = appendStringOption(command, "--source-path", CloudFileUtil.GetFullPath(srcFile));
+            command = appendStringOption(command, "--dest-share", shareName);
+            command = appendStringOption(command, "--dest-path", filePath);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force);
         }
 
         public override bool StartFileCopy(CloudFile srcFile, CloudFile destFile, bool force = true)
         {
-            throw new NotImplementedException();
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-share", srcFile.Share.Name);
+            command = appendStringOption(command, "--source-path", CloudFileUtil.GetFullPath(srcFile));
+            command = appendStringOption(command, "--dest-share", destFile.Share.Name);
+            command = appendStringOption(command, "--dest-path", CloudFileUtil.GetFullPath(destFile));
+
+            return RunNodeJSProcess(command, force);
         }
 
         public override bool StartFileCopy(string uri, string destShareName, string destFilePath, object destContext, bool force = true)
         {
-            throw new NotImplementedException();
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-url", uri);
+            command = appendStringOption(command, "--dest-share", destShareName);
+            command = appendStringOption(command, "--dest-path", destFilePath);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force);
         }
 
         public override bool StartFileCopy(string uri, CloudFile destFile, bool force = true)
         {
-            throw new NotImplementedException();
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-url", uri);
+            command = appendStringOption(command, "--dest-share", destFile.Share.Name);
+            command = appendStringOption(command, "--dest-path", CloudFileUtil.GetFullPath(destFile));
+
+            return RunNodeJSProcess(command, force);
         }
 
         public override void OutputValidation(Collection<Dictionary<string, object>> comp)
