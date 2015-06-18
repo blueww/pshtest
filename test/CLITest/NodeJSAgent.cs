@@ -1659,6 +1659,81 @@ namespace Management.Storage.ScenarioTest
             return SetAzureStorageShareQuota(share.Name, quota);
         }
 
+        public override bool StartFileCopyFromBlob(string containerName, string blobName, string shareName, string filePath, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopy(CloudBlobContainer container, string blobName, string shareName, string filePath, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopy(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopy(CloudBlob blob, CloudFile destFile, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopyFromFile(string srcShareName, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopy(CloudFileShare share, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopy(CloudFileDirectory dir, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopy(CloudFile srcFile, string shareName, string filePath, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopy(CloudFile srcFile, CloudFile destFile, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopy(string uri, string destShareName, string destFilePath, object destContext, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartFileCopy(string uri, CloudFile destFile, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool GetFileCopyState(string shareName, string filePath, bool waitForComplete = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool GetFileCopyState(CloudFile file, bool waitForComplete = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StopFileCopy(string shareName, string filePath, string copyId, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StopFileCopy(CloudFile file, string copyId, bool force = true)
+        {
+            throw new NotImplementedException();
+        }
+	
         public override void AssertNoError()
         {
             Test.Assert(!this.HadErrors, "Should execute command without error.");
