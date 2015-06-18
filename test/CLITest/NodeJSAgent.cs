@@ -863,17 +863,56 @@ namespace Management.Storage.ScenarioTest
 
         public override bool StartAzureStorageBlobCopyFromFile(string srcShareName, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true)
         {
-            throw new NotImplementedException();
+            string url = string.Empty;
+            CloudStorageAccount account = this.Context as CloudStorageAccount;
+            if (account != null)
+            {
+                url = string.Format("{0}/{1}/{2}", account.FileEndpoint, srcShareName, srcFilePath);
+            }
+
+            string command = "blob copy start";
+            command = appendStringOption(command, "--source-url", url, quoted: true, onlyNonEmpty: true);
+            command = appendStringOption(command, "--dest-container", destContainerName);
+            command = appendStringOption(command, "--dest-blob", destBlobName);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force);
         }
 
         public override bool StartAzureStorageBlobCopy(CloudFileShare srcShare, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true)
         {
-            throw new NotImplementedException();
+            string url = string.Empty;
+            CloudStorageAccount account = this.Context as CloudStorageAccount;
+            if (account != null)
+            {
+                url = string.Format("{0}/{1}/{2}", account.FileEndpoint, srcShare.Name, srcFilePath);
+            }
+
+            string command = "blob copy start";
+            command = appendStringOption(command, "--source-url", url, quoted: true, onlyNonEmpty: true);
+            command = appendStringOption(command, "--dest-container", destContainerName);
+            command = appendStringOption(command, "--dest-blob", destBlobName);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force);
         }
 
         public override bool StartAzureStorageBlobCopy(CloudFile srcFile, string destContainerName, string destBlobName, object destContext = null, bool force = true)
         {
-            throw new NotImplementedException();
+            string url = string.Empty;
+            CloudStorageAccount account = this.Context as CloudStorageAccount;
+            if (account != null)
+            {
+                url = string.Format("{0}/{1}/{2}", account.FileEndpoint, srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile));
+            }
+
+            string command = "blob copy start";
+            command = appendStringOption(command, "--source-url", url, quoted: true, onlyNonEmpty: true);
+            command = appendStringOption(command, "--dest-container", destContainerName);
+            command = appendStringOption(command, "--dest-blob", destBlobName);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force);
         }
 
         public override bool GetAzureStorageBlobCopyState(string containerName, string blobName, bool waitForComplete)
@@ -952,17 +991,57 @@ namespace Management.Storage.ScenarioTest
 
         public override bool StartFileCopy(CloudBlobContainer container, string blobName, string shareName, string filePath, object destContext, bool force = true)
         {
-            throw new NotImplementedException();
+            string url = string.Empty;
+            CloudStorageAccount account = this.Context as CloudStorageAccount;
+            if (account != null)
+            {
+                url = string.Format("{0}/{1}/{2}", account.BlobEndpoint, container.Name, blobName);
+            }
+
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-url", url, quoted: true, onlyNonEmpty: true);
+            command = appendStringOption(command, "--dest-share", shareName);
+            command = appendStringOption(command, "--dest-path", filePath);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force);
         }
 
         public override bool StartFileCopy(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true)
         {
-            throw new NotImplementedException();
+            string url = string.Empty;
+            CloudStorageAccount account = this.Context as CloudStorageAccount;
+            if (account != null)
+            {
+                url = string.Format("{0}/{1}/{2}", account.BlobEndpoint, blob.Container.Name, blob.Name);
+            }
+
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-url", url, quoted: true, onlyNonEmpty: true);
+            command = appendStringOption(command, "--dest-share", shareName);
+            command = appendStringOption(command, "--dest-path", filePath);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force);
         }
 
         public override bool StartFileCopy(CloudBlob blob, CloudFile destFile, object destContext, bool force = true)
         {
-            throw new NotImplementedException();
+
+            string url = string.Empty;
+            CloudStorageAccount account = this.Context as CloudStorageAccount;
+            if (account != null)
+            {
+                url = string.Format("{0}/{1}/{2}", account.BlobEndpoint, blob.Container.Name, blob.Name);
+            }
+
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-url", url, quoted: true, onlyNonEmpty: true);
+            command = appendStringOption(command, "--dest-share", destFile.Share.Name);
+            command = appendStringOption(command, "--dest-path", CloudFileUtil.GetFullPath(destFile));
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force);
         }
 
         public override bool StartFileCopy(CloudFileShare share, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
@@ -981,7 +1060,7 @@ namespace Management.Storage.ScenarioTest
         {
             string command = "file copy start";
             command = appendStringOption(command, "--source-share", dir.Share.Name);
-            command = appendStringOption(command, "--source-path", srcFilePath);
+            command = appendStringOption(command, "--source-path", CloudFileUtil.GetFullPath(dir) + '/' + srcFilePath);
             command = appendStringOption(command, "--dest-share", shareName);
             command = appendStringOption(command, "--dest-path", filePath);
             command = appendAccountOption(command, destContext, suffix: true, isSource: false);
@@ -1051,16 +1130,6 @@ namespace Management.Storage.ScenarioTest
             command = appendStringOption(command, "--copyid", copyId);
 
             return RunNodeJSProcess(command, force);
-        }
-
-        public override bool StopFileCopy(string shareName, string filePath, string copyId, bool force = true)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool StopFileCopy(CloudFile file, string copyId, bool force = true)
-        {
-            throw new NotImplementedException();
         }
 
         public override void OutputValidation(Collection<Dictionary<string, object>> comp)
