@@ -21,6 +21,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.WindowsAzure.Storage.File;
+using StorageFile = Microsoft.WindowsAzure.Storage.File;
+using System.Threading;
 
 namespace Management.Storage.ScenarioTest.Functional.Blob
 {
@@ -192,6 +195,55 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             finally
             {
                 blobUtil.RemoveContainer(srcContainerName);
+            }
+        }
+
+        /// <summary>
+        /// Stop the copy task on a not existing container and blob
+        /// 8.22	Stop-CopyAzureStorageBlob Negative Functional Cases
+        ///    2. Stop the copy task on a not existing container and blob
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.StopCopyBlob)]
+        public void StopFinishedCopyFromBlobTest()
+        {
+            string srcShareName = Utility.GenNameString("share");
+            CloudFileShare srcShare = fileUtil.EnsureFileShareExists(srcShareName);
+
+            string destContainerName = Utility.GenNameString("container");
+            CloudBlobContainer destContainer = blobUtil.CreateContainer(destContainerName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("fileName");
+                StorageFile.CloudFile file = fileUtil.CreateFile(srcShare.GetRootDirectoryReference(), fileName);
+
+                CloudBlockBlob blob = destContainer.GetBlockBlobReference(Utility.GenNameString("destBlobName"));
+
+                Test.Assert(agent.StartAzureStorageBlobCopy(file, destContainer.Name, blob.Name, PowerShellAgent.Context), "Start azure storage copy from file to blob should succeed.");
+
+                while (true)
+                {
+                    blob.FetchAttributes();
+
+                    if (blob.CopyState.Status != CopyStatus.Pending)
+                    {
+                        break;
+                    }
+
+                    Thread.Sleep(2000);
+                }
+
+                Test.Assert(!agent.StopAzureStorageBlobCopy(destContainerName, blob.Name, null, true), "Stop blob copy should fail");
+
+                ExpectedContainErrorMessage("There is currently no pending copy operation.");
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(srcShareName);
+                blobUtil.RemoveContainer(destContainerName);
             }
         }
 

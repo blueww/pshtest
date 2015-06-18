@@ -846,6 +846,98 @@
             }
         }
 
+        /// <summary>
+        /// Test Plan 8.21 BVT
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        public void GetStateOfBlobCopyFromFileTest()
+        {
+            string srcShareName = Utility.GenNameString("share");
+            CloudFileShare srcShare = fileUtil.EnsureFileShareExists(srcShareName);
+
+            string destContainerName = Utility.GenNameString("container");
+            CloudBlobContainer destContainer = blobUtil.CreateContainer(destContainerName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("fileName");
+                CloudFile file = fileUtil.CreateFile(srcShare.GetRootDirectoryReference(), fileName);
+
+                CloudBlockBlob blob = destContainer.GetBlockBlobReference(Utility.GenNameString("destBlobName"));
+
+                Test.Assert(agent.StartAzureStorageBlobCopy(file, destContainer.Name, blob.Name, PowerShellAgent.Context), "Start azure storage copy from file to blob should succeed.");
+
+                while (true)
+                {
+                    blob.FetchAttributes();
+
+                    if (blob.CopyState.Status != CopyStatus.Pending)
+                    {
+                        break;
+                    }
+
+                    Thread.Sleep(2000);
+                }
+
+                DateTimeOffset beginTime = DateTimeOffset.UtcNow;
+
+                Test.Assert(agent.GetAzureStorageBlobCopyState(blob, null, true), "Get blob copy state should succeed.");
+
+                DateTimeOffset endTime = DateTimeOffset.UtcNow;
+
+                Test.Assert(endTime - beginTime < TimeSpan.FromSeconds(2), "Get blob copy state should finish in 2 seconds.");
+
+                CopyState actualCopyState = agent.Output[0]["_baseobject"] as CopyState;
+                CopyState expectedCopyState = blob.CopyState;
+
+                Test.Assert(string.Equals(actualCopyState.CopyId, expectedCopyState.CopyId), "Copy Id should be the same, {0} == {1}", actualCopyState.CopyId, expectedCopyState.CopyId);
+                Test.Assert(string.Equals(actualCopyState.StatusDescription, expectedCopyState.StatusDescription), "StatusDescription should be the same, {0} == {1}", actualCopyState.StatusDescription, expectedCopyState.StatusDescription);
+                Test.Assert(actualCopyState.Status == expectedCopyState.Status, "Status should be the same, {0} == {1}", actualCopyState.Status, expectedCopyState.Status);
+                Test.Assert(actualCopyState.Source == expectedCopyState.Source, "Source should be the same, {0} == {1}", actualCopyState.Source.ToString(), expectedCopyState.Source.ToString());
+                Test.Assert(string.Equals(actualCopyState.CopyId, expectedCopyState.CopyId), "Copy Id should be the same, {0} == {1}", actualCopyState.CopyId, expectedCopyState.CopyId);
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(srcShareName);
+                blobUtil.RemoveContainer(destContainerName);
+            }
+        }
+        
+        /// <summary>
+        /// Test Plan 8.21 BVT
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        public void StopBlobCopyFromFileTest()
+        {
+            string destContainerName = Utility.GenNameString("container");
+            CloudBlobContainer destContainer = blobUtil.CreateContainer(destContainerName);
+
+            try
+            {
+                string bigFileUri = Test.Data.Get("BigAzureFileUri");
+
+                CloudBlockBlob blob = destContainer.GetBlockBlobReference(Utility.GenNameString("destBlobName"));
+
+                Test.Assert(agent.StartAzureStorageBlobCopy(bigFileUri, destContainer.Name, blob.Name, PowerShellAgent.Context), "Start azure storage copy from file to blob should succeed.");
+
+                Test.Assert(agent.StopAzureStorageBlobCopy(destContainerName, blob.Name, null, true), "Stop blob copy should succeed.");
+
+                blob.FetchAttributes();
+
+                Test.Assert(blob.CopyState.Status == CopyStatus.Aborted, "Copy status should be aborted.");
+            }
+            finally
+            {
+                blobUtil.RemoveContainer(destContainerName);
+            }
+        }
+
         private void ValidateCopyingResult(CloudFile srcFile, CloudBlob destBlob)
         {
             srcFile.FetchAttributes();
