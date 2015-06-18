@@ -12,6 +12,7 @@ using MS.Test.Common.MsTestLib;
 using StorageTestLib;
 using Microsoft.WindowsAzure.Storage;
 using Management.Storage.ScenarioTest.Util;
+using System.Threading;
 
 namespace Management.Storage.ScenarioTest.Functional.CloudFile
 {
@@ -19,7 +20,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
     public class FileAsyncCopyTest : TestBase
     {
         private static object SecondaryContext = null;
-        private static CloudStorageAccount SecondaryAccount = null;
         private static CloudFileUtil FileUtil2 = null;
 
         [ClassInitialize]
@@ -479,6 +479,149 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 ExpectedContainErrorMessage("Cannot validate argument on parameter 'DestFile'");
 
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        public void GetStateOnPendingCopyFromBlobTest()
+        {
+            this.GetStateOnPendingCopy(Test.Data.Get("BigBlobUri"));
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        public void GetStateOnPendingCopyFromFileTest()
+        {
+            this.GetStateOnPendingCopy(Test.Data.Get("BigAzureFileUri"));
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        public void GetStateOnFinishedCopyTest()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                string srcFileName = Utility.GenNameString("sourceFileName");
+                StorageFile.CloudFile file = fileUtil.CreateFile(share.GetRootDirectoryReference(), srcFileName);
+
+                string destFileName = Utility.GenNameString("destFileName");
+                StorageFile.CloudFile destFile = fileUtil.GetFileReference(share.GetRootDirectoryReference(), destFileName);
+
+                Test.Assert(agent.StartFileCopy(file, destFile), "Start file async copy should succeed.");
+
+                while (true)
+                {
+                    destFile.FetchAttributes();
+
+                    if (destFile.CopyState.Status != CopyStatus.Pending)
+                    {
+                        break;
+                    }
+
+                    Thread.Sleep(2000);
+                }
+
+                DateTimeOffset beginTime = DateTimeOffset.UtcNow;
+
+                Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
+
+                DateTimeOffset endTime = DateTimeOffset.UtcNow;
+
+                Test.Assert(beginTime - endTime < TimeSpan.FromSeconds(2), "Get file copy state should finish immediately.");
+
+                Utility.VerifyCopyState(file.CopyState, agent.Output[0]["_baseobject"] as CopyState);
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        void GetCopyOnDeepestDirCrossAccountTest()
+        {
+            CloudStorageAccount srcAccount = TestBase.GetCloudStorageAccountFromConfig("Secondary");
+            object srcContext = PowerShellAgent.GetStorageContext(srcAccount.ToString());
+            CloudFileUtil srcFileUtil = new CloudFileUtil(srcAccount);
+
+            string srcShareName = Utility.GenNameString("srcshare");
+            CloudFileShare srcShare = srcFileUtil.EnsureFileShareExists(srcShareName);
+
+            string destShareName = Utility.GenNameString("destshare");
+            CloudFileShare destShare = fileUtil.EnsureFileShareExists(destShareName);
+
+            try
+            {
+                string filePath = this.GetDeepestFilePath();
+                StorageFile.CloudFile srcFile = srcFileUtil.CreateFile(srcShare.GetRootDirectoryReference(), filePath);
+
+                Test.Assert(agent.StartFileCopy(srcFile, destShare.Name, null, PowerShellAgent.Context), "Start copying from file should succeed.");
+
+                Test.Assert(agent.GetFileCopyState(destShareName, filePath, true), "Monitoring copy state of file should succeed.");
+
+                var destFile = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), filePath);
+                destFile.FetchAttributes();
+
+                Utility.VerifyCopyState(destFile.CopyState, agent.Output[0]["_baseobject"] as CopyState);
+            }
+            finally
+            {
+                srcFileUtil.DeleteFileShareIfExists(srcShareName);
+                fileUtil.DeleteFileShareIfExists(destShareName);
+            }
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        void GetCopyStateNegativeCases()
+        {
+            Test.Assert(!agent.GetFileCopyState("SHARE", Utility.GenNameString("fileName")), "Get file copy state should fail.");
+            ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service.");
+
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                Test.Assert(!agent.GetFileCopyState(shareName, "file???"), "Get file copy state with invalid file name should fail.");
+                ExpectedContainErrorMessage("The given path/prefix 'file???' is not a valid name for a file or directory or does match the requirement for Microsoft Azure File Service REST API.");
+
+                Test.Assert(!agent.GetFileCopyState(file: null), "Get file copy state with null file instance should fail.");
+                ExpectedContainErrorMessage("Cannot validate argument on parameter 'File'.");
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        private void GetStateOnPendingCopy(string bigFileUri)
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("fileName");
+                StorageFile.CloudFile file = fileUtil.GetFileReference(share.GetRootDirectoryReference(), fileName);
+
+                file.StartCopy(new Uri(bigFileUri));
+
+                Test.Assert(agent.GetFileCopyState(shareName, fileName), "Get file copy state should succeed.");
+                file.FetchAttributes();
+
+                Utility.VerifyCopyState(file.CopyState, agent.Output[0]["_baseobject"] as CopyState);
+
+                file.AbortCopy(file.CopyState.CopyId);
             }
             finally
             {

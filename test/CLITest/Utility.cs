@@ -544,6 +544,15 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+        public static void VerifyCopyState(CopyState expectedCopyState, CopyState actualCopyState)
+        {
+            Test.Assert(string.Equals(actualCopyState.CopyId, expectedCopyState.CopyId), "Copy Id should be the same, {0} == {1}", actualCopyState.CopyId, expectedCopyState.CopyId);
+            Test.Assert(string.Equals(actualCopyState.StatusDescription, expectedCopyState.StatusDescription), "StatusDescription should be the same, {0} == {1}", actualCopyState.StatusDescription, expectedCopyState.StatusDescription);
+            Test.Assert(actualCopyState.Status == expectedCopyState.Status, "Status should be the same, {0} == {1}", actualCopyState.Status, expectedCopyState.Status);
+            Test.Assert(actualCopyState.Source == expectedCopyState.Source, "Source should be the same, {0} == {1}", actualCopyState.Source.ToString(), expectedCopyState.Source.ToString());
+            Test.Assert(string.Equals(actualCopyState.CopyId, expectedCopyState.CopyId), "Copy Id should be the same, {0} == {1}", actualCopyState.CopyId, expectedCopyState.CopyId);
+        } 
+
         public static ServiceProperties GetServiceProperties(CloudStorageAccount account, Constants.ServiceType serviceType)
         {
             ServiceProperties properties = null;
