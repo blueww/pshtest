@@ -104,7 +104,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
                 Test.Assert(agent.GetAzureStorageCORSRules(serviceType),
                     "Get CORS rule of {0} service should succeed.", serviceType);
 
-                PSCorsRule[] newCorsRules = (PSCorsRule[])agent.Output[0]["_baseObject"];
+                PSCorsRule[] newCorsRules = GetCORSRules();
 
                 CORSRuleUtil.ValidateCORSRules(corsRules, newCorsRules);
 
@@ -136,7 +136,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
                 Test.Assert(agent.GetAzureStorageCORSRules(serviceType),
                     "Set cors rule of {0} service should succeed", serviceType);
 
-                PSCorsRule[] actualCORSRules = (PSCorsRule[])agent.Output[0]["_baseObject"];
+                PSCorsRule[] actualCORSRules = GetCORSRules();
 
                 CORSRuleUtil.ValidateCORSRules(newCorsRules, actualCORSRules);
             } 
@@ -430,7 +430,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
                 Test.Assert(agent.GetAzureStorageCORSRules(serviceType), "Get CORS rules of {0} service should succeed", serviceType);
 
-                CORSRuleUtil.ValidateCORSRules(corsRules, agent.Output[0]["_baseObject"] as PSCorsRule[]);
+                CORSRuleUtil.ValidateCORSRules(corsRules, GetCORSRules());
             }
             finally
             {
@@ -464,35 +464,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
                 Test.Assert(agent.GetAzureStorageCORSRules(serviceType),
                     "Get cors rules of blob service should succeed.");
 
-                PSCorsRule[] acturalRules;
-                if (lang == Language.PowerShell)
-                {
-                    acturalRules = agent.Output[0]["_baseObject"] as PSCorsRule[];
-                }
-                else
-                {
-                    List<PSCorsRule> rules = new List<PSCorsRule>();
-                    for (int i = 0; i < agent.Output.Count; i++)
-                    {
-                        PSCorsRule rule = new PSCorsRule();
-                        JArray categories = (JArray)agent.Output[i]["AllowedMethods"];
-                        rule.AllowedMethods = categories.Select(c => (string)c).ToArray();
-
-                        categories = (JArray)agent.Output[i]["AllowedOrigins"];
-                        rule.AllowedOrigins = categories.Select(c => (string)c).ToArray();
-
-                        categories = (JArray)agent.Output[i]["AllowedHeaders"];
-                        rule.AllowedHeaders = categories.Select(c => (string)c).ToArray();
-
-                        categories = (JArray)agent.Output[i]["ExposedHeaders"];
-                        rule.ExposedHeaders = categories.Select(c => (string)c).ToArray();
-
-                        rule.MaxAgeInSeconds = (int)(agent.Output[i]["MaxAgeInSeconds"] as long?);
-
-                        rules.Add(rule);
-                    }
-                    acturalRules = rules.ToArray();
-                }
+                PSCorsRule[] acturalRules = GetCORSRules();
 
                 CORSRuleUtil.ValidateCORSRules(newCorsRules, acturalRules);
             }
@@ -504,6 +476,70 @@ namespace Management.Storage.ScenarioTest.Functional.Service
                 serviceProperties.Cors.CorsRules.Clear();
 
                 this.SetSerivceProperties(serviceType, serviceProperties);
+            }
+        }
+
+        private PSCorsRule[] GetCORSRules()
+        {
+            if (lang == Language.PowerShell)
+            {
+                return agent.Output[0]["_baseObject"] as PSCorsRule[];
+            }
+            else
+            {
+                List<PSCorsRule> rules = new List<PSCorsRule>();
+                for (int i = 0; i < agent.Output.Count; i++)
+                {
+                    PSCorsRule rule = new PSCorsRule();
+
+                    bool hasValue = false;
+                    JArray categories;
+                    string key = "AllowedMethods";
+                    if (agent.Output[i].ContainsKey(key))
+                    {
+                        categories = (JArray)agent.Output[i][key];
+                        rule.AllowedMethods = categories.Select(c => (string)c).ToArray();
+                        hasValue = true;
+                    }
+
+                    key = "AllowedOrigins";
+                    if (agent.Output[i].ContainsKey(key))
+                    {
+                        categories = (JArray)agent.Output[i][key];
+                        rule.AllowedOrigins = categories.Select(c => (string)c).ToArray();
+                        hasValue = true;
+                    }
+
+                    key = "AllowedHeaders";
+                    if (agent.Output[i].ContainsKey(key))
+                    {  
+                        categories = (JArray)agent.Output[i][key];
+                        rule.AllowedHeaders = categories.Select(c => (string)c).ToArray();
+                        hasValue = true;
+                    }
+
+                    key = "ExposedHeaders"; 
+                    if (agent.Output[i].ContainsKey(key))
+                    {
+                        categories = (JArray)agent.Output[i][key];
+                        rule.ExposedHeaders = categories.Select(c => (string)c).ToArray();
+                        hasValue = true;
+                    }
+
+                    key = "MaxAgeInSeconds";
+                    if (agent.Output[i].ContainsKey(key))
+                    {
+                        rule.MaxAgeInSeconds = (int)(agent.Output[i][key] as long?);
+                        hasValue = true;
+                    }
+
+                    if (hasValue)
+                    {
+                        rules.Add(rule);
+                    }
+                }
+
+                return rules.ToArray();
             }
         }
 
