@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage.File;
 using MS.Test.Common.MsTestLib;
 using StorageTestLib;
+using StorageFile = Microsoft.WindowsAzure.Storage.File;
 
 namespace Management.Storage.ScenarioTest.Functional
 {
@@ -80,6 +81,25 @@ namespace Management.Storage.ScenarioTest.Functional
             {
                 Test.Assert(agent.SetAzureStorageShareQuota(shareName, random.Next(1, 5120)), "Set quota with invalid credential should fail.");
                 ExpectedContainErrorMessage("The specified resource does not exist.");
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void StopFileCopyWithInvalidCredential()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                StorageFile.CloudFile file = fileUtil.CreateFile(share.GetRootDirectoryReference(), Utility.GenNameString(""));
+                Test.Assert(!agent.StopFileCopy(shareName, file.Name, null), "Stop file copy with invalid credential should fail.");
+                ExpectedContainErrorMessage("The specified share does not exist.");
             }
             finally
             {
