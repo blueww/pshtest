@@ -616,6 +616,183 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             }
         }
 
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        void StopAListOfFileCopyTest()
+        {
+            CloudBlobContainer container = blobUtil.CreateContainer();
+
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                var blobs = blobUtil.CreateRandomBlob(container, null, true);
+                PowerShellAgent psAgent = agent as PowerShellAgent;
+
+                psAgent.AddPipelineScript(string.Format("Get-AzureStorageBlob -Container {0}", container.Name));
+
+                Test.Assert(agent.StartFileCopy(blob: null, shareName: shareName, filePath: null, destContext: PowerShellAgent.Context), "Start file copy should succeed.");
+
+                psAgent.AddPipelineScript(string.Format("Get-AzureStorageFile -ShareName {0}", shareName));
+                Test.Assert(agent.StopFileCopy(file: null, copyId: null), "Stop file copy should succeed.");
+
+                foreach (var fileItem in share.GetRootDirectoryReference().ListFilesAndDirectories())
+                {
+                    StorageFile.CloudFile file = fileItem as StorageFile.CloudFile;
+
+                    if (null != file)
+                    {
+                        file.FetchAttributes();
+                        Test.Assert(file.CopyState.Status == CopyStatus.Aborted, "Copy status of file {0} should be aborted, actual it's {1}", file.Name, file.CopyState.Status);
+                    }
+                }
+            }
+            finally
+            {
+                blobUtil.RemoveContainer(container);
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        void StopFileCopyOnDeepestDirCrossAccountTest()
+        {
+            CloudStorageAccount srcAccount = TestBase.GetCloudStorageAccountFromConfig("Secondary");
+            object srcContext = PowerShellAgent.GetStorageContext(srcAccount.ToString());
+            CloudBlobUtil srcBlobUtil = new CloudBlobUtil(srcAccount);
+
+            string srcContainerName = Utility.GenNameString("srccontainer");
+            CloudBlobContainer srcContainer = srcBlobUtil.CreateContainer(srcContainerName);
+
+            string destShareName = Utility.GenNameString("destshare");
+            CloudFileShare destShare = fileUtil.EnsureFileShareExists(destShareName);
+
+            try
+            {
+                string filePath = this.GetDeepestFilePath();
+                CloudBlob srcBlob = srcBlobUtil.CreateBlockBlob(srcContainer, filePath, createBigBlob: true);
+
+                Test.Assert(agent.StartFileCopy(srcBlob, destShareName, null, PowerShellAgent.Context), "Start copying from blob cross account should succeed.");
+
+                Test.Assert(agent.StopFileCopy(destShareName, filePath, null), "Stop copying on deepest file path file should succeed.");
+
+                var file = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), filePath);
+                file.FetchAttributes();
+                Test.Assert(CopyStatus.Aborted == file.CopyState.Status, "File copy status should be aborted, actual it's {0}", file.CopyState.Status);
+
+                srcBlob = srcBlobUtil.CreateBlockBlob(srcContainer, filePath);
+                Test.Assert(agent.StartFileCopy(srcBlob, destShareName, null, PowerShellAgent.Context), "Start copying from blob to file should succeed.");
+
+                Test.Assert(agent.GetFileCopyState(file, true), "Monitoring file copying status should succeed.");
+            }
+            finally
+            {
+                srcBlobUtil.RemoveContainer(srcContainerName);
+                fileUtil.DeleteFileShareIfExists(destShareName);
+            }
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        void StopWithCopyIdTest()
+        {
+            CloudStorageAccount srcAccount = TestBase.GetCloudStorageAccountFromConfig("Secondary");
+            object srcContext = PowerShellAgent.GetStorageContext(srcAccount.ToString());
+            CloudBlobUtil srcBlobUtil = new CloudBlobUtil(srcAccount);
+
+            string srcContainerName = Utility.GenNameString("srccontainer");
+            CloudBlobContainer srcContainer = srcBlobUtil.CreateContainer(srcContainerName);
+
+            string destShareName = Utility.GenNameString("destshare");
+            CloudFileShare destShare = fileUtil.EnsureFileShareExists(destShareName);
+
+            try
+            {
+                string filePath = Utility.GenNameString("fileName");
+                CloudBlob srcBlob = srcBlobUtil.CreateBlockBlob(srcContainer, filePath, createBigBlob: true);
+
+                Test.Assert(agent.StartFileCopy(srcBlob, destShareName, null, PowerShellAgent.Context), "Start copying from blob cross account should succeed.");
+
+                var file = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), filePath);
+                file.FetchAttributes();
+
+                Test.Assert(agent.StopFileCopy(destShareName, filePath, file.CopyState.CopyId, false), "Stop copying with copy id should succeed.");
+
+                Test.Assert(CopyStatus.Aborted == file.CopyState.Status, "File copy status should be aborted, actual it's {0}", file.CopyState.Status);
+
+                Test.Assert(agent.StartFileCopy(srcBlob, destShareName, null, PowerShellAgent.Context), "Start copying from blob to file should succeed.");
+
+                Test.Assert(agent.StopFileCopy(destShareName, filePath, Guid.NewGuid().ToString()), "Stop copying with unmatched copy id and force should succeed.");
+
+                Test.Assert(CopyStatus.Aborted == file.CopyState.Status, "File copy status should be aborted, actual it's {0}", file.CopyState.Status);
+            }
+            finally
+            {
+                srcBlobUtil.RemoveContainer(srcContainerName);
+                fileUtil.DeleteFileShareIfExists(destShareName);
+            }
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        void StopFileCopyNegativeCases()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("fileName");
+                StorageFile.CloudFile file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
+
+                // Against a no copying file
+                Test.Assert(!agent.StopFileCopy(file, null), "Stop file copy against a file without copying should fail.");
+                ExpectedContainErrorMessage("Can not find copy task on specified file");
+
+                // Against a succeeded copying file.
+                string destFileName = Utility.GenNameString("destFileName");
+                StorageFile.CloudFile destFile = fileUtil.GetFileReference(share.GetRootDirectoryReference(), destFileName);
+
+                Test.Assert(agent.StartFileCopy(file, destFile), "Start copy from file to file should succeed.");
+                Utility.WaitCopyToFinish(() =>
+                    {
+                        destFile.FetchAttributes();
+                        return destFile.CopyState;
+                    });
+
+                Test.Assert(!agent.StopFileCopy(destFile, null), "Stop file copy against a succeeded copying should fail.");
+                ExpectedContainErrorMessage("There is currently no pending copy operation.");
+
+                // Invalid share Name
+                Test.Assert(!agent.StopFileCopy("SHARE", Utility.GenNameString(""), null), "Stop file copy with an invalid share name should fail.");
+                ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service.");
+
+                // Invalid file name
+                Test.Assert(!agent.StopFileCopy(shareName, "file???", null), "Stop file copy with an invalid file path should fail.");
+                ExpectedContainErrorMessage("The given path/prefix 'file???' is not a valid name for a file or directory or does match the requirement for Microsoft Azure File Service REST API.");
+
+                // Non exist share
+                string nonExistShareName = Utility.GenNameString("nonexist");
+                Test.Assert(!agent.StopFileCopy(nonExistShareName, Utility.GenNameString(""), null), "Stop file copy under a non-exist share should fail.");
+                ExpectedContainErrorMessage("The specified share does not exist.");
+
+                // Non exist file
+                string nonExistFileName = Utility.GenNameString("NonExistFileName");
+                Test.Assert(!agent.StopFileCopy(shareName, nonExistFileName, null), "Stop file copy under a non-exist share should fail.");
+                ExpectedContainErrorMessage("The specified resource does not exist.");
+
+                // Null file instance
+                Test.Assert(!agent.StopFileCopy(file: null, copyId: null), "Stop file copy with an null file instance should fail.");
+                ExpectedContainErrorMessage("Cannot validate argument on parameter 'File'. The argument is null.");
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
         private void GetStateOnPendingCopy(string bigFileUri)
         {
             string shareName = Utility.GenNameString("share");

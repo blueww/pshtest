@@ -870,7 +870,7 @@
 
                 Test.Assert(agent.StartAzureStorageBlobCopy(file, destContainer.Name, blob.Name, PowerShellAgent.Context), "Start azure storage copy from file to blob should succeed.");
 
-                WaitCopyToFinish(() =>
+                Utility.WaitCopyToFinish(() =>
                     {
                         blob.FetchAttributes();
                         return blob.CopyState;
@@ -957,7 +957,7 @@
                 CloudFile destFile = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
                 Test.Assert(agent.StartFileCopy(file, destFile), "Start file copy should succeed.");
 
-                WaitCopyToFinish(() =>
+                Utility.WaitCopyToFinish(() =>
                 {
                     destFile.FetchAttributes();
                     return destFile.CopyState;
@@ -1021,21 +1021,6 @@
             getCopyState();
             DateTimeOffset endTime = DateTimeOffset.UtcNow;
             Test.Assert(endTime - beginTime < TimeSpan.FromSeconds(2), "Get copy state should finish immediately");
-        }
-
-        private void WaitCopyToFinish(Func<CopyState> getCopyState)
-        {
-            while (true)
-            {
-                CopyState copyState = getCopyState();
-
-                if (copyState.Status != CopyStatus.Pending)
-                {
-                    return;
-                }
-
-                Thread.Sleep(2000);
-            }
         }
 
         private void ValidateCopyingResult(CloudFile srcFile, CloudBlob destBlob)
