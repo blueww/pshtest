@@ -133,6 +133,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromFileCrossAccount()
         {
             this.CopyFromFile(Utility.GenNameString("sourcefile"), Utility.GenNameString("destfile"), false, true);
@@ -182,6 +185,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromFileInDeepestDir()
         {
             string shareName = Utility.GenNameString("share");
@@ -228,6 +234,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyToFileInDeepestDir()
         {
             string shareName = Utility.GenNameString("share");
@@ -365,6 +374,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyToTheSameFile()
         {
             string shareName = Utility.GenNameString("share");
