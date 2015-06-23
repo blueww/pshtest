@@ -207,7 +207,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.StopCopyBlob)]
-        public void StopFinishedCopyFromBlobTest()
+        public void StopFinishedCopyFromFileTest()
         {
             string srcShareName = Utility.GenNameString("share");
             CloudFileShare srcShare = fileUtil.EnsureFileShareExists(srcShareName);
@@ -260,7 +260,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
         private string CopyBigFileToBlob(CloudBlob blob)
         {
-            string uri = Test.Data.Get("BigFileUri");
+            string uri = Test.Data.Get("BigBlobUri");
             Test.Assert(!String.IsNullOrEmpty(uri), string.Format("Big file uri should be not empty, actually it's {0}", uri));
             
             if (String.IsNullOrEmpty(uri))
