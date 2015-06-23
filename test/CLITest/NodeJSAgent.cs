@@ -360,7 +360,7 @@ namespace Management.Storage.ScenarioTest
                 {
                     string accountCSOption = suffix ? (isSource ? "--connection-string" : "--dest-connection-string") : "--connection-string";
                     string connectionString = string.Format(
-                        "BlobEndpoint={0};TableEndpoint={1};QueueEndpoint={2};FileEndpoint={3};AccountName={4};AccoutKey={5}",
+                        "BlobEndpoint={0};TableEndpoint={1};QueueEndpoint={2};FileEndpoint={3};AccountName={4};AccountKey={5}",
                         account.BlobEndpoint.AbsoluteUri,
                         account.TableEndpoint.AbsoluteUri,
                         account.QueueEndpoint.AbsoluteUri,
