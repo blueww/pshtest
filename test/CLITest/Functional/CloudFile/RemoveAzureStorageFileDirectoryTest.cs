@@ -17,7 +17,7 @@
     using StorageTestLib;
 
     [TestClass]
-    internal class RemoveAzureStorageFileDirectoryTest : TestBase
+    public class RemoveAzureStorageFileDirectoryTest : TestBase
     {
         private Random randomProvider = new Random();
 

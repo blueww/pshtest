@@ -261,7 +261,7 @@
 
         public CloudFile CreateFile(CloudFileShare fileShare, string fileName, string source = null)
         {
-            return this.CreateFile(fileShare.GetRootDirectoryReference(), fileName);
+            return this.CreateFile(fileShare.GetRootDirectoryReference(), fileName, source);
         }
 
         public CloudFile CreateFile(CloudFileDirectory directory, string fileName, string source = null)

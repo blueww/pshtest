@@ -34,7 +34,7 @@ namespace Management.Storage.ScenarioTest
             {"ShareAlreadyExists","The specified share already exists."},
             {"NameResolutionFailure","getaddrinfo ENOTFOUND"},
             {"AuthenticationFailed","Server failed to authenticate the request.+Forbidden"},
-            {"ShareNotFound","The specified share does not exist.+@Share \\w{1,} doesn't exist"},
+            {"ShareNotFound","The specified share does not exist.+@Share \\w{1,} doesn't exist+@Can not find directory '\\w{1,}' in share \\w{1,}+@Can not find share '\\w{1,}'"},
             {"PathNotFound","@File '[^']{1,}' in share \\w{1,} does not exist+@Local file .{1,} doesn't exist"},
             {"TransferException","ENOENT"},
             {"ResourceAlreadyExists","The specified resource already exists."},
