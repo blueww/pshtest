@@ -133,7 +133,7 @@ namespace Management.Storage.ScenarioTest.Util
             }
 
             CloudBlobContainer container = client.GetContainerReference(containerName);
-            container.CreateIfNotExists();
+            container.CreateIfNotExists(BlobContainerPublicAccessType.Blob);
 
             //there is no properties to set
             container.FetchAttributes();
