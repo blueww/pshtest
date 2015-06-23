@@ -270,11 +270,12 @@ using MS.Test.Common.MsTestLib;
                 if (!string.IsNullOrWhiteSpace(path[i]))
                 {
                     dir = dir.GetDirectoryReference(path[i]);
-                    dir.Create();
+                    dir.CreateIfNotExists();
                 }
             }
 
             var file = dir.GetFileReference(path[path.Length - 1]);
+
             PrepareFileInternal(file, source);
             return file;
         }
@@ -636,6 +637,7 @@ using MS.Test.Common.MsTestLib;
         {
             Test.Info("Verify file read permission");
             CloudFile sasFile = new CloudFile(file.Uri, new StorageCredentials(sasToken));
+            sasFile.FetchAttributes();
             long buffSize = sasFile.Properties.Length;
             byte[] buffer = new byte[buffSize];
             MemoryStream ms = new MemoryStream(buffer);
