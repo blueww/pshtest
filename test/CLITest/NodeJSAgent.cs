@@ -1629,7 +1629,7 @@ namespace Management.Storage.ScenarioTest
 
         public override void RemoveDirectory(CloudFileDirectory directory, string path)
         {
-            throw new NotImplementedException();
+            this.RemoveDirectory(directory.Share.Name, CloudFileUtil.GetFullPath(directory) + "/" + path);
         }
 
         public override void RemoveDirectory(string fileShareName, string directoryName, object contextObject = null)
@@ -1639,7 +1639,7 @@ namespace Management.Storage.ScenarioTest
             command = appendStringOption(command, "", directoryName, quoted: true);
             command = appendAccountOption(command, contextObject, false, isSource: true);
 
-            this.RunNodeJSProcess(command, needAccountParam: contextObject == null);
+            this.RunNodeJSProcess(command, true, needAccountParam: contextObject == null);
         }
 
         public override void RemoveFile(CloudFileShare fileShare, string fileName)
@@ -1649,7 +1649,7 @@ namespace Management.Storage.ScenarioTest
 
         public override void RemoveFile(CloudFileDirectory directory, string fileName)
         {
-            throw new NotImplementedException();
+            this.RemoveFile(directory.Share.Name, CloudFileUtil.GetFullPath(directory) + "/" + fileName);
         }
 
         public override void RemoveFile(CloudFile file)
@@ -1975,7 +1975,7 @@ namespace Management.Storage.ScenarioTest
             string command = "cors delete";
             command = appendBoolOption(command, string.Format("--{0}", serviceType.ToString().ToLower()));
 
-            return RunNodeJSProcess(command);
+            return RunNodeJSProcess(command, true);
         }
 
         internal string StringifyCORS(PSCorsRule[] corsRules)

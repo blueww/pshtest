@@ -230,10 +230,10 @@ namespace Management.Storage.ScenarioTest.Util
         /// <param name="container">CloudBlobContainer object</param>
         /// <param name="blobName">blob name</param>
         /// <returns>CloudBlob object</returns>
-        public CloudBlob CreatePageBlob(CloudBlobContainer container, string blobName)
+        public CloudBlob CreatePageBlob(CloudBlobContainer container, string blobName, bool createBigBlob = false)
         {
             CloudPageBlob pageBlob = container.GetPageBlobReference(blobName);
-            int size = random.Next(1, 10) * PageBlobUnitSize;
+            int size = (createBigBlob ? random.Next(409600, 819200) : random.Next(1, 10)) * PageBlobUnitSize;
             pageBlob.Create(size);
 
             byte[] buffer = new byte[size];
@@ -257,13 +257,12 @@ namespace Management.Storage.ScenarioTest.Util
         /// <param name="container">CloudBlobContainer object</param>
         /// <param name="blobName">Block blob name</param>
         /// <returns>CloudBlob object</returns>
-        public CloudBlob CreateBlockBlob(CloudBlobContainer container, string blobName)
+        public CloudBlob CreateBlockBlob(CloudBlobContainer container, string blobName, bool createBigBlob = false)
         {
             CloudBlockBlob blockBlob = container.GetBlockBlobReference(blobName);
 
-            int maxBlobSize = 1024 * 1024;
             string md5sum = string.Empty;
-            int blobSize = random.Next(maxBlobSize);
+            int blobSize = createBigBlob ? random.Next(1024 * 1024 *200, 1024 * 1024 *400) : random.Next(1024 * 1024);
             byte[] buffer = new byte[blobSize];
             using (MemoryStream ms = new MemoryStream(buffer))
             {
@@ -285,12 +284,11 @@ namespace Management.Storage.ScenarioTest.Util
         /// <param name="container">CloudBlobContainer object</param>
         /// <param name="blobName">blob name</param>
         /// <returns>CloudAppendBlob object</returns>
-        public CloudAppendBlob CreateAppendBlob(CloudBlobContainer container, string blobName)
+        public CloudAppendBlob CreateAppendBlob(CloudBlobContainer container, string blobName, bool createBigBlob = false)
         {
             CloudAppendBlob appendBlob = container.GetAppendBlobReference(blobName);
 
-            int maxSize = 1024 * 1024;
-            int size = random.Next(maxSize);
+            int size = createBigBlob ? random.Next(1024 * 1024 * 200, 1024 * 1024 * 400) : random.Next(1024 * 1024);
             appendBlob.CreateOrReplace();
 
             byte[] buffer = new byte[size];
@@ -369,13 +367,13 @@ namespace Management.Storage.ScenarioTest.Util
         /// <param name="container">CloudBlobContainer object</param>
         /// <param name="blobName">a list of blob names</param>
         /// <returns>a list of cloud page blobs</returns>
-        public List<CloudBlob> CreateRandomBlob(CloudBlobContainer container, List<string> blobNames)
+        public List<CloudBlob> CreateRandomBlob(CloudBlobContainer container, List<string> blobNames, bool createBigBlob = false)
         {
             List<CloudBlob> blobs = new List<CloudBlob>();
 
             foreach (string blobName in blobNames)
             {
-                blobs.Add(CreateRandomBlob(container, blobName));
+                blobs.Add(CreateRandomBlob(container, blobName, createBigBlob: createBigBlob));
             }
 
             blobs = blobs.OrderBy(blob => blob.Name).ToList();
@@ -402,7 +400,7 @@ namespace Management.Storage.ScenarioTest.Util
         /// <param name="blobName">Blob name</param>
         /// <param name="BlobType">type</param>
         /// <returns>CloudBlob object</returns>
-        public CloudBlob CreateRandomBlob(CloudBlobContainer container, string blobName, StorageBlobType type = StorageBlobType.Unspecified)
+        public CloudBlob CreateRandomBlob(CloudBlobContainer container, string blobName, StorageBlobType type = StorageBlobType.Unspecified, bool createBigBlob = false)
         {
             if (string.IsNullOrEmpty(blobName))
             {
@@ -430,15 +428,15 @@ namespace Management.Storage.ScenarioTest.Util
             
             if (type == StorageBlobType.PageBlob)
             {
-                return CreatePageBlob(container, blobName);
+                return CreatePageBlob(container, blobName, createBigBlob);
             }
             else if (type == StorageBlobType.BlockBlob)
             {
-                return CreateBlockBlob(container, blobName);
+                return CreateBlockBlob(container, blobName, createBigBlob);
             }
             else if (type == StorageBlobType.AppendBlob)
             {
-                return CreateAppendBlob(container, blobName);
+                return CreateAppendBlob(container, blobName, createBigBlob);
             }
             else
             {
