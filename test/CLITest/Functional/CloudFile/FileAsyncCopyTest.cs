@@ -131,9 +131,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromFileCrossAccount()
         {
             this.CopyFromFile(Utility.GenNameString("sourcefile"), Utility.GenNameString("destfile"), false, true);
@@ -183,9 +180,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromFileInDeepestDir()
         {
             string shareName = Utility.GenNameString("share");
@@ -236,9 +230,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.StartCopyFile)]
         public void CopyToFileInDeepestDir()
         {
             string shareName = Utility.GenNameString("share");
@@ -376,9 +367,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.StartCopyFile)]
         public void CopyToTheSameFile()
         {
             string shareName = Utility.GenNameString("share");
@@ -509,9 +497,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.GetFileCopyState)]
         public void GetStateOnPendingCopyFromFileTest()
         {
             this.GetStateOnPendingCopy(Test.Data.Get("BigAzureFileUri"));
@@ -519,9 +504,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.GetFileCopyState)]
         public void GetStateOnFinishedCopyTest()
         {
             string shareName = Utility.GenNameString("share");
@@ -567,9 +549,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.GetFileCopyState)]
         void GetCopyOnDeepestDirCrossAccountTest()
         {
             CloudStorageAccount srcAccount = TestBase.GetCloudStorageAccountFromConfig("Secondary");
@@ -605,9 +584,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.GetFileCopyState)]
         void GetCopyStateNegativeCases()
         {
             Test.Assert(!agent.GetFileCopyState("SHARE", Utility.GenNameString("fileName")), "Get file copy state should fail.");
@@ -632,9 +608,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.StopCopyFile)]
         void StopAListOfFileCopyTest()
         {
             CloudBlobContainer container = blobUtil.CreateContainer();
@@ -754,9 +727,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.StopCopyFile)]
         void StopFileCopyNegativeCases()
         {
             string shareName = Utility.GenNameString("share");

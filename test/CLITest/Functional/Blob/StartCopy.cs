@@ -312,7 +312,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 Test.Assert(!agent.StartAzureStorageBlobCopy(invalidContainerName, Utility.GenNameString("blob"), containerName, Utility.GenNameString("blob")), "Start copy should failed with invalid src container name");
                 ExpectedStartsWithErrorMessage(invalidContainerErrorMessage);
 
-                Test.Assert(!agent.StartAzureStorageBlobCopy(containerName, Utility.GenNameString("blob"), invalidContainerName, Utility.GenNameString("blob")), "Start copy should failed with invalid dest container name");
+                Test.Assert(!agent.StartAzureStorageBlobCopy(containerName, blobName, invalidContainerName, Utility.GenNameString("blob")), "Start copy should failed with invalid dest container name");
                 ExpectedStartsWithErrorMessage(invalidContainerErrorMessage);
 
                 Test.Assert(!agent.StartAzureStorageBlobCopy(containerName, invalidBlobName, containerName, Utility.GenNameString("blob")), "Start copy should failed with invalid src blob name");

@@ -3340,8 +3340,17 @@ namespace Management.Storage.ScenarioTest
             this.AddSASTokenParameter(policyName, permissions, startTime, expiryTime, fulluri);
 
             AddCommonParameters(this.shell);
+            try
+            {
+                ParseCollection(this.shell.Invoke());
+            }
+            catch (System.Management.Automation.ParameterBindingException ex)
+            {
+                _ErrorMessages.Clear();
+                _ErrorMessages.Add(ex.Message);
+                return false;
+            }
 
-            ParseCollection(this.shell.Invoke());
             ParseErrorMessages(this.shell);
 
             return !this.shell.HadErrors;
@@ -3361,7 +3370,17 @@ namespace Management.Storage.ScenarioTest
 
             AddCommonParameters(this.shell);
 
-            ParseCollection(this.shell.Invoke());
+            try
+            {
+                ParseCollection(this.shell.Invoke());
+            }
+            catch (ParameterBindingException ex)
+            {
+                _ErrorMessages.Clear();
+                _ErrorMessages.Add(ex.Message);
+                return false;
+            }
+
             ParseErrorMessages(this.shell);
 
             return !this.shell.HadErrors;
@@ -3433,7 +3452,7 @@ namespace Management.Storage.ScenarioTest
         {
             if (Output.Count != 0)
             {
-                string sasToken = Output[0][Constants.SASTokenKey].ToString();
+                string sasToken = Output[0][BaseObject].ToString();
                 Test.Info("Generated sas token: {0}", sasToken);
                 return sasToken;
             }
@@ -3453,7 +3472,17 @@ namespace Management.Storage.ScenarioTest
 
             AddCommonParameters(this.shell);
 
-            ParseCollection(this.shell.Invoke());
+            try
+            {
+                ParseCollection(this.shell.Invoke());
+            }
+            catch (System.Management.Automation.ParameterBindingException ex)
+            {
+                _ErrorMessages.Clear();
+                _ErrorMessages.Add(ex.Message);
+                return false;
+            }
+
             ParseErrorMessages(this.shell);
 
             return !this.shell.HadErrors;
