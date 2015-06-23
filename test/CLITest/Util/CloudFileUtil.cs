@@ -131,8 +131,8 @@ using MS.Test.Common.MsTestLib;
 
         public void AssertFileShareExists(string fileShareName, string message)
         {
-            var container = this.client.GetShareReference(fileShareName);
-            Test.Assert(container.Exists(), message);
+            var share = this.client.GetShareReference(fileShareName);
+            Test.Assert(share.Exists(), message);
         }
 
         public void AssertDirectoryExists(CloudFileShare share, string directoryPath, string message)
@@ -197,14 +197,14 @@ using MS.Test.Common.MsTestLib;
         {
             const int retryInterval = 5000;
             const int retryLimit = 10;
-            var container = this.client.GetShareReference(fileShareName);
+            var share = this.client.GetShareReference(fileShareName);
 
             bool succeeded = false;
             for (int i = 0; i < retryLimit; i++)
             {
                 try
                 {
-                    container.CreateIfNotExists();
+                    share.CreateIfNotExists();
                     succeeded = true;
                     break;
                 }
@@ -231,13 +231,13 @@ using MS.Test.Common.MsTestLib;
                 throw new InvalidOperationException("Failed to prepare file share.");
             }
 
-            return container;
+            return share;
         }
 
         public bool FileShareExists(string fileShareName)
         {
-            var container = this.client.GetShareReference(fileShareName);
-            return container.Exists();
+            var share = this.client.GetShareReference(fileShareName);
+            return share.Exists();
         }
 
         public CloudFileDirectory EnsureFolderStructure(CloudFileShare share, string directoryPath)
@@ -261,35 +261,31 @@ using MS.Test.Common.MsTestLib;
 
         public CloudFile CreateFile(CloudFileShare fileShare, string fileName, string source = null)
         {
-            string[] path = fileName.Split('/');
+            return this.CreateFile(fileShare.GetRootDirectoryReference(), fileName);
+        }
 
-            var dir = fileShare.GetRootDirectoryReference();
+        public CloudFile CreateFile(CloudFileDirectory directory, string fileName, string source = null)
+        {
+            string[] path = fileName.Split('/');
 
             for (int i = 0; i < path.Length - 1; ++i)
             {
                 if (!string.IsNullOrWhiteSpace(path[i]))
                 {
-                    dir = dir.GetDirectoryReference(path[i]);
-                    dir.Create();
+                    directory = directory.GetDirectoryReference(path[i]);
+                    directory.CreateIfNotExists();
                 }
             }
 
-            var file = dir.GetFileReference(path[path.Length - 1]);
-            PrepareFileInternal(file, source);
-            return file;
-        }
-
-        public CloudFile CreateFile(CloudFileDirectory directory, string fileName, string source = null)
-        {
-            var file = directory.GetFileReference(fileName);
+            var file = directory.GetFileReference(path[path.Length - 1]);
             PrepareFileInternal(file, source);
             return file;
         }
 
         public void AssertFileShareNotExists(string fileShareName, string message)
         {
-            var container = this.client.GetShareReference(fileShareName);
-            Test.Assert(!container.Exists(), message);
+            var share = this.client.GetShareReference(fileShareName);
+            Test.Assert(!share.Exists(), message);
         }
 
         public string FetchFileMD5(CloudFile file)
@@ -335,6 +331,7 @@ using MS.Test.Common.MsTestLib;
                 if (!string.IsNullOrWhiteSpace(path[i]))
                 {
                     localDir = localDir.GetDirectoryReference(path[i]);
+                    localDir.CreateIfNotExists();
                 }
             }
 
@@ -361,7 +358,7 @@ using MS.Test.Common.MsTestLib;
             }
             else
             {
-                destinationPath = destinationRelativePath.Substring(0, lastSlash + 1);
+                destinationPath = destinationRelativePath.Substring(0, lastSlash); // Don't include slash in the path
                 destinationFileName = destinationRelativePath.Substring(lastSlash + 1);
             }
 

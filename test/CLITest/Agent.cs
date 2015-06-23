@@ -31,6 +31,9 @@ namespace Management.Storage.ScenarioTest
 {
     public abstract class Agent : IDisposable
     {
+        public static object Context;
+        public static object SecondaryContext;
+
         private const string NotImplemented = "Not implemented in Agent!";
         /// <summary>
         /// output data returned after agent operation
@@ -75,8 +78,6 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(ErrorMessages[0].StartsWith(expectedErrorMessage), String.Format("Expected error message should start with {0}, and actually it's {1}",
                 expectedErrorMessage, ErrorMessages[0]));
         }
-
-        public object Context { get; set; }
 
         public abstract bool ChangeCLIMode(Constants.Mode mode);
 
