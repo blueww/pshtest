@@ -61,7 +61,7 @@ namespace Management.Storage.ScenarioTest
                 {"SetPageBlobWithInvalidFileSize", "Page blob length must be multiple of 512"}, 
                 {"CreateExistingContainer", "Container '{0}' already exists"},
                 {"CreateInvalidContainer", "Container name format is incorrect"},
-                {"RemoveNonExistingContainer", "The specified container does not exist"},
+                {"RemoveNonExistingContainer", "Can not find container '{0}'"},
                 {"RemoveNonExistingBlob", "The specified blob does not exist."},
                 {"SetBlobContentWithInvalidBlobName", "One of the request inputs is out of range"},
                 {"SetContainerAclWithInvalidName", "Container name format is incorrect"},
@@ -78,7 +78,7 @@ namespace Management.Storage.ScenarioTest
                 {"CreateExistingQueue", "The queue specified already exists"},
                 {"CreateInvalidQueue", "Queue name format is incorrect"},
                 {"GetNonExistingQueue", "Queue {0} doesn't exist"},
-                {"RemoveNonExistingQueue", "The specified queue does not exist"},
+                {"RemoveNonExistingQueue", "Can not find queue '{0}'"},
         };
 
         public static string BinaryFileName { get; set; }

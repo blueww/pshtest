@@ -146,10 +146,7 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(fileObject != null, "Output object should be an instance of Dictionary<string, object> class.");
 
             string directory = fileObject.ContainsKey("directory") ? fileObject["directory"] as string : string.Empty;
-            if (!string.IsNullOrWhiteSpace(directory))
-            {
-                directory += "/";
-            }
+            directory += "/";
 
             string name = fileObject.ContainsKey("name") ? fileObject["name"] as string : string.Empty;
 

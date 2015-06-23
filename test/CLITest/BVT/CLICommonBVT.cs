@@ -418,6 +418,11 @@ namespace Management.Storage.ScenarioTest.BVT
 
             foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
             {
+                if (serviceType == Constants.ServiceType.File || serviceType == Constants.ServiceType.InvalidService)
+                {
+                    continue;
+                }
+
                 int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
                 string loggingOperations = Utility.GenRandomLoggingOperations();
 
@@ -453,6 +458,11 @@ namespace Management.Storage.ScenarioTest.BVT
             {
                 foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
                 {
+                    if (serviceType == Constants.ServiceType.File || serviceType == Constants.ServiceType.InvalidService)
+                    {
+                        continue;
+                    }
+
                     ServiceProperties propertiesBeforeSet = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
                     int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
                     string metricsLevel = Utility.GenRandomMetricsLevel();
@@ -485,6 +495,11 @@ namespace Management.Storage.ScenarioTest.BVT
 
             foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
             {
+                if (serviceType == Constants.ServiceType.File || serviceType == Constants.ServiceType.InvalidService)
+                {
+                    continue;
+                }
+
                 Test.Assert(agent.GetAzureStorageServiceLogging(serviceType), Utility.GenComparisonData("GetAzureStorageServiceLogging", true));
                 ServiceProperties properties = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
                 agent.OutputValidation(properties, "logging");
@@ -508,6 +523,11 @@ namespace Management.Storage.ScenarioTest.BVT
 
             foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
             {
+                if (serviceType == Constants.ServiceType.File || serviceType == Constants.ServiceType.InvalidService)
+                {
+                    continue;
+                }
+
                 Test.Assert(agent.GetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour), Utility.GenComparisonData("GetAzureStorageServiceHourMetrics", true));
                 ServiceProperties properties = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
                 agent.OutputValidation(properties, "HourMetrics");
@@ -567,7 +587,7 @@ namespace Management.Storage.ScenarioTest.BVT
 
                 Test.Assert(!agent.GetAzureStorageBlobCopyState(blobUtil.ContainerName, blobUtil.BlobName, false), "Get copy state should be fail since the specified blob don't have any copy operation");
                 Test.Assert(agent.ErrorMessages.Count > 0, "Should return error message");
-                string errorMessage = "Can not find copy task on specified blob";
+                string errorMessage = "Can not find copy task on the specified blob";
                 Test.Assert(agent.ErrorMessages[0].StartsWith(errorMessage), String.Format("Error message should start with {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
             }
             finally
