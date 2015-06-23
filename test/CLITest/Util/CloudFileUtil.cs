@@ -167,8 +167,8 @@ using MS.Test.Common.MsTestLib;
 
         public void DeleteFileShareIfExists(string fileShareName)
         {
-            var container = this.client.GetShareReference(fileShareName);
-            container.DeleteIfExists();
+            var share = this.client.GetShareReference(fileShareName);
+            share.DeleteIfExists();
         }
 
         public void DeleteDirectoryIfExists(CloudFileShare fileShare, string directoryName)
