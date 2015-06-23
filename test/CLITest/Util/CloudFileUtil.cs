@@ -636,6 +636,7 @@ using MS.Test.Common.MsTestLib;
         {
             Test.Info("Verify file read permission");
             CloudFile sasFile = new CloudFile(file.Uri, new StorageCredentials(sasToken));
+            sasFile.FetchAttributes();
             long buffSize = sasFile.Properties.Length;
             byte[] buffer = new byte[buffSize];
             MemoryStream ms = new MemoryStream(buffer);

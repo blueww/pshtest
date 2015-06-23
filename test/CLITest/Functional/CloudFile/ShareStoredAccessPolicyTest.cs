@@ -35,6 +35,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewPolicyDifferentNames()
@@ -68,6 +69,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewPolicyDifferentValues()
@@ -108,6 +110,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewPolicyInvalidParameter()
         {
             DateTime? startTime = DateTime.Today.AddDays(1);
@@ -203,6 +208,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void GetPolicyVariations()
@@ -247,6 +253,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.StoredAccessPolicy)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void GetPolicyInvalid()
@@ -310,6 +317,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void RemovePolicyInvalid()
@@ -380,6 +388,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetPolicyDifferentNames()
@@ -408,6 +417,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetPolicyDifferentValues()
@@ -426,6 +436,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetPolicyNoStartTimeNoExpiryTime()
         {
             string shareName = Utility.GenNameString("share");
@@ -490,6 +503,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetPolicyInvalidParameter()
@@ -576,6 +590,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void PolicyWithSASStartTimePastToFuture()
@@ -632,6 +647,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void PolicyWithSASStartTimeFutureToPast()
@@ -686,6 +702,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StoredAccessPolicy)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void PolicyWithSASRemovePolicy()
@@ -740,6 +757,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NewShareSas)]
         public void NewShareSasWithPermission()
@@ -772,6 +790,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NewShareSas)]
         public void NewShareSasWithLifeTime()
@@ -830,6 +849,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NewShareSas)]
         public void NewShareSasWithPolicy()
@@ -888,6 +908,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NewShareSas)]
         public void NewShareSasWithNonExistPolicy()
@@ -923,6 +944,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NewShareSas)]
         public void NewShareSasWithInvalidLifeTime()
@@ -950,6 +972,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NewShareSas)]
         public void NewShareSasWithFullUri()
@@ -977,6 +1000,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NewShareSas)]
         public void NewShareSasWithLimitedPermission()
@@ -1023,6 +1047,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NewShareSas)]
         public void NewShareSasNegativeTest()
         {
             DateTime startTime = DateTime.Now.AddMinutes(-1);
@@ -1091,6 +1118,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NewFileSas)]
         public void NewFileSasWithPermission()
         {
             //File read permission
@@ -1117,6 +1147,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NewFileSas)]
         public void NewFileSasWithLifeTime()
         {
             string shareName = Utility.GenNameString("share");
@@ -1175,6 +1208,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NewFileSas)]
         public void NewFileSasWithPolicy()
         {
             string shareName = Utility.GenNameString("share");
@@ -1206,12 +1242,20 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 {
                     Permissions = SharedAccessFilePermissions.Read,
                 };
-                Test.Info("Sleep and wait for sas policy taking effect");
 
-                Thread.Sleep(30000);
-
-                sasToken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, policyName, null, null, DateTime.Now.Add(sasLifeTime));
-                ValidateFileSasToken(file, "r", sasToken);
+                if (lang == Language.PowerShell)
+                {
+                    Test.Info("Sleep and wait for sas policy taking effect");
+                    Thread.Sleep(30000);
+                    sasToken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, policyName, null, null, DateTime.Now.Add(sasLifeTime));
+                    ValidateFileSasToken(file, "r", sasToken);
+                }
+                else
+                {
+                    sasToken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, policyName, null, null, DateTime.Now.Add(sasLifeTime));
+                    Test.Assert(agent.HadErrors, "Generate file sas token with both policy and expiry should fail");
+                    ExpectedContainErrorMessage("Permissions, start and expiry cannot be specified with a stored policy");
+                }
             }
             finally
             {
@@ -1225,6 +1269,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NewFileSas)]
         public void NewFileSasWithNonExistPolicy()
         {
             string shareName = Utility.GenNameString("share");
@@ -1237,9 +1284,17 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 string policyName = Utility.GenNameString("nonexistpolicy");
 
-                Test.Assert(!agent.NewAzureStorageFileSAS(shareName, fileName, policyName, string.Empty),
-                    "Generate file sas token with non-exist policy should fail");
-                ExpectedEqualErrorMessage(string.Format("Invalid access policy '{0}'.", policyName));
+                if (lang == Language.PowerShell)
+                {
+                    Test.Assert(!agent.NewAzureStorageFileSAS(shareName, fileName, policyName, string.Empty),
+                        "Generate file sas token with non-exist policy should fail");
+                    ExpectedEqualErrorMessage(string.Format("Invalid access policy '{0}'.", policyName));
+                }
+                else
+                {
+                    Test.Assert(agent.NewAzureStorageFileSAS(shareName, fileName, policyName, string.Empty),
+                        "Generate file sas token with non-exist policy should succeed");
+                }
             }
             finally
             {
@@ -1253,6 +1308,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NewFileSas)]
         public void NewFileSasWithInvalidLifeTime()
         {
             string shareName = Utility.GenNameString("share");
@@ -1281,6 +1339,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NewFileSas)]
         public void NewFileSasWithFullUri()
         {
             string shareName = Utility.GenNameString("share");
@@ -1309,6 +1370,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NewFileSas)]
         public void NewFileSasWithLimitedPermission()
         {
             string shareName = Utility.GenNameString("share");
@@ -1350,6 +1414,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NewFileSas)]
         public void NewFileSasNegativeTest()
         {
             DateTime startTime = DateTime.Now.AddMinutes(-1);
@@ -1372,23 +1439,50 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 Test.Assert(!agent.NewAzureStorageFileSAS(shareName, fileName, policyName, startTime: startTime),
                     "Create sas with Policy and start time should failed.");
-                ExpectedContainErrorMessage("This start time field must be omitted if it has been specified in an associated stored access policy.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("This start time field must be omitted if it has been specified in an associated stored access policy.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Permissions, start and expiry cannot be specified with a stored policy");
+                }
 
                 Test.Assert(!agent.NewAzureStorageFileSAS(shareName, fileName, policyName, sharePermission),
                     "Create sas with Policy and permission should failed.");
-                ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Permissions, start and expiry cannot be specified with a stored policy");
+                }
 
                 Test.Assert(!agent.NewAzureStorageFileSAS(shareName, fileName, policyName, expiryTime: expiryTime),
                     "Create sas with Policy and expiry time should failed.");
-                ExpectedContainErrorMessage("This expiry time field must be omitted if it has been specified in an associated stored access policy.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("This expiry time field must be omitted if it has been specified in an associated stored access policy.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Permissions, start and expiry cannot be specified with a stored policy");
+                }
 
                 fileUtil.DeleteFileIfExists(share, fileName);
                 Test.Assert(agent.NewAzureStorageFileSAS(shareName, fileName, null, sharePermission, startTime, expiryTime),
                         "Create sas on a non-exist file without policy should succeed.");
 
-                Test.Assert(agent.NewAzureStorageFileSAS(shareName, fileName, policyName),
-                        "Create sas on a non-exist file with policy should fail.");
-                ExpectedContainErrorMessage("The specified file does not exist.");
+                if (lang == Language.PowerShell)
+                {
+                    Test.Assert(!agent.NewAzureStorageFileSAS(shareName, fileName, policyName), "Create sas on a non-exist file with policy should fail.");
+                    ExpectedContainErrorMessage("The specified file does not exist.");
+                }
+                else
+                {
+                    Test.Assert(agent.NewAzureStorageFileSAS(shareName, fileName, policyName), "Create sas on a non-exist file with policy should succeed.");
+                }
             }
             finally
             {
