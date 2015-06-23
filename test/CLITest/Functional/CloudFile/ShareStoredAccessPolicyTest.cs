@@ -145,13 +145,13 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     ExpectedContainErrorMessage("Invalid value: x. Options are: r,w,d,l");
                 }
 
-                string longShareName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
-                Test.Assert(!agent.NewAzureStorageShareStoredAccessPolicy(shareName, longShareName, null, null, null), "Create stored access policy with invalid permission should fail");
+                string longPolicyName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
+                Test.Assert(!agent.NewAzureStorageShareStoredAccessPolicy(shareName, longPolicyName, null, null, null), "Create stored access policy with invalid policy name should fail");
                 if (lang == Language.PowerShell)
                 {
                     ExpectedContainErrorMessage(string.Format(
-                    "The given share name/prefix '{0}' is not a valid name for a file share of Microsoft Azure File Service.",
-                    longShareName));                  
+                    "Access policy name '{0}' is invalid. Valid names should be 1 through 64 characters long.",
+                    longPolicyName));                  
                 }
                 else
                 {
@@ -861,6 +861,8 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     Permissions = SharedAccessFilePermissions.Read,
                 };
 
+                share.SetPermissions(permission);
+
                 if (lang == Language.PowerShell)
                 {
                     Test.Info("Sleep and wait for sas policy taking effect");
@@ -1077,7 +1079,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 Test.Assert(agent.NewAzureStorageShareSAS(shareName, null, sharePermission, startTime, expiryTime),
                         "Create sas on a non-exist share without policy should succeed.");
 
-                Test.Assert(agent.NewAzureStorageShareSAS(shareName, policyName), "Create sas on a non-exist share with policy should succeed.");
+                Test.Assert(!agent.NewAzureStorageShareSAS(shareName, policyName), "Create sas on a non-exist share with policy should fail.");
             }
             finally
             {
@@ -1206,6 +1208,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 {
                     Permissions = SharedAccessFilePermissions.Read,
                 };
+                share.SetPermissions(permission);
                 Test.Info("Sleep and wait for sas policy taking effect");
 
                 Thread.Sleep(30000);
@@ -1387,8 +1390,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                         "Create sas on a non-exist file without policy should succeed.");
 
                 Test.Assert(agent.NewAzureStorageFileSAS(shareName, fileName, policyName),
-                        "Create sas on a non-exist file with policy should fail.");
-                ExpectedContainErrorMessage("The specified file does not exist.");
+                        "Create sas on a non-exist file with policy should succeed.");
             }
             finally
             {
@@ -1589,7 +1591,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 {
                     policy2.ExpiryTime = policy1.ExpiryTime;
                 }
-                if (policy2.Permission == null)
+                if (string.IsNullOrEmpty(policy2.Permission))
                 {
                     policy2.Permission = policy1.Permission;
                 }
