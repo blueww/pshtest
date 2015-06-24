@@ -1642,7 +1642,7 @@ namespace Management.Storage.ScenarioTest
 
             ps.BindParameter("Force", force);
 
-            return InvokeStoragePowerShell(ps);
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool StartFileCopy(CloudFileDirectory dir, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
@@ -1666,7 +1666,7 @@ namespace Management.Storage.ScenarioTest
 
             ps.BindParameter("Force", force);
 
-            return InvokeStoragePowerShell(ps);
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool StartFileCopy(CloudFile srcFile, string shareName, string filePath, object destContext, bool force = true)
@@ -1691,7 +1691,7 @@ namespace Management.Storage.ScenarioTest
 
             ps.BindParameter("Force", force);
 
-            return InvokeStoragePowerShell(ps);
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool StartFileCopy(CloudFile srcFile, CloudFile destFile, bool force = true)
@@ -1706,7 +1706,7 @@ namespace Management.Storage.ScenarioTest
 
             ps.BindParameter("Force", force);
 
-            return InvokeStoragePowerShell(ps);
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool StartFileCopy(CloudBlobContainer container, string blobName, string shareName, string filePath, object destContext, bool force = true)
@@ -1730,10 +1730,7 @@ namespace Management.Storage.ScenarioTest
 
             ps.BindParameter("Force", force);
 
-            ParseCollection(ps.Invoke());
-            ParseErrorMessages(ps);
-
-            return ps.HadErrors;
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool StartFileCopy(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true)
@@ -1758,10 +1755,7 @@ namespace Management.Storage.ScenarioTest
 
             ps.BindParameter("Force", force);
 
-            ParseCollection(ps.Invoke());
-            ParseErrorMessages(ps);
-
-            return ps.HadErrors;
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool StartFileCopy(CloudBlob blob, CloudFile destFile, object destContext, bool force = true)
@@ -1776,7 +1770,7 @@ namespace Management.Storage.ScenarioTest
 
             ps.BindParameter("Force", force);
 
-            return InvokeStoragePowerShell(ps);
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool StartFileCopyFromBlob(string containerName, string blobName, string shareName, string filePath, object destContext, bool force = true)
@@ -1813,7 +1807,7 @@ namespace Management.Storage.ScenarioTest
 
             ps.BindParameter("Force", force);
 
-            return InvokeStoragePowerShell(ps);
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool StartFileCopy(string uri, string destShareName, string destFilePath, object destContext, bool force = true)
@@ -1832,7 +1826,7 @@ namespace Management.Storage.ScenarioTest
 
             ps.BindParameter("Force", force);
 
-            return InvokeStoragePowerShell(ps);
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool GetFileCopyState(string shareName, string filePath, bool waitForComplete = false)
@@ -1859,7 +1853,7 @@ namespace Management.Storage.ScenarioTest
 
             ps.BindParameter("WaitForComplete", waitForComplete);
 
-            return InvokeStoragePowerShell(ps);
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool StopFileCopy(string shareName, string filePath, string copyId, bool force = true)
@@ -1896,7 +1890,7 @@ namespace Management.Storage.ScenarioTest
 
             ps.BindParameter("Force", force);
 
-            return InvokeStoragePowerShell(ps);
+            return InvokePowerShellWithoutContext(ps);
         }
 
         /// <summary>
@@ -2310,6 +2304,11 @@ namespace Management.Storage.ScenarioTest
                 ps.BindParameter(ContextParameterName, context);
             }
 
+            return this.InvokePowerShellWithoutContext(ps, parseFunc);
+        }
+
+        private bool InvokePowerShellWithoutContext(PowerShell ps, ParseCollectionFunc parseFunc = null)
+        {
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
 
             //TODO We should add a time out for this invoke. Bad news, powershell don't support buildin time out for invoking.
@@ -3368,22 +3367,7 @@ namespace Management.Storage.ScenarioTest
 
             this.AddSASTokenParameter(policyName, permissions, startTime, expiryTime, fulluri);
 
-            AddCommonParameters(this.shell);
-
-            try
-            {
-                ParseCollection(this.shell.Invoke());
-            }
-            catch (ParameterBindingException ex)
-            {
-                _ErrorMessages.Clear();
-                _ErrorMessages.Add(ex.Message);
-                return false;
-            }
-
-            ParseErrorMessages(this.shell);
-
-            return !this.shell.HadErrors;
+            return InvokeStoragePowerShell(this.shell);
         }
 
         public override bool NewAzureStorageFileSAS(CloudFile file, string policyName = null, string permissions = null,
@@ -3395,13 +3379,8 @@ namespace Management.Storage.ScenarioTest
             this.shell.BindParameter("File", file);
 
             this.AddSASTokenParameter(policyName, permissions, startTime, expiryTime, fulluri);
-
-            AddCommonParameters(this.shell);
-
-            ParseCollection(this.shell.Invoke());
-            ParseErrorMessages(this.shell);
-
-            return !this.shell.HadErrors;
+            
+            return InvokePowerShellWithoutContext(this.shell);
         }
 
         private void AddSASTokenParameter(string policyName, string permissions,
@@ -3470,22 +3449,7 @@ namespace Management.Storage.ScenarioTest
             this.shell.BindParameter("ShareName", shareName);
             this.shell.BindParameter("Quota", quota);
 
-            AddCommonParameters(this.shell);
-
-            try
-            {
-                ParseCollection(this.shell.Invoke());
-            }
-            catch (System.Management.Automation.ParameterBindingException ex)
-            {
-                _ErrorMessages.Clear();
-                _ErrorMessages.Add(ex.Message);
-                return false;
-            }
-
-            ParseErrorMessages(this.shell);
-
-            return !this.shell.HadErrors;
+            return InvokeStoragePowerShell(this.shell);
         }
 
         public override bool SetAzureStorageShareQuota(CloudFileShare share, int quota)
@@ -3496,10 +3460,7 @@ namespace Management.Storage.ScenarioTest
             this.shell.BindParameter("Share", share);
             this.shell.BindParameter("Quota", quota);
             
-            ParseCollection(this.shell.Invoke());
-            ParseErrorMessages(this.shell);
-
-            return !this.shell.HadErrors;
+            return InvokePowerShellWithoutContext(this.shell);
         }
 
         public override IExecutionResult Invoke(IEnumerable input = null, bool traceCommand = true)
@@ -3771,21 +3732,8 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("Location", location);
             
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
-
-            try
-            {
-                ParseBlobCollection(ps.Invoke());
-            }
-            catch (ParameterBindingException ex)
-            {
-                _ErrorMessages.Clear();
-                _ErrorMessages.Add(ex.Message);
-                return false;
-            }
-
-            ParseErrorMessages(ps);
-
-            return !ps.HadErrors;
+            
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool SetSRPAzureStorageAccount(string resourceGroupName, string accountName, string accountType)
@@ -3796,23 +3744,8 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
             ps.BindParameter("Type", accountType);
-
-            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
-
-            try
-            {
-                ParseBlobCollection(ps.Invoke());
-            }
-            catch (ParameterBindingException ex)
-            {
-                _ErrorMessages.Clear();
-                _ErrorMessages.Add(ex.Message);
-                return false;
-            }
-
-            ParseErrorMessages(ps);
-
-            return !ps.HadErrors;
+            
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool DeleteSRPAzureStorageAccount(string resourceGroup, string accountName)
@@ -3823,12 +3756,7 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
 
-            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
-
-            ParseBlobCollection(ps.Invoke());
-            ParseErrorMessages(ps);
-
-            return !ps.HadErrors;
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool ShowSRPAzureStorageAccount(string resourceGroup, string accountName)
@@ -3839,12 +3767,7 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
 
-            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
-
-            ParseBlobCollection(ps.Invoke());
-            ParseErrorMessages(ps);
-
-            return !ps.HadErrors;
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool ShowSRPAzureStorageAccountKeys(string resourceGroup, string accountName)
@@ -3855,12 +3778,7 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
 
-            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
-
-            ParseBlobCollection(ps.Invoke());
-            ParseErrorMessages(ps);
-
-            return !ps.HadErrors;
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool RenewSRPAzureStorageAccountKeys(string resourceGroup, string accountName, Constants.AccountKeyType type)
@@ -3884,20 +3802,7 @@ namespace Management.Storage.ScenarioTest
                 ps.BindParameter("KeyName", "invalid");
             }
 
-            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
-
-            try
-            {
-                ParseBlobCollection(ps.Invoke());
-            }
-            catch (System.Management.Automation.ParameterBindingException)
-            {
-                return false;
-            }
-
-            ParseErrorMessages(ps);
-
-            return !ps.HadErrors;
+            return InvokePowerShellWithoutContext(ps);
         }
     }
 }
