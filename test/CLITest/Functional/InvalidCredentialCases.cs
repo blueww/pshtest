@@ -23,7 +23,7 @@ namespace Management.Storage.ScenarioTest.Functional
             StorageAccount = null;
             TestBase.TestClassInitialize(testContext);
             CLICommonBVT.SaveAndCleanSubScriptionAndEnvConnectionString();
-            string storageAccountName = Utility.GenNameString("account");
+            string storageAccountName = Test.Data.Get("StorageAccountName");
             string storageEndPoint = Test.Data.Get("StorageEndPoint").Trim();
 
             if (lang == Language.PowerShell)
@@ -46,7 +46,7 @@ namespace Management.Storage.ScenarioTest.Functional
             Constants.ServiceType serviceType = GetRandomServiceType();
             var corsRules = CORSRuleUtil.GetRandomValidCORSRules(random.Next(1, 5));
 
-            Test.Assert(agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set CORS rules with invalid credential should fail.");
+            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set CORS rules with invalid credential should fail.");
             ExpectedContainErrorMessage("The specified resource does not exist.");
         }
 
@@ -56,7 +56,7 @@ namespace Management.Storage.ScenarioTest.Functional
         {
             Constants.ServiceType serviceType = GetRandomServiceType();
 
-            Test.Assert(agent.GetAzureStorageCORSRules(serviceType), "Get CORS rules with invalid credential should fail.");
+            Test.Assert(!agent.GetAzureStorageCORSRules(serviceType), "Get CORS rules with invalid credential should fail.");
             ExpectedContainErrorMessage("The specified resource does not exist.");
         }
 
@@ -66,7 +66,7 @@ namespace Management.Storage.ScenarioTest.Functional
         {
             Constants.ServiceType serviceType = GetRandomServiceType();
 
-            Test.Assert(agent.RemoveAzureStorageCORSRules(serviceType), "Remove CORS rules with invalid credential should fail.");
+            Test.Assert(!agent.RemoveAzureStorageCORSRules(serviceType), "Remove CORS rules with invalid credential should fail.");
             ExpectedContainErrorMessage("The specified resource does not exist.");
         }
 
@@ -79,7 +79,7 @@ namespace Management.Storage.ScenarioTest.Functional
 
             try
             {
-                Test.Assert(agent.SetAzureStorageShareQuota(shareName, random.Next(1, 5120)), "Set quota with invalid credential should fail.");
+                Test.Assert(!agent.SetAzureStorageShareQuota(shareName, random.Next(1, 5120)), "Set quota with invalid credential should fail.");
                 ExpectedContainErrorMessage("The specified resource does not exist.");
             }
             finally
@@ -99,7 +99,7 @@ namespace Management.Storage.ScenarioTest.Functional
             {
                 StorageFile.CloudFile file = fileUtil.CreateFile(share.GetRootDirectoryReference(), Utility.GenNameString(""));
                 Test.Assert(!agent.StopFileCopy(shareName, file.Name, null), "Stop file copy with invalid credential should fail.");
-                ExpectedContainErrorMessage("The specified share does not exist.");
+                ExpectedContainErrorMessage("The specified resource does not exist.");
             }
             finally
             {

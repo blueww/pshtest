@@ -198,11 +198,6 @@ namespace Management.Storage.ScenarioTest.Util
 
         private static bool ValidateStrings(string[] expectedStrings, string[] acturalStrings, bool ignoreCase)
         {
-            if (expectedStrings.Length != acturalStrings.Length)
-            {
-                return false;
-            }
-
             for (int i = 0; i < expectedStrings.Length; ++i)
             {
                 if (!acturalStrings.Contains(expectedStrings[i], ignoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal))

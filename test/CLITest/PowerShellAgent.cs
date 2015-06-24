@@ -41,7 +41,7 @@ namespace Management.Storage.ScenarioTest
 {
     class PowerShellAgent : Agent
     {
-        private const string BaseObject = "_baseObject";
+        public const string BaseObject = "_baseObject";
         private static bool snapInAdded = false;
         private static string ContextParameterName = "Context";
         private static object AgentContext;
