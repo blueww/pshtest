@@ -58,15 +58,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             DateTime? expiryTime = DateTime.Today.AddDays(10);
             string permission = "rwdl";
 
-            string errorMsg = string.Empty;
-            if (lang == Language.PowerShell)
-            {
-                errorMsg = "The specified share does not exist";
-            }
-            else
-            {
-                errorMsg = "The specified resource does not exist";
-            }
+            string errorMsg = "The specified resource does not exist";
 
             Test.Assert(!agent.NewAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p"), permission, null, expiryTime),
                 "Should fail to new a stored access policy to share with sas token credentials");

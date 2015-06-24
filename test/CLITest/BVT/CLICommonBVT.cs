@@ -1975,7 +1975,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 Test.Assert(agent.GetAzureStorageCORSRules(serviceType),
                     "Get CORS rules from {0} service should succeed.", serviceType);
 
-                PSCorsRule[] acturalRules = agent.Output[0]["_baseObject"] as PSCorsRule[];
+                PSCorsRule[] acturalRules = agent.Output[0][PowerShellAgent.BaseObject] as PSCorsRule[];
 
                 CORSRuleUtil.ValidateCORSRules(corsRules, acturalRules);
 
@@ -1985,7 +1985,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 Test.Assert(agent.GetAzureStorageCORSRules(serviceType),
                     "Get CORS rules from {0} service should succeed.", serviceType);
 
-                acturalRules = agent.Output[0]["_baseObject"] as PSCorsRule[];
+                acturalRules = agent.Output[0][PowerShellAgent.BaseObject] as PSCorsRule[];
                 Test.Assert(acturalRules.Length == 0, "CORS rule count of {1} service should be 0, actually it's {0}", acturalRules.Length, serviceType);
             }
             finally

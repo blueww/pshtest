@@ -26,11 +26,14 @@ namespace Management.Storage.ScenarioTest.Functional.Service
         [ClassCleanup()]
         public static void ServiceCORSRuleClassCleanup()
         {
+            ClearCorsRules(Constants.ServiceType.Blob);
+            ClearCorsRules(Constants.ServiceType.Table);
+            ClearCorsRules(Constants.ServiceType.Queue);
             TestBase.TestClassCleanup();
         }
 
         private const string NoOriginNoMethod0MaxCacheAgeError = "A CORS rule must contain at least one allowed origin and allowed method, and MaxAgeInSeconds cannot have a value less than zero.";
-        private const string CORSRuleInvalidError = "CORS rules setting is invalid. Please reference to \"https://msdn.microsoft.com/en-us/library/azure/hh452235.aspx\" to get detailed information.";
+        private const string CORSRuleInvalidError = "CORS rules setting is invalid. Please reference to \"https://msdn.microsoft.com/en-us/library/azure/dn535601.aspx\" to get detailed information.";
         
         [TestMethod]
         [TestCategory(Tag.Function)]
@@ -59,7 +62,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
                         });
                     }
 
-                    this.SetSerivceProperties(serviceType, serviceProperties);
+                    SetSerivceProperties(serviceType, serviceProperties);
                 };
 
             this.OverwriteCORSRules(setCORSRules, Constants.ServiceType.Blob);
@@ -142,12 +145,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             } 
             finally
             {
-                ServiceProperties serviceProperties = new ServiceProperties();
-                serviceProperties.Clean();
-                serviceProperties.Cors = new CorsProperties();
-                serviceProperties.Cors.CorsRules.Clear();
-
-                this.SetSerivceProperties(serviceType, serviceProperties);
+                ClearCorsRules(serviceType);
             }
         }
 
@@ -181,10 +179,6 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             this.ValidateCORSRuleSetGet(corsRules);
 
             corsRules[0].AllowedOrigins = CORSRuleUtil.GetRandomOrigins();
-
-            // Allowed method "*"
-            corsRules[0].AllowedMethods = new string[] { "*" };
-            this.ValidateCORSRuleSetGet(corsRules);
 
             // Allowed header 64  defined headers
             corsRules[0].AllowedHeaders = CORSRuleUtil.GetRandomHeaders(64);
@@ -229,7 +223,10 @@ namespace Management.Storage.ScenarioTest.Functional.Service
         public void Set0CORSRuleTest()
         {
             PSCorsRule[] corsRules = new PSCorsRule[0];
-            this.ValidateCORSRuleSetGet(corsRules);
+            Constants.ServiceType serviceType = GetRandomServiceType();
+            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set 0 cors rule  to {0} service should fail", serviceType);
+
+            ExpectedContainErrorMessage("Cannot bind argument to parameter 'CorsRules' because it is an empty array.");
         }
         
         [TestMethod]
@@ -257,7 +254,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
             // No allowed methods
             corsRules[0].AllowedOrigins = CORSRuleUtil.GetRandomOrigins();
-            corsRules[0].AllowedMethods = null;
+            corsRules[0].AllowedMethods = new string[0];
 
             serviceType = GetRandomServiceType();
             Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule without allowed method to {0} service should fail", serviceType);
@@ -365,7 +362,8 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             corsRules = CORSRuleUtil.GetRandomValidCORSRules(random.Next(1, 5));
 
             Test.Assert(!agent.SetAzureStorageCORSRules(Constants.ServiceType.InvalidService, corsRules), "Set cors rules to invalid service type should fail.");
-            ExpectedContainErrorMessage("Unable to match the identifier name InValid to a valid enumerator name.  Specify one of the following enumerator names and try again: Blob, Table, Queue, File");
+            ExpectedContainErrorMessage(string.Format("Unable to match the identifier name {0} to a valid enumerator name.  Specify one of the following enumerator names and try again: Blob, Table, Queue, File",
+                Constants.ServiceType.InvalidService.ToString()));
         }
 
         [TestMethod]
@@ -373,7 +371,8 @@ namespace Management.Storage.ScenarioTest.Functional.Service
         public void GetCORSRulesNegativeTest()
         {
             Test.Assert(!agent.GetAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Get CORS rules of invalid service type should fail.");
-            ExpectedContainErrorMessage("Unable to match the identifier name InValid to a valid enumerator name.  Specify one of the following enumerator names and try again: Blob, Table, Queue, File");
+            ExpectedContainErrorMessage(string.Format("Unable to match the identifier name {0} to a valid enumerator name.  Specify one of the following enumerator names and try again: Blob, Table, Queue, File",
+                Constants.ServiceType.InvalidService.ToString()));
         }
 
         [TestMethod]
@@ -381,7 +380,8 @@ namespace Management.Storage.ScenarioTest.Functional.Service
         public void RemoveCORSRulesNegativeTest()
         {
             Test.Assert(!agent.RemoveAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Remove CORS rules of invalid service type should fail.");
-            ExpectedContainErrorMessage("Unable to match the identifier name InValid to a valid enumerator name.  Specify one of the following enumerator names and try again: Blob, Table, Queue, File");
+            ExpectedContainErrorMessage(string.Format("Unable to match the identifier name {0} to a valid enumerator name.  Specify one of the following enumerator names and try again: Blob, Table, Queue, File",
+                Constants.ServiceType.InvalidService.ToString()));
         }
 
         [TestMethod]
@@ -390,20 +390,15 @@ namespace Management.Storage.ScenarioTest.Functional.Service
         {
             // No CORS rule exist
             Constants.ServiceType serviceType = GetRandomServiceType();
+            ClearCorsRules(serviceType);
 
-            ServiceProperties serviceProperties = new ServiceProperties();
-            serviceProperties.Clean();
-            serviceProperties.Cors = new CorsProperties();
-            serviceProperties.Cors.CorsRules.Clear();
-
-            this.SetSerivceProperties(serviceType, serviceProperties);
             this.ValidateRemoveCORSRule(serviceType);
             
             // Set CORS rules with cmdlet
             serviceType = GetRandomServiceType();
             PSCorsRule[] corsRules = CORSRuleUtil.GetRandomValidCORSRules(random.Next(1, 5));
             Test.Assert(agent.SetAzureStorageCORSRules(serviceType, corsRules),
-                "Set CORS rules to {0} service should succeed.");
+                "Set CORS rules to {0} service should succeed.", serviceType);
             this.ValidateRemoveCORSRule(serviceType);
         }
 
@@ -413,7 +408,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
             Test.Assert(agent.GetAzureStorageCORSRules(serviceType), "Get CORS rules of {0} service should succeed.", serviceType);
 
-            PSCorsRule[] actualCORSRule = (PSCorsRule[])agent.Output[0]["_basicobject"];
+            PSCorsRule[] actualCORSRule = (PSCorsRule[])agent.Output[0][PowerShellAgent.BaseObject];
 
             Test.Assert(0 == actualCORSRule.Length, "There should be 0 CORS rule after removing. Actually there are {0} CORS rule(s)", actualCORSRule.Length);
         }
@@ -426,7 +421,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             try
             {
 
-                Test.Assert(agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule with 64 allowed origins to {0} service should succeed", serviceType);
+                Test.Assert(agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule  to {0} service should succeed", serviceType);
 
                 Test.Assert(agent.GetAzureStorageCORSRules(serviceType), "Get CORS rules of {0} service should succeed", serviceType);
 
@@ -434,12 +429,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             }
             finally
             {
-                ServiceProperties serviceProperties = new ServiceProperties();
-                serviceProperties.Clean();
-                serviceProperties.Cors = new CorsProperties();
-                serviceProperties.Cors.CorsRules.Clear();
-
-                this.SetSerivceProperties(serviceType, serviceProperties);
+                ClearCorsRules(serviceType);
             }
         }
 
@@ -470,12 +460,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             }
             finally
             {
-                ServiceProperties serviceProperties = new ServiceProperties();
-                serviceProperties.Clean();
-                serviceProperties.Cors = new CorsProperties();
-                serviceProperties.Cors.CorsRules.Clear();
-
-                this.SetSerivceProperties(serviceType, serviceProperties);
+                ClearCorsRules(serviceType);
             }
         }
 
@@ -483,7 +468,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
         {
             if (lang == Language.PowerShell)
             {
-                return agent.Output[0]["_baseObject"] as PSCorsRule[];
+                return agent.Output[0][PowerShellAgent.BaseObject] as PSCorsRule[];
             }
             else
             {
@@ -543,7 +528,17 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             }
         }
 
-        private void SetSerivceProperties(Constants.ServiceType serviceType, ServiceProperties serviceProperties)
+        private static void ClearCorsRules(Constants.ServiceType serviceType)
+        {
+            ServiceProperties serviceProperties = new ServiceProperties();
+            serviceProperties.Clean();
+            serviceProperties.Cors = new CorsProperties();
+            serviceProperties.Cors.CorsRules.Clear();
+
+            SetSerivceProperties(serviceType, serviceProperties);
+        }
+
+        private static void SetSerivceProperties(Constants.ServiceType serviceType, ServiceProperties serviceProperties)
         {
             switch (serviceType)
             {
