@@ -15,7 +15,7 @@
 
 
     [TestClass]
-    internal class RemoveAzureStorageFileTest : TestBase
+    public class RemoveAzureStorageFileTest : TestBase
     {
         private Random randomProvider = new Random();
 

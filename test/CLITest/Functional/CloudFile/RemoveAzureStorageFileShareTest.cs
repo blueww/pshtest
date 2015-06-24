@@ -26,7 +26,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
     using StorageTestLib;
 
     [TestClass]
-    internal class RemoveAzureStorageFileShareTest : TestBase
+    public class RemoveAzureStorageFileShareTest : TestBase
     {
         private Random randomProvider = new Random();
 

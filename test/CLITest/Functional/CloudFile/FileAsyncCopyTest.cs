@@ -19,7 +19,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
     [TestClass]
     public class FileAsyncCopyTest : TestBase
     {
-        private static object SecondaryContext = null;
         private static CloudFileUtil FileUtil2 = null;
 
         [ClassInitialize]
@@ -27,7 +26,15 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         {
             TestBase.TestClassInitialize(context);
             CloudStorageAccount SecondaryAccount = TestBase.GetCloudStorageAccountFromConfig("Secondary");
-            SecondaryContext = PowerShellAgent.GetStorageContext(SecondaryAccount.ToString(true));
+            if (lang == Language.PowerShell)
+            {
+                Agent.SecondaryContext = PowerShellAgent.GetStorageContext(SecondaryAccount.ToString(true));
+            }
+            else
+            {
+                Agent.SecondaryContext = SecondaryAccount;
+            }
+
             FileUtil2 = new CloudFileUtil(SecondaryAccount);
         }
 
@@ -39,9 +46,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.StartCopyFile)]
         public void CopyToExistFile()
         {
             string filePath = Utility.GenNameString("folder") + "/" + Utility.GenNameString("folder") + "/" + Utility.GenNameString("fileName");
@@ -52,9 +56,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromRootContainer()
         { 
             CopyFromBlob("$root", null, null);
@@ -64,9 +65,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromBlobSnapshot()
         {
             CloudBlobContainer container = blobUtil.CreateContainer();
@@ -133,9 +131,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromFileCrossAccount()
         {
             this.CopyFromFile(Utility.GenNameString("sourcefile"), Utility.GenNameString("destfile"), false, true);
@@ -156,7 +151,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 this.CopyToFile(srcFile, destShareName, destFilePath,
                     () =>
                     {
-                        Test.Assert(agent.StartFileCopy(srcFile, destShareName, destFilePath, SecondaryContext), "Start copy from file to file should succeed.");
+                        Test.Assert(agent.StartFileCopy(srcFile, destShareName, destFilePath, Agent.SecondaryContext), "Start copy from file to file should succeed.");
 
                         Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
                     }, false, true);
@@ -185,9 +180,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromFileInDeepestDir()
         {
             string shareName = Utility.GenNameString("share");
@@ -195,36 +187,40 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
             try
             {
+                bool toSecondaryAccout = true;
+                CloudFileUtil destFileUtil = toSecondaryAccout ? FileUtil2 : fileUtil;
+                object destContext = toSecondaryAccout ? Agent.SecondaryContext : Agent.Context;
+
                 string srcFileName = this.GetDeepestFilePath();
                 StorageFile.CloudFile srcFile = fileUtil.CreateFile(srcShare.GetRootDirectoryReference(), srcFileName);
 
                 string destShareName = Utility.GenNameString("destshare");
                 string destFilePath = Utility.GenNameString("destFilePath");
 
-                CloudFileShare destShare = fileUtil.GetShareReference(destShareName);
-                var destFile = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), destFilePath);
+                CloudFileShare destShare = destFileUtil.GetShareReference(destShareName);
+                var destFile = destFileUtil.GetFileReference(destShare.GetRootDirectoryReference(), destFilePath);
 
                 this.CopyToFile(srcFile, destShareName, destFilePath,
                     () =>
                     {
-                        Test.Assert(agent.StartFileCopy(srcFile.Parent, srcFile.Name, destShareName, destFilePath, PowerShellAgent.Context), "Start copy from file to file should succeed.");
+                        Test.Assert(agent.StartFileCopy(srcFile.Parent, srcFile.Name, destShareName, destFilePath, destContext), "Start copy from file to file should succeed.");
 
                         Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
-                    }, false, true);
+                    }, false, toSecondaryAccout);
 
                 destShareName = Utility.GenNameString("destshare");
                 destFilePath = Utility.GenNameString("destFilePath");
 
-                destShare = fileUtil.GetShareReference(destShareName);
-                destFile = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), destFilePath);
+                destShare = destFileUtil.GetShareReference(destShareName);
+                destFile = destFileUtil.GetFileReference(destShare.GetRootDirectoryReference(), destFilePath);
 
                 this.CopyToFile(srcFile, destShareName, destFilePath,
                     () =>
                     {
-                        Test.Assert(agent.StartFileCopyFromFile(shareName, srcFileName, destShareName, destFilePath, PowerShellAgent.Context), "Start copy from file to file should succeed.");
+                        Test.Assert(agent.StartFileCopyFromFile(shareName, srcFileName, destShareName, destFilePath, destContext), "Start copy from file to file should succeed.");
 
                         Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
-                    }, false, true);
+                    }, false, toSecondaryAccout);
             }
             finally
             {
@@ -234,9 +230,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.StartCopyFile)]
         public void CopyToFileInDeepestDir()
         {
             string shareName = Utility.GenNameString("share");
@@ -374,9 +367,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.StartCopyFile)]
         public void CopyToTheSameFile()
         {
             string shareName = Utility.GenNameString("share");
@@ -915,7 +905,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             CopyToFile(blob, destShareName, destPath,
                 ()=>
                 {
-                    Test.Assert(agent.StartFileCopy(blob, destFile, toSecondaryAccount ? SecondaryContext : PowerShellAgent.Context),
+                    Test.Assert(agent.StartFileCopy(blob, destFile, toSecondaryAccount ? Agent.SecondaryContext : PowerShellAgent.Context),
                         "Copy from blob to file should succeed.");
 
                     Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed");
@@ -928,6 +918,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
             string destShareName = Utility.GenNameString("share");
             CloudFileShare share = localFileUtil.GetShareReference(destShareName);
+            share.CreateIfNotExists();
 
             string actualDestPath = destFilePath ?? localFileUtil.ResolveFileName(blob);
             var destFile = localFileUtil.GetFileReference(share.GetRootDirectoryReference(), actualDestPath);
@@ -937,7 +928,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 {
                     if (blob.IsSnapshot)
                     {
-                        Test.Assert(agent.StartFileCopy(blob, destShareName, destFilePath, toSecondaryAccount ? SecondaryContext : PowerShellAgent.Context),
+                        Test.Assert(agent.StartFileCopy(blob, destShareName, destFilePath, toSecondaryAccount ? Agent.SecondaryContext : Agent.Context),
                             "Copy from blob to file shoule succeed.");
 
                         Test.Assert(agent.GetFileCopyState(destShareName, actualDestPath), "Get file copy state should succeed");
@@ -946,12 +937,12 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     {
                         if (random.Next(0, 2) == 0)
                         {
-                            Test.Assert(agent.StartFileCopyFromBlob(blob.Container.Name, blob.Name, destShareName, destFilePath, toSecondaryAccount ? SecondaryContext : PowerShellAgent.Context),
+                            Test.Assert(agent.StartFileCopyFromBlob(blob.Container.Name, blob.Name, destShareName, destFilePath, toSecondaryAccount ? Agent.SecondaryContext : Agent.Context),
                                 "Copy from blob to file with container name parameter set should succeed.");
                         }
                         else
                         {
-                            Test.Assert(agent.StartFileCopy(blob.Container, blob.Name, destShareName, destFilePath, toSecondaryAccount ? SecondaryContext : PowerShellAgent.Context),
+                            Test.Assert(agent.StartFileCopy(blob.Container, blob.Name, destShareName, destFilePath, toSecondaryAccount ? Agent.SecondaryContext : Agent.Context),
                                 "Copy from blob to file with container instance parameter set should succeed.");
                         }
 
@@ -1019,6 +1010,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             string destShareName = Utility.GenNameString("share");
             CloudFileUtil destFileUtil = toSecondaryAccount ? FileUtil2 : fileUtil;
             CloudFileShare destShare = destFileUtil.GetShareReference(destShareName);
+            destShare.CreateIfNotExists();
 
             try
             {
@@ -1033,7 +1025,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 this.CopyToFile(sourceFile, destShareName, destFilePath ?? filePath,
                     () =>
                     {
-                        Test.Assert(agent.StartFileCopyFromFile(sourceShareName, filePath, destShareName, destFilePath, toSecondaryAccount ? SecondaryContext : PowerShellAgent.Context),
+                        Test.Assert(agent.StartFileCopyFromFile(sourceShareName, filePath, destShareName, destFilePath, toSecondaryAccount ? Agent.SecondaryContext : PowerShellAgent.Context),
                             "Copy from file to overwrite an existig file should succeed.");
 
                         Test.Assert(agent.GetFileCopyState(destFile, true), "Get copy state should succeed.");
