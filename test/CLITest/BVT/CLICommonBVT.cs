@@ -418,7 +418,7 @@ namespace Management.Storage.ScenarioTest.BVT
 
             foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
             {
-                if (serviceType == Constants.ServiceType.InvalidService)
+                if (serviceType == Constants.ServiceType.File || serviceType == Constants.ServiceType.InvalidService)
                 {
                     continue;
                 }
@@ -458,7 +458,7 @@ namespace Management.Storage.ScenarioTest.BVT
             {
                 foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
                 {
-                    if (serviceType == Constants.ServiceType.InvalidService)
+                    if (serviceType == Constants.ServiceType.File || serviceType == Constants.ServiceType.InvalidService)
                     {
                         continue;
                     }
@@ -495,7 +495,7 @@ namespace Management.Storage.ScenarioTest.BVT
 
             foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
             {
-                if (serviceType == Constants.ServiceType.InvalidService)
+                if (serviceType == Constants.ServiceType.File || serviceType == Constants.ServiceType.InvalidService)
                 {
                     continue;
                 }
@@ -523,7 +523,7 @@ namespace Management.Storage.ScenarioTest.BVT
 
             foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
             {
-                if (serviceType == Constants.ServiceType.InvalidService)
+                if (serviceType == Constants.ServiceType.File || serviceType == Constants.ServiceType.InvalidService)
                 {
                     continue;
                 }
@@ -1995,7 +1995,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 Test.Assert(agent.GetAzureStorageCORSRules(serviceType),
                     "Get CORS rules from {0} service should succeed.", serviceType);
 
-                PSCorsRule[] acturalRules = agent.Output[0][PowerShellAgent.BaseObject] as PSCorsRule[];
+                PSCorsRule[] acturalRules = this.GetCORSRulesFromOutput();
 
                 CORSRuleUtil.ValidateCORSRules(corsRules, acturalRules);
 
@@ -2005,7 +2005,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 Test.Assert(agent.GetAzureStorageCORSRules(serviceType),
                     "Get CORS rules from {0} service should succeed.", serviceType);
 
-                acturalRules = agent.Output[0][PowerShellAgent.BaseObject] as PSCorsRule[];
+                acturalRules = this.GetCORSRulesFromOutput();
                 Test.Assert(acturalRules.Length == 0, "CORS rule count of {1} service should be 0, actually it's {0}", acturalRules.Length, serviceType);
             }
             finally
