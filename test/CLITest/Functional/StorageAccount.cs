@@ -57,6 +57,8 @@ namespace Management.Storage.ScenarioTest
         private const string PSHInvalidAccountTypeError =
             "Cannot validate argument on parameter 'Type'. The argument \"{0}\" does not belong to the set \"Standard_LRS,Standard_ZRS,Standard_GRS,Standard_RAGRS,Premium_LRS\" specified by the ValidateSet attribute.";
 
+        private const string PSHASMAccountTypeInvalidError = "The AccountType {0} is invalid";
+
         private const string NodeJSInvalidCreateTypeError = "Invalid value: {0}. Options are: LRS,ZRS,GRS,RAGRS,PLRS";
 
         private const string NodeJSInvalidSetTypeError = "Invalid value: {0}. Options are: LRS,GRS,RAGRS";
@@ -1062,6 +1064,8 @@ namespace Management.Storage.ScenarioTest
             string accountType = FileNamingGenerator.GenerateNameFromRange(8, validNameRange);
             string affinityGroup = null;
 
+            string errorMessageFormat = Language.PowerShell == lang ? PSHInvalidAccountTypeError : NodeJSInvalidCreateTypeError;
+
             if (isResourceMode)
             {
                 Test.Assert(!agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
@@ -1071,9 +1075,13 @@ namespace Management.Storage.ScenarioTest
             {
                 Test.Assert(!agent.CreateAzureStorageAccount(accountName, subscriptionId, label, description, location, affinityGroup, accountType),
                     string.Format("Creating existing stoarge account {0} in location {1} should fail", accountName, location));
+
+                if (Language.PowerShell == lang)
+                {
+                    errorMessageFormat = PSHASMAccountTypeInvalidError;
+                }
             }
 
-            string errorMessageFormat = Language.PowerShell == lang ? PSHInvalidAccountTypeError : NodeJSInvalidCreateTypeError;
             ExpectedContainErrorMessage(string.Format(errorMessageFormat, accountType));
         }
 
@@ -1132,6 +1140,7 @@ namespace Management.Storage.ScenarioTest
 
             // No need to create a real accout for NodeJS as it won't pass the parameter validation
             string nonExistingType = FileNamingGenerator.GenerateNameFromRange(6, validNameRange);
+            string errorMessageFormat = Language.PowerShell == lang ? PSHInvalidAccountTypeError : NodeJSInvalidSetTypeError;
 
             if (isResourceMode)
             {
@@ -1142,10 +1151,13 @@ namespace Management.Storage.ScenarioTest
             {
                 Test.Assert(!agent.SetAzureStorageAccount(accountName, label, description, nonExistingType),
                     string.Format("Setting stoarge account {0} to type {1} should fail", accountName, nonExistingType));
+
+                if (Language.PowerShell == lang)
+                {
+                    errorMessageFormat = PSHASMAccountTypeInvalidError;
+                }
             }
 
-
-            string errorMessageFormat = Language.PowerShell == lang ? PSHInvalidAccountTypeError : NodeJSInvalidSetTypeError;
             ExpectedContainErrorMessage(string.Format(errorMessageFormat, nonExistingType));
         }
 
@@ -1189,9 +1201,18 @@ namespace Management.Storage.ScenarioTest
                     }
                     else
                     {
-                        errorMsg = string.Format("Cannot change storage account type from Standard_ZRS to {0} or vice versa", info.Name);
-                        Test.Assert(!agent.SetAzureStorageAccount(accountName, label, description, newAccountType),
-                            string.Format("Setting stoarge account {0} to type {1} should fail", accountName, newAccountType));
+                        if (string.Equals(newAccountType, Constants.AccountType.Standard_ZRS))
+                        {
+                            Test.Assert(agent.SetAzureStorageAccount(accountName, label, description, newAccountType),
+                                string.Format("Setting stoarge account {0} to type {1} should succeed.", accountName, newAccountType));
+                            continue;
+                        }
+                        else
+                        {
+                            errorMsg = string.Format("Cannot change storage account type from Standard_ZRS to {0} or vice versa", info.Name);
+                            Test.Assert(!agent.SetAzureStorageAccount(accountName, label, description, newAccountType),
+                                string.Format("Setting stoarge account {0} to type {1} should fail", accountName, newAccountType));
+                        }
                     }
 
                     if (Language.NodeJS == lang)
@@ -1255,13 +1276,21 @@ namespace Management.Storage.ScenarioTest
                     {
                         errorMsg = string.Format("Storage account type cannot be changed from Provisioned-LRS to {0} or vice versa", info.Name.Replace('_', '-'));
                         Test.Assert(!agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, newAccountType),
-                            string.Format("Setting stoarge account {0} to type {1} should fail", accountName, newAccountType));
+                            string.Format("Setting storage account {0} to type {1} should fail", accountName, newAccountType));
                     }
                     else
                     {
-                        errorMsg = string.Format("Cannot change storage account type from Premium_LRS to {0} or vice versa", info.Name);
-                        Test.Assert(!agent.SetAzureStorageAccount(accountName, label, description, newAccountType),
-                            string.Format("Setting stoarge account {0} to type {1} should fail", accountName, newAccountType));
+                        if (string.Equals(newAccountType, Constants.AccountType.Premium_LRS))
+                        {
+                            Test.Assert(agent.SetAzureStorageAccount(accountName, label, description, newAccountType),
+                             string.Format("Setting storage account {0} to type {1} should succeed", accountName, newAccountType));
+                        }
+                        else
+                        {
+                            errorMsg = string.Format("Cannot change storage account type from Premium_LRS to {0} or vice versa", info.Name);
+                            Test.Assert(!agent.SetAzureStorageAccount(accountName, label, description, newAccountType),
+                                string.Format("Setting storage account {0} to type {1} should fail", accountName, newAccountType));
+                        }
                     }
 
                     if (Language.NodeJS == lang)
@@ -1318,6 +1347,7 @@ namespace Management.Storage.ScenarioTest
             foreach (string targetAccountType in newAccountTypes)
             {
                 string type = accountUtils.mapAccountType(targetAccountType);
+                string errorMessage = string.Format("Storage account type cannot be changed from Standard-LRS to {0} or vice versa.", ConvertAccountType(targetAccountType)); 
 
                 if (isResourceMode)
                 {
@@ -1328,9 +1358,9 @@ namespace Management.Storage.ScenarioTest
                 {
                     Test.Assert(!agent.SetAzureStorageAccount(accountName, label, description, type),
                         string.Format("Setting stoarge account {0} to type {1} should fail", accountName, type));
-                }
 
-                string errorMessage = string.Format("Storage account type cannot be changed from Standard-LRS to {0} or vice versa.", ConvertAccountType(targetAccountType)); 
+                    errorMessage = string.Format("Storage account type cannot be changed from Standard-LRS to {0} or vice versa.", ConvertAccountType(targetAccountType)).Replace("-", "_");
+                }
 
                 if (Language.NodeJS == lang)
                 {
