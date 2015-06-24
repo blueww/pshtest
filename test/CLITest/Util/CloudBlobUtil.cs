@@ -74,6 +74,7 @@ namespace Management.Storage.ScenarioTest.Util
 
             // Enable logging for blob service and enable $logs container
             ServiceProperties properties = client.GetServiceProperties();
+            properties.Cors = new CorsProperties(); // Clear all CORS rule to eliminate the effect by CORS cases
             properties.Logging.LoggingOperations = LoggingOperations.All;
             client.SetServiceProperties(properties);
 
