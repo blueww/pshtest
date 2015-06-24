@@ -61,7 +61,7 @@ namespace Management.Storage.ScenarioTest
                 {"SetPageBlobWithInvalidFileSize", "Page blob length must be multiple of 512"}, 
                 {"CreateExistingContainer", "Container '{0}' already exists"},
                 {"CreateInvalidContainer", "Container name format is incorrect"},
-                {"RemoveNonExistingContainer", "The specified container does not exist"},
+                {"RemoveNonExistingContainer", "Can not find container '{0}'"},
                 {"RemoveNonExistingBlob", "The specified blob does not exist."},
                 {"SetBlobContentWithInvalidBlobName", "One of the request inputs is out of range"},
                 {"SetContainerAclWithInvalidName", "Container name format is incorrect"},
@@ -78,7 +78,7 @@ namespace Management.Storage.ScenarioTest
                 {"CreateExistingQueue", "The queue specified already exists"},
                 {"CreateInvalidQueue", "Queue name format is incorrect"},
                 {"GetNonExistingQueue", "Queue {0} doesn't exist"},
-                {"RemoveNonExistingQueue", "The specified queue does not exist"},
+                {"RemoveNonExistingQueue", "Can not find queue '{0}'"},
         };
 
         public static string BinaryFileName { get; set; }
@@ -356,13 +356,18 @@ namespace Management.Storage.ScenarioTest
             CloudStorageAccount account = context as CloudStorageAccount;
             if (account != null)
             {
-                string accountNameOption = suffix ? (isSource ? "--account-name" : "--dest-account-name") : "--account-name";
-                command = appendStringOption(command, accountNameOption, account.Credentials.AccountName);
-
                 if (account.Credentials.IsSharedKey)
                 {
-                    string accountKeyOption = suffix ? (isSource ? "--account-key" : "--dest-account-key") : "--account-key";
-                    command = appendStringOption(command, accountKeyOption, account.Credentials.ExportBase64EncodedKey(), quoted: true);
+                    string accountCSOption = suffix ? (isSource ? "--connection-string" : "--dest-connection-string") : "--connection-string";
+                    string connectionString = string.Format(
+                        "BlobEndpoint={0};TableEndpoint={1};QueueEndpoint={2};FileEndpoint={3};AccountName={4};AccountKey={5}",
+                        account.BlobEndpoint.AbsoluteUri,
+                        account.TableEndpoint.AbsoluteUri,
+                        account.QueueEndpoint.AbsoluteUri,
+                        account.FileEndpoint.AbsoluteUri,
+                        account.Credentials.AccountName, 
+                        account.Credentials.ExportBase64EncodedKey());
+                    command = appendStringOption(command, accountCSOption, connectionString, quoted: true);
                 }
                 else if (account.Credentials.IsSAS)
                 {
@@ -864,14 +869,14 @@ namespace Management.Storage.ScenarioTest
         public override bool StartAzureStorageBlobCopyFromFile(string srcShareName, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true)
         {
             string url = string.Empty;
-            CloudStorageAccount account = this.Context as CloudStorageAccount;
+            CloudStorageAccount account = Agent.Context as CloudStorageAccount;
             if (account != null)
             {
                 url = string.Format("{0}/{1}/{2}", account.FileEndpoint, srcShareName, srcFilePath);
             }
 
             string command = "blob copy start";
-            command = appendStringOption(command, "--source-url", url, quoted: true, onlyNonEmpty: true);
+            command = appendStringOption(command, "--source-uri", url, quoted: true, onlyNonEmpty: true);
             command = appendStringOption(command, "--dest-container", destContainerName);
             command = appendStringOption(command, "--dest-blob", destBlobName);
             command = appendAccountOption(command, destContext, suffix: true, isSource: false);
@@ -882,14 +887,14 @@ namespace Management.Storage.ScenarioTest
         public override bool StartAzureStorageBlobCopy(CloudFileShare srcShare, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true)
         {
             string url = string.Empty;
-            CloudStorageAccount account = this.Context as CloudStorageAccount;
+            CloudStorageAccount account = Agent.Context as CloudStorageAccount;
             if (account != null)
             {
                 url = string.Format("{0}/{1}/{2}", account.FileEndpoint, srcShare.Name, srcFilePath);
             }
 
             string command = "blob copy start";
-            command = appendStringOption(command, "--source-url", url, quoted: true, onlyNonEmpty: true);
+            command = appendStringOption(command, "--source-uri", url, quoted: true, onlyNonEmpty: true);
             command = appendStringOption(command, "--dest-container", destContainerName);
             command = appendStringOption(command, "--dest-blob", destBlobName);
             command = appendAccountOption(command, destContext, suffix: true, isSource: false);
@@ -900,14 +905,14 @@ namespace Management.Storage.ScenarioTest
         public override bool StartAzureStorageBlobCopy(CloudFile srcFile, string destContainerName, string destBlobName, object destContext = null, bool force = true)
         {
             string url = string.Empty;
-            CloudStorageAccount account = this.Context as CloudStorageAccount;
+            CloudStorageAccount account = Agent.Context as CloudStorageAccount;
             if (account != null)
             {
                 url = string.Format("{0}/{1}/{2}", account.FileEndpoint, srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile));
             }
 
             string command = "blob copy start";
-            command = appendStringOption(command, "--source-url", url, quoted: true, onlyNonEmpty: true);
+            command = appendStringOption(command, "--source-uri", url, quoted: true, onlyNonEmpty: true);
             command = appendStringOption(command, "--dest-container", destContainerName);
             command = appendStringOption(command, "--dest-blob", destBlobName);
             command = appendAccountOption(command, destContext, suffix: true, isSource: false);
@@ -938,14 +943,14 @@ namespace Management.Storage.ScenarioTest
         public override bool StartFileCopyFromBlob(string containerName, string blobName, string shareName, string filePath, object destContext, bool force = true)
         {
             string url = string.Empty;
-            CloudStorageAccount account = this.Context as CloudStorageAccount;
+            CloudStorageAccount account = Agent.Context as CloudStorageAccount;
             if (account != null)
             {
                 url = string.Format("{0}/{1}/{2}", account.BlobEndpoint, containerName, blobName);
             }
             
             string command = "file copy start";
-            command = appendStringOption(command, "--source-url", url, quoted: true, onlyNonEmpty: true);
+            command = appendStringOption(command, "--source-uri", url, quoted: true, onlyNonEmpty: true);
             command = appendStringOption(command, "--dest-share", shareName);
             command = appendStringOption(command, "--dest-path", filePath);
             command = appendAccountOption(command, destContext, suffix: true, isSource: false);
@@ -956,7 +961,7 @@ namespace Management.Storage.ScenarioTest
         public bool StartFileCopyFromBlob(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true)
         {
             string command = "file copy start";
-            command = appendStringOption(command, "--source-url", blob.StorageUri.PrimaryUri.AbsoluteUri, quoted: true);
+            command = appendStringOption(command, "--source-uri", blob.StorageUri.PrimaryUri.AbsoluteUri, quoted: true);
             command = appendStringOption(command, "--dest-share", shareName);
             command = appendStringOption(command, "--dest-path", filePath);
             command = appendAccountOption(command, destContext, suffix: true, isSource: false);
@@ -992,14 +997,14 @@ namespace Management.Storage.ScenarioTest
         public override bool StartFileCopy(CloudBlobContainer container, string blobName, string shareName, string filePath, object destContext, bool force = true)
         {
             string url = string.Empty;
-            CloudStorageAccount account = this.Context as CloudStorageAccount;
+            CloudStorageAccount account = Agent.Context as CloudStorageAccount;
             if (account != null)
             {
                 url = string.Format("{0}/{1}/{2}", account.BlobEndpoint, container.Name, blobName);
             }
 
             string command = "file copy start";
-            command = appendStringOption(command, "--source-url", url, quoted: true, onlyNonEmpty: true);
+            command = appendStringOption(command, "--source-uri", url, quoted: true, onlyNonEmpty: true);
             command = appendStringOption(command, "--dest-share", shareName);
             command = appendStringOption(command, "--dest-path", filePath);
             command = appendAccountOption(command, destContext, suffix: true, isSource: false);
@@ -1010,14 +1015,14 @@ namespace Management.Storage.ScenarioTest
         public override bool StartFileCopy(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true)
         {
             string url = string.Empty;
-            CloudStorageAccount account = this.Context as CloudStorageAccount;
+            CloudStorageAccount account = Agent.Context as CloudStorageAccount;
             if (account != null)
             {
                 url = string.Format("{0}/{1}/{2}", account.BlobEndpoint, blob.Container.Name, blob.Name);
             }
 
             string command = "file copy start";
-            command = appendStringOption(command, "--source-url", url, quoted: true, onlyNonEmpty: true);
+            command = appendStringOption(command, "--source-uri", url, quoted: true, onlyNonEmpty: true);
             command = appendStringOption(command, "--dest-share", shareName);
             command = appendStringOption(command, "--dest-path", filePath);
             command = appendAccountOption(command, destContext, suffix: true, isSource: false);
@@ -1029,14 +1034,14 @@ namespace Management.Storage.ScenarioTest
         {
 
             string url = string.Empty;
-            CloudStorageAccount account = this.Context as CloudStorageAccount;
+            CloudStorageAccount account = Agent.Context as CloudStorageAccount;
             if (account != null)
             {
                 url = string.Format("{0}/{1}/{2}", account.BlobEndpoint, blob.Container.Name, blob.Name);
             }
 
             string command = "file copy start";
-            command = appendStringOption(command, "--source-url", url, quoted: true, onlyNonEmpty: true);
+            command = appendStringOption(command, "--source-uri", url, quoted: true, onlyNonEmpty: true);
             command = appendStringOption(command, "--dest-share", destFile.Share.Name);
             command = appendStringOption(command, "--dest-path", CloudFileUtil.GetFullPath(destFile));
             command = appendAccountOption(command, destContext, suffix: true, isSource: false);
@@ -1094,7 +1099,7 @@ namespace Management.Storage.ScenarioTest
         public override bool StartFileCopy(string uri, string destShareName, string destFilePath, object destContext, bool force = true)
         {
             string command = "file copy start";
-            command = appendStringOption(command, "--source-url", uri);
+            command = appendStringOption(command, "--source-uri", uri);
             command = appendStringOption(command, "--dest-share", destShareName);
             command = appendStringOption(command, "--dest-path", destFilePath);
             command = appendAccountOption(command, destContext, suffix: true, isSource: false);
@@ -1105,7 +1110,7 @@ namespace Management.Storage.ScenarioTest
         public override bool StartFileCopy(string uri, CloudFile destFile, bool force = true)
         {
             string command = "file copy start";
-            command = appendStringOption(command, "--source-url", uri);
+            command = appendStringOption(command, "--source-uri", uri);
             command = appendStringOption(command, "--dest-share", destFile.Share.Name);
             command = appendStringOption(command, "--dest-path", CloudFileUtil.GetFullPath(destFile));
 

@@ -74,6 +74,7 @@ namespace Management.Storage.ScenarioTest.Util
 
             // Enable logging for blob service and enable $logs container
             ServiceProperties properties = client.GetServiceProperties();
+            properties.Cors = new CorsProperties(); // Clear all CORS rule to eliminate the effect by CORS cases
             properties.Logging.LoggingOperations = LoggingOperations.All;
             client.SetServiceProperties(properties);
 
@@ -133,7 +134,7 @@ namespace Management.Storage.ScenarioTest.Util
             }
 
             CloudBlobContainer container = client.GetContainerReference(containerName);
-            container.CreateIfNotExists();
+            container.CreateIfNotExists(BlobContainerPublicAccessType.Blob);
 
             //there is no properties to set
             container.FetchAttributes();

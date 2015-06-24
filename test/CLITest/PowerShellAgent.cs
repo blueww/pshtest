@@ -73,7 +73,7 @@ namespace Management.Storage.ScenarioTest
 
         internal delegate void ParseCollectionFunc(Collection<PSObject> Values);
 
-        public static object Context
+        public static new object Context
         {
             get
             {
