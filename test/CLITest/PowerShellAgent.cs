@@ -1191,6 +1191,8 @@ namespace Management.Storage.ScenarioTest
         public override bool GetAzureStorageBlobCopyState(CloudBlob blob, object context, bool waitForComplete)
         {
             PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+
             ps.AddCommand("Get-AzureStorageBlobCopyState");
             ps.BindParameter("CloudBlob", blob);
             ps.BindParameter("WaitForComplete", waitForComplete);

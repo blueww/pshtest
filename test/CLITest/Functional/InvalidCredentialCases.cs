@@ -111,7 +111,7 @@ namespace Management.Storage.ScenarioTest.Functional
         {
             var serviceTypes = Enum.GetValues(typeof(Constants.ServiceType));
 
-            return (Constants.ServiceType)serviceTypes.GetValue(random.Next(0, serviceTypes.Length - 1));
+            return (Constants.ServiceType)serviceTypes.GetValue(random.Next(0, serviceTypes.Length - 2));
         }
     }
 }
