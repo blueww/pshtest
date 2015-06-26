@@ -368,7 +368,37 @@
             // Combine path and filename back together again.
             destinationRelativePath = string.Format("{0}/{1}", destinationPath, destinationFileName);
 
+            destinationRelativePath = ResolveFileNameSuffix(destinationRelativePath);
+
             return destinationRelativePath;
+        }
+
+        private string ResolveFileNameSuffix(string baseFileName)
+        {
+            // TODO - MaxFileNameLength could be <= 0.
+            int maxFileNameLength = 1024;
+
+            if (baseFileName.Length > maxFileNameLength)
+            {
+                string postfixString = string.Format(" (1)");
+
+                string pathAndFilename = Path.ChangeExtension(baseFileName, null);
+                string extension = Path.GetExtension(baseFileName);
+
+                string resolvedName = string.Empty;
+
+                // TODO - trimLength could be be larger than pathAndFilename.Length, what do we do in this case?
+                int trimLength = (pathAndFilename.Length + postfixString.Length + extension.Length) - maxFileNameLength;
+
+                if (trimLength > 0)
+                {
+                    pathAndFilename = pathAndFilename.Remove(pathAndFilename.Length - trimLength);
+                }
+
+                return string.Format("{0}{1}{2}", pathAndFilename, postfixString, extension);
+            }
+
+            return baseFileName;
         }
 
         private string EscapeInvalidCharacters(string fileName)

@@ -206,6 +206,19 @@ namespace Management.Storage.ScenarioTest.Util
             Test.Info(string.Format("remove container '{0}'", containerName));
         }
 
+        public void CleanupContainer(string containerName)
+        {
+            foreach (var listItem in client.GetContainerReference(containerName).ListBlobs(null, true, BlobListingDetails.All))
+            {
+                CloudBlob blob = listItem as CloudBlob;
+
+                if (null != blob)
+                {
+                    blob.Delete();
+                }
+            }
+        }
+
         /// <summary>
         /// remove a list containers
         /// </summary>

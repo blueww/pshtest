@@ -2727,7 +2727,8 @@ namespace Management.Storage.ScenarioTest
             {
                 if (propertyInfo.Name.Equals("ServiceClient")
                     || propertyInfo.Name.Equals("Container")
-                    || propertyInfo.Name.Equals("Parent"))
+                    || propertyInfo.Name.Equals("Parent")
+                    || propertyInfo.Name.Equals("AppendBlobCommittedBlockCount"))
                     continue;
 
                 object o1 = null;
