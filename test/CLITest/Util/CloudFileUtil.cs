@@ -331,7 +331,6 @@
                 if (!string.IsNullOrWhiteSpace(path[i]))
                 {
                     localDir = localDir.GetDirectoryReference(path[i]);
-                    localDir.CreateIfNotExists();
                 }
             }
 

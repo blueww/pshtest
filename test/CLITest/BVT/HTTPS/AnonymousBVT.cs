@@ -258,51 +258,6 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             }
         }
 
-        /// <summary>
-        /// Anonymous storage context should work with specified end point
-        /// </summary>
-        [TestMethod()]
-        [TestCategory(Tag.BVT)]
-        public void CopyFromPublicBlobToFile()
-        {
-            this.CopyFromPublicBlobToFile(StorageBlob.BlobType.AppendBlob);
-            this.CopyFromPublicBlobToFile(StorageBlob.BlobType.BlockBlob);
-            this.CopyFromPublicBlobToFile(StorageBlob.BlobType.PageBlob);
-        }
-
-        private void CopyFromPublicBlobToFile(StorageBlob.BlobType blobType)
-        {
-            PowerShellAgent psAgent = (PowerShellAgent)agent;
-            string containerName = Utility.GenNameString(ContainerPrefix);
-            CloudBlobContainer container = blobUtil.CreateContainer(containerName, BlobContainerPublicAccessType.Blob);
-
-            string destShareName = Utility.GenNameString("share");
-            CloudFileShare destShare = fileUtil.EnsureFileShareExists(destShareName);
-
-            try
-            {
-                string fileName = Utility.GenNameString("fileName");
-                CloudBlob blob = blobUtil.CreateRandomBlob(container, fileName, blobType);
-
-                var file = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), fileName);
-
-                Test.Assert(agent.StartFileCopy(blob.Uri.ToString(), destShareName, fileName, PowerShellAgent.Context),
-                    "Start copying from public blob URI to file should succeed.");
-
-                Test.Assert(agent.GetFileCopyState(file, true), "Get file copying state should succeed.");
-
-                file.FetchAttributes();
-                blob.FetchAttributes();
-
-                Test.Assert(file.Metadata.SequenceEqual(blob.Metadata), "Destination's metadata should be the same with source's");
-                Test.Assert(file.Properties.ContentMD5 == blob.Properties.ContentMD5, "MD5 should be the same.");
-                Test.Assert(file.Properties.ContentType == blob.Properties.ContentType, "Content type should be the same.");
-            }
-            finally
-            {
-            }
-        }
-
         public static void Initialize(TestContext testContext, bool useHttps)
         {
             StorageAccount = null;

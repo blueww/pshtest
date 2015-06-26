@@ -255,7 +255,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                         Test.Assert(agent.StartFileCopy(srcFile, destShareName, destFilePath, PowerShellAgent.Context), "Start copy from file to file should succeed.");
 
                         Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
-                    }, false, true);
+                    }, false, false);
             }
             finally
             {
@@ -422,13 +422,13 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 Test.Assert(!agent.StartFileCopy(blob: null, shareName: shareName, filePath: fileName, destContext: PowerShellAgent.Context),
                     "Starting async copying from null blob instance should fail.");
 
-                ExpectedContainErrorMessage("Cannot validate argument on parameter 'SrcBlob'");
+                ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters.");
 
                 // From null file instance
                 Test.Assert(!agent.StartFileCopy(srcFile: null, shareName: shareName, filePath: fileName, destContext: PowerShellAgent.Context),
                     "Starting async copying from null file instance should fail.");
 
-                ExpectedContainErrorMessage("Cannot validate argument on parameter 'SrcFile'");
+                ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters.");
 
                 // From non-exist share
                 string nonExistShareName = Utility.GenNameString("sharename");
@@ -474,14 +474,12 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     blobUtil.RemoveContainer(containerName);
                 }
 
-
                 // To null file instance
-
                 StorageFile.CloudFile file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
                 Test.Assert(!agent.StartFileCopy(file, null),
                     "Starting async copying to null file instance should fail.");
 
-                ExpectedContainErrorMessage("Cannot validate argument on parameter 'DestFile'");
+                ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters.");
 
             }
             finally
@@ -541,7 +539,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 Test.Assert(beginTime - endTime < TimeSpan.FromSeconds(2), "Get file copy state should finish immediately.");
 
-                Utility.VerifyCopyState(file.CopyState, agent.Output[0]["_baseobject"] as CopyState);
+                Utility.VerifyCopyState(destFile.CopyState, agent.Output[0][PowerShellAgent.BaseObject] as CopyState);
             }
             finally
             {
@@ -800,7 +798,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 Test.Assert(agent.GetFileCopyState(shareName, fileName), "Get file copy state should succeed.");
                 file.FetchAttributes();
 
-                Utility.VerifyCopyState(file.CopyState, agent.Output[0]["_baseobject"] as CopyState);
+                Utility.VerifyCopyState(file.CopyState, agent.Output[0][PowerShellAgent.BaseObject] as CopyState);
 
                 file.AbortCopy(file.CopyState.CopyId);
             }
@@ -840,6 +838,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             try
             {
                 var destFile = localFileUtil.GetFileReference(share.GetRootDirectoryReference(), destFilePath);
+                localFileUtil.EnsureFolderStructure(share, destFilePath.Substring(0, destFilePath.LastIndexOf('/')));
 
                 if (destExist)
                 {
@@ -997,6 +996,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             try
             {
                 var destFile = localFileUtil.GetFileReference(destShare.GetRootDirectoryReference(), destFilePath);
+                localFileUtil.EnsureFolderStructure(destShare, destFilePath.Substring(0, destFilePath.LastIndexOf('/')));
 
                 if (destExist)
                 {

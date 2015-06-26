@@ -143,7 +143,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 quota = random.Next(MaxQuota + 1, int.MaxValue);
                 Test.Assert(!agent.SetAzureStorageShareQuota(shareName, quota),
                     "Set quota with value of greater than 5120 to a share should fail.");
-                ExpectedContainErrorMessage("The argument 'Quota' is larger than maximum of '5120'");
+                ExpectedContainErrorMessage(string.Format("The {0} argument is greater than the maximum allowed range of 5120.", quota));
 
                 // Share not exist
                 string nonExistShareName = Utility.GenNameString("share");

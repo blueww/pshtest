@@ -760,6 +760,48 @@
         }
 
         /// <summary>
+        /// Anonymous storage context should work with specified end point
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.BVT)]
+        public void CopyFromPublicBlobToFile()
+        {
+            this.CopyFromPublicBlobToFile(StorageBlob.BlobType.AppendBlob);
+            this.CopyFromPublicBlobToFile(StorageBlob.BlobType.BlockBlob);
+            this.CopyFromPublicBlobToFile(StorageBlob.BlobType.PageBlob);
+        }
+
+        private void CopyFromPublicBlobToFile(StorageBlob.BlobType blobType)
+        {
+            PowerShellAgent psAgent = (PowerShellAgent)agent;
+            string containerName = Utility.GenNameString("container");
+            CloudBlobContainer container = blobUtil.CreateContainer(containerName, BlobContainerPublicAccessType.Blob);
+
+            string destShareName = Utility.GenNameString("share");
+            CloudFileShare destShare = fileUtil.EnsureFileShareExists(destShareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("fileName");
+                CloudBlob blob = blobUtil.CreateRandomBlob(container, fileName, blobType);
+
+                var file = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), fileName);
+
+                Test.Assert(agent.StartFileCopy(blob.Uri.ToString(), destShareName, fileName, PowerShellAgent.Context),
+                    "Start copying from public blob URI to file should succeed.");
+
+                Test.Assert(agent.GetFileCopyState(file, true), "Get file copying state should succeed.");
+
+                this.ValidateCopyingResult(file, blob);
+            }
+            finally
+            {
+                blobUtil.RemoveContainer(containerName);
+                fileUtil.DeleteFileShareIfExists(destShareName);
+            }
+        }
+
+        /// <summary>
         /// Test Plan 8.21 BVT
         /// </summary>
         [TestMethod]
@@ -836,7 +878,7 @@
 
                 foreach (var file in files)
                 {
-                    ValidateCopyingResult(file, destContainer.GetBlobReference(CloudFileUtil.GetFullPath(file)));
+                    ValidateCopyingResult(file, destContainer.GetBlobReference(CloudFileUtil.GetFullPath(file).Substring(1)));
                 }
             }
             finally
@@ -1028,7 +1070,6 @@
             srcFile.FetchAttributes();
             destBlob.FetchAttributes();
 
-            Test.Assert(destBlob.Metadata.SequenceEqual(srcFile.Metadata), "Destination's metadata should be the same with source's");
             Test.Assert(destBlob.Properties.ContentMD5 == srcFile.Properties.ContentMD5, "MD5 should be the same.");
             Test.Assert(destBlob.Properties.ContentType == srcFile.Properties.ContentType, "Content type should be the same.");
             Test.Assert(destBlob.Properties.BlobType == StorageBlob.BlobType.BlockBlob, "Destination blob should be a block blob.");
