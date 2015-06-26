@@ -82,7 +82,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         public void CopyFromBlobWithLongName()
         {
             string containerName = Utility.GenNameString("container");
-            string blobName = Utility.GenNameString("fileName", 1016);
+            string blobName = this.GetDeepestFilePath();
             object context = PowerShellAgent.Context ?? TestBase.StorageAccount;
 
             this.CopyFromBlob(containerName, blobName, null);
@@ -96,6 +96,8 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             string blobName = Utility.GenNameString("\"\\:|<>*?");
 
             this.CopyFromBlob(containerName, blobName, null);
+
+            containerName = Utility.GenNameString("container");
             this.CopyFromBlob(containerName, blobName, null, true);
         }
 
@@ -812,18 +814,20 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         {
             destFile.FetchAttributes();
             srcBlob.FetchAttributes();
-
-            Test.Assert(destFile.Metadata.SequenceEqual(srcBlob.Metadata), "Destination's metadata should be the same with source's");
+                        
             Test.Assert(destFile.Properties.ContentMD5 == srcBlob.Properties.ContentMD5, "MD5 should be the same.");
             Test.Assert(destFile.Properties.ContentType == srcBlob.Properties.ContentType, "Content type should be the same.");
         }
 
-        private void ValidateCopyFromFile(StorageFile.CloudFile srcFile, StorageFile.CloudFile destFile)
+        private void ValidateCopyFromFile(StorageFile.CloudFile srcFile, StorageFile.CloudFile destFile, bool destExist = false)
         {
             destFile.FetchAttributes();
             srcFile.FetchAttributes();
 
-            Test.Assert(destFile.Metadata.SequenceEqual(srcFile.Metadata), "Destination's metadata should be the same with source's");
+            if (!destExist)
+            {
+                Test.Assert(destFile.Metadata.SequenceEqual(srcFile.Metadata), "Destination's metadata should be the same with source's");
+            }
             Test.Assert(destFile.Properties.ContentMD5 == srcFile.Properties.ContentMD5, "MD5 should be the same.");
             Test.Assert(destFile.Properties.ContentType == srcFile.Properties.ContentType, "Content type should be the same.");
         }
@@ -973,7 +977,14 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             }
             finally
             {
-                blobUtil.RemoveContainer(containerName);
+                if (!string.Equals(containerName, "$root"))
+                {
+                    blobUtil.RemoveContainer(containerName);
+                }
+                else
+                {
+                    blobUtil.CleanupContainer(containerName);
+                }
             }
         }
 
@@ -994,7 +1005,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 copyAction();
 
-                this.ValidateCopyFromFile(srcFile, destFile);
+                this.ValidateCopyFromFile(srcFile, destFile, destExist);
             }
             finally
             {
