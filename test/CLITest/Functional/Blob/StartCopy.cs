@@ -353,7 +353,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             }
             else
             {
-                errorMessage = "The specified blob does not exist";
+                errorMessage = "The specified container does not exist";
                 validator = ExpectedStartsWithErrorMessage;
             }
 
@@ -364,7 +364,17 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             try
             {
                 CloudBlobContainer srcContainer = blobUtil.CreateContainer(srcContainerName);
+                if (lang == Language.NodeJS)
+                {
+                    blobUtil.CreateContainer(destContainerName);
+                }
+
                 Test.Assert(!agent.StartAzureStorageBlobCopy(srcContainerName, blobName, destContainerName, string.Empty), "Start copy should failed with not existing blob");
+                if (lang == Language.NodeJS)
+                {
+                    blobUtil.RemoveContainer(destContainerName);
+                    errorMessage = "The specified blob does not exist";
+                }
                 validator(errorMessage);
                 
                 blobUtil.CreateRandomBlob(srcContainer, blobName);
@@ -383,6 +393,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             finally
             {
                 blobUtil.RemoveContainer(srcContainerName);
+                blobUtil.RemoveContainer(destContainerName);
             }
         }
 

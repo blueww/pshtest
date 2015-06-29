@@ -61,7 +61,7 @@
             this.agent.AssertNoError();
             if (lang == Language.NodeJS)
             {
-                result.AssertObjectCollection(obj => result.AssertCloudFile(obj, cloudFileName));
+                result.AssertObjectCollection(obj => result.AssertCloudFile(obj, "/" + cloudFileName));
             }
             else
             {
