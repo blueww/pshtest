@@ -566,6 +566,8 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string filePath = this.GetDeepestFilePath();
                 StorageFile.CloudFile srcFile = srcFileUtil.CreateFile(srcShare.GetRootDirectoryReference(), filePath);
 
+                fileUtil.CreateFileFolders(destShare, filePath);
+
                 Test.Assert(agent.StartFileCopy(srcFile, destShare.Name, null, PowerShellAgent.Context), "Start copying from file should succeed.");
 
                 Test.Assert(agent.GetFileCopyState(destShareName, filePath, true), "Monitoring copy state of file should succeed.");
@@ -573,7 +575,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 var destFile = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), filePath);
                 destFile.FetchAttributes();
 
-                Utility.VerifyCopyState(destFile.CopyState, agent.Output[0]["_baseobject"] as CopyState);
+                Utility.VerifyCopyState(destFile.CopyState, agent.Output[0][PowerShellAgent.BaseObject] as CopyState);
             }
             finally
             {
@@ -598,7 +600,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 ExpectedContainErrorMessage("The given path/prefix 'file???' is not a valid name for a file or directory or does match the requirement for Microsoft Azure File Service REST API.");
 
                 Test.Assert(!agent.GetFileCopyState(file: null), "Get file copy state with null file instance should fail.");
-                ExpectedContainErrorMessage("Cannot validate argument on parameter 'File'.");
+                ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters");
             }
             finally
             {
@@ -617,7 +619,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
             try
             {
-                var blobs = blobUtil.CreateRandomBlob(container, null, true);
+                var blobs = blobUtil.CreateRandomBlob(container, true);
                 PowerShellAgent psAgent = agent as PowerShellAgent;
 
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageBlob -Container {0}", container.Name));
@@ -661,8 +663,11 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
             try
             {
-                string filePath = this.GetDeepestFilePath();
-                CloudBlob srcBlob = srcBlobUtil.CreateBlockBlob(srcContainer, filePath, createBigBlob: true);
+                string blobPath = this.GetDeepestFilePath();
+                CloudBlob srcBlob = srcBlobUtil.CreateBlockBlob(srcContainer, blobPath, createBigBlob: true);
+
+                string filePath = fileUtil.ResolveFileName(srcBlob);
+                fileUtil.CreateFileFolders(destShare, filePath);
 
                 Test.Assert(agent.StartFileCopy(srcBlob, destShareName, null, PowerShellAgent.Context), "Start copying from blob cross account should succeed.");
 
@@ -671,11 +676,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 var file = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), filePath);
                 file.FetchAttributes();
                 Test.Assert(CopyStatus.Aborted == file.CopyState.Status, "File copy status should be aborted, actual it's {0}", file.CopyState.Status);
-
-                srcBlob = srcBlobUtil.CreateBlockBlob(srcContainer, filePath);
-                Test.Assert(agent.StartFileCopy(srcBlob, destShareName, null, PowerShellAgent.Context), "Start copying from blob to file should succeed.");
-
-                Test.Assert(agent.GetFileCopyState(file, true), "Monitoring file copying status should succeed.");
             }
             finally
             {
@@ -706,15 +706,20 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 Test.Assert(agent.StartFileCopy(srcBlob, destShareName, null, PowerShellAgent.Context), "Start copying from blob cross account should succeed.");
 
                 var file = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), filePath);
+
                 file.FetchAttributes();
 
                 Test.Assert(agent.StopFileCopy(destShareName, filePath, file.CopyState.CopyId, false), "Stop copying with copy id should succeed.");
+
+                file.FetchAttributes();
 
                 Test.Assert(CopyStatus.Aborted == file.CopyState.Status, "File copy status should be aborted, actual it's {0}", file.CopyState.Status);
 
                 Test.Assert(agent.StartFileCopy(srcBlob, destShareName, null, PowerShellAgent.Context), "Start copying from blob to file should succeed.");
 
                 Test.Assert(agent.StopFileCopy(destShareName, filePath, Guid.NewGuid().ToString()), "Stop copying with unmatched copy id and force should succeed.");
+                
+                file.FetchAttributes();
 
                 Test.Assert(CopyStatus.Aborted == file.CopyState.Status, "File copy status should be aborted, actual it's {0}", file.CopyState.Status);
             }
