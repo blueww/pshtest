@@ -104,6 +104,7 @@ namespace Management.Storage.ScenarioTest.BVT
             GenerateBvtTempFiles();
 
             // initialize file utility
+            blobUtil = new CloudBlobUtil(CommonStorageAccount);
             fileUtil = new CloudFileUtil(CommonStorageAccount);
         }
 
@@ -624,7 +625,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 string errorMessage;
                 if (lang == Language.PowerShell)
                 {
-                    errorMessage = String.Format("Can not find copy task on specified blob '{0}' in container '{1}'", blobUtil.BlobName, blobUtil.ContainerName);
+                    errorMessage = String.Format("Can not find copy task on the specified blob '{0}' in container '{1}'", blobUtil.BlobName, blobUtil.ContainerName);
                     Test.Assert(agent.ErrorMessages[0].IndexOf(errorMessage) != -1, String.Format("Error message should contain {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
                 }
                 else

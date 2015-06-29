@@ -792,7 +792,7 @@
 
                 Test.Assert(agent.GetFileCopyState(file, true), "Get file copying state should succeed.");
 
-                this.ValidateCopyingResult(file, blob);
+                this.ValidateFileCopyResult(blob, file);
             }
             finally
             {
@@ -924,7 +924,7 @@
                         Test.Assert(agent.GetAzureStorageBlobCopyState(blob, null, true), "Get blob copy state should succeed.");
                     });
 
-                CopyState actualCopyState = agent.Output[0]["_baseobject"] as CopyState;
+                CopyState actualCopyState = agent.Output[0][PowerShellAgent.BaseObject] as CopyState;
                 CopyState expectedCopyState = blob.CopyState;
 
                 Utility.VerifyCopyState(expectedCopyState, actualCopyState);
@@ -986,14 +986,14 @@
                 CloudFile file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
 
                 Test.Assert(!agent.GetFileCopyState(shareName, fileName), "Get file copy state should fail.");
-                ExpectedContainErrorMessage("Can not find copy task on specified file");
+                ExpectedContainErrorMessage("Can not find copy task on the specified file");
 
                 VerifyGetCopyStateFinishInTime(() =>
                     {
                         Test.Assert(!agent.GetFileCopyState(shareName, fileName, true), "Get file copy state should fail.");
                     });
 
-                ExpectedContainErrorMessage("Can not find copy task on specified file");
+                ExpectedContainErrorMessage("Can not find copy task on the specified file");
 
                 string destFileName = Utility.GenNameString("destFileName");
                 CloudFile destFile = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
@@ -1007,7 +1007,7 @@
 
                 Test.Assert(agent.GetFileCopyState(file), "Get file copy state should succeed.");
 
-                Utility.VerifyCopyState(destFile.CopyState, agent.Output[0]["_baseobject"] as CopyState);
+                Utility.VerifyCopyState(destFile.CopyState, agent.Output[0][PowerShellAgent.BaseObject] as CopyState);
             }
             finally
             {
@@ -1139,7 +1139,6 @@
             destFile.FetchAttributes();
             srcBlob.FetchAttributes();
 
-            Test.Assert(destFile.Metadata.SequenceEqual(srcBlob.Metadata), "Destination's metadata should be the same with source's");
             Test.Assert(destFile.Properties.ContentMD5 == srcBlob.Properties.ContentMD5, "MD5 should be the same.");
             Test.Assert(destFile.Properties.ContentType == srcBlob.Properties.ContentType, "Content type should be the same.");
         }
