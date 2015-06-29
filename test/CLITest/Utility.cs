@@ -1076,7 +1076,7 @@ namespace Management.Storage.ScenarioTest
             bool found = true;
             while (((dynamic)resource).GetPermissions().SharedAccessPolicies.Keys.Count != expectedCount)
             {
-                if ((DateTimeOffset.Now - start) <= TimeSpan.FromSeconds(30))
+                if ((DateTimeOffset.Now - start) <= TimeSpan.FromSeconds(45))
                 {
                     Test.Info("Sleep and retry to get the policies again");
                     Thread.Sleep(5000);
@@ -1126,7 +1126,7 @@ namespace Management.Storage.ScenarioTest
 
                     if (!match)
                     {
-                        if ((DateTimeOffset.Now - start) <= TimeSpan.FromSeconds(30))
+                        if ((DateTimeOffset.Now - start) <= TimeSpan.FromSeconds(45))
                         {
                             Test.Info("Sleep and retry to get the policies again");
                             Thread.Sleep(5000);

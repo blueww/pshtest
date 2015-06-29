@@ -1102,11 +1102,14 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 ExpectedContainErrorMessage(errorMsg);
 
-                fileUtil.DeleteFileShareIfExists(shareName); 
-                Test.Assert(agent.NewAzureStorageShareSAS(shareName, null, sharePermission, startTime, expiryTime),
+                if (lang == Language.PowerShell)
+                {
+                    fileUtil.DeleteFileShareIfExists(shareName);
+                    Test.Assert(agent.NewAzureStorageShareSAS(shareName, null, sharePermission, startTime, expiryTime),
                         "Create sas on a non-exist share without policy should succeed.");
 
-                Test.Assert(!agent.NewAzureStorageShareSAS(shareName, policyName), "Create sas on a non-exist share with policy should fail.");
+                    Test.Assert(!agent.NewAzureStorageShareSAS(shareName, policyName), "Create sas on a non-exist share with policy should fail.");
+                }
             }
             finally
             {
