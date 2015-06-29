@@ -1166,7 +1166,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             {
                 string fileName = Utility.GenNameString("file");
                 var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
-                string permissions = Utility.GenRandomCombination(Utility.FilePermission);
+                string permissions = "rw";
                 string sastoken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions, startTime, expiryTime);
                 try
                 {

@@ -59,8 +59,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         public void CopyFromRootContainer()
         { 
             CopyFromBlob("$root", null, null);
-            string filePath = Utility.GenNameString("folder") + "/" + Utility.GenNameString("folder") + "/" + Utility.GenNameString("fileName");
-            CopyFromBlob("$root", filePath, null);
         }
 
         [TestMethod()]
@@ -71,6 +69,8 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             string blobName = Utility.GenNameString("fileName");
             CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
             var blobSnapshot = blob.Snapshot();
+
+            Test.Info("{0}", blobSnapshot.Exists());
 
             CopyFromBlob(blobSnapshot, null);
             CopyToFile(blobSnapshot);
@@ -549,7 +549,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        void GetCopyOnDeepestDirCrossAccountTest()
+        public void GetCopyOnDeepestDirCrossAccountTest()
         {
             CloudStorageAccount srcAccount = TestBase.GetCloudStorageAccountFromConfig("Secondary");
             object srcContext = PowerShellAgent.GetStorageContext(srcAccount.ToString());
@@ -584,7 +584,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        void GetCopyStateNegativeCases()
+        public void GetCopyStateNegativeCases()
         {
             Test.Assert(!agent.GetFileCopyState("SHARE", Utility.GenNameString("fileName")), "Get file copy state should fail.");
             ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service.");
@@ -608,7 +608,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        void StopAListOfFileCopyTest()
+        public void StopAListOfFileCopyTest()
         {
             CloudBlobContainer container = blobUtil.CreateContainer();
 
@@ -647,7 +647,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        void StopFileCopyOnDeepestDirCrossAccountTest()
+        public void StopFileCopyOnDeepestDirCrossAccountTest()
         {
             CloudStorageAccount srcAccount = TestBase.GetCloudStorageAccountFromConfig("Secondary");
             object srcContext = PowerShellAgent.GetStorageContext(srcAccount.ToString());
@@ -686,7 +686,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        void StopWithCopyIdTest()
+        public void StopWithCopyIdTest()
         {
             CloudStorageAccount srcAccount = TestBase.GetCloudStorageAccountFromConfig("Secondary");
             object srcContext = PowerShellAgent.GetStorageContext(srcAccount.ToString());
@@ -727,7 +727,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
-        void StopFileCopyNegativeCases()
+        public void StopFileCopyNegativeCases()
         {
             string shareName = Utility.GenNameString("share");
             CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
@@ -739,7 +739,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 // Against a no copying file
                 Test.Assert(!agent.StopFileCopy(file, null), "Stop file copy against a file without copying should fail.");
-                ExpectedContainErrorMessage("Can not find copy task on specified file");
+                ExpectedContainErrorMessage("Can not find copy task on the specified file");
 
                 // Against a succeeded copying file.
                 string destFileName = Utility.GenNameString("destFileName");
@@ -775,7 +775,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 // Null file instance
                 Test.Assert(!agent.StopFileCopy(file: null, copyId: null), "Stop file copy with an null file instance should fail.");
-                ExpectedContainErrorMessage("Cannot validate argument on parameter 'File'. The argument is null.");
+                ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters.");
             }
             finally
             {
@@ -838,7 +838,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             try
             {
                 var destFile = localFileUtil.GetFileReference(share.GetRootDirectoryReference(), destFilePath);
-                localFileUtil.EnsureFolderStructure(share, destFilePath.Substring(0, destFilePath.LastIndexOf('/')));
+                localFileUtil.CreateFileFolders(share, destFilePath);
 
                 if (destExist)
                 {
@@ -996,7 +996,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             try
             {
                 var destFile = localFileUtil.GetFileReference(destShare.GetRootDirectoryReference(), destFilePath);
-                localFileUtil.EnsureFolderStructure(destShare, destFilePath.Substring(0, destFilePath.LastIndexOf('/')));
+                localFileUtil.CreateFileFolders(destShare, destFilePath);
 
                 if (destExist)
                 {

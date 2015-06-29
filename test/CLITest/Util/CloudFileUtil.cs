@@ -240,6 +240,16 @@
             return share.Exists();
         }
 
+        public void CreateFileFolders(CloudFileShare share, string filePath)
+        {
+            int lastDirSeparator = filePath.LastIndexOf('/');
+
+            if (-1 != lastDirSeparator)
+            {
+                EnsureFolderStructure(share, filePath.Substring(0, lastDirSeparator));
+            }
+        }
+
         public CloudFileDirectory EnsureFolderStructure(CloudFileShare share, string directoryPath)
         {
             var directory = share.GetRootDirectoryReference();
@@ -365,7 +375,14 @@
             destinationFileName = AppendSnapShotToFileName(destinationFileName, blob.SnapshotTime);
 
             // Combine path and filename back together again.
-            destinationRelativePath = string.Format("{0}/{1}", destinationPath, destinationFileName);
+            if (string.IsNullOrEmpty(destinationPath))
+            {
+                destinationRelativePath = destinationFileName;
+            }
+            else
+            {
+                destinationRelativePath = string.Format("{0}/{1}", destinationPath, destinationFileName);
+            }
 
             destinationRelativePath = ResolveFileNameSuffix(destinationRelativePath);
 
