@@ -289,7 +289,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 foreach (CloudBlob blob in blobs)
                 {
-                    this.ValidateCopyFromBlob(blob, fileUtil.GetFileReference(share.GetRootDirectoryReference(), blob.Name));
+                    CloudFileUtil.ValidateCopyResult(blob, fileUtil.GetFileReference(share.GetRootDirectoryReference(), blob.Name));
                 }
             }
             finally
@@ -333,7 +333,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 foreach (var file in files)
                 {
-                    this.ValidateCopyFromFile(file, fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), file.Name));
+                    CloudFileUtil.ValidateCopyResult(file, fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), file.Name));
                 }
             }
             finally
@@ -463,13 +463,13 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 // From non-exist blob
                 try
                 {
-                    blobUtil.CreateContainer(containerName);
+                    CloudBlobContainer container = blobUtil.CreateContainer(containerName);
                     Test.Assert(!agent.StartFileCopyFromBlob(containerName, fileName, shareName, null, PowerShellAgent.Context),
                         "Starting async copying from non-exist blob should fail.");
 
                     ExpectedContainErrorMessage("The specified blob does not exist.");
                 }
-                finally 
+                finally
                 {
                     blobUtil.RemoveContainer(containerName);
                 }
@@ -481,6 +481,25 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters.");
 
+                // Copy to file with pending copying
+                string destFileName = Utility.GenNameString("destFileName");
+                StorageFile.CloudFile destFile = fileUtil.GetFileReference(share.GetRootDirectoryReference(), destFileName);
+
+                string bigBlobUri = Test.Data.Get("BigBlobUri");
+                destFile.StartCopy(new Uri(bigBlobUri));
+                destFile.FetchAttributes();
+                Test.Assert(destFile.CopyState.Status == CopyStatus.Pending, "Copying status should be pending. {0}", destFile.CopyState.Status);
+
+                Test.Assert(!agent.StartFileCopy(file, destFile), "Start copying to a file with pending copying should fail.");
+
+                ExpectedContainErrorMessage("There is currently a pending copy operation.");
+
+                Test.Assert(agent.StopFileCopy(destFile, null), "Stop copying to a file should succeed.");
+
+                //Test.Assert(!agent.StartFileCopy("http://www.bing.com", destFile), "Start copying from invalid Uri should fail.");
+
+                Test.Assert(!agent.StartFileCopy("invalidUri", destFile), "Start copying from invalid Uri should fail.");
+                ExpectedContainErrorMessage("The format of the URI could not be determined.");
             }
             finally
             {
@@ -813,28 +832,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             }
         }
 
-        private void ValidateCopyFromBlob(CloudBlob srcBlob, StorageFile.CloudFile destFile)
-        {
-            destFile.FetchAttributes();
-            srcBlob.FetchAttributes();
-                        
-            Test.Assert(destFile.Properties.ContentMD5 == srcBlob.Properties.ContentMD5, "MD5 should be the same.");
-            Test.Assert(destFile.Properties.ContentType == srcBlob.Properties.ContentType, "Content type should be the same.");
-        }
-
-        private void ValidateCopyFromFile(StorageFile.CloudFile srcFile, StorageFile.CloudFile destFile, bool destExist = false)
-        {
-            destFile.FetchAttributes();
-            srcFile.FetchAttributes();
-
-            if (!destExist)
-            {
-                Test.Assert(destFile.Metadata.SequenceEqual(srcFile.Metadata), "Destination's metadata should be the same with source's");
-            }
-            Test.Assert(destFile.Properties.ContentMD5 == srcFile.Properties.ContentMD5, "MD5 should be the same.");
-            Test.Assert(destFile.Properties.ContentType == srcFile.Properties.ContentType, "Content type should be the same.");
-        }
-
         private void CopyToFile(CloudBlob srcBlob, string destShareName, string destFilePath, Action copyAction, bool destExist = false, bool toSecondaryAccount = false)
         {
             CloudFileUtil localFileUtil = toSecondaryAccount ? FileUtil2 : fileUtil;
@@ -852,7 +849,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 copyAction();
 
-                this.ValidateCopyFromBlob(srcBlob, destFile);
+                CloudFileUtil.ValidateCopyResult(srcBlob, destFile);
             }
             finally
             {
@@ -1010,7 +1007,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 copyAction();
 
-                this.ValidateCopyFromFile(srcFile, destFile, destExist);
+                CloudFileUtil.ValidateCopyResult(srcFile, destFile, destExist);
             }
             finally
             {

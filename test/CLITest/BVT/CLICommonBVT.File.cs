@@ -689,7 +689,7 @@
                 Test.Assert(agent.GetFileCopyState(destShareName, fileName, true),
                     "Get copy state of file should succeed.");
 
-                this.ValidateFileCopyResult(blob, destFile);
+                CloudFileUtil.ValidateCopyResult(blob, destFile);
 
                 fileName = Utility.GenNameString("fileName");
                 blob = blobUtil.CreateRandomBlob(container, fileName, StorageBlob.BlobType.AppendBlob);
@@ -701,7 +701,7 @@
                 Test.Assert(agent.GetFileCopyState(destShareName, fileName, true),
                     "Get copy state of file should succeed.");
 
-                this.ValidateFileCopyResult(blob, destFile);
+                CloudFileUtil.ValidateCopyResult(blob, destFile);
 
 
                 string blobName = Utility.GenNameString("blobName");
@@ -713,7 +713,7 @@
 
                 Test.Assert(agent.GetFileCopyState(destShareName, fileName, true),
                     "Get copy state of file should succeed.");
-                this.ValidateFileCopyResult(blob, destFile);
+                CloudFileUtil.ValidateCopyResult(blob, destFile);
 
             }
             finally
@@ -792,7 +792,7 @@
 
                 Test.Assert(agent.GetFileCopyState(file, true), "Get file copying state should succeed.");
 
-                this.ValidateFileCopyResult(blob, file);
+                CloudFileUtil.ValidateCopyResult(blob, file);
             }
             finally
             {
@@ -1120,27 +1120,13 @@
 
                 fileCopyAction(srcFile, destFile);
 
-                srcFile.FetchAttributes();
-                destFile.FetchAttributes();
-
-                Test.Assert(destFile.Metadata.SequenceEqual(srcFile.Metadata), "Destination's metadata should be the same with source's");
-                Test.Assert(destFile.Properties.ContentMD5 == srcFile.Properties.ContentMD5, "MD5 should be the same.");
-                Test.Assert(destFile.Properties.ContentType == srcFile.Properties.ContentType, "Content type should be the same.");
+                CloudFileUtil.ValidateCopyResult(srcFile, destFile);
             }
             finally
             {
                 fileUtil.DeleteFileShareIfExists(srcShareName);
                 fileUtil.DeleteFileShareIfExists(destShareName);
             }
-        }
-
-        private void ValidateFileCopyResult(CloudBlob srcBlob, CloudFile destFile)
-        {
-            destFile.FetchAttributes();
-            srcBlob.FetchAttributes();
-
-            Test.Assert(destFile.Properties.ContentMD5 == srcBlob.Properties.ContentMD5, "MD5 should be the same.");
-            Test.Assert(destFile.Properties.ContentType == srcBlob.Properties.ContentType, "Content type should be the same.");
         }
 
         private void NewDirectoryTest(Action<CloudFileShare, string> newDirectoryAction)

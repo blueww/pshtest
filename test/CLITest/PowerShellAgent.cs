@@ -391,6 +391,32 @@ namespace Management.Storage.ScenarioTest
             return null;
         }
 
+        internal static object GetStorageContextWithSASToken(string accountName, string sasToken, string endpoint = null, bool useHttps = false)
+        {   
+            PowerShell ps = PowerShell.Create(_InitState);
+            ps.AddCommand("New-AzureStorageContext");
+            ps.BindParameter("StorageAccountName", accountName);
+            ps.BindParameter("SasToken", sasToken);
+
+            if (useHttps)
+            {
+                ps.BindParameter("Protocol", "https");
+            }
+            else
+            {
+                ps.BindParameter("Protocol", "http");
+            }
+
+            if (!string.IsNullOrEmpty(endpoint))
+            { 
+                ps.BindParameter("Endpoint", endpoint);
+            }
+
+            Test.Info("{0} Test...\n{1}", MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            return GetStorageContext(ps.Invoke());
+        }
+
         internal static object GetStorageContext(string ConnectionString)
         {
             PowerShell ps = PowerShell.Create(_InitState);
@@ -2414,17 +2440,20 @@ namespace Management.Storage.ScenarioTest
 
                 foreach (PSMemberInfo member in result.Members)
                 {
-                    if (member.Value != null)
+                    if (member.MemberType == PSMemberTypes.Property)
                     {
-                        // skip the PSMethod members
-                        if (member.Value.GetType() != typeof(PSMethod))
+                        if (member.Value != null)
+                        {
+                            // skip the PSMethod members
+                            if (member.Value.GetType() != typeof(PSMethod))
+                            {
+                                dic.Add(member.Name, member.Value);
+                            }
+                        }
+                        else
                         {
                             dic.Add(member.Name, member.Value);
                         }
-                    }
-                    else
-                    {
-                        dic.Add(member.Name, member.Value);
                     }
                 }
                 _Output.Add(dic);

@@ -129,6 +129,29 @@
             return string.Format(FileNameForamt, Interlocked.Increment(ref seed));
         }
 
+        public static void ValidateCopyResult(CloudFile srcFile, CloudFile destFile, bool destExistBefore = false)
+        {
+            destFile.FetchAttributes();
+            srcFile.FetchAttributes();
+
+            if (!destExistBefore)
+            {
+                Test.Assert(destFile.Metadata.SequenceEqual(srcFile.Metadata), "Destination's metadata should be the same with source's");
+            }
+
+            Test.Assert(destFile.Properties.ContentMD5 == srcFile.Properties.ContentMD5, "MD5 should be the same.");
+            Test.Assert(destFile.Properties.ContentType == srcFile.Properties.ContentType, "Content type should be the same.");
+        }
+
+        public static void ValidateCopyResult(CloudBlob srcBlob, CloudFile destFile)
+        {
+            destFile.FetchAttributes();
+            srcBlob.FetchAttributes();
+
+            Test.Assert(destFile.Properties.ContentMD5 == srcBlob.Properties.ContentMD5, "MD5 should be the same.");
+            Test.Assert(destFile.Properties.ContentType == srcBlob.Properties.ContentType, "Content type should be the same.");
+        }
+
         public void AssertFileShareExists(string fileShareName, string message)
         {
             var share = this.client.GetShareReference(fileShareName);
