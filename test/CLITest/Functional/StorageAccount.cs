@@ -66,6 +66,11 @@ namespace Management.Storage.ScenarioTest
         [ClassInitialize()]
         public static void StorageAccountTestInit(TestContext testContext)
         {
+            if (Language.PowerShell == lang)
+            {
+                PowerShellAgent.RemoveAzureSubscriptionIfExists();
+            }
+
             string appPath = Test.Data.Get("LoginAppPath");
 
             if (!string.IsNullOrEmpty(appPath))
