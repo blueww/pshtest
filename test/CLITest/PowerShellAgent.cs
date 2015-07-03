@@ -2440,7 +2440,7 @@ namespace Management.Storage.ScenarioTest
 
                 foreach (PSMemberInfo member in result.Members)
                 {
-                    if (member.MemberType == PSMemberTypes.Property)
+                    try
                     {
                         if (member.Value != null)
                         {
@@ -2452,8 +2452,13 @@ namespace Management.Storage.ScenarioTest
                         }
                         else
                         {
-                            dic.Add(member.Name, member.Value);
+                            dic.Add(member.Name, null);
                         }
+                    }
+                    catch (Exception)
+                    {
+                        // It may report an error when try to get some script properties, here ignore them.
+                        continue;
                     }
                 }
                 _Output.Add(dic);
