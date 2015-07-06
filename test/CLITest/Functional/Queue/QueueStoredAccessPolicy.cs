@@ -334,7 +334,10 @@
                 }
                 else
                 {
-                    invalidName = Utility.SqueezeSpaces(invalidName);
+                    if (AgentFactory.GetOSType() != OSType.Windows)
+                    {
+                        invalidName = Utility.SqueezeSpaces(invalidName);
+                    }
                     ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", invalidName));
                 }
 
@@ -640,6 +643,9 @@
                 //get the policy and validate
                 SharedAccessQueuePolicies expectedPolicies = new SharedAccessQueuePolicies();
                 expectedPolicies.Add(policyName, Utility.SetupSharedAccessPolicy<SharedAccessQueuePolicy>(startTime, expiryTime, permission));
+
+                Utility.RawStoredAccessPolicy policy = new Utility.RawStoredAccessPolicy(policyName, startTime, expiryTime, permission);
+                Utility.WaitForPolicyBecomeValid<CloudQueue>(queue, policy); 
                 Utility.ValidateStoredAccessPolicies<SharedAccessQueuePolicy>(queue.GetPermissions().SharedAccessPolicies, expectedPolicies);
             }
             finally

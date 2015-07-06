@@ -157,6 +157,9 @@
     <Reference Include="System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
     </Reference>
+    <Reference Include="System.IO">
+      <HintPath>..\packages\Microsoft.Bcl.1.1.9\lib\net40\System.IO.dll</HintPath>
+    </Reference>
     <Reference Include="System.Net" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.Extensions, Version=2.2.29.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -249,6 +252,7 @@
     <Compile Include="Functional\Table\TableStoredAccessPolicy.cs" />
     <Compile Include="IExecutionError.cs" />
     <Compile Include="IExecutionResult.cs" />
+    <Compile Include="Performance\CLIPerfBase.cs" />
     <Compile Include="Performance\Helper\AbstractBlobUploadOperation.cs" />
     <Compile Include="Performance\Helper\AppendBlobDownloadOperation.cs" />
     <Compile Include="Performance\Helper\AppendBlobUploadOperation.cs" />
