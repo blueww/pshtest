@@ -419,7 +419,7 @@
 
             if (baseFileName.Length > maxFileNameLength)
             {
-                string postfixString = string.Format(" (1)");
+                string postfixString = string.Format(" _trunc_");
 
                 string pathAndFilename = Path.ChangeExtension(baseFileName, null);
                 string extension = Path.GetExtension(baseFileName);

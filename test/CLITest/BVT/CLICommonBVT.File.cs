@@ -539,19 +539,19 @@
         public void NewShareStoredPolicyTest()
         {
             SharedAccessPolicyTest((share, samplePolicies) =>
-                {
-                    var samplePolicy = samplePolicies[0];
-                    Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
-                        "Create stored access policy in file share should succeed");
-                    Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
+            {
+                var samplePolicy = samplePolicies[0];
+                Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                    "Create stored access policy in file share should succeed");
+                Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
 
-                    SharedAccessFilePolicies expectedPolicies = new SharedAccessFilePolicies();
-                    expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission));
+                SharedAccessFilePolicies expectedPolicies = new SharedAccessFilePolicies();
+                expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission));
 
-                    Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, samplePolicy);
+                Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, samplePolicy);
 
-                    Utility.ValidateStoredAccessPolicies<SharedAccessFilePolicy>(share.GetPermissions().SharedAccessPolicies, expectedPolicies);
-                });
+                Utility.ValidateStoredAccessPolicies<SharedAccessFilePolicy>(share.GetPermissions().SharedAccessPolicies, expectedPolicies);
+            });
         }
 
         /// <summary>
@@ -566,23 +566,23 @@
         public void GetShareStoredPolicyTest()
         {
             SharedAccessPolicyTest((share, samplePolicies) =>
-                {
-                    var samplePolicy = samplePolicies[0];
-                    Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
-                        "Create stored access policy in file share should succeed");
-                    Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
-                    
-                    Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, samplePolicy);
+            {
+                var samplePolicy = samplePolicies[0];
+                Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                    "Create stored access policy in file share should succeed");
+                Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
 
-                    Test.Assert(agent.GetAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName),
-                        "Get stored access policy in file share should succeed");
-                    Test.Info("Get stored access policy:{0}", samplePolicy.PolicyName);
+                Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, samplePolicy);
 
-                    SharedAccessFilePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission);
-                    Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
-                    comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessFilePolicy>(policy, samplePolicy.PolicyName));
-                    agent.OutputValidation(comp);
-                });
+                Test.Assert(agent.GetAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName),
+                    "Get stored access policy in file share should succeed");
+                Test.Info("Get stored access policy:{0}", samplePolicy.PolicyName);
+
+                SharedAccessFilePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission);
+                Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
+                comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessFilePolicy>(policy, samplePolicy.PolicyName));
+                agent.OutputValidation(comp);
+            });
         }
 
         /// <summary>
@@ -602,7 +602,7 @@
                 Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                     "Create stored access policy in file share should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
-                
+
                 Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, samplePolicy);
 
                 Test.Assert(agent.RemoveAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName),
@@ -633,7 +633,7 @@
             {
                 var samplePolicy1 = samplePolicies[0];
                 var samplePolicy2 = samplePolicies[1];
-                Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy1.PolicyName, samplePolicy1.Permission, 
+                Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy1.PolicyName, samplePolicy1.Permission,
                     samplePolicy1.StartTime, samplePolicy1.ExpiryTime),
                     "Create stored access policy in file share should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy1.PolicyName);
@@ -662,7 +662,7 @@
                 agent.OutputValidation(comp);
             });
         }
-        
+
         /// <summary>
         /// Test Plan 8.61 BVT
         /// </summary>
@@ -670,6 +670,9 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void StartCopyFromBlobToFile()
         {
             string containerName = Utility.GenNameString("container");
@@ -683,35 +686,34 @@
                 CloudBlob blob = blobUtil.CreateRandomBlob(container, fileName, StorageBlob.BlobType.BlockBlob);
                 CloudFile destFile = fileUtil.GetFileReference(share.GetRootDirectoryReference(), fileName);
 
-                Test.Assert(agent.StartFileCopyFromBlob(containerName, fileName, destShareName, null, PowerShellAgent.Context),
+                Test.Assert(agent.StartFileCopyFromBlob(containerName, fileName, destShareName, fileName, Agent.Context),
                     "Start copy from blob to file shoule succeed.");
 
-                Test.Assert(agent.GetFileCopyState(destShareName, fileName, true),
+                Test.Assert(agent.GetFileCopyState(destShareName, fileName, Agent.Context, true),
                     "Get copy state of file should succeed.");
 
                 CloudFileUtil.ValidateCopyResult(blob, destFile);
 
                 fileName = Utility.GenNameString("fileName");
                 blob = blobUtil.CreateRandomBlob(container, fileName, StorageBlob.BlobType.AppendBlob);
-                destFile = fileUtil.GetFileReference(share.GetRootDirectoryReference(), fileName); 
-                
-                Test.Assert(agent.StartFileCopy(container, fileName, destShareName, null, PowerShellAgent.Context),
+                destFile = fileUtil.GetFileReference(share.GetRootDirectoryReference(), fileName);
+
+                Test.Assert(agent.StartFileCopy(container, fileName, destShareName, fileName, Agent.Context),
                     "Start copy from blob to file shoule succeed.");
 
-                Test.Assert(agent.GetFileCopyState(destShareName, fileName, true),
+                Test.Assert(agent.GetFileCopyState(destShareName, fileName, Agent.Context, true),
                     "Get copy state of file should succeed.");
 
                 CloudFileUtil.ValidateCopyResult(blob, destFile);
-
 
                 string blobName = Utility.GenNameString("blobName");
                 fileName = Utility.GenNameString("fileName");
                 blob = blobUtil.CreateRandomBlob(container, fileName, StorageBlob.BlobType.PageBlob);
                 destFile = fileUtil.GetFileReference(share.GetRootDirectoryReference(), fileName);
-                Test.Assert(agent.StartFileCopy(container, fileName, destShareName, fileName, PowerShellAgent.Context),
+                Test.Assert(agent.StartFileCopy(container, fileName, destShareName, fileName, Agent.Context),
                     "Start copy from blob to file shoule succeed.");
 
-                Test.Assert(agent.GetFileCopyState(destShareName, fileName, true),
+                Test.Assert(agent.GetFileCopyState(destShareName, fileName, Agent.Context, true),
                     "Get copy state of file should succeed.");
                 CloudFileUtil.ValidateCopyResult(blob, destFile);
 
@@ -722,7 +724,7 @@
                 fileUtil.DeleteFileShareIfExists(destShareName);
             }
         }
-                
+
         /// <summary>
         /// Test Plan 8.61 BVT
         /// </summary>
@@ -730,33 +732,35 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void StartCopyFromFileToFile()
         {
             this.ValidateFileCopyFromFile((srcFile, destFile) =>
-                {
-                    Test.Assert(agent.StartFileCopyFromFile(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), destFile.Share.Name, CloudFileUtil.GetFullPath(destFile), PowerShellAgent.Context),
-                        "Start copy from file to file should succeed.");
+            {
+                Test.Assert(agent.StartFileCopyFromFile(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), destFile.Share.Name, CloudFileUtil.GetFullPath(destFile), Agent.Context),
+                    "Start copy from file to file should succeed.");
 
-                    Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
-                });
+                Test.Assert(agent.GetFileCopyState(destFile, Agent.Context, true), "Get file copy state should succeed.");
+            });
 
 
             this.ValidateFileCopyFromFile((srcFile, destFile) =>
             {
-                Test.Assert(agent.StartFileCopy(srcFile.Share, CloudFileUtil.GetFullPath(srcFile), destFile.Share.Name, CloudFileUtil.GetFullPath(destFile), PowerShellAgent.Context),
+                Test.Assert(agent.StartFileCopy(srcFile.Share, CloudFileUtil.GetFullPath(srcFile), destFile.Share.Name, CloudFileUtil.GetFullPath(destFile), Agent.Context),
                     "Start copy from file to file should succeed.");
 
-                Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
+                Test.Assert(agent.GetFileCopyState(destFile, Agent.Context, true), "Get file copy state should succeed.");
             });
 
             this.ValidateFileCopyFromFile((srcFile, destFile) =>
-                {
-                    string fileUri = agent.GetAzureStorageFileSasFromCmd(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), null, "r", null, DateTime.UtcNow.AddHours(1), true);
+            {
+                string fileUri = agent.GetAzureStorageFileSasFromCmd(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), null, "r", null, DateTime.UtcNow.AddHours(1), true);
 
-                    Test.Assert(agent.StartFileCopy(fileUri, destFile), "Copy file to file with absolute URI should succeed.");
-
-                    Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
-                });
+                Test.Assert(agent.StartFileCopy(fileUri, destFile), "Copy file to file with absolute URI should succeed.");
+                Test.Assert(agent.GetFileCopyState(destFile, Agent.Context, true), "Get file copy state should succeed.");
+            });
         }
 
         /// <summary>
@@ -764,6 +768,9 @@
         /// </summary>
         [TestMethod()]
         [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromPublicBlobToFile()
         {
             this.CopyFromPublicBlobToFile(StorageBlob.BlobType.AppendBlob);
@@ -773,7 +780,6 @@
 
         private void CopyFromPublicBlobToFile(StorageBlob.BlobType blobType)
         {
-            PowerShellAgent psAgent = (PowerShellAgent)agent;
             string containerName = Utility.GenNameString("container");
             CloudBlobContainer container = blobUtil.CreateContainer(containerName, BlobContainerPublicAccessType.Blob);
 
@@ -787,10 +793,10 @@
 
                 var file = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), fileName);
 
-                Test.Assert(agent.StartFileCopy(blob.Uri.ToString(), destShareName, fileName, PowerShellAgent.Context),
+                Test.Assert(agent.StartFileCopy(blob.Uri.ToString(), destShareName, fileName, Agent.Context),
                     "Start copying from public blob URI to file should succeed.");
 
-                Test.Assert(agent.GetFileCopyState(file, true), "Get file copying state should succeed.");
+                Test.Assert(agent.GetFileCopyState(file, Agent.Context, true), "Get file copying state should succeed.");
 
                 CloudFileUtil.ValidateCopyResult(blob, file);
             }
@@ -808,38 +814,42 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.Blob)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.GetBlobCopyState)]
         public void CopyFromFileToBlob()
         {
             ValidateCopyFromFileToBlob((srcFile, destBlob) =>
-                {
-                    Test.Info("Starting copying with share name and file path to blob");
-                    Test.Assert(agent.StartAzureStorageBlobCopyFromFile(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), destBlob.Container.Name, destBlob.Name, PowerShellAgent.Context),
-                        "Start copying from file to blob should succeed.");
+            {
+                Test.Info("Starting copying with share name and file path to blob");
+                Test.Assert(agent.StartAzureStorageBlobCopyFromFile(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), destBlob.Container.Name, destBlob.Name, Agent.Context),
+                    "Start copying from file to blob should succeed.");
 
-                    Test.Assert(agent.GetAzureStorageBlobCopyState(destBlob, null, true), "Get blob copy state should succeed.");
-                });
+                Test.Assert(agent.GetAzureStorageBlobCopyState(destBlob, null, true), "Get blob copy state should succeed.");
+            });
 
 
             ValidateCopyFromFileToBlob((srcFile, destBlob) =>
             {
                 Test.Info("Starting copying with share instance and file path to blob");
-                Test.Assert(agent.StartAzureStorageBlobCopy(srcFile.Share, CloudFileUtil.GetFullPath(srcFile), destBlob.Container.Name, destBlob.Name, PowerShellAgent.Context),
+                Test.Assert(agent.StartAzureStorageBlobCopy(srcFile.Share, CloudFileUtil.GetFullPath(srcFile), destBlob.Container.Name, destBlob.Name, Agent.Context),
                     "Start copying from file to blob should succeed.");
 
                 Test.Assert(agent.GetAzureStorageBlobCopyState(destBlob, null, true), "Get blob copy state should succeed.");
-            }); 
-            
+            });
+
             ValidateCopyFromFileToBlob((srcFile, destBlob) =>
             {
                 Test.Info("Starting copying with file absolute uri to blob");
                 string fileUriWithSAS = agent.GetAzureStorageFileSasFromCmd(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), null, "r", null, DateTime.UtcNow.AddHours(1), true);
-                Test.Assert(agent.StartAzureStorageBlobCopy(fileUriWithSAS, destBlob.Container.Name, destBlob.Name, PowerShellAgent.Context),
+
+                Test.Assert(agent.StartAzureStorageBlobCopy(fileUriWithSAS, destBlob.Container.Name, destBlob.Name, Agent.Context),
                     "Start copying from file to blob should succeed.");
 
                 Test.Assert(agent.GetAzureStorageBlobCopyState(destBlob, null, true), "Get blob copy state should succeed.");
             });
         }
-        
+
         /// <summary>
         /// Test Plan 8.21 BVT
         /// </summary>
@@ -868,7 +878,7 @@
                 PowerShellAgent psAgent = agent as PowerShellAgent;
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageFile -ShareName {0}", srcShareName));
 
-                Test.Assert(agent.StartAzureStorageBlobCopy(srcFile: null, destContainerName: destContainerName, destBlobName: null, destContext: PowerShellAgent.Context),
+                Test.Assert(agent.StartAzureStorageBlobCopy(srcFile: null, destContainerName: destContainerName, destBlobName: null, destContext: Agent.Context),
                     "Start copying from file to blob should succeed.");
 
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageBlob -Container {0}", destContainerName));
@@ -895,6 +905,9 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.Blob)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.GetBlobCopyState)]
         public void GetStateOfBlobCopyFromFileTest()
         {
             string srcShareName = Utility.GenNameString("share");
@@ -910,21 +923,21 @@
 
                 CloudBlockBlob blob = destContainer.GetBlockBlobReference(Utility.GenNameString("destBlobName"));
 
-                Test.Assert(agent.StartAzureStorageBlobCopy(file, destContainer.Name, blob.Name, PowerShellAgent.Context), "Start azure storage copy from file to blob should succeed.");
+                Test.Assert(agent.StartAzureStorageBlobCopy(file, destContainer.Name, blob.Name, Agent.Context), "Start azure storage copy from file to blob should succeed.");
 
                 Utility.WaitCopyToFinish(() =>
-                    {
-                        blob.FetchAttributes();
-                        return blob.CopyState;
-                    });
+                {
+                    blob.FetchAttributes();
+                    return blob.CopyState;
+                });
 
 
                 VerifyGetCopyStateFinishInTime(() =>
-                    {
-                        Test.Assert(agent.GetAzureStorageBlobCopyState(blob, null, true), "Get blob copy state should succeed.");
-                    });
+                {
+                    Test.Assert(agent.GetAzureStorageBlobCopyState(blob, null, true), "Get blob copy state should succeed.");
+                });
 
-                CopyState actualCopyState = agent.Output[0][PowerShellAgent.BaseObject] as CopyState;
+                Utility.CLICopyState actualCopyState = Utility.GetCopyState(agent, lang);
                 CopyState expectedCopyState = blob.CopyState;
 
                 Utility.VerifyCopyState(expectedCopyState, actualCopyState);
@@ -935,7 +948,7 @@
                 blobUtil.RemoveContainer(destContainerName);
             }
         }
-        
+
         /// <summary>
         /// Test Plan 8.21 BVT
         /// </summary>
@@ -943,6 +956,9 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.Blob)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.StopCopyBlob)]
         public void StopBlobCopyFromFileTest()
         {
             string destContainerName = Utility.GenNameString("container");
@@ -954,7 +970,7 @@
 
                 CloudBlockBlob blob = destContainer.GetBlockBlobReference(Utility.GenNameString("destBlobName"));
 
-                Test.Assert(agent.StartAzureStorageBlobCopy(bigFileUri, destContainer.Name, blob.Name, PowerShellAgent.Context), "Start azure storage copy from file to blob should succeed.");
+                Test.Assert(agent.StartAzureStorageBlobCopy(bigFileUri, destContainer.Name, blob.Name, Agent.Context), "Start azure storage copy from file to blob should succeed.");
 
                 Test.Assert(agent.StopAzureStorageBlobCopy(destContainerName, blob.Name, null, true), "Stop blob copy should succeed.");
 
@@ -975,6 +991,9 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.GetFileCopyState)]
         public void GetFileCopyStateTest()
         {
             string shareName = Utility.GenNameString("share");
@@ -985,13 +1004,13 @@
                 string fileName = Utility.GenNameString("fileName");
                 CloudFile file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
 
-                Test.Assert(!agent.GetFileCopyState(shareName, fileName), "Get file copy state should fail.");
+                Test.Assert(!agent.GetFileCopyState(shareName, fileName, Agent.Context), "Get file copy state should fail.");
                 ExpectedContainErrorMessage("Can not find copy task on the specified file");
 
                 VerifyGetCopyStateFinishInTime(() =>
-                    {
-                        Test.Assert(!agent.GetFileCopyState(shareName, fileName, true), "Get file copy state should fail.");
-                    });
+                {
+                    Test.Assert(!agent.GetFileCopyState(shareName, fileName, Agent.Context, true), "Get file copy state should fail.");
+                });
 
                 ExpectedContainErrorMessage("Can not find copy task on the specified file");
 
@@ -1005,9 +1024,9 @@
                     return destFile.CopyState;
                 });
 
-                Test.Assert(agent.GetFileCopyState(file), "Get file copy state should succeed.");
+                Test.Assert(agent.GetFileCopyState(file, Agent.Context), "Get file copy state should succeed.");
 
-                Utility.VerifyCopyState(destFile.CopyState, agent.Output[0][PowerShellAgent.BaseObject] as CopyState);
+                Utility.VerifyCopyState(destFile.CopyState, Utility.GetCopyState(agent, lang));
             }
             finally
             {
@@ -1022,6 +1041,9 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.StopCopyFile)]
         public void StopFileCopyTest()
         {
             string shareName = Utility.GenNameString("share");
@@ -1062,7 +1084,7 @@
             DateTimeOffset beginTime = DateTimeOffset.UtcNow;
             getCopyState();
             DateTimeOffset endTime = DateTimeOffset.UtcNow;
-            Test.Assert(endTime - beginTime < TimeSpan.FromSeconds(2), "Get copy state should finish immediately");
+            Test.Assert(endTime - beginTime < TimeSpan.FromSeconds(5), "Get copy state should finish immediately");
         }
 
         private void ValidateCopyingResult(CloudFile srcFile, CloudBlob destBlob)

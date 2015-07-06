@@ -84,7 +84,7 @@ namespace Management.Storage.ScenarioTest
         public abstract void ImportAzureSubscription(string settingFile);
 
         public abstract void SetActiveSubscription(string subscriptionId);
-        
+
         public abstract bool Login();
 
         public abstract void Logout();
@@ -285,6 +285,8 @@ namespace Management.Storage.ScenarioTest
         public abstract void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, bool useHttps = true);
 
         public abstract void SetStorageContextWithSASTokenInConnectionString(CloudStorageAccount StorageAccount, string sasToken);
+
+        public abstract object GetStorageContextWithSASToken(CloudStorageAccount account, string sasToken, string endpointSuffix = null, bool useHttps = false);
         #endregion
 
         #region Stored Access Policy APIs
@@ -424,7 +426,7 @@ namespace Management.Storage.ScenarioTest
 
         public abstract bool SetAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions,
             DateTime? startTime, DateTime? expiryTime, bool noStartTime = false, bool noExpiryTime = false);
-        
+
         public abstract bool NewAzureStorageShareSAS(string shareName, string policyName = null, string permissions = null,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false);
 
@@ -466,9 +468,9 @@ namespace Management.Storage.ScenarioTest
 
         public abstract bool StartFileCopy(string uri, CloudFile destFile, bool force = true);
 
-        public abstract bool GetFileCopyState(string shareName, string filePath, bool waitForComplete = false);
+        public abstract bool GetFileCopyState(string shareName, string filePath, object context, bool waitForComplete = false);
 
-        public abstract bool GetFileCopyState(CloudFile file, bool waitForComplete = false);
+        public abstract bool GetFileCopyState(CloudFile file, object context, bool waitForComplete = false);
 
         public abstract bool StopFileCopy(string shareName, string filePath, string copyId, bool force = true);
 
@@ -491,7 +493,7 @@ namespace Management.Storage.ScenarioTest
 
         protected Collection<Dictionary<string, object>> _Output = new Collection<Dictionary<string, object>>();
         protected Collection<string> _ErrorMessages = new Collection<string>();
-        
+
         protected virtual void DisposeInternal()
         {
         }

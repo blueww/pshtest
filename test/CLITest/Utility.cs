@@ -51,7 +51,7 @@ namespace Management.Storage.ScenarioTest
         public static List<string> TablePermissionNode = new List<string>() { "r", "a", "u", "d" };
         public static List<string> QueuePermission = new List<string>() { "r", "a", "u", "p" };
         public static List<string> SharePermission = new List<string>() { "r", "w", "d", "l" };
-        public static List<string> FilePermission = new List<string>() { "r", "w", "d"};
+        public static List<string> FilePermission = new List<string>() { "r", "w", "d" };
 
         internal static int RetryLimit = 7;
 
@@ -216,7 +216,7 @@ namespace Management.Storage.ScenarioTest
 
             string[] endpoints = GetStorageEndPoints(storageAccountName, useHttps, endPoint);
             return String.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};BlobEndpoint={2};QueueEndpoint={3};TableEndpoint={4};FileEndpoint={5}",
-                storageAccountName, 
+                storageAccountName,
                 storageAccountKey,
                 endpoints[0],
                 endpoints[1],
@@ -256,7 +256,7 @@ namespace Management.Storage.ScenarioTest
                     }, profileClient.GetEnvironmentOrDefault(null), securePassword);
                 }
             }
-            
+
             profileClient.SetSubscriptionAsDefault(Test.Data.Get("AzureSubscriptionName"), Test.Data.Get("AADUser"));
 
             return profileClient.Profile;
@@ -545,7 +545,7 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        public static void VerifyCopyState(CopyState expectedCopyState, CopyState actualCopyState)
+        public static void VerifyCopyState(CopyState expectedCopyState, CLICopyState actualCopyState)
         {
             Test.Assert(string.Equals(actualCopyState.CopyId, expectedCopyState.CopyId), "Copy Id should be the same, {0} == {1}", actualCopyState.CopyId, expectedCopyState.CopyId);
             Test.Assert(string.Equals(actualCopyState.StatusDescription, expectedCopyState.StatusDescription), "StatusDescription should be the same, {0} == {1}", actualCopyState.StatusDescription, expectedCopyState.StatusDescription);
@@ -559,7 +559,7 @@ namespace Management.Storage.ScenarioTest
             {
                 CopyState copyState = getCopyState();
 
-                if (copyState.Status != CopyStatus.Pending)
+                if (copyState != null && copyState.Status != CopyStatus.Pending)
                 {
                     return;
                 }
@@ -727,7 +727,7 @@ namespace Management.Storage.ScenarioTest
 
             if (typeof(T) == typeof(SharedAccessTablePolicy))
             {
-                permission1 = skipTableQPermission? "raud" : "rqaud";
+                permission1 = skipTableQPermission ? "raud" : "rqaud";
                 permission2 = "aud";
                 permission3 = "ud";
             }
@@ -867,7 +867,7 @@ namespace Management.Storage.ScenarioTest
 
             return dic;
         }
-    
+
 
         public static void ValidateStoredAccessPolicies<T>(IDictionary<string, T> actualSharedPolicies, IDictionary<string, T> expectedSharedPolicies)
         {
@@ -933,6 +933,59 @@ namespace Management.Storage.ScenarioTest
         public static string SqueezeSpaces(string value)
         {
             return Regex.Replace(value, "\\s{2,}", " ");
+        }
+
+        public static CLICopyState GetCopyState(Agent agent, Language lang)
+        {
+            if (lang == Language.PowerShell)
+            {
+                return new CLICopyState(agent.Output[0][PowerShellAgent.BaseObject] as CopyState);
+            }
+            else
+            {
+                CLICopyState state = new CLICopyState();
+                string progess = agent.Output[0]["copyProgress"] as string;
+                long bytesCopied = 0;
+                long totalBytes = 0;
+                if (!string.IsNullOrEmpty(progess))
+                {
+                    int index = progess.IndexOf("/");
+                    long.TryParse(progess.Substring(0, index), out bytesCopied);
+                    long.TryParse(progess.Substring(index + 1), out totalBytes);
+                }
+
+                string time = null;
+                if (agent.Output[0].ContainsKey("copyCompletionTime"))
+                {
+                    time = agent.Output[0]["copyCompletionTime"] as string;
+                }
+
+                DateTimeOffset completionTime = new DateTimeOffset();
+                DateTimeOffset.TryParse(time, out completionTime);
+
+                string raw = agent.Output[0]["copySource"] as string;
+                Uri source = new Uri(raw);
+
+                raw = agent.Output[0]["copyStatus"] as string;
+                CopyStatus status;
+                Enum.TryParse<CopyStatus>(raw, true, out status);
+
+                string statusDescription = null;
+                if (agent.Output[0].ContainsKey("copyStatusDescription"))
+                {
+                    statusDescription = agent.Output[0]["copyStatusDescription"] as string;
+                }
+
+                state.BytesCopied = bytesCopied;
+                state.CompletionTime = completionTime;
+                state.CopyId = agent.Output[0]["copyId"] as string;
+                state.Source = source;
+                state.Status = status;
+                state.StatusDescription = statusDescription;
+                state.TotalBytes = totalBytes;
+
+                return state;
+            }
         }
 
         /// <summary>
@@ -1086,13 +1139,13 @@ namespace Management.Storage.ScenarioTest
             }
 
             if (found && expectedCount == 1 && expectedPolicy != null)
-            { 
+            {
                 bool match = false;
                 start = DateTimeOffset.Now;
 
-                do 
+                do
                 {
-                    dynamic policy = null; 
+                    dynamic policy = null;
                     if (typeof(T) == typeof(CloudBlobContainer))
                     {
                         SharedAccessBlobPolicy output = null;
@@ -1106,7 +1159,7 @@ namespace Management.Storage.ScenarioTest
                         policy = output;
                     }
                     else if (typeof(T) == typeof(CloudQueue))
-                    { 
+                    {
                         SharedAccessQueuePolicy output = null;
                         match = ((dynamic)resource).GetPermissions().SharedAccessPolicies.TryGetValue(expectedPolicy.PolicyName, out output);
                         policy = output;
@@ -1117,7 +1170,7 @@ namespace Management.Storage.ScenarioTest
                         match = ((dynamic)resource).GetPermissions().SharedAccessPolicies.TryGetValue(expectedPolicy.PolicyName, out output);
                         policy = output;
                     }
-                     
+
                     match = match && IsEqualPolicy(policy, expectedPolicy);
 
                     if (!match)
@@ -1235,6 +1288,34 @@ namespace Management.Storage.ScenarioTest
                 this.Permission = accessPolicy.Permission;
             }
 
+        }
+
+        public class CLICopyState
+        {
+            public CLICopyState()
+            {
+                BytesCopied = 0;
+                TotalBytes = 0;
+            }
+
+            public CLICopyState(CopyState state)
+            {
+                BytesCopied = state.BytesCopied;
+                CompletionTime = state.CompletionTime;
+                CopyId = state.CopyId;
+                Source = state.Source;
+                Status = state.Status;
+                StatusDescription = state.StatusDescription;
+                TotalBytes = state.TotalBytes;
+            }
+
+            public long? BytesCopied { get; internal set; }
+            public DateTimeOffset? CompletionTime { get; internal set; }
+            public string CopyId { get; internal set; }
+            public Uri Source { get; internal set; }
+            public CopyStatus Status { get; internal set; }
+            public string StatusDescription { get; internal set; }
+            public long? TotalBytes { get; internal set; }
         }
     }
 }

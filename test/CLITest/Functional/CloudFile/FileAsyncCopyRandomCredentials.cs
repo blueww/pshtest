@@ -26,7 +26,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         {
             TestBase.TestClassInitialize(context);
             StorageAccount2 = TestBase.GetCloudStorageAccountFromConfig("Secondary");
-            fileUtil2  = new CloudFileUtil(StorageAccount2);
+            fileUtil2 = new CloudFileUtil(StorageAccount2);
         }
 
         [ClassCleanup]
@@ -37,6 +37,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyCrossAccountFromFile2SASFile()
         {
             string destShareName = Utility.GenNameString("destshare");
@@ -49,14 +52,16 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             {
                 StorageFile.CloudFile sourceFile = fileUtil.CreateFile(sourceShare.GetRootDirectoryReference(), Utility.GenNameString("SourceFile"));
 
+                string destFileName = Utility.GenNameString("destfile");
                 string destSasToken = destShare.GetSharedAccessSignature(new SharedAccessFilePolicy()
-                    {
-                        Permissions = SharedAccessFilePermissions.Read | SharedAccessFilePermissions.Write,
-                        SharedAccessExpiryTime = DateTimeOffset.UtcNow.AddHours(1)
-                    });
-                object destContext = PowerShellAgent.GetStorageContextWithSASToken(StorageAccount2.Credentials.AccountName, destSasToken);
+                {
+                    Permissions = SharedAccessFilePermissions.Read | SharedAccessFilePermissions.Write,
+                    SharedAccessExpiryTime = DateTimeOffset.UtcNow.AddHours(1)
+                });
 
-                Test.Assert(!agent.StartFileCopy(sourceFile, destShareName, null, destContext), "Copy to file with sas token credential should fail.");
+                object destContext = this.agent.GetStorageContextWithSASToken(StorageAccount2, destSasToken);
+
+                Test.Assert(!agent.StartFileCopy(sourceFile, destShareName, destFileName, destContext), "Copy to file with sas token credential should fail.");
 
                 ExpectedContainErrorMessage("The specified resource does not exist.");
             }
@@ -69,20 +74,30 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromFile2SASFile()
         {
             CopyFromFile2SASFile((sourceShare) =>
+            {
+                if (lang == Language.PowerShell)
                 {
                     PowerShellAgent.SetStorageContext(StorageAccount.ToString(true));
-                });
+                }
+                else
+                {
+                    NodeJSAgent.SetStorageContext(StorageAccount.ToString(true));
+                }
+            });
 
             CopyFromFile2SASFile((sourceShare) =>
             {
                 string sasToken = sourceShare.GetSharedAccessSignature(new SharedAccessFilePolicy()
-                    {
-                        Permissions = SharedAccessFilePermissions.Read,
-                        SharedAccessExpiryTime = DateTimeOffset.UtcNow.AddHours(1)
-                    });
+                {
+                    Permissions = SharedAccessFilePermissions.Read,
+                    SharedAccessExpiryTime = DateTimeOffset.UtcNow.AddHours(1)
+                });
 
                 this.agent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sasToken);
             });
@@ -90,32 +105,52 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromSASFile()
         {
             CopyFromFile2File((sourceShare) =>
+            {
+                string sasToken = sourceShare.GetSharedAccessSignature(new SharedAccessFilePolicy()
                 {
-                    string sasToken = sourceShare.GetSharedAccessSignature(new SharedAccessFilePolicy()
-                    {
-                        Permissions = SharedAccessFilePermissions.Read,
-                        SharedAccessExpiryTime = DateTimeOffset.UtcNow.AddHours(1)
-                    });
+                    Permissions = SharedAccessFilePermissions.Read,
+                    SharedAccessExpiryTime = DateTimeOffset.UtcNow.AddHours(1)
+                });
 
-                    this.agent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sasToken);
-                },
+                this.agent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sasToken);
+            },
                 (destShare) =>
                 {
-                    return PowerShellAgent.GetStorageContext(StorageAccount.ToString(true));
+                    if (lang == Language.PowerShell)
+                    {
+                        return PowerShellAgent.GetStorageContext(StorageAccount.ToString(true));
+                    }
+                    else
+                    {
+                        return NodeJSAgent.GetStorageContext(StorageAccount.ToString(true));
+                    }
                 });
         }
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromBlob2SASFile()
         {
             CopyFromBlob2SASFile((sourceContainer) =>
+            {
+                if (lang == Language.PowerShell)
                 {
                     PowerShellAgent.SetStorageContext(StorageAccount.ToString(true));
-                });
+                }
+                else
+                {
+                    NodeJSAgent.SetStorageContext(StorageAccount.ToString(true));
+                };
+            });
 
             CopyFromBlob2SASFile((sourceContainer) =>
             {
@@ -134,27 +169,37 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         public void CopyFromBlob2File()
         {
             CopyFromBlob2File((sourceContainer) =>
+            {
+                string sasToken = sourceContainer.GetSharedAccessSignature(new SharedAccessBlobPolicy()
                 {
-                    string sasToken = sourceContainer.GetSharedAccessSignature(new SharedAccessBlobPolicy()
-                    {
-                        Permissions = SharedAccessBlobPermissions.Read,
-                        SharedAccessExpiryTime = DateTimeOffset.UtcNow.AddHours(1)
-                    });
-
-                    this.agent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sasToken);
+                    Permissions = SharedAccessBlobPermissions.Read,
+                    SharedAccessExpiryTime = DateTimeOffset.UtcNow.AddHours(1)
                 });
+
+                this.agent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sasToken);
+            });
 
             CopyFromBlob2File((sourceContainer) =>
             {
                 var permissions = sourceContainer.GetPermissions();
                 permissions.PublicAccess = BlobContainerPublicAccessType.Blob;
 
-                PowerShellAgent.SetAnonymousStorageContext(StorageAccount.Credentials.AccountName, false);
+                if (lang == Language.PowerShell)
+                {
+                    PowerShellAgent.SetAnonymousStorageContext(StorageAccount.Credentials.AccountName, false);
+                }
+                else
+                {
+                    Agent.Context = null;
+                }
             });
         }
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void StartCopyFromNonPublicUriCrossAccount()
         {
             string shareName = Utility.GenNameString("share");
@@ -168,7 +213,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string fileName = Utility.GenNameString("fileName");
                 StorageFile.CloudFile sourceFile = fileUtil2.CreateFile(share, fileName);
 
-                Test.Assert(!agent.StartFileCopy(sourceFile.Uri.ToString(), destShareName, fileName, PowerShellAgent.Context), "Copy from non public non sas uri should fail.");
+                Test.Assert(!agent.StartFileCopy(sourceFile.Uri.ToString(), destShareName, fileName, Agent.Context), "Copy from non public non sas uri should fail.");
                 ExpectedContainErrorMessage("The specified resource does not exist.");
             }
             finally
@@ -180,6 +225,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void StartCopyFromInvalidContext()
         {
             string destShareName = Utility.GenNameString("destshare");
@@ -192,7 +240,15 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             {
                 StorageFile.CloudFile sourceFile = fileUtil.CreateFile(sourceShare.GetRootDirectoryReference(), Utility.GenNameString("SourceFile"));
 
-                object destContext = PowerShellAgent.GetStorageContext(StorageAccount.ToString(true));
+                object destContext;
+                if (lang == Language.PowerShell)
+                {
+                    destContext = PowerShellAgent.GetStorageContext(StorageAccount.ToString(true));
+                }
+                else
+                {
+                    destContext = NodeJSAgent.GetStorageContext(StorageAccount.ToString(true));
+                }
 
                 string sasToken = sourceShare.GetSharedAccessSignature(new SharedAccessFilePolicy()
                 {
@@ -202,7 +258,8 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 this.agent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sasToken);
 
-                Test.Assert(!agent.StartFileCopyFromFile(sourceShareName, sourceFile.Name, destShareName, null, destContext), "Copy to file with invalid sas token credential should fail.");
+                string destFileName = Utility.GenNameString("destfile");
+                Test.Assert(!agent.StartFileCopyFromFile(sourceShareName, sourceFile.Name, destShareName, destFileName, destContext), "Copy to file with invalid sas token credential should fail.");
                 ExpectedContainErrorMessage("The specified resource does not exist.");
             }
             finally
@@ -214,6 +271,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void GetCopyStateWithSAS()
         {
             string destShareName = Utility.GenNameString("destshare");
@@ -224,7 +284,15 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string fileName = Utility.GenNameString("DestFile");
                 StorageFile.CloudFile destFile = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), fileName);
 
-                object destContext = PowerShellAgent.GetStorageContext(StorageAccount.ToString(true));
+                object destContext;
+                if (lang == Language.PowerShell)
+                {
+                    destContext = PowerShellAgent.GetStorageContext(StorageAccount.ToString(true));
+                }
+                else
+                {
+                    destContext = NodeJSAgent.GetStorageContext(StorageAccount.ToString(true));
+                }
 
                 string bigBlobUri = Test.Data.Get("BigBlobUri");
 
@@ -238,8 +306,8 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 this.agent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sasToken);
 
-                Test.Assert(agent.GetFileCopyState(destShareName, fileName), "Get copy state with sas token should succeed.");
-                
+                Test.Assert(agent.GetFileCopyState(destShareName, fileName, destContext), "Get copy state with sas token should succeed.");
+
                 Test.Assert(agent.StopFileCopy(destFile, null), "Stop file copy should succeed.");
             }
             finally
@@ -259,7 +327,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                         SharedAccessExpiryTime = DateTimeOffset.UtcNow.AddHours(1)
                     });
 
-                    return PowerShellAgent.GetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, destSasToken);
+                    return this.agent.GetStorageContextWithSASToken(StorageAccount, destSasToken);
                 });
         }
 
@@ -274,16 +342,17 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             try
             {
                 StorageFile.CloudFile sourceFile = fileUtil.CreateFile(sourceShare.GetRootDirectoryReference(), Utility.GenNameString("SourceFile"));
-                
+
                 object destContext = getDestContext(destShare);
 
                 SetSourceContext(sourceShare);
 
-                Test.Assert(agent.StartFileCopyFromFile(sourceShareName, sourceFile.Name, destShareName, null, destContext), "Copy to file with sas token credential should succeed.");
+                string destFileName = Utility.GenNameString("destfile");
+                Test.Assert(agent.StartFileCopyFromFile(sourceShareName, sourceFile.Name, destShareName, destFileName, destContext), "Copy to file with sas token credential should succeed.");
 
                 var destFile = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), sourceFile.Name);
 
-                Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
+                Test.Assert(agent.GetFileCopyState(destFile, destContext, true), "Get file copy state should succeed.");
 
                 CloudFileUtil.ValidateCopyResult(sourceFile, destFile);
             }
@@ -312,7 +381,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     SharedAccessExpiryTime = DateTimeOffset.UtcNow.AddHours(1)
                 });
 
-                object destContext = PowerShellAgent.GetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, destSasToken);
+                object destContext = this.agent.GetStorageContextWithSASToken(StorageAccount, destSasToken);
 
                 SetSourceContext(container);
 
@@ -340,15 +409,24 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             {
                 CloudBlob sourceBlob = blobUtil.CreateRandomBlob(container, Utility.GenNameString("BlobName"));
 
-                object destContext = PowerShellAgent.GetStorageContext(StorageAccount.ToString(true));
+                object destContext;
+                if (lang == Language.PowerShell)
+                {
+                    destContext = PowerShellAgent.GetStorageContext(StorageAccount.ToString(true));
+                }
+                else
+                {
+                    destContext = NodeJSAgent.GetStorageContext(StorageAccount.ToString(true));
+                }
 
                 SetSourceContext(container);
 
-                Test.Assert(agent.StartFileCopyFromBlob(sourceContainerName, sourceBlob.Name, destShareName, null, destContext), "Copy to file with sas token credential should succeed.");
+                string destFileName = Utility.GenNameString("destfile");
+                Test.Assert(agent.StartFileCopyFromBlob(sourceContainerName, sourceBlob.Name, destShareName, destFileName, destContext), "Copy to file with sas token credential should succeed.");
 
                 var destFile = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), sourceBlob.Name);
 
-                Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
+                Test.Assert(agent.GetFileCopyState(destFile, destContext, true), "Get file copy state should succeed.");
 
                 CloudFileUtil.ValidateCopyResult(sourceBlob, destFile);
 
