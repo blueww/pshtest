@@ -23,6 +23,7 @@ namespace Management.Storage.ScenarioTest
     using System.Security;
     using System.Security.Cryptography.X509Certificates;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Threading;
     using Management.Storage.ScenarioTest.Util;
     using Microsoft.Azure;
@@ -931,12 +932,7 @@ namespace Management.Storage.ScenarioTest
 
         public static string SqueezeSpaces(string value)
         {
-            while (value.IndexOf("  ") != -1)
-            {
-                value = value.Replace("  ", " ");
-            }
-
-            return value;
+            return Regex.Replace(value, "\\s{2,}", " ");
         }
 
         /// <summary>
@@ -1152,7 +1148,7 @@ namespace Management.Storage.ScenarioTest
             }
 
             object[] parameter = { permissionTmp };
-            var permission = typeof(T).GetMethod("PermissionsFromString").Invoke(null, parameter);
+            var permission = permissionTmp != null ? typeof(T).GetMethod("PermissionsFromString").Invoke(null, parameter) : null;
             bool equal = IsEqualTime(((dynamic)actualPolicy).SharedAccessStartTime, expectedPolicy.StartTime);
             equal = equal && IsEqualTime(((dynamic)actualPolicy).SharedAccessExpiryTime, expectedPolicy.ExpiryTime);
             return equal && ((dynamic)actualPolicy).Permissions.Equals(permission);
