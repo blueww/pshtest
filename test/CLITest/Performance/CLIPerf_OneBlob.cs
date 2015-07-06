@@ -191,8 +191,6 @@ namespace Management.Storage.ScenarioTest
         [Timeout(14400000)]
         public void UploadHttpAppend()
         {
-            BlobHelper.CleanupContainer(ContainerName);
-            GenerateTestFiles();
             var o = new AppendBlobUploadOperation(this.agent, BlobHelper);
             Run(o);
         }
@@ -213,12 +211,10 @@ namespace Management.Storage.ScenarioTest
         [Timeout(144000000)]
         public void UploadHttpAppend_Max()
         {
-            BlobHelper.CleanupContainer(ContainerName);
-
             //put the generating files here, because it will cost a few hours to generate very big files
             var o = new AppendBlobUploadOperation(this.agent, BlobHelper);
             GenerateTestFiles_Max(o);
-            Run(o, true);
+            Run(o, max: true);
         }
 
         [TestMethod]
@@ -228,7 +224,7 @@ namespace Management.Storage.ScenarioTest
         public void DownloadHttpAppend_Max()
         {
             var o = new AppendBlobDownloadOperation(this.agent, BlobHelper);
-            Run(o, true);
+            Run(o, max: true);
         }
 
         #endregion
