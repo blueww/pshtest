@@ -187,32 +187,32 @@
         public void SetLoggingRetentionDay()
         {
             //Blob service
-            CloudBlobClient blobClient = StorageAccount.CreateCloudBlobClient();
-            GenericSetLoggingRetentionDays(ServiceType.Blob, () => blobClient.GetServiceProperties());
+            GenericSetLoggingRetentionDays(ServiceType.Blob, 
+                (retentionDays, loggingOperations) => Utility.WaitForLoggingPropertyTakingEffect(StorageAccount, ServiceType.Blob, retentionDays, loggingOperations));
 
             //Queue service
-            CloudQueueClient queueClient = StorageAccount.CreateCloudQueueClient();
-            GenericSetLoggingRetentionDays(ServiceType.Queue, () => queueClient.GetServiceProperties());
+            GenericSetLoggingRetentionDays(ServiceType.Queue,
+                (retentionDays, loggingOperations) => Utility.WaitForLoggingPropertyTakingEffect(StorageAccount, ServiceType.Queue, retentionDays, loggingOperations));
 
             //Table service
-            CloudTableClient tableClient = StorageAccount.CreateCloudTableClient();
-            GenericSetLoggingRetentionDays(ServiceType.Table, () => tableClient.GetServiceProperties());
+            GenericSetLoggingRetentionDays(ServiceType.Table, 
+                (retentionDays, loggingOperations) => Utility.WaitForLoggingPropertyTakingEffect(StorageAccount, ServiceType.Table, retentionDays, loggingOperations));
         }
 
-        internal void GenericSetLoggingRetentionDays(ServiceType serviceType, Func<ServiceProperties> getServiceProperties)
+        internal void GenericSetLoggingRetentionDays(ServiceType serviceType, GetLoggingProperty<ServiceProperties> getServiceProperties)
         {
             Test.Info("Set service logging retention days for {0}", serviceType);
             // valid values for RetentionDay
             int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
             Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Set service logging retention days should succeed");
-            ServiceProperties retrievedProperties = getServiceProperties();
+            ServiceProperties retrievedProperties = getServiceProperties(retentionDays, LoggingOperations.None.ToString());
             ExpectEqual(retentionDays, retrievedProperties.Logging.RetentionDays.Value, "Logging retention days");
 
             if (lang == Language.PowerShell)
             {
                 retentionDays = -1;
                 Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Set service logging retention days should succeed");
-                retrievedProperties = getServiceProperties();
+                retrievedProperties = getServiceProperties(retentionDays, LoggingOperations.None.ToString());
                 Test.Assert(!retrievedProperties.Logging.RetentionDays.HasValue, "Service logging retention days should be null");
 
                 // invalid values for RetentionDay
