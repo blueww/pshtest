@@ -318,7 +318,7 @@ namespace Management.Storage.ScenarioTest
             }
 
             if (!string.IsNullOrEmpty(endpoint))
-            { 
+            {
                 ps.BindParameter("Endpoint", endpoint);
             }
 
@@ -337,6 +337,7 @@ namespace Management.Storage.ScenarioTest
                     if (member.Name.Equals("Context"))
                     {
                         AgentContext = member.Value;
+                        Agent.Context = AgentContext;
                         return;
                     }
                 }
@@ -391,8 +392,9 @@ namespace Management.Storage.ScenarioTest
             return null;
         }
 
-        internal static object GetStorageContextWithSASToken(string accountName, string sasToken, string endpoint = null, bool useHttps = false)
-        {   
+        public override object GetStorageContextWithSASToken(CloudStorageAccount account, string sasToken, string endpoint = null, bool useHttps = false)
+        {
+            string accountName = account.Credentials.AccountName;
             PowerShell ps = PowerShell.Create(_InitState);
             ps.AddCommand("New-AzureStorageContext");
             ps.BindParameter("StorageAccountName", accountName);
@@ -408,7 +410,7 @@ namespace Management.Storage.ScenarioTest
             }
 
             if (!string.IsNullOrEmpty(endpoint))
-            { 
+            {
                 ps.BindParameter("Endpoint", endpoint);
             }
 
@@ -445,7 +447,7 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = GetPowerShellInstance();
             ps.AddCommand("Import-AzurePublishSettingsFile");
             ps.BindParameter("PublishSettingsFile", settingPath);
-            
+
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
 
             ParseContainerCollection(ps.Invoke());
@@ -1436,7 +1438,7 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps);
         }
 
-        
+
         public override bool NewAzureStorageTableStoredAccessPolicy(string tableName, string policyName, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null)
         {
@@ -1857,7 +1859,7 @@ namespace Management.Storage.ScenarioTest
             return InvokePowerShellWithoutContext(ps);
         }
 
-        public override bool GetFileCopyState(string shareName, string filePath, bool waitForComplete = false)
+        public override bool GetFileCopyState(string shareName, string filePath, object context, bool waitForComplete = false)
         {
             PowerShell ps = GetPowerShellInstance();
 
@@ -1870,7 +1872,7 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps);
         }
 
-        public override bool GetFileCopyState(CloudFile file, bool waitForComplete = false)
+        public override bool GetFileCopyState(CloudFile file, object context, bool waitForComplete = false)
         {
             PowerShell ps = GetPowerShellInstance();
 
@@ -1887,7 +1889,7 @@ namespace Management.Storage.ScenarioTest
         public override bool StopFileCopy(string shareName, string filePath, string copyId, bool force = true)
         {
             PowerShell ps = GetPowerShellInstance();
-            
+
             ps.AddCommand("Stop-AzureStorageFileCopy");
             ps.BindParameter("ShareName", shareName);
             ps.BindParameter("FilePath", filePath);
@@ -3290,7 +3292,7 @@ namespace Management.Storage.ScenarioTest
             this.shell.BindParameter("ExpiryTime", expiryTime);
 
             AddCommonParameters(this.shell);
-            
+
             ParseCollection(this.shell.Invoke());
             ParseErrorMessages(this.shell);
 
@@ -3416,7 +3418,7 @@ namespace Management.Storage.ScenarioTest
             this.shell.BindParameter("File", file);
 
             this.AddSASTokenParameter(policyName, permissions, startTime, expiryTime, fulluri);
-            
+
             return InvokePowerShellWithoutContext(this.shell);
         }
 
@@ -3496,7 +3498,7 @@ namespace Management.Storage.ScenarioTest
             this.shell.AddCommand("Set-AzureStorageShareQuota");
             this.shell.BindParameter("Share", share);
             this.shell.BindParameter("Quota", quota);
-            
+
             return InvokePowerShellWithoutContext(this.shell);
         }
 
@@ -3560,7 +3562,7 @@ namespace Management.Storage.ScenarioTest
         public override bool Login()
         {
             string password = Test.Data.Get("AADPassword");
-            
+
             SecureString securePassword = null;
 
             unsafe
@@ -3767,9 +3769,9 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("Name", accountName);
             ps.BindParameter("Type", type);
             ps.BindParameter("Location", location);
-            
+
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
-            
+
             return InvokePowerShellWithoutContext(ps);
         }
 
@@ -3781,7 +3783,7 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
             ps.BindParameter("Type", accountType);
-            
+
             return InvokePowerShellWithoutContext(ps);
         }
 
@@ -3825,7 +3827,7 @@ namespace Management.Storage.ScenarioTest
             ps.AddCommand("New-AzureStorageAccountKey");
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
-            
+
             if (Constants.AccountKeyType.Primary == type)
             {
                 ps.BindParameter("KeyName", "key1");

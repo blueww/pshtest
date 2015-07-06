@@ -46,6 +46,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyToExistFile()
         {
             string filePath = Utility.GenNameString("folder") + "/" + Utility.GenNameString("folder") + "/" + Utility.GenNameString("fileName");
@@ -56,13 +59,19 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromRootContainer()
-        { 
+        {
             CopyFromBlob("$root", null, null);
         }
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromBlobSnapshot()
         {
             CloudBlobContainer container = blobUtil.CreateContainer();
@@ -79,17 +88,23 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromBlobWithLongName()
         {
             string containerName = Utility.GenNameString("container");
             string blobName = this.GetDeepestFilePath();
-            object context = PowerShellAgent.Context ?? TestBase.StorageAccount;
+            object context = Agent.Context ?? TestBase.StorageAccount;
 
             this.CopyFromBlob(containerName, blobName, null);
         }
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromBlobWithSpecialChar()
         {
             string containerName = Utility.GenNameString("container");
@@ -103,6 +118,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromBlobCrossAccount()
         {
             string containerName = Utility.GenNameString("container");
@@ -133,6 +151,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromFileCrossAccount()
         {
             this.CopyFromFile(Utility.GenNameString("sourcefile"), Utility.GenNameString("destfile"), false, true);
@@ -155,7 +176,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     {
                         Test.Assert(agent.StartFileCopy(srcFile, destShareName, destFilePath, Agent.SecondaryContext), "Start copy from file to file should succeed.");
 
-                        Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
+                        Test.Assert(agent.GetFileCopyState(destFile, Agent.SecondaryContext, true), "Get file copy state should succeed.");
                     }, false, true);
 
                 srcFileName = Utility.GenNameString("sourcefile");
@@ -171,7 +192,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     {
                         Test.Assert(agent.StartFileCopy(srcFile, destFile), "Start copy from file to file should succeed.");
 
-                        Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
+                        Test.Assert(agent.GetFileCopyState(destFile, Agent.SecondaryContext, true), "Get file copy state should succeed.");
                     }, false, true);
             }
             finally
@@ -182,6 +203,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromFileInDeepestDir()
         {
             string shareName = Utility.GenNameString("share");
@@ -207,7 +231,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     {
                         Test.Assert(agent.StartFileCopy(srcFile.Parent, srcFile.Name, destShareName, destFilePath, destContext), "Start copy from file to file should succeed.");
 
-                        Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
+                        Test.Assert(agent.GetFileCopyState(destFile, destContext, true), "Get file copy state should succeed.");
                     }, false, toSecondaryAccout);
 
                 destShareName = Utility.GenNameString("destshare");
@@ -221,7 +245,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     {
                         Test.Assert(agent.StartFileCopyFromFile(shareName, srcFileName, destShareName, destFilePath, destContext), "Start copy from file to file should succeed.");
 
-                        Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
+                        Test.Assert(agent.GetFileCopyState(destFile, destContext, true), "Get file copy state should succeed.");
                     }, false, toSecondaryAccout);
             }
             finally
@@ -232,6 +256,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyToFileInDeepestDir()
         {
             string shareName = Utility.GenNameString("share");
@@ -252,9 +279,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 this.CopyToFile(srcFile, destShareName, destFilePath,
                     () =>
                     {
-                        Test.Assert(agent.StartFileCopy(srcFile, destShareName, destFilePath, PowerShellAgent.Context), "Start copy from file to file should succeed.");
+                        Test.Assert(agent.StartFileCopy(srcFile, destShareName, destFilePath, Agent.Context), "Start copy from file to file should succeed.");
 
-                        Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
+                        Test.Assert(agent.GetFileCopyState(destFile, Agent.Context, true), "Get file copy state should succeed.");
                     }, false, false);
             }
             finally
@@ -281,11 +308,11 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageBlob -Container {0}", containerName));
 
-                Test.Assert(agent.StartFileCopy(blob: null, shareName: shareName, filePath: null, destContext: PowerShellAgent.Context), "Start file copy should succeed.");
+                Test.Assert(agent.StartFileCopy(blob: null, shareName: shareName, filePath: null, destContext: Agent.Context), "Start file copy should succeed.");
 
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageFile -ShareName {0}", shareName));
 
-                Test.Assert(agent.GetFileCopyState(file:null, waitForComplete: true), "Get file copy state should succeed.");
+                Test.Assert(agent.GetFileCopyState(file: null, context: Agent.Context, waitForComplete: true), "Get file copy state should succeed.");
 
                 foreach (CloudBlob blob in blobs)
                 {
@@ -325,11 +352,11 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageFile -ShareName {0}", srcShareName));
 
-                Test.Assert(agent.StartFileCopy(blob: null, shareName: destShareName, filePath: null, destContext: PowerShellAgent.Context), "Start file copy should succeed.");
+                Test.Assert(agent.StartFileCopy(blob: null, shareName: destShareName, filePath: null, destContext: Agent.Context), "Start file copy should succeed.");
 
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageFile -ShareName {0}", destShareName));
 
-                Test.Assert(agent.GetFileCopyState(file: null, waitForComplete: true), "Get file copy state should succeed.");
+                Test.Assert(agent.GetFileCopyState(file: null, context: Agent.Context, waitForComplete: true), "Get file copy state should succeed.");
 
                 foreach (var file in files)
                 {
@@ -345,6 +372,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromBlobSnapshotWithTooLongName()
         {
             CloudBlobContainer container = blobUtil.CreateContainer();
@@ -357,6 +387,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromBlobWithTooLongNameAndSpecialChar()
         {
             CloudBlobContainer container = blobUtil.CreateContainer();
@@ -369,6 +402,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void CopyToTheSameFile()
         {
             string shareName = Utility.GenNameString("share");
@@ -379,7 +415,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string fileName = Utility.GenNameString("fileName");
                 StorageFile.CloudFile file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
 
-                Test.Assert(agent.StartFileCopyFromFile(share.Name, fileName, share.Name, fileName, PowerShellAgent.Context),
+                Test.Assert(agent.StartFileCopyFromFile(share.Name, fileName, share.Name, fileName, Agent.Context),
                     "Starting async copying from file to the same file should succeed.");
 
             }
@@ -391,6 +427,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StartCopyFile)]
         public void StartFileAsyncCopyNegativeCases()
         {
             string shareName = Utility.GenNameString("share");
@@ -401,52 +440,77 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string fileName = Utility.GenNameString("fileName");
 
                 // From invalid container name
-                Test.Assert(!agent.StartFileCopyFromBlob("CONTAINER", fileName, share.Name, fileName, PowerShellAgent.Context),
+                Test.Assert(!agent.StartFileCopyFromBlob("CONTAINER", fileName, share.Name, fileName, Agent.Context),
                     "Starting async copying from invalid container name should fail.");
 
-                ExpectedContainErrorMessage("Container name 'CONTAINER' is invalid");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Container name 'CONTAINER' is invalid");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Container name format is incorrect");
+                }
 
                 // From invalid share name
-                Test.Assert(!agent.StartFileCopyFromFile("SHARE", fileName, share.Name, fileName, PowerShellAgent.Context),
+                Test.Assert(!agent.StartFileCopyFromFile("SHARE", fileName, share.Name, fileName, Agent.Context),
                     "Starting async copying from invalid share name should fail.");
 
-                ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Share name format is incorrect");
+                }
 
                 // To invalid share name
-                Test.Assert(!agent.StartFileCopyFromFile(share.Name, fileName, "SHARE", fileName, PowerShellAgent.Context),
+                Test.Assert(!agent.StartFileCopyFromFile(share.Name, fileName, "SHARE", fileName, Agent.Context),
                     "Starting async copying to invalid share name should fail.");
 
-                ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Share name format is incorrect");
+                }
 
-                // From null blob instance
-                Test.Assert(!agent.StartFileCopy(blob: null, shareName: shareName, filePath: fileName, destContext: PowerShellAgent.Context),
-                    "Starting async copying from null blob instance should fail.");
+                if (lang == Language.PowerShell)
+                {
+                    // From null blob instance
+                    Test.Assert(!agent.StartFileCopy(blob: null, shareName: shareName, filePath: fileName, destContext: Agent.Context),
+                        "Starting async copying from null blob instance should fail.");
 
-                ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters.");
+                    ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters.");
 
-                // From null file instance
-                Test.Assert(!agent.StartFileCopy(srcFile: null, shareName: shareName, filePath: fileName, destContext: PowerShellAgent.Context),
-                    "Starting async copying from null file instance should fail.");
+                    // From null file instance
+                    Test.Assert(!agent.StartFileCopy(srcFile: null, shareName: shareName, filePath: fileName, destContext: Agent.Context),
+                        "Starting async copying from null file instance should fail.");
 
-                ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters.");
+                    ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters.");
+                }
 
                 // From non-exist share
                 string nonExistShareName = Utility.GenNameString("sharename");
                 fileUtil.DeleteFileShareIfExists(nonExistShareName);
-                Test.Assert(!agent.StartFileCopyFromFile(nonExistShareName, fileName, shareName, null, PowerShellAgent.Context),
+                Test.Assert(!agent.StartFileCopyFromFile(nonExistShareName, fileName, shareName, fileName, Agent.Context),
                     "Starting async copying from non-exist file should fail.");
 
                 ExpectedContainErrorMessage("The specified share does not exist");
 
                 // From non-exist file
-                Test.Assert(!agent.StartFileCopyFromFile(shareName, fileName, shareName, null, PowerShellAgent.Context),
+                string nonExistFileName = Utility.GenNameString("filename");
+                Test.Assert(!agent.StartFileCopyFromFile(shareName, fileName, shareName, nonExistFileName, Agent.Context),
                     "Starting async copying from non-exist file should fail.");
 
                 ExpectedContainErrorMessage("The specified resource does not exist");
 
                 // From non-exist directory
                 CloudFileDirectory dir = share.GetRootDirectoryReference().GetDirectoryReference("nonexist");
-                Test.Assert(!agent.StartFileCopy(dir, fileName, shareName, null, PowerShellAgent.Context),
+                Test.Assert(!agent.StartFileCopy(dir, fileName, shareName, fileName, Agent.Context),
                     "Starting async copying from non-exist directory should fail.");
 
                 ExpectedContainErrorMessage("The specified parent path does not exist");
@@ -455,7 +519,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string containerName = Utility.GenNameString("container");
                 blobUtil.RemoveContainer(containerName);
 
-                Test.Assert(!agent.StartFileCopyFromBlob(containerName, fileName, shareName, null, PowerShellAgent.Context),
+                Test.Assert(!agent.StartFileCopyFromBlob(containerName, fileName, shareName, fileName, Agent.Context),
                     "Starting async copying from non-exist container should fail.");
 
                 ExpectedContainErrorMessage("The specified container does not exist.");
@@ -464,7 +528,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 try
                 {
                     CloudBlobContainer container = blobUtil.CreateContainer(containerName);
-                    Test.Assert(!agent.StartFileCopyFromBlob(containerName, fileName, shareName, null, PowerShellAgent.Context),
+                    Test.Assert(!agent.StartFileCopyFromBlob(containerName, fileName, shareName, fileName, Agent.Context),
                         "Starting async copying from non-exist blob should fail.");
 
                     ExpectedContainErrorMessage("The specified blob does not exist.");
@@ -474,12 +538,15 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     blobUtil.RemoveContainer(containerName);
                 }
 
-                // To null file instance
                 StorageFile.CloudFile file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
-                Test.Assert(!agent.StartFileCopy(file, null),
-                    "Starting async copying to null file instance should fail.");
+                if (lang == Language.PowerShell)
+                {
+                    // To null file instance
+                    Test.Assert(!agent.StartFileCopy(file, null),
+                        "Starting async copying to null file instance should fail.");
 
-                ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters.");
+                    ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters.");
+                }
 
                 // Copy to file with pending copying
                 string destFileName = Utility.GenNameString("destFileName");
@@ -494,12 +561,19 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 ExpectedContainErrorMessage("There is currently a pending copy operation.");
 
-                Test.Assert(agent.StopFileCopy(destFile, null), "Stop copying to a file should succeed.");
+                Test.Assert(agent.StopFileCopy(destFile, destFile.CopyState.CopyId), "Stop copying to a file should succeed.");
 
                 //Test.Assert(!agent.StartFileCopy("http://www.bing.com", destFile), "Start copying from invalid Uri should fail.");
 
                 Test.Assert(!agent.StartFileCopy("invalidUri", destFile), "Start copying from invalid Uri should fail.");
-                ExpectedContainErrorMessage("The format of the URI could not be determined.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The format of the URI could not be determined.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("The value for one of the HTTP headers is not in the correct format");
+                }
             }
             finally
             {
@@ -509,6 +583,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.GetFileCopyState)]
         public void GetStateOnPendingCopyFromBlobTest()
         {
             this.GetStateOnPendingCopy(Test.Data.Get("BigBlobUri"));
@@ -516,6 +593,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.GetFileCopyState)]
         public void GetStateOnPendingCopyFromFileTest()
         {
             this.GetStateOnPendingCopy(Test.Data.Get("BigAzureFileUri"));
@@ -523,6 +603,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.GetFileCopyState)]
         public void GetStateOnFinishedCopyTest()
         {
             string shareName = Utility.GenNameString("share");
@@ -552,13 +635,13 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 DateTimeOffset beginTime = DateTimeOffset.UtcNow;
 
-                Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed.");
+                Test.Assert(agent.GetFileCopyState(destFile, Agent.Context, true), "Get file copy state should succeed.");
 
                 DateTimeOffset endTime = DateTimeOffset.UtcNow;
 
                 Test.Assert(beginTime - endTime < TimeSpan.FromSeconds(2), "Get file copy state should finish immediately.");
 
-                Utility.VerifyCopyState(destFile.CopyState, agent.Output[0][PowerShellAgent.BaseObject] as CopyState);
+                Utility.VerifyCopyState(destFile.CopyState, Utility.GetCopyState(agent, lang));
             }
             finally
             {
@@ -568,10 +651,21 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.GetFileCopyState)]
         public void GetCopyOnDeepestDirCrossAccountTest()
         {
             CloudStorageAccount srcAccount = TestBase.GetCloudStorageAccountFromConfig("Secondary");
-            object srcContext = PowerShellAgent.GetStorageContext(srcAccount.ToString());
+            object srcContext;
+            if (lang == Language.PowerShell)
+            {
+                srcContext = PowerShellAgent.GetStorageContext(srcAccount.ToString());
+            }
+            else
+            {
+                srcContext = srcAccount;
+            }
             CloudFileUtil srcFileUtil = new CloudFileUtil(srcAccount);
 
             string srcShareName = Utility.GenNameString("srcshare");
@@ -587,14 +681,14 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 fileUtil.CreateFileFolders(destShare, filePath);
 
-                Test.Assert(agent.StartFileCopy(srcFile, destShare.Name, null, PowerShellAgent.Context), "Start copying from file should succeed.");
+                Test.Assert(agent.StartFileCopy(srcFile, destShare.Name, filePath, Agent.Context), "Start copying from file should succeed.");
 
-                Test.Assert(agent.GetFileCopyState(destShareName, filePath, true), "Monitoring copy state of file should succeed.");
+                Test.Assert(agent.GetFileCopyState(destShareName, filePath, Agent.Context, true), "Monitoring copy state of file should succeed.");
 
                 var destFile = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), filePath);
                 destFile.FetchAttributes();
 
-                Utility.VerifyCopyState(destFile.CopyState, agent.Output[0][PowerShellAgent.BaseObject] as CopyState);
+                Utility.VerifyCopyState(destFile.CopyState, Utility.GetCopyState(agent, lang));
             }
             finally
             {
@@ -605,21 +699,42 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.GetFileCopyState)]
         public void GetCopyStateNegativeCases()
         {
-            Test.Assert(!agent.GetFileCopyState("SHARE", Utility.GenNameString("fileName")), "Get file copy state should fail.");
-            ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service.");
+            Test.Assert(!agent.GetFileCopyState("SHARE", Utility.GenNameString("fileName"), Agent.Context), "Get file copy state should fail.");
+
+            if (lang == Language.PowerShell)
+            {
+                ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service.");
+            }
+            else
+            {
+                ExpectedContainErrorMessage("Share name format is incorrect");
+            }
 
             string shareName = Utility.GenNameString("share");
             CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
 
             try
             {
-                Test.Assert(!agent.GetFileCopyState(shareName, "file???"), "Get file copy state with invalid file name should fail.");
-                ExpectedContainErrorMessage("The given path/prefix 'file???' is not a valid name for a file or directory or does match the requirement for Microsoft Azure File Service REST API.");
+                Test.Assert(!agent.GetFileCopyState(shareName, "file???", Agent.Context), "Get file copy state with invalid file name should fail.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The given path/prefix 'file???' is not a valid name for a file or directory or does match the requirement for Microsoft Azure File Service REST API.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("BadRequest");
+                }
 
-                Test.Assert(!agent.GetFileCopyState(file: null), "Get file copy state with null file instance should fail.");
-                ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters");
+                if (lang == Language.PowerShell)
+                {
+                    Test.Assert(!agent.GetFileCopyState(file: null, context: Agent.Context), "Get file copy state with null file instance should fail.");
+                    ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters");
+                }
             }
             finally
             {
@@ -643,7 +758,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageBlob -Container {0}", container.Name));
 
-                Test.Assert(agent.StartFileCopy(blob: null, shareName: shareName, filePath: null, destContext: PowerShellAgent.Context), "Start file copy should succeed.");
+                Test.Assert(agent.StartFileCopy(blob: null, shareName: shareName, filePath: null, destContext: Agent.Context), "Start file copy should succeed.");
 
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageFile -ShareName {0}", shareName));
                 Test.Assert(agent.StopFileCopy(file: null, copyId: null), "Stop file copy should succeed.");
@@ -668,10 +783,21 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StopCopyFile)]
         public void StopFileCopyOnDeepestDirCrossAccountTest()
         {
             CloudStorageAccount srcAccount = TestBase.GetCloudStorageAccountFromConfig("Secondary");
-            object srcContext = PowerShellAgent.GetStorageContext(srcAccount.ToString());
+            object srcContext;
+            if (lang == Language.PowerShell)
+            {
+                srcContext = PowerShellAgent.GetStorageContext(srcAccount.ToString());
+            }
+            else
+            {
+                srcContext = srcAccount;
+            }
             CloudBlobUtil srcBlobUtil = new CloudBlobUtil(srcAccount);
 
             string srcContainerName = Utility.GenNameString("srccontainer");
@@ -688,9 +814,15 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string filePath = fileUtil.ResolveFileName(srcBlob);
                 fileUtil.CreateFileFolders(destShare, filePath);
 
-                Test.Assert(agent.StartFileCopy(srcBlob, destShareName, null, PowerShellAgent.Context), "Start copying from blob cross account should succeed.");
+                Test.Assert(agent.StartFileCopy(srcBlob, destShareName, filePath, Agent.Context), "Start copying from blob cross account should succeed.");
 
-                Test.Assert(agent.StopFileCopy(destShareName, filePath, null), "Stop copying on deepest file path file should succeed.");
+                string copyId = null;
+                if (lang == Language.NodeJS)
+                {
+                    copyId = agent.Output[0]["copyId"] as string;
+                }
+
+                Test.Assert(agent.StopFileCopy(destShareName, filePath, copyId), "Stop copying on deepest file path file should succeed.");
 
                 var file = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), filePath);
                 file.FetchAttributes();
@@ -705,10 +837,21 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StopCopyFile)]
         public void StopWithCopyIdTest()
         {
             CloudStorageAccount srcAccount = TestBase.GetCloudStorageAccountFromConfig("Secondary");
-            object srcContext = PowerShellAgent.GetStorageContext(srcAccount.ToString());
+            object srcContext;
+            if (lang == Language.PowerShell)
+            {
+                srcContext = PowerShellAgent.GetStorageContext(srcAccount.ToString());
+            }
+            else
+            {
+                srcContext = srcAccount;
+            }
             CloudBlobUtil srcBlobUtil = new CloudBlobUtil(srcAccount);
 
             string srcContainerName = Utility.GenNameString("srccontainer");
@@ -720,27 +863,28 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             try
             {
                 string filePath = Utility.GenNameString("fileName");
+                string destFilePath = Utility.GenNameString("fileName");
                 CloudBlob srcBlob = srcBlobUtil.CreateBlockBlob(srcContainer, filePath, createBigBlob: true);
 
-                Test.Assert(agent.StartFileCopy(srcBlob, destShareName, null, PowerShellAgent.Context), "Start copying from blob cross account should succeed.");
+                Test.Assert(agent.StartFileCopy(srcBlob, destShareName, destFilePath, Agent.Context), "Start copying from blob cross account should succeed.");
 
-                var file = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), filePath);
-
-                file.FetchAttributes();
-
-                Test.Assert(agent.StopFileCopy(destShareName, filePath, file.CopyState.CopyId, false), "Stop copying with copy id should succeed.");
+                var file = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), destFilePath);
 
                 file.FetchAttributes();
 
-                Test.Assert(CopyStatus.Aborted == file.CopyState.Status, "File copy status should be aborted, actual it's {0}", file.CopyState.Status);
+                Test.Assert(agent.StopFileCopy(destShareName, destFilePath, file.CopyState.CopyId, false), "Stop copying with copy id should succeed.");
 
-                Test.Assert(agent.StartFileCopy(srcBlob, destShareName, null, PowerShellAgent.Context), "Start copying from blob to file should succeed.");
-
-                Test.Assert(agent.StopFileCopy(destShareName, filePath, Guid.NewGuid().ToString()), "Stop copying with unmatched copy id and force should succeed.");
-                
                 file.FetchAttributes();
 
                 Test.Assert(CopyStatus.Aborted == file.CopyState.Status, "File copy status should be aborted, actual it's {0}", file.CopyState.Status);
+
+                if (lang == Language.PowerShell)
+                {
+                    Test.Assert(agent.StartFileCopy(srcBlob, destShareName, destFilePath, Agent.Context), "Start copying from blob to file should succeed.");
+                    Test.Assert(agent.StopFileCopy(destShareName, destFilePath, Guid.NewGuid().ToString()), "Stop copying with unmatched copy id and force should succeed.");
+                    file.FetchAttributes();
+                    Test.Assert(CopyStatus.Aborted == file.CopyState.Status, "File copy status should be aborted, actual it's {0}", file.CopyState.Status);
+                }
             }
             finally
             {
@@ -751,6 +895,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
         [TestMethod()]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.StopCopyFile)]
         public void StopFileCopyNegativeCases()
         {
             string shareName = Utility.GenNameString("share");
@@ -762,8 +909,15 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 StorageFile.CloudFile file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
 
                 // Against a no copying file
-                Test.Assert(!agent.StopFileCopy(file, null), "Stop file copy against a file without copying should fail.");
-                ExpectedContainErrorMessage("Can not find copy task on the specified file");
+                Test.Assert(!agent.StopFileCopy(file, Guid.NewGuid().ToString()), "Stop file copy against a file without copying should fail.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Can not find copy task on the specified file");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("There is currently no pending copy operation");
+                }
 
                 // Against a succeeded copying file.
                 string destFileName = Utility.GenNameString("destFileName");
@@ -771,35 +925,53 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 Test.Assert(agent.StartFileCopy(file, destFile), "Start copy from file to file should succeed.");
                 Utility.WaitCopyToFinish(() =>
-                    {
-                        destFile.FetchAttributes();
-                        return destFile.CopyState;
-                    });
+                {
+                    destFile.FetchAttributes();
+                    return destFile.CopyState;
+                });
 
-                Test.Assert(!agent.StopFileCopy(destFile, null), "Stop file copy against a succeeded copying should fail.");
+                Test.Assert(!agent.StopFileCopy(destFile, destFile.CopyState.CopyId), "Stop file copy against a succeeded copying should fail.");
                 ExpectedContainErrorMessage("There is currently no pending copy operation.");
 
                 // Invalid share Name
-                Test.Assert(!agent.StopFileCopy("SHARE", Utility.GenNameString(""), null), "Stop file copy with an invalid share name should fail.");
-                ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service.");
+                Test.Assert(!agent.StopFileCopy("SHARE", Utility.GenNameString(""), destFile.CopyState.CopyId), "Stop file copy with an invalid share name should fail.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Share name format is incorrect");
+                }
 
                 // Invalid file name
-                Test.Assert(!agent.StopFileCopy(shareName, "file???", null), "Stop file copy with an invalid file path should fail.");
-                ExpectedContainErrorMessage("The given path/prefix 'file???' is not a valid name for a file or directory or does match the requirement for Microsoft Azure File Service REST API.");
+                Test.Assert(!agent.StopFileCopy(shareName, "file???", destFile.CopyState.CopyId), "Stop file copy with an invalid file path should fail.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The given path/prefix 'file???' is not a valid name for a file or directory or does match the requirement for Microsoft Azure File Service REST API.");
+                }
+                else
+                {
+                    // TODO: fix the typo "specifed" when server fixes it
+                    ExpectedContainErrorMessage("The specifed resource name contains invalid characters");
+                }
 
                 // Non exist share
                 string nonExistShareName = Utility.GenNameString("nonexist");
-                Test.Assert(!agent.StopFileCopy(nonExistShareName, Utility.GenNameString(""), null), "Stop file copy under a non-exist share should fail.");
+                Test.Assert(!agent.StopFileCopy(nonExistShareName, Utility.GenNameString(""), destFile.CopyState.CopyId), "Stop file copy under a non-exist share should fail.");
                 ExpectedContainErrorMessage("The specified share does not exist.");
 
                 // Non exist file
                 string nonExistFileName = Utility.GenNameString("NonExistFileName");
-                Test.Assert(!agent.StopFileCopy(shareName, nonExistFileName, null), "Stop file copy under a non-exist share should fail.");
+                Test.Assert(!agent.StopFileCopy(shareName, nonExistFileName, destFile.CopyState.CopyId), "Stop file copy under a non-exist share should fail.");
                 ExpectedContainErrorMessage("The specified resource does not exist.");
 
-                // Null file instance
-                Test.Assert(!agent.StopFileCopy(file: null, copyId: null), "Stop file copy with an null file instance should fail.");
-                ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters.");
+                if (lang == Language.PowerShell)
+                {
+                    // Null file instance
+                    Test.Assert(!agent.StopFileCopy(file: null, copyId: null), "Stop file copy with an null file instance should fail.");
+                    ExpectedContainErrorMessage("Parameter set cannot be resolved using the specified named parameters.");
+                }
             }
             finally
             {
@@ -819,10 +991,10 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 file.StartCopy(new Uri(bigFileUri));
 
-                Test.Assert(agent.GetFileCopyState(shareName, fileName), "Get file copy state should succeed.");
+                Test.Assert(agent.GetFileCopyState(shareName, fileName, Agent.Context), "Get file copy state should succeed.");
                 file.FetchAttributes();
 
-                Utility.VerifyCopyState(file.CopyState, agent.Output[0][PowerShellAgent.BaseObject] as CopyState);
+                Utility.VerifyCopyState(file.CopyState, Utility.GetCopyState(agent, lang));
 
                 file.AbortCopy(file.CopyState.CopyId);
             }
@@ -871,9 +1043,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 () =>
                 {
                     string blobUri = agent.GetBlobSasFromCmd(blob, null, "r", null, DateTime.UtcNow.AddHours(1), true);
-                    Test.Assert(agent.StartFileCopy(blobUri, destShareName, destPath, PowerShellAgent.Context), "Copy from blob to file should succeed.");
+                    Test.Assert(agent.StartFileCopy(blobUri, destShareName, destPath, Agent.Context), "Copy from blob to file should succeed.");
 
-                    Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed");
+                    Test.Assert(agent.GetFileCopyState(destFile, Agent.Context, true), "Get file copy state should succeed");
                 });
         }
 
@@ -893,7 +1065,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     string blobUri = agent.GetBlobSasFromCmd(blob, null, "r", null, DateTime.UtcNow.AddHours(1), true);
                     Test.Assert(agent.StartFileCopy(blobUri, destFile), "Copy from blob to file should succeed.");
 
-                    Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed");
+                    Test.Assert(agent.GetFileCopyState(destFile, Agent.Context, true), "Get file copy state should succeed");
                 });
         }
 
@@ -908,12 +1080,13 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             var destFile = localFileUtil.GetFileReference(share.GetRootDirectoryReference(), destPath);
 
             CopyToFile(blob, destShareName, destPath,
-                ()=>
+                () =>
                 {
-                    Test.Assert(agent.StartFileCopy(blob, destFile, toSecondaryAccount ? Agent.SecondaryContext : PowerShellAgent.Context),
+                    object context = toSecondaryAccount ? Agent.SecondaryContext : Agent.Context;
+                    Test.Assert(agent.StartFileCopy(blob, destFile, context),
                         "Copy from blob to file should succeed.");
 
-                    Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed");
+                    Test.Assert(agent.GetFileCopyState(destFile, context, true), "Get file copy state should succeed");
                 }, false, toSecondaryAccount);
         }
 
@@ -923,7 +1096,11 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
             string destShareName = Utility.GenNameString("share");
             CloudFileShare share = localFileUtil.GetShareReference(destShareName);
-            share.CreateIfNotExists();
+
+            if (string.IsNullOrEmpty(destFilePath))
+            {
+                destFilePath = Utility.GenNameString("file");
+            }
 
             string actualDestPath = destFilePath ?? localFileUtil.ResolveFileName(blob);
             var destFile = localFileUtil.GetFileReference(share.GetRootDirectoryReference(), actualDestPath);
@@ -931,27 +1108,28 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             this.CopyToFile(blob, destShareName, actualDestPath,
                 () =>
                 {
+                    object context = toSecondaryAccount ? Agent.SecondaryContext : Agent.Context;
                     if (blob.IsSnapshot)
                     {
-                        Test.Assert(agent.StartFileCopy(blob, destShareName, destFilePath, toSecondaryAccount ? Agent.SecondaryContext : Agent.Context),
+                        Test.Assert(agent.StartFileCopy(blob, destShareName, destFilePath, context),
                             "Copy from blob to file shoule succeed.");
 
-                        Test.Assert(agent.GetFileCopyState(destShareName, actualDestPath), "Get file copy state should succeed");
+                        Test.Assert(agent.GetFileCopyState(destShareName, destFilePath, context), "Get file copy state should succeed");
                     }
                     else
                     {
                         if (random.Next(0, 2) == 0)
                         {
-                            Test.Assert(agent.StartFileCopyFromBlob(blob.Container.Name, blob.Name, destShareName, destFilePath, toSecondaryAccount ? Agent.SecondaryContext : Agent.Context),
+                            Test.Assert(agent.StartFileCopyFromBlob(blob.Container.Name, blob.Name, destShareName, destFilePath, context),
                                 "Copy from blob to file with container name parameter set should succeed.");
                         }
                         else
                         {
-                            Test.Assert(agent.StartFileCopy(blob.Container, blob.Name, destShareName, destFilePath, toSecondaryAccount ? Agent.SecondaryContext : Agent.Context),
+                            Test.Assert(agent.StartFileCopy(blob.Container, blob.Name, destShareName, destFilePath, context),
                                 "Copy from blob to file with container instance parameter set should succeed.");
                         }
 
-                        Test.Assert(agent.GetFileCopyState(destFile, true), "Get file copy state should succeed");
+                        Test.Assert(agent.GetFileCopyState(destFile.Share.Name, destFilePath, context, true), "Get file copy state should succeed");
                     }
                 }, destExist, toSecondaryAccount);
         }
@@ -964,7 +1142,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             }
 
             CloudBlobContainer container = blobUtil.CreateContainer(containerName);
-            
+
             try
             {
                 if (string.IsNullOrEmpty(filePath))
@@ -1032,16 +1210,22 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     filePath = Utility.GenNameString("file");
                 }
 
+                if (string.IsNullOrEmpty(destFilePath))
+                {
+                    destFilePath = Utility.GenNameString("file");
+                }
+
                 var sourceFile = fileUtil.CreateFile(sourceShare, filePath);
                 var destFile = destFileUtil.GetFileReference(destShare.GetRootDirectoryReference(), destFilePath ?? filePath);
 
                 this.CopyToFile(sourceFile, destShareName, destFilePath ?? filePath,
                     () =>
                     {
-                        Test.Assert(agent.StartFileCopyFromFile(sourceShareName, filePath, destShareName, destFilePath, toSecondaryAccount ? Agent.SecondaryContext : PowerShellAgent.Context),
+                        object context = toSecondaryAccount ? Agent.SecondaryContext : Agent.Context;
+                        Test.Assert(agent.StartFileCopyFromFile(sourceShareName, filePath, destShareName, destFilePath, context),
                             "Copy from file to overwrite an existig file should succeed.");
 
-                        Test.Assert(agent.GetFileCopyState(destFile, true), "Get copy state should succeed.");
+                        Test.Assert(agent.GetFileCopyState(destFile.Share.Name, destFile.Name, context, true), "Get copy state should succeed.");
                     }, destExist, toSecondaryAccount);
             }
             finally
