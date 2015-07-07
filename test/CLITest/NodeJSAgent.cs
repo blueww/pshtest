@@ -323,7 +323,12 @@ namespace Management.Storage.ScenarioTest
         {
             if (!onlyNonEmpty || !string.IsNullOrEmpty(optionValue))
             {
-                if (quoted)
+                if (optionValue.Contains("\""))
+                {
+                    optionValue = optionValue.Replace("\"", "\"\"");
+                    command += string.Format(" {0} \"{1}\" ", optionName, optionValue);
+                }
+                else if (quoted)
                 {
                     command += string.Format(" {0} \"{1}\" ", optionName, optionValue);
                 }
@@ -946,11 +951,9 @@ namespace Management.Storage.ScenarioTest
 
         public override bool StartFileCopyFromBlob(string containerName, string blobName, string shareName, string filePath, object destContext, bool force = true)
         {
-            string url = string.Empty;
-
             string command = "file copy start";
             command = appendStringOption(command, "--source-container", containerName);
-            command = appendStringOption(command, "--source-blob", blobName);
+            command = appendStringOption(command, "--source-blob", blobName, quoted: true);
             command = appendStringOption(command, "--dest-share", shareName);
             command = appendStringOption(command, "--dest-path", filePath, true);
             command = appendAccountOption(command, destContext, suffix: true, isSource: false);
@@ -1002,7 +1005,7 @@ namespace Management.Storage.ScenarioTest
 
             string command = "file copy start";
             command = appendStringOption(command, "--source-container", container.Name);
-            command = appendStringOption(command, "--source-blob", blobName);
+            command = appendStringOption(command, "--source-blob", blobName, quoted: true);
             command = appendStringOption(command, "--dest-share", shareName);
             command = appendStringOption(command, "--dest-path", filePath, true);
             command = appendAccountOption(command, srcContext, suffix: false, isSource: true);
@@ -1028,7 +1031,7 @@ namespace Management.Storage.ScenarioTest
 
             string command = "file copy start";
             command = appendStringOption(command, "--source-container", blob.Container.Name);
-            command = appendStringOption(command, "--source-blob", blob.Name);
+            command = appendStringOption(command, "--source-blob", blob.Name, quoted: true);
             command = appendStringOption(command, "--dest-share", destFile.Share.Name);
             command = appendStringOption(command, "--dest-path", CloudFileUtil.GetFullPath(destFile), true);
             command = appendAccountOption(command, srcContext, suffix: false, isSource: true);

@@ -108,7 +108,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         public void CopyFromBlobWithSpecialChar()
         {
             string containerName = Utility.GenNameString("container");
-            string blobName = Utility.GenNameString("\"\\:|<>*?");
+            string blobName = Utility.GenNameString("\"\\:|<>&*?");
 
             this.CopyFromBlob(containerName, blobName, null);
 
@@ -811,7 +811,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string blobPath = this.GetDeepestFilePath();
                 CloudBlob srcBlob = srcBlobUtil.CreateBlockBlob(srcContainer, blobPath, createBigBlob: true);
 
-                string filePath = fileUtil.ResolveFileName(srcBlob);
+                string filePath = fileUtil.ResolveFileName(srcBlob, lang);
                 fileUtil.CreateFileFolders(destShare, filePath);
 
                 Test.Assert(agent.StartFileCopy(srcBlob, destShareName, filePath, Agent.Context), "Start copying from blob cross account should succeed.");
@@ -1102,7 +1102,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 destFilePath = Utility.GenNameString("file");
             }
 
-            string actualDestPath = destFilePath ?? localFileUtil.ResolveFileName(blob);
+            string actualDestPath = destFilePath ?? localFileUtil.ResolveFileName(blob, lang);
             var destFile = localFileUtil.GetFileReference(share.GetRootDirectoryReference(), actualDestPath);
 
             this.CopyToFile(blob, destShareName, actualDestPath,
