@@ -97,7 +97,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             string blobName = this.GetDeepestFilePath();
             object context = Agent.Context ?? TestBase.StorageAccount;
 
-            this.CopyFromBlob(containerName, blobName, null);
+            this.CopyFromBlob(containerName, blobName, blobName);
         }
 
         [TestMethod()]
@@ -229,20 +229,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 this.CopyToFile(srcFile, destShareName, destFilePath,
                     () =>
                     {
-                        Test.Assert(agent.StartFileCopy(srcFile.Parent, srcFile.Name, destShareName, destFilePath, destContext), "Start copy from file to file should succeed.");
-
-                        Test.Assert(agent.GetFileCopyState(destFile, destContext, true), "Get file copy state should succeed.");
-                    }, false, toSecondaryAccout);
-
-                destShareName = Utility.GenNameString("destshare");
-                destFilePath = Utility.GenNameString("destFilePath");
-
-                destShare = destFileUtil.GetShareReference(destShareName);
-                destFile = destFileUtil.GetFileReference(destShare.GetRootDirectoryReference(), destFilePath);
-
-                this.CopyToFile(srcFile, destShareName, destFilePath,
-                    () =>
-                    {
                         Test.Assert(agent.StartFileCopyFromFile(shareName, srcFileName, destShareName, destFilePath, destContext), "Start copy from file to file should succeed.");
 
                         Test.Assert(agent.GetFileCopyState(destFile, destContext, true), "Get file copy state should succeed.");
@@ -368,36 +354,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 fileUtil.DeleteFileShareIfExists(srcShareName);
                 fileUtil.DeleteFileShareIfExists(destShareName);
             }
-        }
-
-        [TestMethod()]
-        [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.StartCopyFile)]
-        public void CopyFromBlobSnapshotWithTooLongName()
-        {
-            CloudBlobContainer container = blobUtil.CreateContainer();
-            string blobName = this.GetDeepestFilePath();
-            CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
-            var blobSnapshot = blob.Snapshot();
-
-            this.CopyFromBlob(blobSnapshot, null);
-        }
-
-        [TestMethod()]
-        [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.StartCopyFile)]
-        public void CopyFromBlobWithTooLongNameAndSpecialChar()
-        {
-            CloudBlobContainer container = blobUtil.CreateContainer();
-            string blobName = this.GetDeepestFilePath();
-            blobName = blobName.Substring(0, blobName.Length - 10) + "\"\\:|<>*?";
-            CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
-
-            this.CopyFromBlob(blob, null);
         }
 
         [TestMethod()]
@@ -1102,10 +1058,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 destFilePath = Utility.GenNameString("file");
             }
 
-            string actualDestPath = destFilePath ?? localFileUtil.ResolveFileName(blob);
-            var destFile = localFileUtil.GetFileReference(share.GetRootDirectoryReference(), actualDestPath);
+            var destFile = localFileUtil.GetFileReference(share.GetRootDirectoryReference(), destFilePath);
 
-            this.CopyToFile(blob, destShareName, actualDestPath,
+            this.CopyToFile(blob, destShareName, destFilePath,
                 () =>
                 {
                     object context = toSecondaryAccount ? Agent.SecondaryContext : Agent.Context;
@@ -1238,7 +1193,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         {
             StringBuilder sb = new StringBuilder();
             int maxDirLength = 1008;
-            while (sb.Length < maxDirLength + 1)
+            while (sb.Length < maxDirLength)
             {
                 sb.Append(Utility.GenNameString("", Math.Min(8, maxDirLength - sb.Length)));
                 sb.Append("/");
