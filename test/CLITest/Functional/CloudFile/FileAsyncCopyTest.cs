@@ -229,20 +229,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 this.CopyToFile(srcFile, destShareName, destFilePath,
                     () =>
                     {
-                        Test.Assert(agent.StartFileCopy(srcFile.Parent, srcFile.Name, destShareName, destFilePath, destContext), "Start copy from file to file should succeed.");
-
-                        Test.Assert(agent.GetFileCopyState(destFile, destContext, true), "Get file copy state should succeed.");
-                    }, false, toSecondaryAccout);
-
-                destShareName = Utility.GenNameString("destshare");
-                destFilePath = Utility.GenNameString("destFilePath");
-
-                destShare = destFileUtil.GetShareReference(destShareName);
-                destFile = destFileUtil.GetFileReference(destShare.GetRootDirectoryReference(), destFilePath);
-
-                this.CopyToFile(srcFile, destShareName, destFilePath,
-                    () =>
-                    {
                         Test.Assert(agent.StartFileCopyFromFile(shareName, srcFileName, destShareName, destFilePath, destContext), "Start copy from file to file should succeed.");
 
                         Test.Assert(agent.GetFileCopyState(destFile, destContext, true), "Get file copy state should succeed.");
@@ -368,36 +354,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 fileUtil.DeleteFileShareIfExists(srcShareName);
                 fileUtil.DeleteFileShareIfExists(destShareName);
             }
-        }
-
-        [TestMethod()]
-        [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.StartCopyFile)]
-        public void CopyFromBlobSnapshotWithTooLongName()
-        {
-            CloudBlobContainer container = blobUtil.CreateContainer();
-            string blobName = this.GetDeepestFilePath();
-            CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
-            var blobSnapshot = blob.Snapshot();
-
-            this.CopyFromBlob(blobSnapshot, null);
-        }
-
-        [TestMethod()]
-        [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.File)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.StartCopyFile)]
-        public void CopyFromBlobWithTooLongNameAndSpecialChar()
-        {
-            CloudBlobContainer container = blobUtil.CreateContainer();
-            string blobName = this.GetDeepestFilePath();
-            blobName = blobName.Substring(0, blobName.Length - 10) + "\"\\:|<>*?";
-            CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
-
-            this.CopyFromBlob(blob, null);
         }
 
         [TestMethod()]
