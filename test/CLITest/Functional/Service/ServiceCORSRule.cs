@@ -495,24 +495,51 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.ServiceCORS)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.ServiceCORS)]
         public void GetCORSRulesNegativeTest()
         {
-            Test.Assert(!agent.GetAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Get CORS rules of invalid service type should fail.");
-            ExpectedContainErrorMessage(string.Format("Unable to match the identifier name {0} to a valid enumerator name.  Specify one of the following enumerator names and try again: Blob, Table, Queue, File",
-                Constants.ServiceType.InvalidService.ToString()));
+            if (lang == Language.PowerShell)
+            {
+                Test.Assert(!agent.GetAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Get CORS rules of invalid service type should fail.");
+                ExpectedContainErrorMessage(string.Format("Unable to match the identifier name {0} to a valid enumerator name.  Specify one of the following enumerator names and try again: Blob, Table, Queue, File",
+                    Constants.ServiceType.InvalidService.ToString()));
+            }
+            else
+            {
+                Test.Assert(agent.GetAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Get CORS rules of invalid service type should fail but no error message because it is not in the error output.");
+                Test.Assert(agent.ErrorMessages.Count == 0, "Should contain no error message");
+                Test.Assert(agent.Output.Count == 0, "Should contain no output");
+            }
         }
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.ServiceCORS)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.ServiceCORS)]
         public void RemoveCORSRulesNegativeTest()
         {
-            Test.Assert(!agent.RemoveAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Remove CORS rules of invalid service type should fail.");
-            ExpectedContainErrorMessage(string.Format("Unable to match the identifier name {0} to a valid enumerator name.  Specify one of the following enumerator names and try again: Blob, Table, Queue, File",
-                Constants.ServiceType.InvalidService.ToString()));
+            if (lang == Language.PowerShell)
+            {
+                Test.Assert(!agent.RemoveAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Remove CORS rules of invalid service type should fail.");
+                ExpectedContainErrorMessage(string.Format("Unable to match the identifier name {0} to a valid enumerator name.  Specify one of the following enumerator names and try again: Blob, Table, Queue, File",
+                    Constants.ServiceType.InvalidService.ToString()));
+            }
+            else
+            {
+                Test.Assert(agent.RemoveAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Remove CORS rules of invalid service type should fail but no error message because it is not in the error output.");
+                Test.Assert(agent.ErrorMessages.Count == 0, "Should contain no error message");
+                Test.Assert(agent.Output.Count == 0, "Should contain no output");
+            }
         }
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.ServiceCORS)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.ServiceCORS)]
         public void RemoveCORSRulesTest()
         {
             // No CORS rule exist
@@ -535,7 +562,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
             Test.Assert(agent.GetAzureStorageCORSRules(serviceType), "Get CORS rules of {0} service should succeed.", serviceType);
 
-            PSCorsRule[] actualCORSRule = (PSCorsRule[])agent.Output[0][PowerShellAgent.BaseObject];
+            PSCorsRule[] actualCORSRule = GetCORSRules();
 
             Test.Assert(0 == actualCORSRule.Length, "There should be 0 CORS rule after removing. Actually there are {0} CORS rule(s)", actualCORSRule.Length);
         }
@@ -623,42 +650,22 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
                     bool hasValue = false;
                     JArray categories;
-                    string key = "AllowedMethods";
-                    if (agent.Output[i].ContainsKey(key))
+                    string[] keys = { "AllowedMethods", "AllowedOrigins", "AllowedHeaders", "ExposedHeaders" };
+
+                    foreach (string key in keys)
                     {
-                        categories = (JArray)agent.Output[i][key];
-                        rule.AllowedMethods = categories.Select(c => (string)c).ToArray();
-                        hasValue = true;
+                        if (agent.Output[i].ContainsKey(key))
+                        {
+                            categories = (JArray)agent.Output[i][key];
+                            rule.GetType().GetProperty(key).SetValue(rule, categories.Select(c => (string)c).ToArray());
+                            hasValue = true;
+                        }
                     }
 
-                    key = "AllowedOrigins";
-                    if (agent.Output[i].ContainsKey(key))
+                    string ageKey = "MaxAgeInSeconds";
+                    if (agent.Output[i].ContainsKey(ageKey))
                     {
-                        categories = (JArray)agent.Output[i][key];
-                        rule.AllowedOrigins = categories.Select(c => (string)c).ToArray();
-                        hasValue = true;
-                    }
-
-                    key = "AllowedHeaders";
-                    if (agent.Output[i].ContainsKey(key))
-                    {
-                        categories = (JArray)agent.Output[i][key];
-                        rule.AllowedHeaders = categories.Select(c => (string)c).ToArray();
-                        hasValue = true;
-                    }
-
-                    key = "ExposedHeaders";
-                    if (agent.Output[i].ContainsKey(key))
-                    {
-                        categories = (JArray)agent.Output[i][key];
-                        rule.ExposedHeaders = categories.Select(c => (string)c).ToArray();
-                        hasValue = true;
-                    }
-
-                    key = "MaxAgeInSeconds";
-                    if (agent.Output[i].ContainsKey(key))
-                    {
-                        rule.MaxAgeInSeconds = (int)(agent.Output[i][key] as long?);
+                        rule.MaxAgeInSeconds = (int)(agent.Output[i][ageKey] as long?);
                         hasValue = true;
                     }
 
