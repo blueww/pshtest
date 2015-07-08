@@ -1993,15 +1993,7 @@ namespace Management.Storage.ScenarioTest
 
         internal string StringifyCORS(PSCorsRule[] corsRules)
         {
-            string cors = JsonConvert.SerializeObject(corsRules);
-
-            if (AgentOSType == OSType.Windows)
-            {
-                // escape quotation mark (") by double quotation marks ("")
-                cors = cors.Replace("\"", "\"\"");
-            }
-
-            return cors;
+            return JsonConvert.SerializeObject(corsRules);
         }
 
         internal string GetLoggingOptions(string loggingOperations)
