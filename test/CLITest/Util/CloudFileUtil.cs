@@ -370,7 +370,7 @@
             return localDir.GetFileReference(path[path.Length - 1]);
         }
 
-        public string ResolveFileName(CloudBlob blob)
+        public string ResolveFileName(CloudBlob blob, Language lang)
         {
             // 1) Unescape original string, original string is UrlEncoded.
             // 2) Replace Azure directory separator with Windows File System directory separator.
@@ -407,19 +407,19 @@
                 destinationRelativePath = string.Format("{0}/{1}", destinationPath, destinationFileName);
             }
 
-            destinationRelativePath = ResolveFileNameSuffix(destinationRelativePath);
+            destinationRelativePath = ResolveFileNameSuffix(destinationRelativePath, lang);
 
             return destinationRelativePath;
         }
 
-        private string ResolveFileNameSuffix(string baseFileName)
+        private string ResolveFileNameSuffix(string baseFileName, Language lang)
         {
             // TODO - MaxFileNameLength could be <= 0.
             int maxFileNameLength = 1024;
 
             if (baseFileName.Length > maxFileNameLength)
             {
-                string postfixString = string.Format(" _trunc_");
+                string postfixString = lang == Language.PowerShell ? string.Format(" (1)") : string.Format(" _trunc_");
 
                 string pathAndFilename = Path.ChangeExtension(baseFileName, null);
                 string extension = Path.GetExtension(baseFileName);

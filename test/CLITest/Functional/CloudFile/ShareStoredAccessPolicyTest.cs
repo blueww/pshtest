@@ -1685,7 +1685,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 {
                     policy2.ExpiryTime = policy1.ExpiryTime;
                 }
-                if (string.IsNullOrEmpty(policy2.Permission))
+                if (string.IsNullOrEmpty(policy2.Permission) && lang == Language.PowerShell)
                 {
                     policy2.Permission = policy1.Permission;
                 }
