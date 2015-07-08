@@ -1923,6 +1923,30 @@ namespace Management.Storage.ScenarioTest
             return InvokePowerShellWithoutContext(ps);
         }
 
+        public bool StartFileCopyFromContainer(string modulePath, string sourceConnectionString, string destConnectionString, string containerName, string shareName)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            string script = ".\\PSHScripts\\CopyFromContainer.ps1" + " -modulePath " + modulePath + " -sourceConnectionString \"" + sourceConnectionString
+                + "\" -destConnectionString \"" + destConnectionString + "\" -containerName " + containerName + " -shareName " + shareName;
+
+            ps.AddScript(script, true);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public bool StartFileCopyFromShare(string modulePath, string sourceConnectionString, string destConnectionString, string sourceShare, string destShare)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            string script = ".\\PSHScripts\\CopyFromShare.ps1" + " -modulePath " + modulePath + " -sourceConnectionString \"" + sourceConnectionString
+                + "\" -destConnectionString \"" + destConnectionString + "\" -sourceShareName " + sourceShare + " -destShareName " + destShare;
+
+            ps.AddScript(script, true);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
         /// <summary>
         /// Compare the output collection data with comp
         /// 

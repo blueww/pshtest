@@ -164,6 +164,14 @@ namespace Management.Storage.ScenarioTest.Common
             }
         }
 
+        protected static string GetModulePath()
+        {
+            string moduleFileFolder = Test.Data.Get("ModuleFileFolder");
+            string relativePath = isResourceMode ? Constants.ResourceModulePath : Constants.ServiceModulePath;
+
+            return Path.Combine(moduleFileFolder, relativePath);
+        }
+
         //
         //Use ClassCleanup to run code after all tests in a class have run
         [ClassCleanup()]

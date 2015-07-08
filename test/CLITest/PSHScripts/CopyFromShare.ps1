@@ -1,14 +1,15 @@
 ﻿param ([string]$modulePath,
-[string]$accountName,
-[string]$accountKey,
+[string]$sourceConnectionString,
+[string]$destConnectionString,
 [string]$sourceShareName,
 [string]$destShareName)
 
 
 Import-Module $modulePath
-$ctx = New-AzureStorageContext -StorageAccountName $accountName -StorageAccountKey $accountKey
+$sourceCtx = New-AzureStorageContext -ConnectionString $sourceConnectionString
+$destCtx = New-AzureStorageContext -ConnectionString $destConnectionString
 
-$sourceFiles = Get-AzureStorageFile -ShareName $sourceShareName -Context $ctx
+$sourceFiles = Get-AzureStorageFile -ShareName $sourceShareName -Context $sourceCtx
 
 function EnsureDirStructure ($dir)
 {
@@ -74,7 +75,7 @@ function GetFullPath($file)
     }
 }
 
-$share = Get-AzureStorageShare -Name $destShareName -Context $ctx;
+$share = Get-AzureStorageShare -Name $destShareName -Context $destCtx;
 
 function CopyFromFile($sourceFile)
 { 
@@ -86,7 +87,7 @@ function CopyFromFile($sourceFile)
         {
             $dir = GetDirReference $destPath $share;
             EnsureDirStructure $dir;
-            Start-AzureStorageFileCopy -SrcFile $_ -DestShareName $destShareName -DestFilePath $destPath -DestContext $ctx -Force;
+            Start-AzureStorageFileCopy -SrcFile $_ -DestShareName $destShareName -DestFilePath $destPath -DestContext $destCtx -Force;
         }
         catch
         {            
