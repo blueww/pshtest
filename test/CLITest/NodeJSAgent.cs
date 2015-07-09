@@ -323,7 +323,12 @@ namespace Management.Storage.ScenarioTest
         {
             if (!onlyNonEmpty || !string.IsNullOrEmpty(optionValue))
             {
-                if (quoted)
+                if (optionValue.Contains("\""))
+                {
+                    optionValue = optionValue.Replace("\"", "\"\"");
+                    command += string.Format(" {0} \"{1}\" ", optionName, optionValue);
+                }
+                else if (quoted)
                 {
                     command += string.Format(" {0} \"{1}\" ", optionName, optionValue);
                 }
@@ -394,6 +399,14 @@ namespace Management.Storage.ScenarioTest
             }
 
             return command;
+        }
+
+        internal void AssertMandatoryParameter(string name, string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new Exception(string.Format("The required parameter {0} is missing.", name));
+            }
         }
 
         public override bool ChangeCLIMode(Constants.Mode mode)
@@ -941,16 +954,15 @@ namespace Management.Storage.ScenarioTest
 
         public override bool StopAzureStorageBlobCopy(string containerName, string blobName, string copyId, bool force)
         {
+            AssertMandatoryParameter("--copy-id", copyId);
             return RunNodeJSProcess(string.Format("blob copy stop \"{0}\" \"{1}\" \"{2}\"", containerName, blobName, copyId));
         }
 
         public override bool StartFileCopyFromBlob(string containerName, string blobName, string shareName, string filePath, object destContext, bool force = true)
         {
-            string url = string.Empty;
-
             string command = "file copy start";
             command = appendStringOption(command, "--source-container", containerName);
-            command = appendStringOption(command, "--source-blob", blobName);
+            command = appendStringOption(command, "--source-blob", blobName, quoted: true);
             command = appendStringOption(command, "--dest-share", shareName);
             command = appendStringOption(command, "--dest-path", filePath, true);
             command = appendAccountOption(command, destContext, suffix: true, isSource: false);
@@ -1002,7 +1014,7 @@ namespace Management.Storage.ScenarioTest
 
             string command = "file copy start";
             command = appendStringOption(command, "--source-container", container.Name);
-            command = appendStringOption(command, "--source-blob", blobName);
+            command = appendStringOption(command, "--source-blob", blobName, quoted: true);
             command = appendStringOption(command, "--dest-share", shareName);
             command = appendStringOption(command, "--dest-path", filePath, true);
             command = appendAccountOption(command, srcContext, suffix: false, isSource: true);
@@ -1028,7 +1040,7 @@ namespace Management.Storage.ScenarioTest
 
             string command = "file copy start";
             command = appendStringOption(command, "--source-container", blob.Container.Name);
-            command = appendStringOption(command, "--source-blob", blob.Name);
+            command = appendStringOption(command, "--source-blob", blob.Name, quoted: true);
             command = appendStringOption(command, "--dest-share", destFile.Share.Name);
             command = appendStringOption(command, "--dest-path", CloudFileUtil.GetFullPath(destFile), true);
             command = appendAccountOption(command, srcContext, suffix: false, isSource: true);
@@ -1124,6 +1136,8 @@ namespace Management.Storage.ScenarioTest
 
         public override bool StopFileCopy(string shareName, string filePath, string copyId, bool force = true)
         {
+            AssertMandatoryParameter("--copy-id", copyId);
+
             string command = "file copy stop";
             command = appendStringOption(command, "--share", shareName);
             command = appendStringOption(command, "--path", filePath, true);
@@ -1134,6 +1148,8 @@ namespace Management.Storage.ScenarioTest
 
         public override bool StopFileCopy(CloudFile file, string copyId, bool force = true)
         {
+            AssertMandatoryParameter("--copy-id", copyId);
+
             string command = "file copy stop";
             command = appendStringOption(command, "--share", file.Share.Name);
             command = appendStringOption(command, "--path", CloudFileUtil.GetFullPath(file), true);
@@ -1990,15 +2006,7 @@ namespace Management.Storage.ScenarioTest
 
         internal string StringifyCORS(PSCorsRule[] corsRules)
         {
-            string cors = JsonConvert.SerializeObject(corsRules);
-
-            if (AgentOSType == OSType.Windows)
-            {
-                // escape quotation mark (") by double quotation marks ("")
-                cors = cors.Replace("\"", "\"\"");
-            }
-
-            return cors;
+            return JsonConvert.SerializeObject(corsRules);
         }
 
         internal string GetLoggingOptions(string loggingOperations)

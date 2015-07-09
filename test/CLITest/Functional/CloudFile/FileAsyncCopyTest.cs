@@ -20,6 +20,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
     public class FileAsyncCopyTest : TestBase
     {
         private static CloudFileUtil FileUtil2 = null;
+        private static readonly string[] InvalidFileNameChar = { "\"", "\\", ":", "|", "<", ">", "*", "?" };
 
         [ClassInitialize]
         public static void FileAsyncCopyTestInitialize(TestContext context)
@@ -97,7 +98,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             string blobName = this.GetDeepestFilePath();
             object context = Agent.Context ?? TestBase.StorageAccount;
 
-            this.CopyFromBlob(containerName, blobName, null);
+            this.CopyFromBlob(containerName, blobName, blobName);
         }
 
         [TestMethod()]
@@ -108,7 +109,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         public void CopyFromBlobWithSpecialChar()
         {
             string containerName = Utility.GenNameString("container");
-            string blobName = Utility.GenNameString("\"\\:|<>*?");
+            string blobName = Utility.GenNameString("\"\\:|<>&*?");
 
             this.CopyFromBlob(containerName, blobName, null);
 
@@ -292,9 +293,8 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 PowerShellAgent psAgent = agent as PowerShellAgent;
 
-                psAgent.AddPipelineScript(string.Format("Get-AzureStorageBlob -Container {0}", containerName));
-
-                Test.Assert(agent.StartFileCopy(blob: null, shareName: shareName, filePath: null, destContext: Agent.Context), "Start file copy should succeed.");
+                Test.Assert(psAgent.StartFileCopyFromContainer(GetModulePath(), StorageAccount.ToString(true), StorageAccount.ToString(true), containerName, shareName),
+                    "Start file copy should succeed.");
 
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageFile -ShareName {0}", shareName));
 
@@ -336,9 +336,8 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 PowerShellAgent psAgent = agent as PowerShellAgent;
 
-                psAgent.AddPipelineScript(string.Format("Get-AzureStorageFile -ShareName {0}", srcShareName));
-
-                Test.Assert(agent.StartFileCopy(blob: null, shareName: destShareName, filePath: null, destContext: Agent.Context), "Start file copy should succeed.");
+                Test.Assert(psAgent.StartFileCopyFromShare(GetModulePath(), StorageAccount.ToString(true), StorageAccount.ToString(true), srcShareName, destShareName),
+                    "Start file copy should succeed.");
 
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageFile -ShareName {0}", destShareName));
 
@@ -464,13 +463,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 ExpectedContainErrorMessage("The specified resource does not exist");
 
-                // From non-exist directory
-                CloudFileDirectory dir = share.GetRootDirectoryReference().GetDirectoryReference("nonexist");
-                Test.Assert(!agent.StartFileCopy(dir, fileName, shareName, fileName, Agent.Context),
-                    "Starting async copying from non-exist directory should fail.");
-
-                ExpectedContainErrorMessage("The specified parent path does not exist");
-
                 // From non-exist container
                 string containerName = Utility.GenNameString("container");
                 blobUtil.RemoveContainer(containerName);
@@ -519,8 +511,25 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 Test.Assert(agent.StopFileCopy(destFile, destFile.CopyState.CopyId), "Stop copying to a file should succeed.");
 
+                // To too long dest file path
+                destFileName = GetDeepestFilePath();
+                destFileName = destFileName + "/" + Utility.GenNameString("fileName", 64);
+                fileUtil.CreateFileFolders(share, destFileName);
+                Test.Assert(!agent.StartFileCopy(file, shareName, destFileName, Agent.Context), "Start copying to a file with too long name should fail.");
+                ExpectedContainErrorMessage(string.Format("The length of the given path/prefix '{0}' exceeded the max allowed length 1024 for Microsoft Azure File Service REST API.", destFileName));
+
+                // To invalid dest file name
+                destFileName = Utility.GenNameString("") + InvalidFileNameChar[random.Next(0, InvalidFileNameChar.Count())] + Utility.GenNameString("");
+                Test.Assert(!agent.StartFileCopy(file, shareName, destFileName, Agent.Context), "Start copying to a invalid file should fail.");
+                ExpectedContainErrorMessage(string.Format("The given path/prefix '{0}' is not a valid name for a file or directory or does match the requirement for Microsoft Azure File Service REST API.", destFileName));
+
+                // To null dest file name
+                Test.Assert(!agent.StartFileCopy(file, shareName, null, Agent.Context), "Start copying to null file path should fail.");
+                ExpectedContainErrorMessage("Cannot process command because of one or more missing mandatory parameters");
+
                 //Test.Assert(!agent.StartFileCopy("http://www.bing.com", destFile), "Start copying from invalid Uri should fail.");
 
+                // Start from invalid uri
                 Test.Assert(!agent.StartFileCopy("invalidUri", destFile), "Start copying from invalid Uri should fail.");
                 if (lang == Language.PowerShell)
                 {
@@ -712,9 +721,8 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 var blobs = blobUtil.CreateRandomBlob(container, true);
                 PowerShellAgent psAgent = agent as PowerShellAgent;
 
-                psAgent.AddPipelineScript(string.Format("Get-AzureStorageBlob -Container {0}", container.Name));
-
-                Test.Assert(agent.StartFileCopy(blob: null, shareName: shareName, filePath: null, destContext: Agent.Context), "Start file copy should succeed.");
+                Test.Assert(psAgent.StartFileCopyFromContainer(GetModulePath(), StorageAccount.ToString(true), StorageAccount.ToString(true), container.Name, shareName), 
+                    "Start file copy should succeed.");
 
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageFile -ShareName {0}", shareName));
                 Test.Assert(agent.StopFileCopy(file: null, copyId: null), "Stop file copy should succeed.");
@@ -767,7 +775,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string blobPath = this.GetDeepestFilePath();
                 CloudBlob srcBlob = srcBlobUtil.CreateBlockBlob(srcContainer, blobPath, createBigBlob: true);
 
-                string filePath = fileUtil.ResolveFileName(srcBlob);
+                string filePath = fileUtil.ResolveFileName(srcBlob, lang);
                 fileUtil.CreateFileFolders(destShare, filePath);
 
                 Test.Assert(agent.StartFileCopy(srcBlob, destShareName, filePath, Agent.Context), "Start copying from blob cross account should succeed.");
@@ -1058,10 +1066,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 destFilePath = Utility.GenNameString("file");
             }
 
-            string actualDestPath = destFilePath ?? localFileUtil.ResolveFileName(blob);
-            var destFile = localFileUtil.GetFileReference(share.GetRootDirectoryReference(), actualDestPath);
+            var destFile = localFileUtil.GetFileReference(share.GetRootDirectoryReference(), destFilePath);
 
-            this.CopyToFile(blob, destShareName, actualDestPath,
+            this.CopyToFile(blob, destShareName, destFilePath,
                 () =>
                 {
                     object context = toSecondaryAccount ? Agent.SecondaryContext : Agent.Context;
@@ -1194,7 +1201,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         {
             StringBuilder sb = new StringBuilder();
             int maxDirLength = 1008;
-            while (sb.Length < maxDirLength + 1)
+            while (sb.Length < maxDirLength)
             {
                 sb.Append(Utility.GenNameString("", Math.Min(8, maxDirLength - sb.Length)));
                 sb.Append("/");
