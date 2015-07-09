@@ -1977,6 +1977,8 @@ namespace Management.Storage.ScenarioTest.BVT
         /// </summary>
         [TestMethod]
         [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.ServiceCORS)]
         public void CORSRuleManagementTest()
         {
             this.CORSRulesTest(Constants.ServiceType.Blob, 5);
