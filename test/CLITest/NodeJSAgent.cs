@@ -401,6 +401,14 @@ namespace Management.Storage.ScenarioTest
             return command;
         }
 
+        internal void AssertMandatoryParameter(string name, string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new Exception(string.Format("The required parameter {0} is missing.", name));
+            }
+        }
+
         public override bool ChangeCLIMode(Constants.Mode mode)
         {
             return RunNodeJSProcess(string.Format("mode {0}", mode), needAccountParam: false, category: "config");
@@ -946,6 +954,7 @@ namespace Management.Storage.ScenarioTest
 
         public override bool StopAzureStorageBlobCopy(string containerName, string blobName, string copyId, bool force)
         {
+            AssertMandatoryParameter("--copy-id", copyId);
             return RunNodeJSProcess(string.Format("blob copy stop \"{0}\" \"{1}\" \"{2}\"", containerName, blobName, copyId));
         }
 
@@ -1127,6 +1136,8 @@ namespace Management.Storage.ScenarioTest
 
         public override bool StopFileCopy(string shareName, string filePath, string copyId, bool force = true)
         {
+            AssertMandatoryParameter("--copy-id", copyId);
+
             string command = "file copy stop";
             command = appendStringOption(command, "--share", shareName);
             command = appendStringOption(command, "--path", filePath, true);
@@ -1137,6 +1148,8 @@ namespace Management.Storage.ScenarioTest
 
         public override bool StopFileCopy(CloudFile file, string copyId, bool force = true)
         {
+            AssertMandatoryParameter("--copy-id", copyId);
+
             string command = "file copy stop";
             command = appendStringOption(command, "--share", file.Share.Name);
             command = appendStringOption(command, "--path", CloudFileUtil.GetFullPath(file), true);
