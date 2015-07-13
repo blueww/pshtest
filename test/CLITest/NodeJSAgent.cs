@@ -51,7 +51,7 @@ namespace Management.Storage.ScenarioTest
         private static string UnlockKeyChainCommand = string.Format(" security -v unlock-keychain \"-p\" \"{0}\";", Test.Data.Get("UserName"));
         private static string UnlockKeyChainOutput = string.Format("unlock-keychain \"-p\" \"{0}\"\n", Test.Data.Get("UserName"));
 
-        private static int DefaultMaxWaitingTime = 600000;  // in miliseconds
+        private static int DefaultMaxWaitingTime = 900000;  // in miliseconds, increased from 600s to 900s due to AppendBlob. It should be less than the default timeout value of mstest2, which is 3600s for now.
 
         private static Hashtable ExpectedErrorMsgTableNodeJS = new Hashtable() {
                 {"GetBlobContentWithNotExistsBlob", "Can not find blob '{0}' in container '{1}'"},
@@ -399,6 +399,14 @@ namespace Management.Storage.ScenarioTest
             }
 
             return command;
+        }
+
+        internal void AssertMandatoryParameter(string name, string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new Exception(string.Format("The required parameter {0} is missing.", name));
+            }
         }
 
         public override bool ChangeCLIMode(Constants.Mode mode)
@@ -946,6 +954,7 @@ namespace Management.Storage.ScenarioTest
 
         public override bool StopAzureStorageBlobCopy(string containerName, string blobName, string copyId, bool force)
         {
+            AssertMandatoryParameter("--copy-id", copyId);
             return RunNodeJSProcess(string.Format("blob copy stop \"{0}\" \"{1}\" \"{2}\"", containerName, blobName, copyId));
         }
 
@@ -1127,6 +1136,8 @@ namespace Management.Storage.ScenarioTest
 
         public override bool StopFileCopy(string shareName, string filePath, string copyId, bool force = true)
         {
+            AssertMandatoryParameter("--copy-id", copyId);
+
             string command = "file copy stop";
             command = appendStringOption(command, "--share", shareName);
             command = appendStringOption(command, "--path", filePath, true);
@@ -1137,6 +1148,8 @@ namespace Management.Storage.ScenarioTest
 
         public override bool StopFileCopy(CloudFile file, string copyId, bool force = true)
         {
+            AssertMandatoryParameter("--copy-id", copyId);
+
             string command = "file copy stop";
             command = appendStringOption(command, "--share", file.Share.Name);
             command = appendStringOption(command, "--path", CloudFileUtil.GetFullPath(file), true);

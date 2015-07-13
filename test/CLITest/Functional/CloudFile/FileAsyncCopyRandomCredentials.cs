@@ -312,7 +312,12 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 Test.Assert(agent.GetFileCopyState(destShareName, fileName, destContext), "Get copy state with sas token should succeed.");
 
-                Test.Assert(agent.StopFileCopy(destFile, null), "Stop file copy should succeed.");
+                string copyId = null;
+                if (lang == Language.NodeJS)
+                {
+                    copyId = agent.Output[0]["copyId"] as string;
+                }
+                Test.Assert(agent.StopFileCopy(destFile, copyId), "Stop file copy should succeed.");
             }
             finally
             {
