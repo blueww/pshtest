@@ -149,7 +149,9 @@ namespace Management.Storage.ScenarioTest
         public void DownloadHttpAppend()
         {
             var o = new AppendBlobDownloadOperation(new PowerShellAgent(), BlobHelper);
-            Run(o);
+            var ro = new AppendBlobUploadOperation(new PowerShellAgent(), BlobHelper);
+            Run(o, ro);
+
         }
 
         #endregion

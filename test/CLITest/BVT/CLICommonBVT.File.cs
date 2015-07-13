@@ -1057,7 +1057,12 @@
                 string bigBlobUri = Test.Data.Get("BigBlobUri");
                 Test.Assert(agent.StartFileCopy(bigBlobUri, file), "Start file copy should succeed.");
 
-                Test.Assert(agent.StopFileCopy(shareName, fileName, null), "Stop file copy should succeed.");
+                string copyId = null;
+                if (lang == Language.NodeJS)
+                {
+                    copyId = agent.Output[0]["copyId"] as string;
+                }
+                Test.Assert(agent.StopFileCopy(shareName, fileName, copyId), "Stop file copy should succeed.");
 
                 file.FetchAttributes();
                 Test.Assert(file.CopyState.Status == CopyStatus.Aborted, "copy state of the destination file should be aborted.");
@@ -1068,7 +1073,11 @@
                 string bigFileUri = Test.Data.Get("BigAzureFileUri");
                 Test.Assert(agent.StartFileCopy(bigFileUri, file), "Start file copy from big file should succeed.");
 
-                Test.Assert(agent.StopFileCopy(file, null), "Stop file copy should succeed.");
+                if (lang == Language.NodeJS)
+                {
+                    copyId = agent.Output[0]["copyId"] as string;
+                }
+                Test.Assert(agent.StopFileCopy(file, copyId), "Stop file copy should succeed.");
 
                 file.FetchAttributes();
                 Test.Assert(file.CopyState.Status == CopyStatus.Aborted, "copy state of the destination file should be aborted.");
