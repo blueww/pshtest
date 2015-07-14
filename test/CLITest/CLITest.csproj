@@ -251,6 +251,7 @@
     <Compile Include="Functional\Table\TableStoredAccessPolicy.cs" />
     <Compile Include="IExecutionError.cs" />
     <Compile Include="IExecutionResult.cs" />
+    <Compile Include="Performance\CLIPerfBase.cs" />
     <Compile Include="Performance\Helper\AbstractBlobUploadOperation.cs" />
     <Compile Include="Performance\Helper\BlockBlobDownloadOperation.cs" />
     <Compile Include="Performance\Helper\BlockBlobUploadOperation.cs" />

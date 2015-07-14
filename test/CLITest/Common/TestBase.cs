@@ -115,13 +115,6 @@ namespace Management.Storage.ScenarioTest.Common
             fileUtil = new CloudFileUtil(StorageAccount);
             random = new Random();
 
-            // FIXME: For now, the new storage account could not work against
-            // normal storage account. So comment these operations which has
-            // nothing to do with cloud file service and will certainly fail.
-            ////ContainerInitCount = blobUtil.GetExistingContainerCount();
-            ////QueueInitCount = queueUtil.GetExistingQueueCount();
-            ////TableInitCount = tableUtil.GetExistingTableCount();
-
             SetCLIEnv(testContext);
         }
 
