@@ -137,7 +137,7 @@ namespace Management.Storage.ScenarioTest.Performance.Helper
         }
 
 
-        public virtual bool NeedDataPreparation
+        public virtual bool IsUploadTest
         {
             get { return false; }
         }
