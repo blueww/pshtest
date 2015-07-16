@@ -1927,7 +1927,7 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
 
-            string script = ".\\PSHScripts\\CopyFromContainer.ps1" + " -modulePath " + modulePath + " -sourceConnectionString \"" + sourceConnectionString
+            string script = ".\\PSHScripts\\CopyFromContainer.ps1" + " -modulePath \"" + modulePath + "\" -sourceConnectionString \"" + sourceConnectionString
                 + "\" -destConnectionString \"" + destConnectionString + "\" -containerName " + containerName + " -shareName " + shareName;
 
             ps.AddScript(script, true);
@@ -1939,7 +1939,7 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
 
-            string script = ".\\PSHScripts\\CopyFromShare.ps1" + " -modulePath " + modulePath + " -sourceConnectionString \"" + sourceConnectionString
+            string script = ".\\PSHScripts\\CopyFromShare.ps1" + " -modulePath \"" + modulePath + "\" -sourceConnectionString \"" + sourceConnectionString
                 + "\" -destConnectionString \"" + destConnectionString + "\" -sourceShareName " + sourceShare + " -destShareName " + destShare;
 
             ps.AddScript(script, true);
