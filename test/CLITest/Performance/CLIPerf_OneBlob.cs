@@ -202,7 +202,8 @@ namespace Management.Storage.ScenarioTest
         public void DownloadHttpAppend()
         {
             var o = new AppendBlobDownloadOperation(this.agent, BlobHelper);
-            Run(o);
+            var ro = new AppendBlobUploadOperation(this.agent, BlobHelper);
+            Run(o, ro);
         }
 
         [TestMethod]
@@ -224,7 +225,8 @@ namespace Management.Storage.ScenarioTest
         public void DownloadHttpAppend_Max()
         {
             var o = new AppendBlobDownloadOperation(this.agent, BlobHelper);
-            Run(o, max: true);
+            var ro = new AppendBlobUploadOperation(this.agent, BlobHelper);
+            Run(o, ro, max: true);
         }
 
         #endregion
