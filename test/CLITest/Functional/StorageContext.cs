@@ -25,6 +25,8 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using MS.Test.Common.MsTestLib;
 using StorageTestLib;
 using System.Collections.ObjectModel;
+using System.Threading;
+using System.Reflection;
 
 namespace Management.Storage.ScenarioTest.Functional
 {
@@ -261,6 +263,73 @@ namespace Management.Storage.ScenarioTest.Functional
                 {"TableEndPoint", endPoints[2]}
             });
             return comp;
+        }
+        
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.StorageContext)]
+        public void GetMooncakeStorageContext()
+        {
+            CLICommonBVT.SaveAndCleanSubScriptionAndEnvConnectionString();
+
+            PowerShellAgent.ImportAzureSubscriptionAndSetStorageAccount(
+                Test.Data.Get("MooncakeSubscriptionPath"),
+                Test.Data.Get("MooncakeSubscriptionName"),
+                null);
+
+            ValidateStorageContext(Test.Data.Get("MooncakeStorageAccountName"), Test.Data.Get("MooncakeStorageAccountKey"), "core.chinacloudapi.cn");
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.StorageContext)]
+        public void GetStorageContextWithoutSubscription()
+        {
+            CLICommonBVT.SaveAndCleanSubScriptionAndEnvConnectionString();
+            
+            ValidateStorageContext(Test.Data.Get("StorageAccountName"), Test.Data.Get("StorageAccountKey"), "core.windows.net");
+        }
+
+        private void ValidateStorageContext(string accountName, string accountKey, string endpointSuffix)
+        {
+            object context = PowerShellAgent.GetStorageContext(accountName, accountKey);
+
+            Type myType = context.GetType();
+            IList<PropertyInfo> props = new List<PropertyInfo>(myType.GetProperties());
+
+            foreach (PropertyInfo prop in props)
+            {
+                if (string.Equals(prop.Name, "BlobEndPoint"))
+                {
+                    string blobEndPoint = prop.GetValue(context, null) as string;
+
+                    Test.Assert(blobEndPoint.Contains(string.Format("{0}.blob.{1}", accountName, endpointSuffix)), "BlobEndPoint should be correct.");
+                }
+                else if (string.Equals(prop.Name, "TableEndPoint"))
+                {
+                    string tableEndpoint = prop.GetValue(context, null) as string;
+
+                    Test.Assert(tableEndpoint.Contains(string.Format("{0}.table.{1}", accountName, endpointSuffix)), "TableEndPoint should be correct.");
+                }
+                else if (string.Equals(prop.Name, "QueueEndPoint"))
+                {
+                    string queueEndPoint = prop.GetValue(context, null) as string;
+
+                    Test.Assert(queueEndPoint.Contains(string.Format("{0}.queue.{1}", accountName, endpointSuffix)), "QueueEndPoint should be correct.");
+                }
+                else if (string.Equals(prop.Name, "EndPointSuffix"))
+                {
+                    string contextEndPointSuffix = prop.GetValue(context, null) as string;
+
+                    Test.Assert(contextEndPointSuffix.Contains(endpointSuffix), "EndPointSuffix should be correct.");
+                }
+                else if (string.Equals(prop.Name, "StorageAccountName"))
+                {
+                    string storageAccountName = prop.GetValue(context, null) as string;
+
+                    Test.Assert(string.Equals(storageAccountName, accountName), "StorageAccountName should be correct.");
+                }
+            }
         }
     }
 }
