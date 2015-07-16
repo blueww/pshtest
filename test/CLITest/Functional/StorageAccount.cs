@@ -1298,23 +1298,26 @@ namespace Management.Storage.ScenarioTest
                         }
                     }
 
-                    if (Language.NodeJS == lang)
+                    if (!string.IsNullOrEmpty(errorMsg))
                     {
-                        if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS) ||
-                            newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
+                        if (Language.NodeJS == lang)
                         {
-                            errorMsg = string.Format(NodeJSInvalidSetTypeError, newAccountType);
+                            if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS) ||
+                                newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
+                            {
+                                errorMsg = string.Format(NodeJSInvalidSetTypeError, newAccountType);
+                            }
                         }
-                    }
-                    else
-                    { 
-                        if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
+                        else
                         {
-                            errorMsg = "Storage account type Provisioned-LRS cannot be changed.";
+                            if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
+                            {
+                                errorMsg = "Storage account type Provisioned-LRS cannot be changed.";
+                            }
                         }
+
+                        ExpectedContainErrorMessage(errorMsg);
                     }
-                    
-                    ExpectedContainErrorMessage(errorMsg);
                 }
             }
             finally
@@ -1364,7 +1367,7 @@ namespace Management.Storage.ScenarioTest
                     Test.Assert(!agent.SetAzureStorageAccount(accountName, label, description, type),
                         string.Format("Setting stoarge account {0} to type {1} should fail", accountName, type));
 
-                    errorMessage = string.Format("Storage account type cannot be changed from Standard-LRS to {0} or vice versa.", ConvertAccountType(targetAccountType)).Replace("-", "_");
+                    errorMessage = string.Format("Cannot change storage account type from Standard_LRS to {0} or vice versa", ConvertAccountType(targetAccountType)).Replace("-", "_");
                 }
 
                 if (Language.NodeJS == lang)
@@ -1756,10 +1759,18 @@ namespace Management.Storage.ScenarioTest
 
                     // Invalid parameter prompt is in normal output on Windows, but in error output on Linux/Mac
                     bool result = agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Invalid);
-                    result = (AgentFactory.GetOSType() == OSType.Windows) ? result == true : result == false;
 
-                    Test.Assert(result && agent.Output.Count == 0,
-                        string.Format("Renewing an invalid key type of the stoarge account {0} should fail", accountName));
+                    if (Language.NodeJS == lang)
+                    {
+                        result = (AgentFactory.GetOSType() == OSType.Windows) ? result == true : result == false;
+
+                        Test.Assert(result && agent.Output.Count == 0,
+                            string.Format("Renewing an invalid key type of the stoarge account {0} should fail", accountName));
+                    }
+                    else
+                    {
+                        Test.Assert(!result, string.Format("Renewing an invalid key type of the stoarge account {0} should fail", accountName));
+                    }
                 }
             }
             finally
@@ -2130,7 +2141,7 @@ namespace Management.Storage.ScenarioTest
         {
             string accountTypeInErrorMessage = accountType.Replace('_', '-');
 
-            if (Language.PowerShell == lang)
+            if ((Language.PowerShell == lang) && isResourceMode)
             {
                 return accountTypeInErrorMessage.Replace("Premium", "Provisioned");
             }
