@@ -14,7 +14,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Management.Automation;
+using System.Reflection;
 using System.Text;
 using Management.Storage.ScenarioTest.BVT;
 using Management.Storage.ScenarioTest.Common;
@@ -24,9 +26,6 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using MS.Test.Common.MsTestLib;
 using StorageTestLib;
-using System.Collections.ObjectModel;
-using System.Threading;
-using System.Reflection;
 
 namespace Management.Storage.ScenarioTest.Functional
 {
