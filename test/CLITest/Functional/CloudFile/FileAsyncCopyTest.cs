@@ -518,14 +518,29 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 Test.Assert(!agent.StartFileCopy(file, shareName, destFileName, Agent.Context), "Start copying to a file with too long name should fail.");
                 ExpectedContainErrorMessage(string.Format("The length of the given path/prefix '{0}' exceeded the max allowed length 1024 for Microsoft Azure File Service REST API.", destFileName));
 
+
                 // To invalid dest file name
                 destFileName = Utility.GenNameString("") + InvalidFileNameChar[random.Next(0, InvalidFileNameChar.Count())] + Utility.GenNameString("");
                 Test.Assert(!agent.StartFileCopy(file, shareName, destFileName, Agent.Context), "Start copying to a invalid file should fail.");
-                ExpectedContainErrorMessage(string.Format("The given path/prefix '{0}' is not a valid name for a file or directory or does match the requirement for Microsoft Azure File Service REST API.", destFileName));
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage(string.Format("The given path/prefix '{0}' is not a valid name for a file or directory or does match the requirement for Microsoft Azure File Service REST API.", destFileName));
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("The specifed resource name contains invalid characters");
+                }
 
                 // To null dest file name
                 Test.Assert(!agent.StartFileCopy(file, shareName, null, Agent.Context), "Start copying to null file path should fail.");
-                ExpectedContainErrorMessage("Cannot process command because of one or more missing mandatory parameters");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Cannot process command because of one or more missing mandatory parameters");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("--dest-path is required when copying to a file");
+                }
 
                 //Test.Assert(!agent.StartFileCopy("http://www.bing.com", destFile), "Start copying from invalid Uri should fail.");
 

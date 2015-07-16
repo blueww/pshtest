@@ -972,7 +972,13 @@
 
                 Test.Assert(agent.StartAzureStorageBlobCopy(bigFileUri, destContainer.Name, blob.Name, Agent.Context), "Start azure storage copy from file to blob should succeed.");
 
-                Test.Assert(agent.StopAzureStorageBlobCopy(destContainerName, blob.Name, null, true), "Stop blob copy should succeed.");
+                string copyId = null;
+                if (lang == Language.NodeJS)
+                {
+                    copyId = agent.Output[0]["copyId"] as string;
+                }
+
+                Test.Assert(agent.StopAzureStorageBlobCopy(destContainerName, blob.Name, copyId, true), "Stop blob copy should succeed.");
 
                 blob.FetchAttributes();
 
