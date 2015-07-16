@@ -30,10 +30,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             ClearCorsRules(Constants.ServiceType.Blob);
             ClearCorsRules(Constants.ServiceType.Table);
             ClearCorsRules(Constants.ServiceType.Queue);
-            if (lang == Language.NodeJS)
-            {
-                ClearCorsRules(Constants.ServiceType.File);
-            }
+            ClearCorsRules(Constants.ServiceType.File);
 
             TestBase.TestClassCleanup();
         }
@@ -76,10 +73,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             this.OverwriteCORSRules(setCORSRules, Constants.ServiceType.Blob);
             this.OverwriteCORSRules(setCORSRules, Constants.ServiceType.Queue);
             this.OverwriteCORSRules(setCORSRules, Constants.ServiceType.Table);
-            if (lang == Language.NodeJS)
-            {
-                this.OverwriteCORSRules(setCORSRules, Constants.ServiceType.File);
-            }
+            this.OverwriteCORSRules(setCORSRules, Constants.ServiceType.File);
         }
 
         [TestMethod]
@@ -99,10 +93,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             this.OverwriteCORSRules(setCORSRules, Constants.ServiceType.Blob);
             this.OverwriteCORSRules(setCORSRules, Constants.ServiceType.Queue);
             this.OverwriteCORSRules(setCORSRules, Constants.ServiceType.Table);
-            if (lang == Language.NodeJS)
-            {
-                this.OverwriteCORSRules(setCORSRules, Constants.ServiceType.File);
-            }
+            this.OverwriteCORSRules(setCORSRules, Constants.ServiceType.File);
         }
 
         [TestMethod]
@@ -589,26 +580,8 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
         private Constants.ServiceType GetRandomServiceType()
         {
-            Constants.ServiceType type = Constants.ServiceType.Blob;
-            bool regenerate;
-
-            do
-            {
-                var serviceTypes = Enum.GetValues(typeof(Constants.ServiceType));
-                type = (Constants.ServiceType)serviceTypes.GetValue(random.Next(0, serviceTypes.Length - 1));
-
-                if (lang == Language.PowerShell && type == Constants.ServiceType.File)
-                {
-                    regenerate = true;
-                }
-                else
-                {
-                    regenerate = false;
-                }
-            }
-            while (regenerate);
-
-            return type;
+            var serviceTypes = Enum.GetValues(typeof(Constants.ServiceType));
+            return (Constants.ServiceType)serviceTypes.GetValue(random.Next(0, serviceTypes.Length - 1));
         }
 
         private void OverwriteCORSRules(Action<Constants.ServiceType> setCORSRules, Constants.ServiceType serviceType)

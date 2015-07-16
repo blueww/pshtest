@@ -214,7 +214,11 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string fileName = Utility.GenNameString("fileName");
                 StorageFile.CloudFile sourceFile = fileUtil2.CreateFile(share, fileName);
 
-                Test.Assert(!agent.StartFileCopy(sourceFile.Uri.ToString(), destShareName, fileName, Agent.Context), "Copy from non public non sas uri should fail.");
+                StorageFile.CloudFile destFile = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), fileName);
+
+                Agent.Context = null;
+
+                Test.Assert(!agent.StartFileCopy(sourceFile.Uri.ToString(), destFile), "Copy from non public non sas uri should fail.");
                 ExpectedContainErrorMessage("The specified resource does not exist.");
             }
             finally
@@ -391,7 +395,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 SetSourceContext(container);
 
-                Test.Assert(!agent.StartFileCopyFromBlob(sourceContainerName, sourceBlob.Name, destShareName, null, destContext), "Copy to file with sas token credential should succeed.");
+                Test.Assert(!agent.StartFileCopyFromBlob(sourceContainerName, sourceBlob.Name, destShareName, sourceBlob.Name, destContext), "Copy to file with sas token credential should succeed.");
 
                 ExpectedContainErrorMessage("The specified resource does not exist.");
 
@@ -430,7 +434,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string destFileName = Utility.GenNameString("destfile");
                 Test.Assert(agent.StartFileCopyFromBlob(sourceContainerName, sourceBlob.Name, destShareName, destFileName, destContext), "Copy to file with sas token credential should succeed.");
 
-                var destFile = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), sourceBlob.Name);
+                var destFile = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), destFileName);
 
                 Test.Assert(agent.GetFileCopyState(destFile, destContext, true), "Get file copy state should succeed.");
 
