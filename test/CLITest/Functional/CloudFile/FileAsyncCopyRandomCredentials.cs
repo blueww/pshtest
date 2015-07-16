@@ -81,13 +81,14 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         {
             CopyFromFile2SASFile((sourceShare) =>
             {
+                string connectionString = (new CloudStorageAccount(sourceShare.ServiceClient.Credentials, null, null, null, sourceShare.ServiceClient.StorageUri.PrimaryUri)).ToString(true);
                 if (lang == Language.PowerShell)
                 {
-                    PowerShellAgent.SetStorageContext(StorageAccount.ToString(true));
+                    PowerShellAgent.SetStorageContext(connectionString);
                 }
                 else
                 {
-                    NodeJSAgent.SetStorageContext(StorageAccount.ToString(true));
+                    NodeJSAgent.SetStorageContext(connectionString);
                 }
             });
 
@@ -355,7 +356,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string destFileName = Utility.GenNameString("destfile");
                 Test.Assert(agent.StartFileCopyFromFile(sourceShareName, sourceFile.Name, destShareName, destFileName, destContext), "Copy to file with sas token credential should succeed.");
 
-                var destFile = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), sourceFile.Name);
+                var destFile = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), destFileName);
 
                 Test.Assert(agent.GetFileCopyState(destFile, destContext, true), "Get file copy state should succeed.");
 

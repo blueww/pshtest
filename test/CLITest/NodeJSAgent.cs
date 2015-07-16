@@ -2189,8 +2189,6 @@ namespace Management.Storage.ScenarioTest
                 connectionString += string.Format("FileEndpoint={0};", account.FileEndpoint.AbsoluteUri);
             }
 
-            this.SetStorageContextWithSASToken(account.Credentials.AccountName, sasToken);
-
             return CloudStorageAccount.Parse(connectionString);
         }
 
