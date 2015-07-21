@@ -68,6 +68,11 @@ namespace Management.Storage.ScenarioTest
         [ClassInitialize()]
         public static void StorageAccountTestInit(TestContext testContext)
         {
+            if (lang == Language.PowerShell)
+            {
+                PowerShellAgent.RemoveModule(isResourceMode);
+            }
+
             string appPath = Test.Data.Get("LoginAppPath");
 
             if (!string.IsNullOrEmpty(appPath))
