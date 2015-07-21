@@ -52,7 +52,6 @@ namespace Management.Storage.ScenarioTest
                 {"GetBlobContentWithNotExistsContainer", "Can not find blob '{0}' in container '{1}'."},
                 {"GetNonExistingBlob", "Can not find blob '{0}' in container '{1}'."},
                 {"RemoveBlobWithLease", "The remote server returned an error: (412)"},
-                {"SetBlobContentWithInvalidBlobType", "Blob type of the blob reference doesn't match blob type of the blob. HTTP Status Code: 200"},
                 {"SetPageBlobWithInvalidFileSize", "File size {0} bytes is invalid for PageBlob, must be a multiple of 512 bytes"},
                 {"CreateExistingContainer", "Container '{0}' already exists."},
                 {"CreateInvalidContainer", "Container name '{0}' is invalid."},
