@@ -113,6 +113,14 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+        public static void RemoveModule(bool isResourceMode)
+        {
+            PowerShell ps = PowerShell.Create(_InitState);
+            ps.AddCommand("Remove-Module");
+            ps.BindParameter("Name", isResourceMode ? "AzureResourceManager" : "Azure");
+            ps.Invoke();
+        }
+
         public static void SetPowerShellInstance(PowerShell instance)
         {
             PowerShellAgent.PowerShellInstance = instance;
