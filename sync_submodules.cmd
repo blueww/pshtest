@@ -15,7 +15,7 @@ cd ..
 echo "update submodule xplat"
 cd Xplat
 git fetch
-git reset origin/dev --hard
+git reset origin/next --hard
 cd ..
 
 if [%1] == [JENKINS] GOTO :JENKINS
