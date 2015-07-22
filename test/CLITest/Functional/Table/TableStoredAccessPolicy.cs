@@ -168,8 +168,9 @@
                     ExpectedContainErrorMessage("A maximum of 5 access policies may be set");
                 }
 
-                tableUtil.RemoveTable(table);
-                Test.Assert(!agent.NewAzureStorageTableStoredAccessPolicy(table.Name, Utility.GenNameString("p", 5), null, null, null), "Create stored access policy against non-existing container should fail");
+                string nonexistTableName = Utility.GenNameString("table");
+                tableUtil.RemoveTable(nonexistTableName);
+                Test.Assert(!agent.NewAzureStorageTableStoredAccessPolicy(nonexistTableName, Utility.GenNameString("p", 5), null, null, null), "Create stored access policy against non-existing table should fail");
                 if (lang == Language.PowerShell)
                 {
                     ExpectedContainErrorMessage("does not exist");   
