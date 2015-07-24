@@ -168,8 +168,9 @@
                     ExpectedContainErrorMessage("A maximum of 5 access policies may be set");
                 }
 
-                tableUtil.RemoveTable(table);
-                Test.Assert(!agent.NewAzureStorageTableStoredAccessPolicy(table.Name, Utility.GenNameString("p", 5), null, null, null), "Create stored access policy against non-existing container should fail");
+                string nonexistTableName = Utility.GenNameString("table");
+                tableUtil.RemoveTable(nonexistTableName);
+                Test.Assert(!agent.NewAzureStorageTableStoredAccessPolicy(nonexistTableName, Utility.GenNameString("p", 5), null, null, null), "Create stored access policy against non-existing table should fail");
                 if (lang == Language.PowerShell)
                 {
                     ExpectedContainErrorMessage("does not exist");   
@@ -276,9 +277,10 @@
                 {
                     ExpectedContainErrorMessage("Reason:");
                 }
-
-                tableUtil.RemoveTable(table);
-                Test.Assert(!agent.GetAzureStorageTableStoredAccessPolicy(table.Name, policyName),
+                
+                string nonexistTableName = Utility.GenNameString("table");
+                tableUtil.RemoveTable(nonexistTableName);
+                Test.Assert(!agent.GetAzureStorageTableStoredAccessPolicy(nonexistTableName, policyName),
                     "Get stored access policy from invalid table name should fail");
                 if (lang == Language.PowerShell)
                 {
@@ -349,8 +351,9 @@
                     ExpectedContainErrorMessage("Reason:");
                 }
 
-                tableUtil.RemoveTable(table);
-                Test.Assert(!agent.RemoveAzureStorageTableStoredAccessPolicy(table.Name, policyName),
+                string nonexistTableName = Utility.GenNameString("table");
+                tableUtil.RemoveTable(nonexistTableName);
+                Test.Assert(!agent.RemoveAzureStorageTableStoredAccessPolicy(nonexistTableName, policyName),
                     "Remove stored access policy from invalid table name should fail");
                 if (lang == Language.PowerShell)
                 {
@@ -562,8 +565,9 @@
                     Test.Assert(agent.SetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, samplePolicy.Permission, null, samplePolicy.ExpiryTime, false, true), "Setting stored access policy without empty expiry time should succeed");
                 }
 
-                tableUtil.RemoveTable(table);
-                Test.Assert(!agent.SetAzureStorageTableStoredAccessPolicy(table.Name, Utility.GenNameString("p", 5), null, null, null), "Set stored access policy against non-existing table should fail");
+                string nonexistTableName = Utility.GenNameString("table");
+                tableUtil.RemoveTable(nonexistTableName);
+                Test.Assert(!agent.SetAzureStorageTableStoredAccessPolicy(nonexistTableName, Utility.GenNameString("p", 5), null, null, null), "Set stored access policy against non-existing table should fail");
                 if (lang == Language.PowerShell)
                 {
                     ExpectedContainErrorMessage("does not exist");
