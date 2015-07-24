@@ -284,6 +284,11 @@ namespace Management.Storage.ScenarioTest.Common
             ExpectedContainErrorMessage("Resource not found");
         }
 
+        public void ExpectedAccoutNotFoundErrorMessage(string groupName, string accountName)
+        {
+            ExpectedContainErrorMessage(string.Format("The Resource 'Microsoft.Storage/storageAccounts/{0}' under resource group '{1}' was not found", accountName, groupName));
+        }
+
         /// <summary>
         /// Expect returned error message is the specified error message
         /// </summary>
