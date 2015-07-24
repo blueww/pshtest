@@ -70,7 +70,7 @@ namespace Management.Storage.ScenarioTest
                 {"UseInvalidAccount", "getaddrinfo"}, //bug#892297
                 {"MissingAccountName", "Please set the storage account parameters or one of the following two environment variables to use"},
                 {"MissingAccountKey", "Please set the storage account parameters or one of the following two environment variables to use"},
-                {"OveruseAccountParams", "Please only define one of them: 1. --connection-string. 2 --account-name and --account-key"},
+                {"OveruseAccountParams", "Please only define one of them:\n 1. --connection-string\n 2. --account-name and --account-key\n 3. --account-name and --sas"},
                 {"CreateExistingTable", "The table specified already exists"},
                 {"CreateInvalidTable", "Table name format is incorrect"},
                 {"GetNonExistingTable", "Table {0} doesn't exist"},
@@ -182,7 +182,6 @@ namespace Management.Storage.ScenarioTest
 
             Process p = new Process();
             SetProcessInfo(p, category, argument);
-            StringBuilder outputBuilder = new StringBuilder();
             p.Start();
 
             StringBuilder outputBuffer = new StringBuilder();
@@ -206,27 +205,26 @@ namespace Management.Storage.ScenarioTest
             p.BeginErrorReadLine();
             p.WaitForExit(MaxWaitingTime);
 
-            string output = outputBuffer.ToString();
-            string error = errorBuffer.ToString();
-
-            if (!string.IsNullOrEmpty(error))
-            {
-                if (error.StartsWith(UnlockKeyChainOutput))
-                {
-                    error = error.Remove(0, UnlockKeyChainOutput.Length);
-                }
-                else
-                {
-                    Test.Verbose("Error:\n{0}", error);
-                }
-            }
-
-            Test.Verbose("Node Output:\n{0}", output);
+            string output = string.Empty;
+            string error = string.Empty;
 
             if (!p.HasExited)
             {
                 p.Kill();
+
+                // To mitigate the issue that p.kill() returns before all the threads are completed. 
+                p.WaitForExit();
+
+                printInfo(outputBuffer, errorBuffer, ref output, ref error);
+
                 throw new Exception(string.Format("NodeJS command timeout: cost time > {0}s !", MaxWaitingTime / 1000));
+            }
+            else
+            {
+                // To work around the issue that WaitForExit() with parameter will exit when not all the threads are completed. 
+                p.WaitForExit();
+
+                printInfo(outputBuffer, errorBuffer, ref output, ref error);
             }
 
             ErrorMessages.Clear();
@@ -269,6 +267,25 @@ namespace Management.Storage.ScenarioTest
             }
 
             return bSuccess;
+        }
+
+        internal void printInfo(StringBuilder outputBuffer, StringBuilder errorBuffer, ref string output, ref string error)
+        {
+            error = errorBuffer.ToString();
+            if (!string.IsNullOrEmpty(error))
+            {
+                if (error.StartsWith(UnlockKeyChainOutput))
+                {
+                    error = error.Remove(0, UnlockKeyChainOutput.Length);
+                }
+                else
+                {
+                    Test.Verbose("Error:\n{0}", error);
+                }
+            }
+
+            output = outputBuffer.ToString();
+            Test.Verbose("Node Output:\n{0}", output);
         }
 
         internal string parseOutput(string output)
