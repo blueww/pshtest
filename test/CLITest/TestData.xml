@@ -49,6 +49,12 @@
   <SecondaryStorageAccountName></SecondaryStorageAccountName>
   <SecondaryStorageAccountKey></SecondaryStorageAccountKey>
   <SecondaryStorageEndPoint>core.windows.net</SecondaryStorageEndPoint>
+    
+  <!-- Mooncake subscription -->
+  <MooncakeSubscriptionName>Azure Storage DM</MooncakeSubscriptionName>
+  <MooncakeSubscriptionPath>D:\powershell\Azure Storage DM-7-16-2015-credentials.publishsettings</MooncakeSubscriptionPath>
+  <MooncakeStorageAccountName>testaccount1</MooncakeStorageAccountName>
+  <MooncakeStorageAccountKey>FjUfNl1KiJttbXlsdkMzBTC7WagvrRM9/g6UPBuy0ypCpAbYTL6/KA+dI/7gyoWvLFYmah3IviUP1jykOHHOlA==</MooncakeStorageAccountKey>
 
   <NodeWorkingDirectory>.</NodeWorkingDirectory>
   <BigBlobUri>http://xdmtestsea.blob.core.windows.net/public/Fedora-18-x86_64-Live-Desktop.iso?sv=2014-02-14&amp;sr=c&amp;sig=b1wlErjRhGZ0tN3KDFqM35y5jEH9MBDyEeeaFF2eMxs%3D&amp;st=2015-06-28T16%3A00%3A00Z&amp;se=2015-12-31T16%3A00%3A00Z&amp;sp=r</BigBlobUri>
