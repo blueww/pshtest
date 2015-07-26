@@ -263,9 +263,27 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 Test.Assert(((CloudBlob)blobLists[0]).Name == convertBlobName, string.Format("blob name should be {0}, actually it's {1}", convertBlobName, ((CloudBlob)blobLists[0]).Name));
 
                 Test.Assert(!agent.SetAzureStorageBlobContent(Path.Combine(uploadDirRoot, files[0]), containerName, StorageBlob.BlobType.PageBlob, blobName), "upload blob should fail with invalid blob error.");
+
+
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Cannot overwrite an existing BlockBlob with a PageBlob.");
+                }
+                else
+                {
+                    agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, ((ICloudBlob)blobLists[0]).Name);
+                }
+
                 Test.Assert(!agent.SetAzureStorageBlobContent(Path.Combine(uploadDirRoot, files[0]), containerName, StorageBlob.BlobType.AppendBlob, blobName), "upload blob should fail with invalid blob error.");
 
-                agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, ((CloudBlob)blobLists[0]).Name);
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("Cannot overwrite an existing BlockBlob with a PageBlob.");
+                }
+                else
+                {
+                    agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, ((ICloudBlob)blobLists[0]).Name);
+                }
             }
             finally
             {
