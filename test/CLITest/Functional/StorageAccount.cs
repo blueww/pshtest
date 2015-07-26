@@ -71,6 +71,7 @@ namespace Management.Storage.ScenarioTest
             if (Language.PowerShell == lang)
             {
                 PowerShellAgent.RemoveAzureSubscriptionIfExists();
+                PowerShellAgent.RemoveModule(isResourceMode);
             }
 
             string appPath = Test.Data.Get("LoginAppPath");

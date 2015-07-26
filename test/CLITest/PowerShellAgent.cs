@@ -53,7 +53,6 @@ namespace Management.Storage.ScenarioTest
                 {"GetBlobContentWithNotExistsContainer", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
                 {"GetNonExistingBlob", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
                 {"RemoveBlobWithLease", "The remote server returned an error: (412)"},
-                {"SetBlobContentWithInvalidBlobType", "User specified blob type does not match the blob type of the existing destination blob."},
                 {"SetPageBlobWithInvalidFileSize", "File size {0} bytes is invalid for PageBlob, must be a multiple of 512 bytes"},
                 {"CreateExistingContainer", "Container '{0}' already exists."},
                 {"CreateInvalidContainer", "Container name '{0}' is invalid."},
@@ -113,6 +112,14 @@ namespace Management.Storage.ScenarioTest
             {
                 return PowerShell.Create(_InitState);
             }
+        }
+
+        public static void RemoveModule(bool isResourceMode)
+        {
+            PowerShell ps = PowerShell.Create(_InitState);
+            ps.AddCommand("Remove-Module");
+            ps.BindParameter("Name", isResourceMode ? "AzureResourceManager" : "Azure");
+            ps.Invoke();
         }
 
         public static void SetPowerShellInstance(PowerShell instance)
