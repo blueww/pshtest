@@ -212,9 +212,6 @@ namespace Management.Storage.ScenarioTest
             {
                 p.Kill();
 
-                // To mitigate the issue that p.kill() returns before all the threads are completed. 
-                p.WaitForExit();
-
                 printInfo(outputBuffer, errorBuffer, ref output, ref error);
 
                 throw new Exception(string.Format("NodeJS command timeout: cost time > {0}s !", MaxWaitingTime / 1000));
