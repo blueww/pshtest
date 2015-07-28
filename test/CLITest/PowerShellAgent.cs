@@ -113,11 +113,13 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        public static void RemoveModule(bool isResourceMode)
+        public static void LoadProfile()
         {
+            AzureProfile azureProfile = new AzureProfile(Path.Combine(AzureSession.ProfileDirectory, AzureSession.ProfileFile));
+
             PowerShell ps = PowerShell.Create(_InitState);
-            ps.AddCommand("Remove-Module");
-            ps.BindParameter("Name", isResourceMode ? "AzureResourceManager" : "Azure");
+            ps.AddCommand("Select-AzureProfile");
+            ps.BindParameter("Profile", azureProfile);
             ps.Invoke();
         }
 
