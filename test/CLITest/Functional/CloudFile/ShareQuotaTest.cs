@@ -156,7 +156,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string notValidShareName = "SHARE";
                 Test.Assert(!agent.SetAzureStorageShareQuota(notValidShareName, quota),
                     "Set quota to a not valid share name should fail.");
-                ExpectedContainErrorMessage(string.Format("The given share name/prefix '{0}' is not a valid name for a file share of Microsoft Azure File Service.", notValidShareName));
+                ExpectedContainErrorMessage(string.Format("The given share name/prefix '{0}' is not a valid name for a file share of Microsoft Azure File Service", notValidShareName));
             }
             finally
             {
