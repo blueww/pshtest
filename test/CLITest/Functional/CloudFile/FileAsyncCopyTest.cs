@@ -413,7 +413,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 if (lang == Language.PowerShell)
                 {
-                    ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service.");
+                    ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service");
                 }
                 else
                 {
@@ -426,7 +426,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 if (lang == Language.PowerShell)
                 {
-                    ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service.");
+                    ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service");
                 }
                 else
                 {
@@ -688,7 +688,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
             if (lang == Language.PowerShell)
             {
-                ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service.");
+                ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service");
             }
             else
             {
@@ -916,7 +916,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 Test.Assert(!agent.StopFileCopy("SHARE", Utility.GenNameString(""), destFile.CopyState.CopyId), "Stop file copy with an invalid share name should fail.");
                 if (lang == Language.PowerShell)
                 {
-                    ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service.");
+                    ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service");
                 }
                 else
                 {
