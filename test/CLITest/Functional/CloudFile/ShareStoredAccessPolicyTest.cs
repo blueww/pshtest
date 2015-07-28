@@ -126,7 +126,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 Test.Assert(!agent.NewAzureStorageShareStoredAccessPolicy("SHARE", Utility.GenNameString("p", 5), null, null, null), "Create stored access policy for invalid container name CONTAINER should fail");
                 if (lang == Language.PowerShell)
                 {
-                    ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service.");
+                    ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service");
                 }
                 else
                 {
