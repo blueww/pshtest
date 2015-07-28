@@ -26,6 +26,8 @@ using System.Reflection;
 using System.Security;
 using System.Text;
 using Management.Storage.ScenarioTest.Util;
+using Microsoft.Azure.Common.Authentication;
+using Microsoft.Azure.Common.Authentication.Models;
 using Microsoft.Azure.Management.Storage.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage;
