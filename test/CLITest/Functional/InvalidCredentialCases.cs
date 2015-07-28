@@ -143,7 +143,7 @@ namespace Management.Storage.ScenarioTest.Functional
             }
             else
             {
-                ExpectedContainErrorMessage("Please set the storage account parameters or one of the following two environment variables to use storage command");
+                ExpectedContainErrorMessage("Please set the storage account parameters or one of the following two environment variables to use the storage command");
             }
         }
     }
