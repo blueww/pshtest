@@ -559,7 +559,13 @@ namespace Management.Storage.ScenarioTest
             {
                 CopyState copyState = getCopyState();
 
-                if (copyState != null && copyState.Status != CopyStatus.Pending)
+                if (copyState == null)
+                {
+                    Test.Error("Copy state doesn't exist, starting copying may not work.");
+                    return;
+                }
+
+                if (copyState.Status != CopyStatus.Pending)
                 {
                     return;
                 }
