@@ -26,6 +26,8 @@ using System.Reflection;
 using System.Security;
 using System.Text;
 using Management.Storage.ScenarioTest.Util;
+using Microsoft.Azure.Common.Authentication;
+using Microsoft.Azure.Common.Authentication.Models;
 using Microsoft.Azure.Management.Storage.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage;
@@ -113,11 +115,13 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        public static void RemoveModule(bool isResourceMode)
+        public static void LoadProfile()
         {
+            AzureProfile azureProfile = new AzureProfile(Path.Combine(AzureSession.ProfileDirectory, AzureSession.ProfileFile));
+
             PowerShell ps = PowerShell.Create(_InitState);
-            ps.AddCommand("Remove-Module");
-            ps.BindParameter("Name", isResourceMode ? "AzureResourceManager" : "Azure");
+            ps.AddCommand("Select-AzureProfile");
+            ps.BindParameter("Profile", azureProfile);
             ps.Invoke();
         }
 

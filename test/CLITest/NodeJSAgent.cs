@@ -69,7 +69,7 @@ namespace Management.Storage.ScenarioTest
                 {"UseInvalidAccount", "getaddrinfo"}, //bug#892297
                 {"MissingAccountName", "Please set the storage account parameters or one of the following two environment variables to use"},
                 {"MissingAccountKey", "Please set the storage account parameters or one of the following two environment variables to use"},
-                {"OveruseAccountParams", "Please only define one of them: 1. --connection-string. 2 --account-name and --account-key"},
+                {"OveruseAccountParams", "Please only define one of them:\n 1. --connection-string\n 2. --account-name and --account-key\n 3. --account-name and --sas"},
                 {"CreateExistingTable", "The table specified already exists"},
                 {"CreateInvalidTable", "Table name format is incorrect"},
                 {"GetNonExistingTable", "Table {0} doesn't exist"},
