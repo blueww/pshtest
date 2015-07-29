@@ -117,6 +117,11 @@ namespace Management.Storage.ScenarioTest
                 var keys = accountUtils.StorageClient.StorageAccounts.GetKeysAsync(accountNameForConnectionStringTest).Result;
                 primaryKeyForConnectionStringTest = keys.PrimaryKey;
             }
+
+            if (isResourceMode && (Language.PowerShell == lang))
+            {
+                PowerShellAgent.LoadProfile();
+            }
         }
 
         [ClassCleanup()]
