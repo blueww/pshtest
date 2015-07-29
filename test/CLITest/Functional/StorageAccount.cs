@@ -116,6 +116,11 @@ namespace Management.Storage.ScenarioTest
                 var keys = accountUtils.StorageClient.StorageAccounts.GetKeysAsync(accountNameForConnectionStringTest).Result;
                 primaryKeyForConnectionStringTest = keys.PrimaryKey;
             }
+
+            if (isResourceMode && (Language.PowerShell == lang))
+            {
+                PowerShellAgent.LoadProfile();
+            }
         }
 
         [ClassCleanup()]
@@ -748,7 +753,7 @@ namespace Management.Storage.ScenarioTest
             // Assert
             if (isResourceMode)
             {
-                ExpectedNotFoundErrorMessage();
+                ExpectedAccoutNotFoundErrorMessage(resourceGroupName, account);
             }
             else
             {
@@ -778,7 +783,7 @@ namespace Management.Storage.ScenarioTest
             // Assert
             if (isResourceMode)
             {
-                ExpectedNotFoundErrorMessage();
+                ExpectedAccoutNotFoundErrorMessage(resourceGroupName, account);
             }
             else
             {
@@ -1122,7 +1127,7 @@ namespace Management.Storage.ScenarioTest
             {
                 Test.Assert(!agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, accountType),
                     string.Format("Setting non-existing stoarge account {0} should fail", accountName));
-                ExpectedNotFoundErrorMessage();
+                ExpectedAccoutNotFoundErrorMessage(resourceGroupName, accountName);
             }
             else
             {
@@ -1644,7 +1649,7 @@ namespace Management.Storage.ScenarioTest
 
                 Test.Assert(!agent.ShowSRPAzureStorageAccountKeys(resourceGroupName, accountName),
                     string.Format("Listint keys of the non-existing stoarge account {0} in resource group {1} should fail", accountName, resourceGroupName));
-                ExpectedNotFoundErrorMessage();
+                ExpectedAccoutNotFoundErrorMessage(resourceGroupName, accountName);
             }
             else
             {
@@ -1712,7 +1717,7 @@ namespace Management.Storage.ScenarioTest
 
                 Test.Assert(!agent.RenewSRPAzureStorageAccountKeys(resourceGroupName, accountName, Constants.AccountKeyType.Secondary),
                     string.Format("Renewing the secondary key of the non-existing stoarge account {0} in resource group {1} should fail", accountName, resourceGroupName));
-                ExpectedNotFoundErrorMessage();
+                ExpectedAccoutNotFoundErrorMessage(resourceGroupName, accountName);
             }
             else
             {
