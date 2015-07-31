@@ -95,10 +95,12 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         public void CopyFromBlobWithLongName()
         {
             string containerName = Utility.GenNameString("container");
-            string blobName = this.GetDeepestFilePath();
+            string blobName = Utility.GenNameString("", 1024);
             object context = Agent.Context ?? TestBase.StorageAccount;
 
-            this.CopyFromBlob(containerName, blobName, blobName);
+            string destFileName = this.GetDeepestFilePath();
+
+            this.CopyFromBlob(containerName, blobName, destFileName);
         }
 
         [TestMethod()]
@@ -516,7 +518,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 destFileName = destFileName + "/" + Utility.GenNameString("fileName", 64);
                 fileUtil.CreateFileFolders(share, destFileName);
                 Test.Assert(!agent.StartFileCopy(file, shareName, destFileName, Agent.Context), "Start copying to a file with too long name should fail.");
-                ExpectedContainErrorMessage(string.Format("The length of the given path/prefix '{0}' exceeded the max allowed length 1024 for Microsoft Azure File Service REST API.", destFileName));
+                ExpectedContainErrorMessage(string.Format("The length of the given path/prefix '{0}' exceeded the max allowed length 2048 for Microsoft Azure File Service REST API.", destFileName));
 
 
                 // To invalid dest file name
@@ -787,10 +789,10 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
             try
             {
-                string blobPath = this.GetDeepestFilePath();
+                string blobPath = Utility.GenNameString("blobName");
                 CloudBlob srcBlob = srcBlobUtil.CreateBlockBlob(srcContainer, blobPath, createBigBlob: true);
 
-                string filePath = fileUtil.ResolveFileName(srcBlob, lang);
+                string filePath = this.GetDeepestFilePath();
                 fileUtil.CreateFileFolders(destShare, filePath);
 
                 Test.Assert(agent.StartFileCopy(srcBlob, destShareName, filePath, Agent.Context), "Start copying from blob cross account should succeed.");
@@ -1215,14 +1217,14 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         private string GetDeepestFilePath()
         {
             StringBuilder sb = new StringBuilder();
-            int maxDirLength = 1008;
+            int maxDirLength = 2032;
             while (sb.Length < maxDirLength)
             {
-                sb.Append(Utility.GenNameString("", Math.Min(8, maxDirLength - sb.Length)));
+                sb.Append(Utility.GenNameString("", Math.Min(16, maxDirLength - sb.Length)));
                 sb.Append("/");
             }
 
-            sb.Append(Utility.GenNameString("", 1024 - sb.Length));
+            sb.Append(Utility.GenNameString("", 2048 - sb.Length));
 
             return sb.ToString();
         }
