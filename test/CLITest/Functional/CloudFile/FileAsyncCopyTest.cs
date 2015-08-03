@@ -518,8 +518,14 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 destFileName = destFileName + "/" + Utility.GenNameString("fileName", 64);
                 fileUtil.CreateFileFolders(share, destFileName);
                 Test.Assert(!agent.StartFileCopy(file, shareName, destFileName, Agent.Context), "Start copying to a file with too long name should fail.");
-                ExpectedContainErrorMessage(string.Format("The length of the given path/prefix '{0}' exceeded the max allowed length 2048 for Microsoft Azure File Service REST API.", destFileName));
-
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage(string.Format("The length of the given path/prefix '{0}' exceeded the max allowed length 2048 for Microsoft Azure File Service REST API.", destFileName));
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("The specifed resource name contains invalid characters");
+                }
 
                 // To invalid dest file name
                 destFileName = Utility.GenNameString("") + InvalidFileNameChar[random.Next(0, InvalidFileNameChar.Count())] + Utility.GenNameString("");
