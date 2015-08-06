@@ -89,11 +89,14 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(directoryList.Count == 0, "{0} leftover items in directory list.", directoryList.Count);
         }
 
-        public void AssertCloudFileContainer(object containerObj, string fileShareName)
+        public void AssertCloudFileContainer(object containerObj, string fileShareName, int expectedUsage = 0)
         {
             var containerObject = containerObj as Dictionary<string, object>;
             Test.Assert(containerObject != null, "Output object should be an instance of Dictionary<string, object> class.");
             Test.Assert(containerObject["name"].ToString().Equals(fileShareName, StringComparison.OrdinalIgnoreCase), "Name of the container object should match the given parameter. Expected: {0}, Actual: {1}", fileShareName, containerObject["name"]);
+
+            int usage = containerObject.ContainsKey("shareUsage") ? int.Parse(containerObject["shareUsage"] as string) : -1;
+            Test.Assert(usage == expectedUsage, "Should contains share usage information. Expected: {0}, Actual: {1}", expectedUsage, usage);
         }
 
         public void AssertCloudFileContainer(object containerObj, List<string> fileShareNames, bool failIfNotInGivenList = true)

@@ -95,7 +95,7 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(directoryList.Count == 0, "{0} leftover items in directory list.", directoryList.Count);
         }
 
-        public void AssertCloudFileContainer(object containerObj, string fileShareName)
+        public void AssertCloudFileContainer(object containerObj, string fileShareName, int expectedUsage = 0)
         {
             var containerObject = ((PSObject)containerObj).ImmediateBaseObject as CloudFileShare;
             Test.Assert(containerObject != null, "Output object should be an instance of CloudFileShare.");
