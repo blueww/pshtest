@@ -21,6 +21,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         public const string SASTokenKey = "";
         public const string SASTokenKeyNode = "sas";
+        public const string SASTokenURLNode = "url";
 
         public struct AccountType
         {
@@ -73,7 +74,9 @@ namespace Management.Storage.ScenarioTest
         {
             Blob,
             Queue,
-            Table
+            Table,
+            File,
+            InvalidService
         };
 
         /// <summary>

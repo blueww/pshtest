@@ -18,6 +18,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Management.Storage.ScenarioTest.Util;
 using Microsoft.Azure.Management.Storage.Models;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Commands.Storage.Model.ResourceModel;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.File;
 using Microsoft.WindowsAzure.Storage.Queue;
@@ -29,6 +31,9 @@ namespace Management.Storage.ScenarioTest
 {
     public abstract class Agent : IDisposable
     {
+        public static object Context;
+        public static object SecondaryContext;
+
         private const string NotImplemented = "Not implemented in Agent!";
         /// <summary>
         /// output data returned after agent operation
@@ -79,7 +84,7 @@ namespace Management.Storage.ScenarioTest
         public abstract void ImportAzureSubscription(string settingFile);
 
         public abstract void SetActiveSubscription(string subscriptionId);
-        
+
         public abstract bool Login();
 
         public abstract void Logout();
@@ -179,10 +184,14 @@ namespace Management.Storage.ScenarioTest
 
         public abstract bool StartAzureStorageBlobCopy(string sourceUri, string destContainerName, string destBlobName, object destContext, bool force = true);
         public abstract bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, object destContext = null, bool force = true);
-        public abstract bool StartAzureStorageBlobCopy(ICloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true);
+        public abstract bool StartAzureStorageBlobCopy(CloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true);
+
+        public abstract bool StartAzureStorageBlobCopyFromFile(string srcShareName, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true);
+        public abstract bool StartAzureStorageBlobCopy(CloudFileShare srcShare, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true);
+        public abstract bool StartAzureStorageBlobCopy(CloudFile srcFile, string destContainerName, string destBlobName, object destContext = null, bool force = true);
 
         public abstract bool GetAzureStorageBlobCopyState(string containerName, string blobName, bool waitForComplete);
-        public abstract bool GetAzureStorageBlobCopyState(ICloudBlob blob, object context, bool waitForComplete);
+        public abstract bool GetAzureStorageBlobCopyState(CloudBlob blob, object context, bool waitForComplete);
         public abstract bool StopAzureStorageBlobCopy(string containerName, string blobName, string copyId, bool force);
         #endregion
 
@@ -216,7 +225,7 @@ namespace Management.Storage.ScenarioTest
         public abstract bool RemoveAzureStorageTable(string[] TableNames, bool Force = true);
         #endregion
 
-        #region Logging & Metrics APIs
+        #region Service Properties APIs
         ///-------------------------------------
         /// Logging & Metrics APIs
         ///-------------------------------------
@@ -228,6 +237,10 @@ namespace Management.Storage.ScenarioTest
             string loggingVersion = "", bool passThru = false) { return false; }
         public virtual bool SetAzureStorageServiceMetrics(Constants.ServiceType serviceType, Constants.MetricsType metricsType, string metricsLevel = "", string metricsRetentionDays = "",
             string metricsVersion = "", bool passThru = false) { return false; }
+
+        public abstract bool SetAzureStorageCORSRules(Constants.ServiceType serviceType, PSCorsRule[] corsRules);
+        public abstract bool GetAzureStorageCORSRules(Constants.ServiceType serviceType);
+        public abstract bool RemoveAzureStorageCORSRules(Constants.ServiceType serviceType);
         #endregion
 
         #region SAS token APIs
@@ -248,7 +261,7 @@ namespace Management.Storage.ScenarioTest
 
         public virtual string GetBlobSasFromCmd(string containerName, string blobName, string policy, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
-        public virtual string GetBlobSasFromCmd(ICloudBlob blob, string policy, string permission,
+        public virtual string GetBlobSasFromCmd(CloudBlob blob, string policy, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
 
         public virtual string GetContainerSasFromCmd(string containerName, string policy, string permission,
@@ -270,6 +283,10 @@ namespace Management.Storage.ScenarioTest
         public abstract void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, string endpoint, bool useHttps = true);
 
         public abstract void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, bool useHttps = true);
+
+        public abstract void SetStorageContextWithSASTokenInConnectionString(CloudStorageAccount StorageAccount, string sasToken);
+
+        public abstract object GetStorageContextWithSASToken(CloudStorageAccount account, string sasToken, string endpointSuffix = null, bool useHttps = false);
         #endregion
 
         #region Stored Access Policy APIs
@@ -313,7 +330,7 @@ namespace Management.Storage.ScenarioTest
         public abstract void OutputValidation(IEnumerable<CloudFileShare> shares);
         public abstract void OutputValidation(IEnumerable<IListFileItem> items);
         public abstract void OutputValidation(IEnumerable<BlobContainerPermissions> permissions);
-        public abstract void OutputValidation(IEnumerable<ICloudBlob> blobs);
+        public abstract void OutputValidation(IEnumerable<CloudBlob> blobs);
         public abstract void OutputValidation(IEnumerable<CloudTable> tables);
         public abstract void OutputValidation(IEnumerable<CloudQueue> queues);
         public virtual void OutputValidation(IEnumerable<StorageAccount> accounts) { throw new NotImplementedException(NotImplemented); }
@@ -401,6 +418,64 @@ namespace Management.Storage.ScenarioTest
 
         public abstract void UploadFile(string fileShareName, string source, string path, bool overwrite = false, bool passThru = false, object contextObject = null);
 
+        public abstract bool NewAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions, DateTime? startTime, DateTime? expiryTime);
+
+        public abstract bool GetAzureStorageShareStoredAccessPolicy(string shareName, string policyName);
+
+        public abstract bool RemoveAzureStorageShareStoredAccessPolicy(string shareName, string policyName);
+
+        public abstract bool SetAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions,
+            DateTime? startTime, DateTime? expiryTime, bool noStartTime = false, bool noExpiryTime = false);
+
+        public abstract bool NewAzureStorageShareSAS(string shareName, string policyName = null, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false);
+
+        public abstract bool NewAzureStorageFileSAS(string shareName, string filePath, string policyName = null, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false);
+
+        public abstract bool NewAzureStorageFileSAS(CloudFile file, string policyName = null, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false);
+
+        public abstract string GetAzureStorageShareSasFromCmd(string shareName, string policy, string permission = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false);
+
+        public abstract string GetAzureStorageFileSasFromCmd(string shareName, string filePath, string policy, string permission = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false);
+
+        public abstract bool SetAzureStorageShareQuota(string shareName, int quota);
+
+        public abstract bool SetAzureStorageShareQuota(CloudFileShare share, int quota);
+
+        public abstract bool StartFileCopyFromBlob(string containerName, string blobName, string shareName, string filePath, object destContext, bool force = true);
+
+        public abstract bool StartFileCopy(CloudBlobContainer container, string blobName, string shareName, string filePath, object destContext, bool force = true);
+
+        public abstract bool StartFileCopy(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true);
+
+        public abstract bool StartFileCopy(CloudBlob blob, CloudFile destFile, object destContext, bool force = true);
+
+        public abstract bool StartFileCopyFromFile(string srcShareName, string srcFilePath, string shareName, string filePath, object destContext, bool force = true);
+
+        public abstract bool StartFileCopy(CloudFileShare share, string srcFilePath, string shareName, string filePath, object destContext, bool force = true);
+
+        public abstract bool StartFileCopy(CloudFileDirectory dir, string srcFilePath, string shareName, string filePath, object destContext, bool force = true);
+
+        public abstract bool StartFileCopy(CloudFile srcFile, string shareName, string filePath, object destContext, bool force = true);
+
+        public abstract bool StartFileCopy(CloudFile srcFile, CloudFile destFile, bool force = true);
+
+        public abstract bool StartFileCopy(string uri, string destShareName, string destFilePath, object destContext, bool force = true);
+
+        public abstract bool StartFileCopy(string uri, CloudFile destFile, bool force = true);
+
+        public abstract bool GetFileCopyState(string shareName, string filePath, object context, bool waitForComplete = false);
+
+        public abstract bool GetFileCopyState(CloudFile file, object context, bool waitForComplete = false);
+
+        public abstract bool StopFileCopy(string shareName, string filePath, string copyId, bool force = true);
+
+        public abstract bool StopFileCopy(CloudFile file, string copyId, bool force = true);
+
         public abstract void AssertNoError();
 
         public abstract IExecutionResult Invoke(IEnumerable input = null, bool traceCommand = true);
@@ -418,7 +493,7 @@ namespace Management.Storage.ScenarioTest
 
         protected Collection<Dictionary<string, object>> _Output = new Collection<Dictionary<string, object>>();
         protected Collection<string> _ErrorMessages = new Collection<string>();
-        
+
         protected virtual void DisposeInternal()
         {
         }

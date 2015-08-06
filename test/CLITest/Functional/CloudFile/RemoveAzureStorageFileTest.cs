@@ -15,7 +15,7 @@
 
 
     [TestClass]
-    internal class RemoveAzureStorageFileTest : TestBase
+    public class RemoveAzureStorageFileTest : TestBase
     {
         private Random randomProvider = new Random();
 
@@ -24,7 +24,6 @@
         [ClassInitialize]
         public static void NewAzureStorageFileShareTestInitialize(TestContext context)
         {
-            StorageAccount = Utility.ConstructStorageAccountFromConnectionString();
             TestBase.TestClassInitialize(context);
         }
 

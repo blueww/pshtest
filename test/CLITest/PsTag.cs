@@ -70,6 +70,7 @@ namespace Management.Storage.ScenarioTest
         public const string StorageContext = "storagecontext";
         public const string ServiceLogging = "servicelogging";
         public const string ServiceMetrics = "servicemetrics";
+        public const string ServiceCORS = "servicecors";
 
         /// <summary>
         /// test tag for run the fast bvt cases for different environments
@@ -112,13 +113,19 @@ namespace Management.Storage.ScenarioTest
         public const string NewBlobSas = "nodejsnewblobsas";
         public const string NewQueueSas = "nodejsnewqueuesas";
         public const string NewTableSas = "nodejsnewtablesas";
+        public const string NewShareSas = "nodejsnewsharesas";
+        public const string NewFileSas = "nodejsnewfilesas";
         public const string SASInterop = "nodejssasinterop";
 
         public const string StoredAccessPolicy = "nodejsstoredaccesspolicy";
 
         public const string File = "nodejsfile";
+        public const string StartCopyFile = "nodestartcopyfile";
+        public const string GetFileCopyState = "nodegetfilecopystate";
+        public const string StopCopyFile = "nodestopcopyfile";
 
         public const string ServiceLogging = "nodejsservicelogging";
         public const string ServiceMetrics = "nodejsservicemetrics";
+        public const string ServiceCORS = "nodejsservicecors";
     }
 }

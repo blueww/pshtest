@@ -68,7 +68,11 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
 
         public static void Initialize(TestContext testContext, bool useHttps)
         {
-            SetUpStorageAccount = CloudStorageAccount.Parse(Test.Data.Get("StorageConnectionString"));
+            string storageAccountName = Test.Data.Get("StorageAccountName");
+            string storageAccountKey = Test.Data.Get("StorageAccountKey");
+            string storageEndPoint = Test.Data.Get("StorageEndPoint");
+            string connectionString = Utility.GenConnectionString(storageAccountName, storageAccountKey, useHttps, storageEndPoint);
+            SetUpStorageAccount = CloudStorageAccount.Parse(connectionString);
             CLICommonBVT.CLICommonBVTInitialize(testContext);
 
             if (lang == Language.PowerShell)

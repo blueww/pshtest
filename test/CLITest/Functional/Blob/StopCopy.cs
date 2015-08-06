@@ -21,6 +21,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.WindowsAzure.Storage.File;
+using StorageFile = Microsoft.WindowsAzure.Storage.File;
+using System.Threading;
 
 namespace Management.Storage.ScenarioTest.Functional.Blob
 {
@@ -55,7 +58,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             CloudBlobContainer rootContainer = blobUtil.CreateContainer("$root");
             string srcBlobName = Utility.GenNameString("src");
             //We could only use block blob to copy from external uri
-            ICloudBlob srcBlob = blobUtil.CreateBlockBlob(rootContainer, srcBlobName);
+            CloudBlob srcBlob = blobUtil.CreateBlockBlob(rootContainer, srcBlobName);
             string copyId = CopyBigFileToBlob(srcBlob);
             AssertStopPendingCopyOperationTest(srcBlob, lang == Language.NodeJS ? copyId : "*");
         }
@@ -74,7 +77,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             CloudBlobContainer container = blobUtil.CreateContainer();
             int count = random.Next(1, 5);
             List<string> blobNames = new List<string>();
-            List<ICloudBlob> blobs = new List<ICloudBlob>();
+            List<CloudBlob> blobs = new List<CloudBlob>();
 
             for (int i = 0; i < count; i++)
             {
@@ -84,7 +87,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                foreach (ICloudBlob blob in blobs)
+                foreach (CloudBlob blob in blobs)
                 {
                     CopyBigFileToBlob(blob);
                 }
@@ -163,7 +166,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             Validator validator;
             if (lang == Language.PowerShell)
             {
-                errorMessage = string.Format("Can not find blob '{0}' in container '{1}'.", blobName, srcContainerName);
+                errorMessage = string.Format("Can not find blob '{0}' in container '{1}', or the blob type is unsupported.", blobName, srcContainerName);
                 validator = ExpectedEqualErrorMessage;
             }
             else
@@ -181,7 +184,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 Test.Assert(!agent.StopAzureStorageBlobCopy(srcContainerName, blobName, copyId, false), "Stop copy should failed with not existing src container");
                 if (lang == Language.PowerShell)
                 {
-                    errorMessage = string.Format("Can not find blob '{0}' in container '{1}'.", blobName, srcContainerName);
+                    errorMessage = string.Format("Can not find blob '{0}' in container '{1}', or the blob type is unsupported.", blobName, srcContainerName);
                 }
                 else
                 {
@@ -195,7 +198,56 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             }
         }
 
-        private void AssertStopPendingCopyOperationTest(ICloudBlob blob, string copyId = "*")
+        /// <summary>
+        /// Stop the copy task on a not existing container and blob
+        /// 8.22	Stop-CopyAzureStorageBlob Negative Functional Cases
+        ///    2. Stop the copy task on a not existing container and blob
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.StopCopyBlob)]
+        public void StopFinishedCopyFromFileTest()
+        {
+            string srcShareName = Utility.GenNameString("share");
+            CloudFileShare srcShare = fileUtil.EnsureFileShareExists(srcShareName);
+
+            string destContainerName = Utility.GenNameString("container");
+            CloudBlobContainer destContainer = blobUtil.CreateContainer(destContainerName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("fileName");
+                StorageFile.CloudFile file = fileUtil.CreateFile(srcShare.GetRootDirectoryReference(), fileName);
+
+                CloudBlockBlob blob = destContainer.GetBlockBlobReference(Utility.GenNameString("destBlobName"));
+
+                Test.Assert(agent.StartAzureStorageBlobCopy(file, destContainer.Name, blob.Name, PowerShellAgent.Context), "Start azure storage copy from file to blob should succeed.");
+
+                while (true)
+                {
+                    blob.FetchAttributes();
+
+                    if (blob.CopyState.Status != CopyStatus.Pending)
+                    {
+                        break;
+                    }
+
+                    Thread.Sleep(2000);
+                }
+
+                Test.Assert(!agent.StopAzureStorageBlobCopy(destContainerName, blob.Name, null, true), "Stop blob copy should fail");
+
+                ExpectedContainErrorMessage("There is currently no pending copy operation.");
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(srcShareName);
+                blobUtil.RemoveContainer(destContainerName);
+            }
+        }
+
+        private void AssertStopPendingCopyOperationTest(CloudBlob blob, string copyId = "*")
         {
             Test.Assert(blob.CopyState.Status == CopyStatus.Pending, String.Format("The copy status should be pending, actually it's {0}", blob.CopyState.Status));
             bool force = true;
@@ -206,9 +258,9 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             Test.Assert(agent.Output.Count == expectedOutputCount, String.Format("Should return {0} message, and actually it's {1}", expectedOutputCount, agent.Output.Count));
         }
 
-        private string CopyBigFileToBlob(ICloudBlob blob)
+        private string CopyBigFileToBlob(CloudBlob blob)
         {
-            string uri = Test.Data.Get("BigFileUri");
+            string uri = Test.Data.Get("BigBlobUri");
             Test.Assert(!String.IsNullOrEmpty(uri), string.Format("Big file uri should be not empty, actually it's {0}", uri));
             
             if (String.IsNullOrEmpty(uri))
@@ -217,7 +269,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             }
             
             Test.Info(String.Format("Copy Big file to blob '{0}'", blob.Name));
-            blob.StartCopyFromBlob(new Uri(uri));
+            blob.StartCopy(new Uri(uri));
             Test.Assert(blob.CopyState.Status == CopyStatus.Pending, String.Format("The copy status should be pending, actually it's {0}", blob.CopyState.Status));
 
             return blob.CopyState.CopyId;

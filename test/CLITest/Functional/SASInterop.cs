@@ -91,6 +91,8 @@
             BlobOrContainerWithReadPermission(StorageObjectType.Container, BlobType.BlockBlob);
             SetCLIEnv(TestContext); //reset agent env 
             BlobOrContainerWithReadPermission(StorageObjectType.Container, BlobType.PageBlob);
+            SetCLIEnv(TestContext); //reset agent env 
+            BlobOrContainerWithReadPermission(StorageObjectType.Container, BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -110,6 +112,8 @@
             BlobOrContainerWithReadPermission(StorageObjectType.Container, BlobType.BlockBlob);
             SetCLIEnv(TestContext); //reset agent env 
             BlobOrContainerWithReadPermission(StorageObjectType.Container, BlobType.PageBlob);
+            SetCLIEnv(TestContext); //reset agent env 
+            BlobOrContainerWithReadPermission(StorageObjectType.Container, BlobType.AppendBlob);
         }
 
         public void BlobOrContainerWithReadPermission(StorageObjectType objectType, BlobType blobType)
@@ -164,6 +168,8 @@
             BlobOrContainerWithWritePermission(commonBlockFilePath, StorageObjectType.Container, BlobType.BlockBlob);
             SetCLIEnv(TestContext); //reset agent env 
             BlobOrContainerWithWritePermission(commonPageFilePath, StorageObjectType.Container, BlobType.PageBlob);
+            SetCLIEnv(TestContext); //reset agent env 
+            BlobOrContainerWithWritePermission(commonPageFilePath, StorageObjectType.Container, BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -179,6 +185,8 @@
             BlobOrContainerWithWritePermission(commonBlockFilePath, StorageObjectType.Blob, BlobType.BlockBlob);
             SetCLIEnv(TestContext); //reset agent env 
             BlobOrContainerWithWritePermission(commonPageFilePath, StorageObjectType.Blob, BlobType.PageBlob);
+            SetCLIEnv(TestContext); //reset agent env 
+            BlobOrContainerWithWritePermission(commonPageFilePath, StorageObjectType.Blob, BlobType.AppendBlob);
         }
 
         public void BlobOrContainerWithWritePermission(string uploadFilePath, StorageObjectType objectType, BlobType type)
@@ -186,7 +194,7 @@
             blobUtil.SetupTestContainerAndBlob(type);
             try
             {
-                agent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, StorageEndpoint, string.Empty, "w");
+                agent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, StorageEndpoint, string.Empty, "rw");
 
                 // Upload blob with the generated SAS token
                 Test.Assert(agent.SetAzureStorageBlobContent(uploadFilePath, blobUtil.ContainerName, type, blobUtil.Blob.Name),

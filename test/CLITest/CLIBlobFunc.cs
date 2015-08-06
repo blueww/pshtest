@@ -37,6 +37,7 @@ namespace Management.Storage.ScenarioTest
         private static CloudBlobHelper BlobHelper;
         private static string BlockFilePath;
         private static string PageFilePath;
+        private static string AppendFilePath;
 
         #region Additional test attributes
 
@@ -50,12 +51,15 @@ namespace Management.Storage.ScenarioTest
 
             BlockFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
             PageFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
+            AppendFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(BlockFilePath));
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(PageFilePath));
+            FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(AppendFilePath));
 
             // Generate block file and page file which are used for uploading
             FileUtil.GenerateMediumFile(BlockFilePath, Utility.GetRandomTestCount(1, 10));
             FileUtil.GenerateMediumFile(PageFilePath, Utility.GetRandomTestCount(1, 10));
+            FileUtil.GenerateMediumFile(AppendFilePath, Utility.GetRandomTestCount(1, 10));
         }
 
         [ClassCleanup()]
@@ -75,6 +79,7 @@ namespace Management.Storage.ScenarioTest
             FileUtil.CreateDirIfNotExits(DownloadDirPath);
             RootBlobOperations(agent, BlockFilePath, DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             RootBlobOperations(agent, PageFilePath, DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            RootBlobOperations(agent, AppendFilePath, DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         [TestMethod]
@@ -111,7 +116,7 @@ namespace Management.Storage.ScenarioTest
                 string BlobName = Utility.GenNameString("nonexisting");
 
                 // Delete the blob if it exists
-                ICloudBlob blob = BlobHelper.QueryBlob(ContainerName, BlobName);
+                CloudBlob blob = BlobHelper.QueryBlob(ContainerName, BlobName);
                 if (blob != null)
                     blob.DeleteIfExists();
 
@@ -153,7 +158,7 @@ namespace Management.Storage.ScenarioTest
 
             //--------------Upload operation--------------
             Test.Assert(agent.SetAzureStorageBlobContent(UploadFilePath, ROOT_CONTAINER_NAME, Type), Utility.GenComparisonData("SendAzureStorageBlob", true));
-            ICloudBlob blob = BlobHelper.QueryBlob(ROOT_CONTAINER_NAME, blobName);
+            CloudBlob blob = BlobHelper.QueryBlob(ROOT_CONTAINER_NAME, blobName);
             blob.FetchAttributes();
             // Verification for returned values
             CloudBlobUtil.PackBlobCompareData(blob, dic);
@@ -162,10 +167,7 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(blob.Exists(), "blob " + blobName + " should exist!");
 
             // validate the ContentType value for GetAzureStorageBlob operation
-            if (Type == Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob)
-            {
-                dic["ContentType"] = "application/octet-stream";
-            }
+            dic["ContentType"] = "application/octet-stream";
 
             //--------------Get operation--------------
             Test.Assert(agent.GetAzureStorageBlob(blobName, ROOT_CONTAINER_NAME), Utility.GenComparisonData("GetAzureStorageBlob", true));
@@ -214,7 +216,7 @@ namespace Management.Storage.ScenarioTest
                 string BLOB_NAME = Utility.GenNameString("nonexisting");
 
                 // Delete the blob if it exists
-                ICloudBlob blob = BlobHelper.QueryBlob(CONTAINER_NAME, BLOB_NAME);
+                CloudBlob blob = BlobHelper.QueryBlob(CONTAINER_NAME, BLOB_NAME);
                 if (blob != null)
                     blob.DeleteIfExists();
 
@@ -223,7 +225,7 @@ namespace Management.Storage.ScenarioTest
                 // Verification for returned values
                 Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
                 //the same error may output different error messages in different environments
-                bool expectedError = agent.ErrorMessages[0].StartsWith(String.Format("Can not find blob '{0}' in container '{1}'.", BLOB_NAME, CONTAINER_NAME))
+                bool expectedError = agent.ErrorMessages[0].StartsWith(String.Format("Can not find blob '{0}' in container '{1}', or the blob type is unsupported.", BLOB_NAME, CONTAINER_NAME))
                     || agent.ErrorMessages[0].StartsWith("The remote server returned an error: (404) Not Found");
                 Test.Assert(expectedError, agent.ErrorMessages[0]);
             }
@@ -250,7 +252,7 @@ namespace Management.Storage.ScenarioTest
             try
             {
                 // Delete the blob if it exists
-                ICloudBlob blob = BlobHelper.QueryBlob(CONTAINER_NAME, BLOB_NAME);
+                CloudBlob blob = BlobHelper.QueryBlob(CONTAINER_NAME, BLOB_NAME);
                 if (blob != null)
                     blob.DeleteIfExists();
 
@@ -259,9 +261,8 @@ namespace Management.Storage.ScenarioTest
                 // Verification for returned values
                 Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
                 //the same error may output different error messages in different environments
-                bool expectedError = agent.ErrorMessages[0].StartsWith(String.Format("Can not find blob '{0}' in container '{1}'.", BLOB_NAME, CONTAINER_NAME))
-                    || agent.ErrorMessages[0].StartsWith("The remote server returned an error: (404) Not Found")
-                    || agent.ErrorMessages[0].StartsWith("The specified blob does not exist.");
+                bool expectedError = agent.ErrorMessages[0].StartsWith(String.Format("Can not find blob '{0}' in container '{1}'", BLOB_NAME, CONTAINER_NAME))
+                    || agent.ErrorMessages[0].StartsWith("The remote server returned an error: (404) Not Found");
                 Test.Assert(expectedError, agent.ErrorMessages[0]);
             }
             finally

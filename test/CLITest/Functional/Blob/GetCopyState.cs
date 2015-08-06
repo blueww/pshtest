@@ -59,7 +59,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             CloudBlobContainer srcContainer = blobUtil.CreateContainer();
             CloudBlobContainer destContainer = blobUtil.CreateContainer();
 
-            List<ICloudBlob> blobs = blobUtil.CreateRandomBlob(srcContainer);
+            List<CloudBlob> blobs = blobUtil.CreateRandomBlob(srcContainer);
 
             try
             {
@@ -137,7 +137,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             Validator validator;
             if (lang == Language.PowerShell)
             {
-                errorMessage = string.Format("Can not find blob '{0}' in container '{1}'.", blobName, srcContainerName);
+                errorMessage = string.Format("Can not find blob '{0}' in container '{1}', or the blob type is unsupported.", blobName, srcContainerName);
                 validator = ExpectedEqualErrorMessage;
             }
             else
@@ -176,16 +176,25 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             CloudBlobContainer rootContainer = blobUtil.CreateContainer("$root");
 
             string srcBlobName = Utility.GenNameString("src");
-            ICloudBlob srcBlob = blobUtil.CreateRandomBlob(rootContainer, srcBlobName);
-            ICloudBlob destBlob = blobUtil.CreateBlob(rootContainer, Utility.GenNameString("dest"), srcBlob.BlobType);
+            CloudBlob srcBlob = blobUtil.CreateRandomBlob(rootContainer, srcBlobName);
+            CloudBlob destBlob = blobUtil.CreateBlob(rootContainer, Utility.GenNameString("dest"), srcBlob.BlobType);
 
             if (destBlob.BlobType == StorageBlob.BlobType.BlockBlob)
             {
-                ((CloudBlockBlob)destBlob).StartCopyFromBlob((CloudBlockBlob)srcBlob);
+                ((CloudBlockBlob)destBlob).StartCopy((CloudBlockBlob)srcBlob);
+            }
+            else if (destBlob.BlobType == StorageBlob.BlobType.PageBlob)
+            {
+                ((CloudPageBlob)destBlob).StartCopy((CloudPageBlob)srcBlob);
+            }
+            else if (destBlob.BlobType == StorageBlob.BlobType.AppendBlob)
+            {
+                ((CloudAppendBlob)destBlob).StartCopy((CloudAppendBlob)srcBlob);
             }
             else
             {
-                ((CloudPageBlob)destBlob).StartCopyFromBlob((CloudPageBlob)srcBlob);
+                Test.Error(string.Format("Invalid blob type: {0}", destBlob.BlobType));
+                return;
             }
 
             Test.Assert(agent.GetAzureStorageBlobCopyState("$root", destBlob.Name, true), "Get copy state in $root container should succeed.");
@@ -239,18 +248,18 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 int expectedBlobCount = 1;
                 Test.Assert(agent.Output.Count == expectedBlobCount, String.Format("Expected get {0} copy blob, and actually it's {1}", expectedBlobCount, agent.Output.Count));
 
-                ICloudBlob destBlob;
+                CloudBlob destBlob;
                 object context;
                 if (lang == Language.PowerShell)
                 {
-                    destBlob = (ICloudBlob)agent.Output[0]["ICloudBlob"];
+                    destBlob = (CloudBlob)agent.Output[0]["ICloudBlob"];
                     //make sure this context is different from the PowerShell.Context
                     context = agent.Output[0]["Context"];
                     Test.Assert(PowerShellAgent.Context != context, "make sure you are using different context for cross account copy");
                 }
                 else
                 {
-                    destBlob = destContainer.GetBlobReferenceFromServer((string)agent.Output[0]["blob"]);
+                    destBlob = StorageExtensions.GetBlobReferenceFromServer(destContainer, (string)agent.Output[0]["blob"]);
                     context = destContext;
                 }
                 Test.Assert(agent.GetAzureStorageBlobCopyState(destBlob, context, true), "Get copy state in dest container should succeed.");
@@ -311,18 +320,18 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             CloudBlobContainer Container = blobUtil.CreateContainer();
             string ContainerName = Container.Name;
-            string BlobName = Utility.GenNameString("blockblob");
-            ICloudBlob Blob = blobUtil.CreateBlockBlob(Container, BlobName);
-            
-            string uri = Test.Data.Get("BigFileUri");
+            string BlobName = Utility.GenNameString("blob");
+            CloudBlob Blob = blobUtil.CreateBlockBlob(Container, BlobName);
+
+            string uri = Test.Data.Get("BigBlobUri");
             Test.Assert(!String.IsNullOrEmpty(uri), string.Format("Big file uri should be not empty, actually it's {0}", uri));
 
             if (String.IsNullOrEmpty(uri))
             {
                 return;
             }
-
-            Blob.StartCopyFromBlob(new Uri(uri));
+            
+            Blob.StartCopy(new Uri(uri));
 
             int maxMonitorCount = 3; 
             int checkCount = 0;

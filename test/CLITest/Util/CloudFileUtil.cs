@@ -9,8 +9,10 @@
     using System.Security.Cryptography;
     using System.Text;
     using System.Threading;
+    using Management.Storage.ScenarioTest.Common;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Auth;
+    using Microsoft.WindowsAzure.Storage.Blob;
     using Microsoft.WindowsAzure.Storage.File;
     using MS.Test.Common.MsTestLib;
 
@@ -28,11 +30,15 @@
 
         private const string MockupAccountKey = @"FjUfNl1KiJttbXlsdkMzBTC7WagvrRM1/g6UPBuy0ypCpAbYTL6/KA+dI/7gyoWvLFYmah3IviUP1jykOHHOlA==";
 
+        private static char[] InvalidPathChars = new char[] { '"', '\\', ':', '|', '<', '>', '*', '?' };
+
         private static int seed;
 
         private CloudStorageAccount account;
 
         private CloudFileClient client;
+
+        private Random rd = new Random();
 
         public CloudFileUtil(CloudStorageAccount account)
         {
@@ -76,6 +82,14 @@
             return file.Name.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries).Last();
         }
 
+        public static string GetFullPath(CloudFile file)
+        { 
+            List<string> fileName = new List<string>();
+            fileName.Add(file.Name);
+
+            return GetFullPathInternal(file.Parent, fileName);
+        }
+
         /// <summary>
         /// Gets the full path of a directory.
         /// </summary>
@@ -115,10 +129,33 @@
             return string.Format(FileNameForamt, Interlocked.Increment(ref seed));
         }
 
+        public static void ValidateCopyResult(CloudFile srcFile, CloudFile destFile, bool destExistBefore = false)
+        {
+            destFile.FetchAttributes();
+            srcFile.FetchAttributes();
+
+            if (!destExistBefore)
+            {
+                Test.Assert(destFile.Metadata.SequenceEqual(srcFile.Metadata), "Destination's metadata should be the same with source's");
+            }
+
+            Test.Assert(destFile.Properties.ContentMD5 == srcFile.Properties.ContentMD5, "MD5 should be the same.");
+            Test.Assert(destFile.Properties.ContentType == srcFile.Properties.ContentType, "Content type should be the same.");
+        }
+
+        public static void ValidateCopyResult(CloudBlob srcBlob, CloudFile destFile)
+        {
+            destFile.FetchAttributes();
+            srcBlob.FetchAttributes();
+
+            Test.Assert(destFile.Properties.ContentMD5 == srcBlob.Properties.ContentMD5, "MD5 should be the same.");
+            Test.Assert(destFile.Properties.ContentType == srcBlob.Properties.ContentType, "Content type should be the same.");
+        }
+
         public void AssertFileShareExists(string fileShareName, string message)
         {
-            var container = this.client.GetShareReference(fileShareName);
-            Test.Assert(container.Exists(), message);
+            var share = this.client.GetShareReference(fileShareName);
+            Test.Assert(share.Exists(), message);
         }
 
         public void AssertDirectoryExists(CloudFileShare share, string directoryPath, string message)
@@ -153,8 +190,8 @@
 
         public void DeleteFileShareIfExists(string fileShareName)
         {
-            var container = this.client.GetShareReference(fileShareName);
-            container.DeleteIfExists();
+            var share = this.client.GetShareReference(fileShareName);
+            share.DeleteIfExists();
         }
 
         public void DeleteDirectoryIfExists(CloudFileShare fileShare, string directoryName)
@@ -174,18 +211,23 @@
             return this.client.ListShares(prefix, ShareListingDetails.All);
         }
 
+        public CloudFileShare GetShareReference(string shareName)
+        {
+            return this.client.GetShareReference(shareName);
+        }
+
         public CloudFileShare EnsureFileShareExists(string fileShareName)
         {
             const int retryInterval = 5000;
             const int retryLimit = 10;
-            var container = this.client.GetShareReference(fileShareName);
+            var share = this.client.GetShareReference(fileShareName);
 
             bool succeeded = false;
             for (int i = 0; i < retryLimit; i++)
             {
                 try
                 {
-                    container.CreateIfNotExists();
+                    share.CreateIfNotExists();
                     succeeded = true;
                     break;
                 }
@@ -212,13 +254,23 @@
                 throw new InvalidOperationException("Failed to prepare file share.");
             }
 
-            return container;
+            return share;
         }
 
         public bool FileShareExists(string fileShareName)
         {
-            var container = this.client.GetShareReference(fileShareName);
-            return container.Exists();
+            var share = this.client.GetShareReference(fileShareName);
+            return share.Exists();
+        }
+
+        public void CreateFileFolders(CloudFileShare share, string filePath)
+        {
+            int lastDirSeparator = filePath.LastIndexOf('/');
+
+            if (-1 != lastDirSeparator)
+            {
+                EnsureFolderStructure(share, filePath.Substring(0, lastDirSeparator));
+            }
         }
 
         public CloudFileDirectory EnsureFolderStructure(CloudFileShare share, string directoryPath)
@@ -242,22 +294,31 @@
 
         public CloudFile CreateFile(CloudFileShare fileShare, string fileName, string source = null)
         {
-            var file = fileShare.GetRootDirectoryReference().GetFileReference(fileName.Trim('/'));
-            PrepareFileInternal(file, source);
-            return file;
+            return this.CreateFile(fileShare.GetRootDirectoryReference(), fileName, source);
         }
 
         public CloudFile CreateFile(CloudFileDirectory directory, string fileName, string source = null)
         {
-            var file = directory.GetFileReference(fileName);
+            string[] path = fileName.Split('/');
+
+            for (int i = 0; i < path.Length - 1; ++i)
+            {
+                if (!string.IsNullOrWhiteSpace(path[i]))
+                {
+                    directory = directory.GetDirectoryReference(path[i]);
+                    directory.CreateIfNotExists();
+                }
+            }
+
+            var file = directory.GetFileReference(path[path.Length - 1]);
             PrepareFileInternal(file, source);
             return file;
         }
 
         public void AssertFileShareNotExists(string fileShareName, string message)
         {
-            var container = this.client.GetShareReference(fileShareName);
-            Test.Assert(!container.Exists(), message);
+            var share = this.client.GetShareReference(fileShareName);
+            Test.Assert(!share.Exists(), message);
         }
 
         public string FetchFileMD5(CloudFile file)
@@ -290,6 +351,166 @@
                     }
                 }
             }
+        }
+
+        public CloudFile GetFileReference(CloudFileDirectory dir, string filePath)
+        {
+            string[] path = filePath.Split('/');
+
+            var localDir = dir;
+
+            for (int i = 0; i < path.Length - 1; ++i)
+            {
+                if (!string.IsNullOrWhiteSpace(path[i]))
+                {
+                    localDir = localDir.GetDirectoryReference(path[i]);
+                }
+            }
+
+            return localDir.GetFileReference(path[path.Length - 1]);
+        }
+
+        public string ResolveFileName(CloudBlob blob, Language lang)
+        {
+            // 1) Unescape original string, original string is UrlEncoded.
+            // 2) Replace Azure directory separator with Windows File System directory separator.
+            // 3) Trim spaces at the end of the file name.
+            string destinationRelativePath = EscapeInvalidCharacters(blob.Name);
+
+            // Split into path + filename parts.
+            int lastSlash = destinationRelativePath.LastIndexOf("/", StringComparison.Ordinal);
+
+            string destinationFileName;
+            string destinationPath;
+
+            if (-1 == lastSlash)
+            {
+                destinationPath = string.Empty;
+                destinationFileName = destinationRelativePath;
+            }
+            else
+            {
+                destinationPath = destinationRelativePath.Substring(0, lastSlash); // Don't include slash in the path
+                destinationFileName = destinationRelativePath.Substring(lastSlash + 1);
+            }
+
+            // Append snapshot time to filename.
+            destinationFileName = AppendSnapShotToFileName(destinationFileName, blob.SnapshotTime);
+
+            // Combine path and filename back together again.
+            if (string.IsNullOrEmpty(destinationPath))
+            {
+                destinationRelativePath = destinationFileName;
+            }
+            else
+            {
+                destinationRelativePath = string.Format("{0}/{1}", destinationPath, destinationFileName);
+            }
+
+            destinationRelativePath = ResolveFileNameSuffix(destinationRelativePath, lang);
+
+            return destinationRelativePath;
+        }
+
+        private string ResolveFileNameSuffix(string baseFileName, Language lang)
+        {
+            // TODO - MaxFileNameLength could be <= 0.
+            int maxFileNameLength = 1024;
+
+            if (baseFileName.Length > maxFileNameLength)
+            {
+                string postfixString = lang == Language.PowerShell ? string.Format(" (1)") : string.Format(" _trunc_");
+
+                string pathAndFilename = Path.ChangeExtension(baseFileName, null);
+                string extension = Path.GetExtension(baseFileName);
+
+                string resolvedName = string.Empty;
+
+                // TODO - trimLength could be be larger than pathAndFilename.Length, what do we do in this case?
+                int trimLength = (pathAndFilename.Length + postfixString.Length + extension.Length) - maxFileNameLength;
+
+                if (trimLength > 0)
+                {
+                    pathAndFilename = pathAndFilename.Remove(pathAndFilename.Length - trimLength);
+                }
+
+                return string.Format("{0}{1}{2}", pathAndFilename, postfixString, extension);
+            }
+
+            return baseFileName;
+        }
+
+        private string EscapeInvalidCharacters(string fileName)
+        {            
+            StringBuilder sb = new StringBuilder();
+            char separator = '/';
+            string escapedSeparator = string.Format("%{0:X2}", (int)separator);
+
+            bool followSeparator = false;
+            char[] fileNameChars = fileName.ToCharArray();
+            int lastIndex = fileNameChars.Length - 1;
+
+            for (int i = 0; i < fileNameChars.Length; ++i)
+            {
+                if (fileNameChars[i] == separator)
+                {
+                    if (followSeparator || (0 == i) || (lastIndex == i))
+                    {
+                        sb.Append(escapedSeparator);
+                    }
+                    else
+                    {
+                        sb.Append(fileNameChars[i]);
+                    }
+
+                    followSeparator = true;
+                }
+                else
+                {
+                    followSeparator = false;
+                    sb.Append(fileNameChars[i]);
+                }
+            }
+
+            fileName = sb.ToString();
+
+            if (null != InvalidPathChars)
+            {
+                // Replace invalid characters with %HH, with HH being the hexadecimal
+                // representation of the invalid character.
+                foreach (char c in InvalidPathChars)
+                {
+                    fileName = fileName.Replace(c.ToString(), string.Format("%{0:X2}", (int)c));
+                }
+            }
+
+            return fileName;
+        }
+
+        /// <summary>
+        /// Append snapshot time to a file name.
+        /// </summary>
+        /// <param name="fileName">Original file name.</param>
+        /// <param name="snapshotTime">Snapshot time to append.</param>
+        /// <returns>A file name with appended snapshot time.</returns>
+        private static string AppendSnapShotToFileName(string fileName, DateTimeOffset? snapshotTime)
+        {
+            string resultName = fileName;
+
+            if (snapshotTime.HasValue)
+            {
+                string pathAndFileNameNoExt = Path.ChangeExtension(fileName, null);
+                string extension = Path.GetExtension(fileName);
+                string timeStamp = string.Format("{0:u}", snapshotTime.Value);
+
+                resultName = string.Format(
+                    "{0} ({1}){2}",
+                    pathAndFileNameNoExt,
+                    timeStamp.Replace(":", string.Empty).TrimEnd(new char[] { 'Z' }),
+                    extension);
+            }
+
+            return resultName;
         }
 
 
@@ -331,11 +552,15 @@
             return new Uri(originalUri.ToString().Replace(originalAccountName, newAccountName));
         }
 
-        private static void PrepareFileInternal(CloudFile file, string source)
+        private void PrepareFileInternal(CloudFile file, string source)
         {
+            FileRequestOptions options = new FileRequestOptions() { StoreFileContentMD5 = true };
             if (source == null)
             {
-                file.Create(1024);
+                int buffSize = 1024;
+                byte[] buffer = new byte[buffSize];
+                rd.NextBytes(buffer);
+                file.UploadFromByteArray(buffer, 0, buffSize, options: options);
             }
             else
             {
@@ -374,9 +599,146 @@
                 if (AgentOSType == OSType.Windows)
                 {
                     file.Create(FileUtil.GetFileSize(source));
-                    file.UploadFromFile(source, FileMode.Open);
+                    file.UploadFromFile(source, FileMode.Open, options: options);
                 }
             }
+
+            GeneratePropertiesAndMetaData(file);
+        }
+
+        private void GeneratePropertiesAndMetaData(CloudFile file)
+        {
+            file.Properties.ContentEncoding = Utility.GenNameString("encoding");
+            file.Properties.ContentLanguage = Utility.GenNameString("lang");
+
+            int minMetaCount = 1;
+            int maxMetaCount = 5;
+            int minMetaValueLength = 10;
+            int maxMetaValueLength = 20;
+            int count = rd.Next(minMetaCount, maxMetaCount);
+
+            for (int i = 0; i < count; i++)
+            {
+                string metaKey = Utility.GenNameString("metatest");
+                int valueLength = rd.Next(minMetaValueLength, maxMetaValueLength);
+                string metaValue = Utility.GenNameString("metavalue-", valueLength);
+                file.Metadata.Add(metaKey, metaValue);
+            }
+
+            file.SetProperties();
+            file.SetMetadata();
+            file.FetchAttributes();
+        }
+
+        public void ValidateShareReadableWithSasToken(CloudFileShare share, string fileName, string sasToken)
+        {
+            Test.Info("Verify share read permission");
+            CloudFile file = share.GetRootDirectoryReference().GetFileReference(fileName);
+
+            if (!file.Exists())
+            {
+                PrepareFileInternal(file, null);
+            }
+
+            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(share.ServiceClient.Credentials.AccountName, sasToken);
+            CloudFileClient sasClient = sasAccount.CreateCloudFileClient();
+            CloudFileShare sasShare = sasClient.GetShareReference(share.Name);
+            CloudFile sasFile = sasShare.GetRootDirectoryReference().GetFileReference(fileName);
+            sasFile.FetchAttributes();
+            long buffSize = sasFile.Properties.Length;
+            byte[] buffer = new byte[buffSize];
+            MemoryStream ms = new MemoryStream(buffer);
+            sasFile.DownloadRangeToStream(ms, 0, buffSize);
+            string md5 = Utility.GetBufferMD5(buffer);
+            TestBase.ExpectEqual(sasFile.Properties.ContentMD5, md5, "content md5");
+        }
+
+        public void ValidateShareWriteableWithSasToken(CloudFileShare share, string sastoken)
+        {
+            Test.Info("Verify share write permission");
+            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(share.ServiceClient.Credentials.AccountName, sastoken);
+            CloudFileShare sasShare = sasAccount.CreateCloudFileClient().GetShareReference(share.Name);
+            string sasFileName = Utility.GenNameString("sasFile");
+            CloudFile sasFile = sasShare.GetRootDirectoryReference().GetFileReference(sasFileName);
+            long fileSize = 1024 * 1024;
+            sasFile.Create(fileSize);
+            CloudFile retrievedFile = share.GetRootDirectoryReference().GetFileReference(sasFileName);
+            retrievedFile.FetchAttributes();
+            TestBase.ExpectEqual(fileSize, retrievedFile.Properties.Length, "blob size");
+        }
+
+        public void ValidateShareDeleteableWithSasToken(CloudFileShare share, string sastoken)
+        {
+            Test.Info("Verify share delete permission");
+            string fileName = Utility.GenNameString("file");
+            CloudFile file = CreateFile(share, fileName);
+
+            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(share.ServiceClient.Credentials.AccountName, sastoken);
+            CloudFileShare sasShare = sasAccount.CreateCloudFileClient().GetShareReference(share.Name);
+
+            CloudFile sasFile = sasShare.GetRootDirectoryReference().GetFileReference(fileName);
+            sasFile.Delete();
+
+            Test.Assert(!file.Exists(), "blob should not exist");
+        }
+
+        public void ValidateShareListableWithSasToken(CloudFileShare share, string sastoken)
+        {
+            Test.Info("Verify share list permission");
+            string fileName = Utility.GenNameString("file");
+            CloudFile file = CreateFile(share, fileName);
+
+            int fileCount = share.GetRootDirectoryReference().ListFilesAndDirectories().Count();
+            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(share.ServiceClient.Credentials.AccountName, sastoken);
+            CloudFileShare sasShare = sasAccount.CreateCloudFileClient().GetShareReference(share.Name);
+            int retrievedFileCount = sasShare.GetRootDirectoryReference().ListFilesAndDirectories().Count();
+            TestBase.ExpectEqual(fileCount, retrievedFileCount, "File count");
+        }
+
+        /// <summary>
+        /// Validate the read permission in the sas token for the the specified file
+        /// </summary>
+        public void ValidateFileReadableWithSasToken(CloudFile file, string sasToken)
+        {
+            Test.Info("Verify file read permission");
+            CloudFile sasFile = new CloudFile(file.Uri, new StorageCredentials(sasToken));
+            sasFile.FetchAttributes();
+            long buffSize = sasFile.Properties.Length;
+            byte[] buffer = new byte[buffSize];
+            MemoryStream ms = new MemoryStream(buffer);
+            sasFile.DownloadRangeToStream(ms, 0, buffSize);
+            string md5 = Utility.GetBufferMD5(buffer);
+            TestBase.ExpectEqual(sasFile.Properties.ContentMD5, md5, "content md5");
+        }
+
+        /// <summary>
+        /// Validate the write permission in the sas token for the the specified file
+        /// </summary>
+        internal void ValidateFileWriteableWithSasToken(CloudFile file, string sasToken)
+        {
+            Test.Info("Verify file write permission");
+            CloudFile sasFile = new CloudFile(file.Uri, new StorageCredentials(sasToken));
+            DateTimeOffset? lastModifiedTime = sasFile.Properties.LastModified;
+            long buffSize = 1024 * 1024;
+            byte[] buffer = new byte[buffSize];
+            (new Random()).NextBytes(buffer);
+            MemoryStream ms = new MemoryStream(buffer);
+            sasFile.UploadFromStream(ms);
+            file.FetchAttributes();
+            DateTimeOffset? newModifiedTime = file.Properties.LastModified;
+            TestBase.ExpectNotEqual(lastModifiedTime.ToString(), newModifiedTime.ToString(), "Last modified time");
+        }
+
+        /// <summary>
+        /// Validate the delete permission in the sas token for the the specified file
+        /// </summary>
+        internal void ValidateFileDeleteableWithSasToken(CloudFile file, string sasToken)
+        {
+            Test.Info("Verify file delete permission");
+            Test.Assert(file.Exists(), "The file should exist");
+            CloudFile sasFile = new CloudFile(file.Uri, new StorageCredentials(sasToken));
+            sasFile.Delete();
+            Test.Assert(!file.Exists(), "The file should not exist after deleting with sas token");
         }
     }
 }

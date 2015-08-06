@@ -47,7 +47,7 @@ namespace Management.Storage.ScenarioTest.Performance.Helper
             error = string.Empty;
 
             //load blobs
-            List<ICloudBlob> bloblist;
+            List<CloudBlob> bloblist;
             BlobHelper.ListBlobs(remote, out bloblist);
 
             // check file num first

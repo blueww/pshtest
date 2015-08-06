@@ -292,7 +292,7 @@
 
             try
             {
-                ICloudBlob blob = blobUtil.CreateRandomBlob(blobUtil.Container, specialBlobName);
+                CloudBlob blob = blobUtil.CreateRandomBlob(blobUtil.Container, specialBlobName);
                 string permisson = "r";
                 string fullUri = agent.GetBlobSasFromCmd(blob, string.Empty, permisson, null, null, true);
                 string sasToken = (lang == Language.PowerShell ? fullUri.Substring(fullUri.IndexOf("?")) : fullUri);
@@ -341,10 +341,10 @@
         /// <summary>
         /// Validate the sas token 
         /// </summary>
-        /// <param name="blob">ICloudBlob object</param>
+        /// <param name="blob">CloudBlob object</param>
         /// <param name="blobPermission">Blob permission</param>
         /// <param name="sasToken">sas token</param>
-        internal void ValidateSasToken(ICloudBlob blob, string blobPermission, string sasToken)
+        internal void ValidateSasToken(CloudBlob blob, string blobPermission, string sasToken)
         {
             foreach (char permission in blobPermission.ToLower())
             {
@@ -366,10 +366,10 @@
         /// <summary>
         /// Validte the limited permission for sas token 
         /// </summary>
-        /// <param name="blob">ICloudBlob object</param>
+        /// <param name="blob">CloudBlob object</param>
         /// <param name="BlobPermission">Limited permission</param>
         /// <param name="sasToken">sas token</param>
-        internal void ValidateLimitedSasPermission(ICloudBlob blob,
+        internal void ValidateLimitedSasPermission(CloudBlob blob,
             string limitedPermission, string sasToken)
         {
             try
