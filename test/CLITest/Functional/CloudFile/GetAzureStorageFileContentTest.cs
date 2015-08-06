@@ -22,7 +22,6 @@
         [ClassInitialize]
         public static void NewAzureStorageFileShareTestInitialize(TestContext context)
         {
-            StorageAccount = Utility.ConstructStorageAccountFromConnectionString();
             TestBase.TestClassInitialize(context);
         }
 
@@ -532,7 +531,7 @@
                     agent.AssertNoError();
                     if (lang == Language.NodeJS)
                     {
-                        result.AssertObjectCollection(obj => result.AssertCloudFile(obj, sourceFile.Name));
+                        result.AssertObjectCollection(obj => result.AssertCloudFile(obj, CloudFileUtil.GetFullPath(sourceFile)));
                     }
                     else
                     {

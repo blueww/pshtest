@@ -45,6 +45,8 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             string StorageEndpoint = Test.Data.Get("SecondaryStorageEndPoint");
             string StorageAccountKey = Test.Data.Get("SecondaryStorageAccountKey");
             CLICommonBVT.CLICommonBVTInitialize(testContext);
+            Agent.Context = SetUpStorageAccount;
+
             if (lang == Language.PowerShell)
             {
                 string azureEnvironmentName = PowerShellAgent.AddRandomAzureEnvironment(StorageEndpoint, "bvt");

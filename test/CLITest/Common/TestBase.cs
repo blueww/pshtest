@@ -13,12 +13,16 @@
 // ----------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Management.Storage.ScenarioTest.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.WindowsAzure.Commands.Storage.Model.ResourceModel;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using MS.Test.Common.MsTestLib;
+using Newtonsoft.Json.Linq;
 
 namespace Management.Storage.ScenarioTest.Common
 {
@@ -160,6 +164,14 @@ namespace Management.Storage.ScenarioTest.Common
             }
         }
 
+        protected static string GetModulePath()
+        {
+            string moduleFileFolder = Test.Data.Get("ModuleFileFolder");
+            string relativePath = isResourceMode ? Constants.ResourceModulePath : Constants.ServiceModulePath;
+
+            return Path.Combine(moduleFileFolder, relativePath);
+        }
+
         //
         //Use ClassCleanup to run code after all tests in a class have run
         [ClassCleanup()]
@@ -244,6 +256,10 @@ namespace Management.Storage.ScenarioTest.Common
         public virtual void InitAgent()
         {
             agent = AgentFactory.CreateAgent(TestContext.Properties);
+            if (Agent.Context == null)
+            {
+                Agent.Context = StorageAccount;
+            }
             Test.Start(TestContext.FullyQualifiedTestClassName, TestContext.TestName);
             OnTestSetup();
         }
@@ -344,6 +360,70 @@ namespace Management.Storage.ScenarioTest.Common
                 }
             }
             Test.Assert(expected, String.Format("Current error msg '{0}' should be in the expected msg list.", agent.ErrorMessages[0]));
+        }
+
+        protected PSCorsRule[] GetCORSRulesFromOutput()
+        {
+            if (lang == Language.PowerShell)
+            {
+                return agent.Output[0][PowerShellAgent.BaseObject] as PSCorsRule[];
+            }
+            else
+            {
+                List<PSCorsRule> rules = new List<PSCorsRule>();
+                for (int i = 0; i < agent.Output.Count; i++)
+                {
+                    PSCorsRule rule = new PSCorsRule();
+
+                    bool hasValue = false;
+                    JArray categories;
+                    string key = "AllowedMethods";
+                    if (agent.Output[i].ContainsKey(key))
+                    {
+                        categories = (JArray)agent.Output[i][key];
+                        rule.AllowedMethods = categories.Select(c => (string)c).ToArray();
+                        hasValue = true;
+                    }
+
+                    key = "AllowedOrigins";
+                    if (agent.Output[i].ContainsKey(key))
+                    {
+                        categories = (JArray)agent.Output[i][key];
+                        rule.AllowedOrigins = categories.Select(c => (string)c).ToArray();
+                        hasValue = true;
+                    }
+
+                    key = "AllowedHeaders";
+                    if (agent.Output[i].ContainsKey(key))
+                    {
+                        categories = (JArray)agent.Output[i][key];
+                        rule.AllowedHeaders = categories.Select(c => (string)c).ToArray();
+                        hasValue = true;
+                    }
+
+                    key = "ExposedHeaders";
+                    if (agent.Output[i].ContainsKey(key))
+                    {
+                        categories = (JArray)agent.Output[i][key];
+                        rule.ExposedHeaders = categories.Select(c => (string)c).ToArray();
+                        hasValue = true;
+                    }
+
+                    key = "MaxAgeInSeconds";
+                    if (agent.Output[i].ContainsKey(key))
+                    {
+                        rule.MaxAgeInSeconds = (int)(agent.Output[i][key] as long?);
+                        hasValue = true;
+                    }
+
+                    if (hasValue)
+                    {
+                        rules.Add(rule);
+                    }
+                }
+
+                return rules.ToArray();
+            }
         }
 
         /// <summary>

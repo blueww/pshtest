@@ -125,25 +125,32 @@ namespace Management.Storage.ScenarioTest
         }
 
         public void AssertCloudFile(object fileObj, string fileName, string path = null)
-        {
-            var fileObject = fileObj as Dictionary<string, object>;
-            Test.Assert(fileObject != null, "Output object should be an instance of Dictionary<string, object> class.");
-
-            string fileObjectName = fileObject.ContainsKey("name") ? fileObject["name"] as string : (fileObject.ContainsKey("directory") ? fileObject["directory"] as string : string.Empty);
+        {  
+            string fileObjectName = parseFileNameFromOutputObject(fileObj);
 
             Test.Assert(fileObjectName.Equals(fileName, StringComparison.OrdinalIgnoreCase), "Name of the file object should match the given parameter. Expected: {0}, Actual: {1}", fileName, fileObjectName);
         }
 
         public void AssertCloudFile(object fileObj, List<CloudFile> files)
         {
+            string fileObjectName = parseFileNameFromOutputObject(fileObj);
+
+            CloudFile matchingFile = files.FirstOrDefault(file => file.Name.Equals(fileObjectName, StringComparison.OrdinalIgnoreCase));
+            Test.Assert(matchingFile != null, "Output CloudFile object {0} was not found in the expecting list.", fileObjectName);
+            files.Remove(matchingFile);
+        }
+
+        private string parseFileNameFromOutputObject(object fileObj)
+        {
             var fileObject = fileObj as Dictionary<string, object>;
             Test.Assert(fileObject != null, "Output object should be an instance of Dictionary<string, object> class.");
 
-            string fileObjectBaseName = fileObject.ContainsKey("name") ? fileObject["name"] as string : (fileObject.ContainsKey("directory") ? fileObject["directory"] as string : string.Empty);
+            string directory = fileObject.ContainsKey("directory") ? fileObject["directory"] as string : string.Empty;
+            directory += "/";
 
-            CloudFile matchingFile = files.FirstOrDefault(file => file.Name.Equals(fileObjectBaseName, StringComparison.OrdinalIgnoreCase));
-            Test.Assert(matchingFile != null, "Output CloudFile object {0} was not found in the expecting list.", fileObjectBaseName);
-            files.Remove(matchingFile);
+            string name = fileObject.ContainsKey("name") ? fileObject["name"] as string : string.Empty;
+
+            return directory.Replace('\\', '/') + name;
         }
 
         /// <summary>

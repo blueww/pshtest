@@ -105,7 +105,7 @@ namespace Management.Storage.ScenarioTest.GB18030Test.Blob
                 Test.Assert(agent.SetAzureStorageBlobContent(uploadFilePath, containerName, blobType), 
                     Utility.GenComparisonData("SendAzureStorageBlob", true));
 
-                ICloudBlob blob = CloudBlobUtil.GetBlob(container, blobName, blobType);
+                CloudBlob blob = CloudBlobUtil.GetBlob(container, blobName, blobType);
                 Test.Assert(blob != null && blob.Exists(), "blob " + blobName + " should exist!");
 
                 // Check MD5
@@ -138,7 +138,7 @@ namespace Management.Storage.ScenarioTest.GB18030Test.Blob
             try
             {
                 // create source blob
-                ICloudBlob blob = CloudBlobUtil.GetBlob(container, blobName, blobType);
+                CloudBlob blob = CloudBlobUtil.GetBlob(container, blobName, blobType);
 
                 // upload file data
                 using (var fileStream = System.IO.File.OpenRead(uploadFilePath))
@@ -183,7 +183,7 @@ namespace Management.Storage.ScenarioTest.GB18030Test.Blob
             try
             {
                 // create source blob
-                ICloudBlob blob = CloudBlobUtil.GetBlob(srcContainer, blobName, blobType);
+                CloudBlob blob = CloudBlobUtil.GetBlob(srcContainer, blobName, blobType);
 
                 // upload file data
                 using (var fileStream = System.IO.File.OpenRead(uploadFilePath))

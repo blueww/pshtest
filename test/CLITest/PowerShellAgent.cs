@@ -30,6 +30,7 @@ using Microsoft.Azure.Common.Authentication;
 using Microsoft.Azure.Common.Authentication.Models;
 using Microsoft.Azure.Management.Storage.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.WindowsAzure.Commands.Storage.Model.ResourceModel;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.File;
@@ -42,7 +43,7 @@ namespace Management.Storage.ScenarioTest
 {
     class PowerShellAgent : Agent
     {
-        private const string BaseObject = "_baseObject";
+        public const string BaseObject = "_baseObject";
         private static bool snapInAdded = false;
         private static string ContextParameterName = "Context";
         private static object AgentContext;
@@ -50,15 +51,16 @@ namespace Management.Storage.ScenarioTest
         protected bool _UseContextParam = true;  // decide whether to specify the Context parameter
 
         private static Hashtable ExpectedErrorMsgTablePS = new Hashtable() {
-                {"GetBlobContentWithNotExistsBlob", "Can not find blob '{0}' in container '{1}'."},
-                {"GetBlobContentWithNotExistsContainer", "Can not find blob '{0}' in container '{1}'."},
-                {"GetNonExistingBlob", "Can not find blob '{0}' in container '{1}'."},
+                {"GetBlobContentWithNotExistsBlob", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
+                {"GetBlobContentWithNotExistsContainer", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
+                {"SetBlobContentWithInvalidBlobType", "User specified blob type does not match the blob type of the existing destination blob."},
+                {"GetNonExistingBlob", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
                 {"RemoveBlobWithLease", "The remote server returned an error: (412)"},
                 {"SetPageBlobWithInvalidFileSize", "File size {0} bytes is invalid for PageBlob, must be a multiple of 512 bytes"},
                 {"CreateExistingContainer", "Container '{0}' already exists."},
                 {"CreateInvalidContainer", "Container name '{0}' is invalid."},
                 {"RemoveNonExistingContainer", "Can not find the container '{0}'."},
-                {"RemoveNonExistingBlob", "Can not find blob '{0}' in container '{1}'."},
+                {"RemoveNonExistingBlob", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
                 {"SetBlobContentWithInvalidBlobName", "Blob name '{0}' is invalid."},
                 {"SetContainerAclWithInvalidName", "Container name '{0}' is invalid."},
                 {"CreateExistingTable", "Table '{0}' already exists."},
@@ -73,7 +75,7 @@ namespace Management.Storage.ScenarioTest
 
         internal delegate void ParseCollectionFunc(Collection<PSObject> Values);
 
-        public static object Context
+        public static new object Context
         {
             get
             {
@@ -301,12 +303,17 @@ namespace Management.Storage.ScenarioTest
             SetStorageContext(ps);
         }
 
+        public override void SetStorageContextWithSASTokenInConnectionString(CloudStorageAccount StorageAccount, string sasToken)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, bool useHttps = true)
         {
             this.SetStorageContextWithSASToken(StorageAccountName, sasToken, null, useHttps);
         }
 
-        public override void SetStorageContextWithSASToken(string StorageAccountName, string sasToken,  string endpoint,  bool useHttps = true)
+        public override void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, string endpoint, bool useHttps = true)
         {
             PowerShell ps = PowerShell.Create(_InitState);
             ps.AddCommand("New-AzureStorageContext");
@@ -323,7 +330,7 @@ namespace Management.Storage.ScenarioTest
             }
 
             if (!string.IsNullOrEmpty(endpoint))
-            { 
+            {
                 ps.BindParameter("Endpoint", endpoint);
             }
 
@@ -342,6 +349,7 @@ namespace Management.Storage.ScenarioTest
                     if (member.Name.Equals("Context"))
                     {
                         AgentContext = member.Value;
+                        Agent.Context = AgentContext;
                         return;
                     }
                 }
@@ -396,6 +404,33 @@ namespace Management.Storage.ScenarioTest
             return null;
         }
 
+        public override object GetStorageContextWithSASToken(CloudStorageAccount account, string sasToken, string endpoint = null, bool useHttps = false)
+        {
+            string accountName = account.Credentials.AccountName;
+            PowerShell ps = PowerShell.Create(_InitState);
+            ps.AddCommand("New-AzureStorageContext");
+            ps.BindParameter("StorageAccountName", accountName);
+            ps.BindParameter("SasToken", sasToken);
+
+            if (useHttps)
+            {
+                ps.BindParameter("Protocol", "https");
+            }
+            else
+            {
+                ps.BindParameter("Protocol", "http");
+            }
+
+            if (!string.IsNullOrEmpty(endpoint))
+            {
+                ps.BindParameter("Endpoint", endpoint);
+            }
+
+            Test.Info("{0} Test...\n{1}", MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+
+            return GetStorageContext(ps.Invoke());
+        }
+
         internal static object GetStorageContext(string ConnectionString)
         {
             PowerShell ps = PowerShell.Create(_InitState);
@@ -424,7 +459,7 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = GetPowerShellInstance();
             ps.AddCommand("Import-AzurePublishSettingsFile");
             ps.BindParameter("PublishSettingsFile", settingPath);
-            
+
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
 
             ParseContainerCollection(ps.Invoke());
@@ -832,6 +867,10 @@ namespace Management.Storage.ScenarioTest
             {
                 ps.BindParameter("BlobType", "Page");
             }
+            else if (Type == BlobType.AppendBlob)
+            {
+                ps.BindParameter("BlobType", "Append");
+            }
 
             if (ConcurrentCount != -1)
             {
@@ -862,6 +901,10 @@ namespace Management.Storage.ScenarioTest
             else if (blobType == BlobType.PageBlob)
             {
                 ps.BindParameter("BlobType", "Page");
+            }
+            else if (blobType == BlobType.AppendBlob)
+            {
+                ps.BindParameter("BlobType", "Append");
             }
 
             if (concurrentCount != -1)
@@ -1111,15 +1154,62 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps);
         }
 
-        public override bool StartAzureStorageBlobCopy(ICloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        public override bool StartAzureStorageBlobCopy(CloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true)
         {
             PowerShell ps = GetPowerShellInstance();
             ps.AddCommand("Start-CopyAzureStorageBlob");
-            ps.BindParameter("ICloudBlob", srcBlob);
+            ps.BindParameter("CloudBlob", srcBlob);
             ps.BindParameter("DestContainer", destContainerName);
             ps.BindParameter("Force", force);
             ps.BindParameter("DestBlob", destBlobName);
             ps.BindParameter("DestContext", destContext);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool StartAzureStorageBlobCopyFromFile(string srcShareName, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            ps.AddCommand("Start-CopyAzureStorageBlob");
+            ps.BindParameter("SrcShareName", srcShareName);
+            ps.BindParameter("SrcFilePath", srcFilePath);
+            ps.BindParameter("DestContainer", destContainerName);
+            ps.BindParameter("Force", force);
+            ps.BindParameter("DestBlob", destBlobName);
+            ps.BindParameter("DestContext", destContext);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool StartAzureStorageBlobCopy(CloudFileShare srcShare, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            ps.AddCommand("Start-CopyAzureStorageBlob");
+            ps.BindParameter("SrcShare", srcShare);
+            ps.BindParameter("SrcFilePath", srcFilePath);
+            ps.BindParameter("DestContainer", destContainerName);
+            ps.BindParameter("Force", force);
+            ps.BindParameter("DestBlob", destBlobName);
+            ps.BindParameter("DestContext", destContext);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool StartAzureStorageBlobCopy(CloudFile srcFile, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+
+            ps.AddCommand("Start-CopyAzureStorageBlob");
+            ps.BindParameter("SrcFile", srcFile);
+            ps.BindParameter("DestContainer", destContainerName);
+            ps.BindParameter("DestBlob", destBlobName);
+            ps.BindParameter("DestContext", destContext);
+
+            if (force)
+            {
+                ps.AddParameter("Force");
+            }
 
             return InvokeStoragePowerShell(ps);
         }
@@ -1138,11 +1228,13 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps);
         }
 
-        public override bool GetAzureStorageBlobCopyState(ICloudBlob blob, object context, bool waitForComplete)
+        public override bool GetAzureStorageBlobCopyState(CloudBlob blob, object context, bool waitForComplete)
         {
             PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+
             ps.AddCommand("Get-AzureStorageBlobCopyState");
-            ps.BindParameter("ICloudBlob", blob);
+            ps.BindParameter("CloudBlob", blob);
             ps.BindParameter("WaitForComplete", waitForComplete);
 
             return InvokeStoragePowerShell(ps, context);
@@ -1241,6 +1333,37 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps);
         }
 
+        public override bool SetAzureStorageCORSRules(Constants.ServiceType serviceType, PSCorsRule[] corsRules)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Set-AzureStorageCORSRule");
+            ps.BindParameter("ServiceType", serviceType.ToString());
+            ps.BindParameter("CorsRules", corsRules);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool GetAzureStorageCORSRules(Constants.ServiceType serviceType)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Get-AzureStorageCORSRule");
+            ps.BindParameter("ServiceType", serviceType.ToString());
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool RemoveAzureStorageCORSRules(Constants.ServiceType serviceType)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Remove-AzureStorageCORSRule");
+            ps.BindParameter("ServiceType", serviceType.ToString());
+
+            return InvokeStoragePowerShell(ps);
+        }
+
         ///-------------------------------------
         /// SAS token APIs
         ///-------------------------------------
@@ -1327,7 +1450,7 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps);
         }
 
-        
+
         public override bool NewAzureStorageTableStoredAccessPolicy(string tableName, string policyName, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null)
         {
@@ -1516,6 +1639,326 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps);
         }
 
+        public override bool StartFileCopyFromFile(string srcShareName, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("SrcShareName", srcShareName);
+            ps.BindParameter("SrcFilePath", srcFilePath);
+            ps.BindParameter("DestShareName", shareName);
+
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                ps.BindParameter("DestFilePath", filePath);
+            }
+
+            if (null != destContext)
+            {
+                ps.BindParameter("DestContext", destContext);
+            }
+
+            ps.BindParameter("Force", force);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool StartFileCopy(CloudFileShare share, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("SrcShare", share);
+            ps.BindParameter("SrcFilePath", srcFilePath);
+            ps.BindParameter("DestShareName", shareName);
+
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                ps.BindParameter("DestFilePath", filePath);
+            }
+
+            if (null != destContext)
+            {
+                ps.BindParameter("DestContext", destContext);
+            }
+
+            ps.BindParameter("Force", force);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool StartFileCopy(CloudFileDirectory dir, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("SrcDir", dir);
+            ps.BindParameter("SrcFilePath", srcFilePath);
+            ps.BindParameter("DestShareName", shareName);
+
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                ps.BindParameter("DestFilePath", filePath);
+            }
+
+            if (null != destContext)
+            {
+                ps.BindParameter("DestContext", destContext);
+            }
+
+            ps.BindParameter("Force", force);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool StartFileCopy(CloudFile srcFile, string shareName, string filePath, object destContext, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            AttachPipeline(ps);
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("SrcFile", srcFile);
+            ps.BindParameter("DestShareName", shareName);
+
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                ps.BindParameter("DestFilePath", filePath);
+            }
+
+            if (null != destContext)
+            {
+                ps.BindParameter("DestContext", destContext);
+            }
+
+            ps.BindParameter("Force", force);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool StartFileCopy(CloudFile srcFile, CloudFile destFile, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            AttachPipeline(ps);
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("SrcFile", srcFile);
+            ps.BindParameter("DestFile", destFile);
+
+            ps.BindParameter("Force", force);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool StartFileCopy(CloudBlobContainer container, string blobName, string shareName, string filePath, object destContext, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("SrcContainer", container);
+            ps.BindParameter("SrcBlobName", blobName);
+            ps.BindParameter("DestShareName", shareName);
+
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                ps.BindParameter("DestFilePath", filePath);
+            }
+
+            if (null != destContext)
+            {
+                ps.BindParameter("DestContext", destContext);
+            }
+
+            ps.BindParameter("Force", force);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool StartFileCopy(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            AttachPipeline(ps);
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("SrcBlob", blob);
+            ps.BindParameter("DestShareName", shareName);
+
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                ps.BindParameter("DestFilePath", filePath);
+            }
+
+            if (null != destContext)
+            {
+                ps.BindParameter("DestContext", destContext);
+            }
+
+            ps.BindParameter("Force", force);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool StartFileCopy(CloudBlob blob, CloudFile destFile, object destContext, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            AttachPipeline(ps);
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("SrcBlob", blob);
+            ps.BindParameter("DestFile", destFile);
+
+            ps.BindParameter("Force", force);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool StartFileCopyFromBlob(string containerName, string blobName, string shareName, string filePath, object destContext, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("SrcContainerName", containerName);
+            ps.BindParameter("SrcBlobName", blobName);
+            ps.BindParameter("DestShareName", shareName);
+
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                ps.BindParameter("DestFilePath", filePath);
+            }
+
+            if (null != destContext)
+            {
+                ps.BindParameter("DestContext", destContext);
+            }
+
+            ps.BindParameter("Force", force);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool StartFileCopy(string uri, CloudFile destFile, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("AbsoluteUri", uri);
+            ps.BindParameter("DestFile", destFile);
+
+            ps.BindParameter("Force", force);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool StartFileCopy(string uri, string destShareName, string destFilePath, object destContext, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Start-AzureStorageFileCopy");
+            ps.BindParameter("AbsoluteUri", uri);
+            ps.BindParameter("DestShareName", destShareName);
+            ps.BindParameter("DestFilePath", destFilePath);
+
+            if (null != destContext)
+            {
+                ps.BindParameter("DestContext", destContext);
+            }
+
+            ps.BindParameter("Force", force);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool GetFileCopyState(string shareName, string filePath, object context, bool waitForComplete = false)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Get-AzureStorageFileCopyState");
+            ps.BindParameter("ShareName", shareName);
+            ps.BindParameter("FilePath", filePath);
+
+            ps.BindParameter("WaitForComplete", waitForComplete);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool GetFileCopyState(CloudFile file, object context, bool waitForComplete = false)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            AttachPipeline(ps);
+
+            ps.AddCommand("Get-AzureStorageFileCopyState");
+            ps.BindParameter("File", file);
+
+            ps.BindParameter("WaitForComplete", waitForComplete);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool StopFileCopy(string shareName, string filePath, string copyId, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Stop-AzureStorageFileCopy");
+            ps.BindParameter("ShareName", shareName);
+            ps.BindParameter("FilePath", filePath);
+
+            if (null != copyId)
+            {
+                ps.BindParameter("CopyId", copyId);
+            }
+
+            ps.BindParameter("Force", force);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool StopFileCopy(CloudFile file, string copyId, bool force = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            AttachPipeline(ps);
+
+            ps.AddCommand("Stop-AzureStorageFileCopy");
+            ps.BindParameter("File", file);
+
+            if (null != copyId)
+            {
+                ps.BindParameter("CopyId", copyId);
+            }
+
+            ps.BindParameter("Force", force);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public bool StartFileCopyFromContainer(string modulePath, string sourceConnectionString, string destConnectionString, string containerName, string shareName)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            string script = ".\\PSHScripts\\CopyFromContainer.ps1" + " -modulePath \"" + modulePath + "\" -sourceConnectionString \"" + sourceConnectionString
+                + "\" -destConnectionString \"" + destConnectionString + "\" -containerName " + containerName + " -shareName " + shareName;
+
+            ps.AddScript(script, true);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public bool StartFileCopyFromShare(string modulePath, string sourceConnectionString, string destConnectionString, string sourceShare, string destShare)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            string script = ".\\PSHScripts\\CopyFromShare.ps1" + " -modulePath \"" + modulePath + "\" -sourceConnectionString \"" + sourceConnectionString
+                + "\" -destConnectionString \"" + destConnectionString + "\" -sourceShareName " + sourceShare + " -destShareName " + destShare;
+
+            ps.AddScript(script, true);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
         /// <summary>
         /// Compare the output collection data with comp
         /// 
@@ -1557,7 +2000,7 @@ namespace Management.Storage.ScenarioTest
                             break;
 
                         case "ICloudBlob":
-                            Test.Assert(CompareEntity((ICloudBlob)comp[i][str], (ICloudBlob)Output[i][str]),
+                            Test.Assert(CompareEntity((CloudBlob)comp[i][str], (CloudBlob)Output[i][str]),
                                 "ICloudBlob Column {0}: {1} = {2}", str, comp[i][str], Output[i][str]);
                             break;
 
@@ -1680,20 +2123,20 @@ namespace Management.Storage.ScenarioTest
         }
 
         /// <summary>
-        /// Compare the output collection data with ICloudBlob
+        /// Compare the output collection data with CloudBlob
         /// </summary> 
         /// <param name="containers">a list of cloudblobcontainer objects</param>
-        public override void OutputValidation(IEnumerable<ICloudBlob> blobs)
+        public override void OutputValidation(IEnumerable<CloudBlob> blobs)
         {
-            Test.Info("Validate ICloudBlob objects");
+            Test.Info("Validate CloudBlob objects");
             Test.Assert(blobs.Count() == Output.Count, "Comparison size: {0} = {1} Output size", blobs.Count(), Output.Count);
             if (blobs.Count() != Output.Count)
                 return;
 
             int count = 0;
-            foreach (ICloudBlob blob in blobs)
+            foreach (CloudBlob blob in blobs)
             {
-                Test.Assert(CompareEntity(blob, (ICloudBlob)Output[count]["ICloudBlob"]), string.Format("ICloudBlob equality checking for blob '{0}'", blob.Name));
+                Test.Assert(CompareEntity(blob, (CloudBlob)Output[count]["ICloudBlob"]), string.Format("CloudBlob equality checking for blob '{0}'", blob.Name));
                 ++count;
             }
         }
@@ -1814,7 +2257,7 @@ namespace Management.Storage.ScenarioTest
         /// Get blob sas token from powershell cmdlet
         /// </summary>
         /// <returns></returns>
-        public override string GetBlobSasFromCmd(ICloudBlob blob, string policy, string permission,
+        public override string GetBlobSasFromCmd(CloudBlob blob, string policy, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
         {
             return GetBlobSasFromCmd(blob.Container.Name, blob.Name, policy, permission, startTime, expiryTime, fulluri);
@@ -1927,6 +2370,11 @@ namespace Management.Storage.ScenarioTest
                 ps.BindParameter(ContextParameterName, context);
             }
 
+            return this.InvokePowerShellWithoutContext(ps, parseFunc);
+        }
+
+        private bool InvokePowerShellWithoutContext(PowerShell ps, ParseCollectionFunc parseFunc = null)
+        {
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
 
             //TODO We should add a time out for this invoke. Bad news, powershell don't support buildin time out for invoking.
@@ -2030,17 +2478,25 @@ namespace Management.Storage.ScenarioTest
 
                 foreach (PSMemberInfo member in result.Members)
                 {
-                    if (member.Value != null)
+                    try
                     {
-                        // skip the PSMethod members
-                        if (member.Value.GetType() != typeof(PSMethod))
+                        if (member.Value != null)
                         {
-                            dic.Add(member.Name, member.Value);
+                            // skip the PSMethod members
+                            if (member.Value.GetType() != typeof(PSMethod))
+                            {
+                                dic.Add(member.Name, member.Value);
+                            }
+                        }
+                        else
+                        {
+                            dic.Add(member.Name, null);
                         }
                     }
-                    else
+                    catch (Exception)
                     {
-                        dic.Add(member.Name, member.Value);
+                        // It may report an error when try to get some script properties, here ignore them.
+                        continue;
                     }
                 }
                 _Output.Add(dic);
@@ -2343,7 +2799,10 @@ namespace Management.Storage.ScenarioTest
 
             foreach (var propertyInfo in typeof(T).GetProperties())
             {
-                if (propertyInfo.Name.Equals("ServiceClient"))
+                if (propertyInfo.Name.Equals("ServiceClient")
+                    || propertyInfo.Name.Equals("Container")
+                    || propertyInfo.Name.Equals("Parent")
+                    || propertyInfo.Name.Equals("AppendBlobCommittedBlockCount"))
                     continue;
 
                 object o1 = null;
@@ -2368,6 +2827,7 @@ namespace Management.Storage.ScenarioTest
                     if (v1.GetType() == typeof(CloudBlobContainer)
                         || v1.GetType() == typeof(CloudBlockBlob)
                         || v1.GetType() == typeof(CloudPageBlob)
+                        || v1.GetType() == typeof(CloudAppendBlob)
                         || v1.GetType() == typeof(CloudQueue)
                         || v1.GetType() == typeof(CloudTable)
                         || v1.GetType() == typeof(CloudFileShare)
@@ -2384,7 +2844,8 @@ namespace Management.Storage.ScenarioTest
                 else if (propertyInfo.Name.Equals("Properties"))
                 {
                     if (v1.GetType() == typeof(CloudBlockBlob)
-                        || v1.GetType() == typeof(CloudPageBlob))
+                        || v1.GetType() == typeof(CloudPageBlob)
+                        || v1.GetType() == typeof(CloudAppendBlob))
                     {
                         bResult = CompareEntity((BlobProperties)o1, (BlobProperties)o2);
                     }
@@ -2855,6 +3316,228 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+        public override bool NewAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions, DateTime? startTime, DateTime? expiryTime)
+        {
+            this.Clear();
+
+            this.shell.AddCommand("New-AzureStorageShareStoredAccessPolicy");
+            this.shell.BindParameter("ShareName", shareName);
+            this.shell.BindParameter("Policy", policyName);
+            this.shell.BindParameter("Permission", permissions);
+            this.shell.BindParameter("StartTime", startTime);
+            this.shell.BindParameter("ExpiryTime", expiryTime);
+
+            AddCommonParameters(this.shell);
+
+            ParseCollection(this.shell.Invoke());
+            ParseErrorMessages(this.shell);
+
+            return !this.shell.HadErrors;
+        }
+
+        public override bool GetAzureStorageShareStoredAccessPolicy(string shareName, string policyName)
+        {
+            this.Clear();
+
+            this.shell.AddCommand("Get-AzureStorageShareStoredAccessPolicy");
+            this.shell.BindParameter("ShareName", shareName);
+
+            if (null != policyName)
+            {
+                this.shell.BindParameter("Policy", policyName);
+            }
+
+            AddCommonParameters(this.shell);
+
+            ParseCollection(this.shell.Invoke());
+            ParseErrorMessages(this.shell);
+
+            return !this.shell.HadErrors;
+
+        }
+
+        public override bool RemoveAzureStorageShareStoredAccessPolicy(string shareName, string policyName)
+        {
+            this.Clear();
+
+            this.shell.AddCommand("Remove-AzureStorageShareStoredAccessPolicy");
+            this.shell.BindParameter("ShareName", shareName);
+            this.shell.BindParameter("Policy", policyName);
+
+            AddCommonParameters(this.shell);
+
+            ParseCollection(this.shell.Invoke());
+            ParseErrorMessages(this.shell);
+
+            return !this.shell.HadErrors;
+        }
+
+        public override bool SetAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions,
+            DateTime? startTime, DateTime? expiryTime, bool noStartTime = false, bool noExpiryTime = false)
+        {
+            this.Clear();
+
+            this.shell.AddCommand("Set-AzureStorageShareStoredAccessPolicy");
+            this.shell.BindParameter("ShareName", shareName);
+            this.shell.BindParameter("Policy", policyName);
+            this.shell.BindParameter("Permission", permissions);
+
+            if (startTime.HasValue)
+            {
+                this.shell.BindParameter("StartTime", startTime.Value);
+            }
+
+            if (expiryTime.HasValue)
+            {
+                this.shell.BindParameter("ExpiryTime", expiryTime.Value);
+            }
+
+            this.shell.BindParameter("NoStartTime", noStartTime);
+            this.shell.BindParameter("NoExpiryTime", noExpiryTime);
+
+            AddCommonParameters(this.shell);
+
+            ParseCollection(this.shell.Invoke());
+            ParseErrorMessages(this.shell);
+
+            return !this.shell.HadErrors;
+        }
+
+        public override bool NewAzureStorageShareSAS(string shareName, string policyName = null, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            this.Clear();
+
+            this.shell.AddCommand("New-AzureStorageShareSASToken");
+            this.shell.BindParameter("ShareName", shareName);
+
+            this.AddSASTokenParameter(policyName, permissions, startTime, expiryTime, fulluri);
+
+            AddCommonParameters(this.shell);
+            try
+            {
+                ParseCollection(this.shell.Invoke());
+            }
+            catch (System.Management.Automation.ParameterBindingException ex)
+            {
+                _ErrorMessages.Clear();
+                _ErrorMessages.Add(ex.Message);
+                return false;
+            }
+
+            ParseErrorMessages(this.shell);
+
+            return !this.shell.HadErrors;
+        }
+
+        public override bool NewAzureStorageFileSAS(string shareName, string filePath, string policyName = null, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            this.Clear();
+
+            this.shell.AddCommand("New-AzureStorageFileSASToken");
+            this.shell.BindParameter("ShareName", shareName);
+
+            this.shell.BindParameter("Path", filePath);
+
+            this.AddSASTokenParameter(policyName, permissions, startTime, expiryTime, fulluri);
+
+            return InvokeStoragePowerShell(this.shell);
+        }
+
+        public override bool NewAzureStorageFileSAS(CloudFile file, string policyName = null, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            this.Clear();
+
+            this.shell.AddCommand("New-AzureStorageFileSASToken");
+            this.shell.BindParameter("File", file);
+
+            this.AddSASTokenParameter(policyName, permissions, startTime, expiryTime, fulluri);
+
+            return InvokePowerShellWithoutContext(this.shell);
+        }
+
+        private void AddSASTokenParameter(string policyName, string permissions,
+            DateTime? startTime, DateTime? expiryTime, bool fulluri)
+        {
+            if (null != policyName)
+            {
+                this.shell.BindParameter("Policy", policyName);
+            }
+
+            if (null != permissions)
+            {
+                this.shell.BindParameter("Permission", permissions);
+            }
+
+            if (startTime.HasValue)
+            {
+                this.shell.BindParameter("StartTime", startTime.Value);
+            }
+
+            if (expiryTime.HasValue)
+            {
+                this.shell.BindParameter("ExpiryTime", expiryTime.Value);
+            }
+
+            this.shell.BindParameter("FullUri", fulluri);
+        }
+
+        public override string GetAzureStorageFileSasFromCmd(string shareName, string filePath, string policy, string permission = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            Test.Assert(NewAzureStorageFileSAS(shareName, filePath, policy, permission, startTime, expiryTime, fulluri),
+                    "Generate file sas token should succeed");
+
+            return this.PassSASToken();
+        }
+
+        public override string GetAzureStorageShareSasFromCmd(string shareName, string policyName, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            Test.Assert(NewAzureStorageShareSAS(shareName, policyName, permissions, startTime, expiryTime, fulluri),
+                    "Generate share sas token should succeed");
+
+            return this.PassSASToken();
+        }
+
+        private string PassSASToken()
+        {
+            if (Output.Count != 0)
+            {
+                string sasToken = Output[0][BaseObject].ToString();
+                Test.Info("Generated sas token: {0}", sasToken);
+                return sasToken;
+            }
+            else
+            {
+                throw new InvalidOperationException("Fail to generate sas token.");
+            }
+        }
+
+        public override bool SetAzureStorageShareQuota(string shareName, int quota)
+        {
+            this.Clear();
+
+            this.shell.AddCommand("Set-AzureStorageShareQuota");
+            this.shell.BindParameter("ShareName", shareName);
+            this.shell.BindParameter("Quota", quota);
+
+            return InvokeStoragePowerShell(this.shell);
+        }
+
+        public override bool SetAzureStorageShareQuota(CloudFileShare share, int quota)
+        {
+            this.Clear();
+
+            this.shell.AddCommand("Set-AzureStorageShareQuota");
+            this.shell.BindParameter("Share", share);
+            this.shell.BindParameter("Quota", quota);
+
+            return InvokePowerShellWithoutContext(this.shell);
+        }
+
         public override IExecutionResult Invoke(IEnumerable input = null, bool traceCommand = true)
         {
             if (traceCommand)
@@ -2915,7 +3598,7 @@ namespace Management.Storage.ScenarioTest
         public override bool Login()
         {
             string password = Test.Data.Get("AADPassword");
-            
+
             SecureString securePassword = null;
 
             unsafe
@@ -3122,23 +3805,10 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("Name", accountName);
             ps.BindParameter("Type", type);
             ps.BindParameter("Location", location);
-            
+
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
 
-            try
-            {
-                ParseBlobCollection(ps.Invoke());
-            }
-            catch (ParameterBindingException ex)
-            {
-                _ErrorMessages.Clear();
-                _ErrorMessages.Add(ex.Message);
-                return false;
-            }
-
-            ParseErrorMessages(ps);
-
-            return !ps.HadErrors;
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool SetSRPAzureStorageAccount(string resourceGroupName, string accountName, string accountType)
@@ -3150,22 +3820,7 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("Name", accountName);
             ps.BindParameter("Type", accountType);
 
-            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
-
-            try
-            {
-                ParseBlobCollection(ps.Invoke());
-            }
-            catch (ParameterBindingException ex)
-            {
-                _ErrorMessages.Clear();
-                _ErrorMessages.Add(ex.Message);
-                return false;
-            }
-
-            ParseErrorMessages(ps);
-
-            return !ps.HadErrors;
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool DeleteSRPAzureStorageAccount(string resourceGroup, string accountName)
@@ -3176,12 +3831,7 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
 
-            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
-
-            ParseBlobCollection(ps.Invoke());
-            ParseErrorMessages(ps);
-
-            return !ps.HadErrors;
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool ShowSRPAzureStorageAccount(string resourceGroup, string accountName)
@@ -3192,12 +3842,7 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
 
-            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
-
-            ParseBlobCollection(ps.Invoke());
-            ParseErrorMessages(ps);
-
-            return !ps.HadErrors;
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool ShowSRPAzureStorageAccountKeys(string resourceGroup, string accountName)
@@ -3208,12 +3853,7 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
 
-            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
-
-            ParseBlobCollection(ps.Invoke());
-            ParseErrorMessages(ps);
-
-            return !ps.HadErrors;
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool RenewSRPAzureStorageAccountKeys(string resourceGroup, string accountName, Constants.AccountKeyType type)
@@ -3223,7 +3863,7 @@ namespace Management.Storage.ScenarioTest
             ps.AddCommand("New-AzureStorageAccountKey");
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
-            
+
             if (Constants.AccountKeyType.Primary == type)
             {
                 ps.BindParameter("KeyName", "key1");
@@ -3237,20 +3877,7 @@ namespace Management.Storage.ScenarioTest
                 ps.BindParameter("KeyName", "invalid");
             }
 
-            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
-
-            try
-            {
-                ParseBlobCollection(ps.Invoke());
-            }
-            catch (System.Management.Automation.ParameterBindingException)
-            {
-                return false;
-            }
-
-            ParseErrorMessages(ps);
-
-            return !ps.HadErrors;
+            return InvokePowerShellWithoutContext(ps);
         }
     }
 }

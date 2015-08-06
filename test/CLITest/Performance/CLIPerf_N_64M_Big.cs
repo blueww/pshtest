@@ -134,6 +134,26 @@ namespace Management.Storage.ScenarioTest
             Run(o, ro);
         }
 
+        #region append blob
+        [TestMethod]
+        [TestCategory(PsTag.Perf)]
+        public void UploadHttpAppend()
+        {
+            var o = new AppendBlobUploadOperation(new PowerShellAgent(), BlobHelper);
+            Run(o);
+        }
+
+        [TestMethod]
+        [TestCategory(PsTag.Perf)]
+        public void DownloadHttpAppend()
+        {
+            var o = new AppendBlobDownloadOperation(new PowerShellAgent(), BlobHelper);
+            var ro = new AppendBlobUploadOperation(new PowerShellAgent(), BlobHelper);
+            Run(o, ro);
+        }
+
+        #endregion
+
         public void Run(ICLIOperation operation, ICLIOperation reverseOperation = null)
         {
             Dictionary<int, double> fileNumTime = new Dictionary<int, double>();

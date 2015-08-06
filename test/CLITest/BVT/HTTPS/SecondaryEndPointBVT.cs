@@ -47,6 +47,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             StorageAccountName = SetUpStorageAccount.Credentials.AccountName;
             string StorageEndPoint = Test.Data.Get("SecondaryStorageEndPoint");
             CLICommonBVT.CLICommonBVTInitialize(testContext);
+            Agent.Context = SetUpStorageAccount;
 
             if (lang == Language.PowerShell)
             {

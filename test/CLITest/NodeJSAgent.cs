@@ -35,6 +35,7 @@ using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 using System.Text.RegularExpressions;
+using Microsoft.WindowsAzure.Commands.Storage.Model.ResourceModel;
 
 namespace Management.Storage.ScenarioTest
 {
@@ -50,7 +51,7 @@ namespace Management.Storage.ScenarioTest
         private static string UnlockKeyChainCommand = string.Format(" security -v unlock-keychain \"-p\" \"{0}\";", Test.Data.Get("UserName"));
         private static string UnlockKeyChainOutput = string.Format("unlock-keychain \"-p\" \"{0}\"\n", Test.Data.Get("UserName"));
 
-        private static int DefaultMaxWaitingTime = 600000;  // in miliseconds
+        private static int DefaultMaxWaitingTime = 900000;  // in miliseconds, increased from 600s to 900s due to AppendBlob. It should be less than the default timeout value of mstest2, which is 3600s for now.
 
         private static Hashtable ExpectedErrorMsgTableNodeJS = new Hashtable() {
                 {"GetBlobContentWithNotExistsBlob", "Can not find blob '{0}' in container '{1}'"},
@@ -60,7 +61,7 @@ namespace Management.Storage.ScenarioTest
                 {"SetPageBlobWithInvalidFileSize", "Page blob length must be multiple of 512"}, 
                 {"CreateExistingContainer", "Container '{0}' already exists"},
                 {"CreateInvalidContainer", "Container name format is incorrect"},
-                {"RemoveNonExistingContainer", "The specified container does not exist"},
+                {"RemoveNonExistingContainer", "Can not find container '{0}'"},
                 {"RemoveNonExistingBlob", "The specified blob does not exist."},
                 {"SetBlobContentWithInvalidBlobName", "One of the request inputs is out of range"},
                 {"SetContainerAclWithInvalidName", "Container name format is incorrect"},
@@ -77,7 +78,7 @@ namespace Management.Storage.ScenarioTest
                 {"CreateExistingQueue", "The queue specified already exists"},
                 {"CreateInvalidQueue", "Queue name format is incorrect"},
                 {"GetNonExistingQueue", "Queue {0} doesn't exist"},
-                {"RemoveNonExistingQueue", "The specified queue does not exist"},
+                {"RemoveNonExistingQueue", "Can not find queue '{0}'"},
         };
 
         public static string BinaryFileName { get; set; }
@@ -181,7 +182,6 @@ namespace Management.Storage.ScenarioTest
 
             Process p = new Process();
             SetProcessInfo(p, category, argument);
-            StringBuilder outputBuilder = new StringBuilder();
             p.Start();
 
             StringBuilder outputBuffer = new StringBuilder();
@@ -205,27 +205,23 @@ namespace Management.Storage.ScenarioTest
             p.BeginErrorReadLine();
             p.WaitForExit(MaxWaitingTime);
 
-            string output = outputBuffer.ToString();
-            string error = errorBuffer.ToString();
-
-            if (!string.IsNullOrEmpty(error))
-            {
-                if (error.StartsWith(UnlockKeyChainOutput))
-                {
-                    error = error.Remove(0, UnlockKeyChainOutput.Length);
-                }
-                else
-                {
-                    Test.Verbose("Error:\n{0}", error);
-                }
-            }
-
-            Test.Verbose("Node Output:\n{0}", output);
+            string output = string.Empty;
+            string error = string.Empty;
 
             if (!p.HasExited)
             {
                 p.Kill();
+
+                printInfo(outputBuffer, errorBuffer, ref output, ref error);
+
                 throw new Exception(string.Format("NodeJS command timeout: cost time > {0}s !", MaxWaitingTime / 1000));
+            }
+            else
+            {
+                // To work around the issue that WaitForExit() with parameter will exit when not all the threads are completed. 
+                p.WaitForExit();
+
+                printInfo(outputBuffer, errorBuffer, ref output, ref error);
             }
 
             ErrorMessages.Clear();
@@ -270,6 +266,25 @@ namespace Management.Storage.ScenarioTest
             return bSuccess;
         }
 
+        internal void printInfo(StringBuilder outputBuffer, StringBuilder errorBuffer, ref string output, ref string error)
+        {
+            error = errorBuffer.ToString();
+            if (!string.IsNullOrEmpty(error))
+            {
+                if (error.StartsWith(UnlockKeyChainOutput))
+                {
+                    error = error.Remove(0, UnlockKeyChainOutput.Length);
+                }
+                else
+                {
+                    Test.Verbose("Error:\n{0}", error);
+                }
+            }
+
+            output = outputBuffer.ToString();
+            Test.Verbose("Node Output:\n{0}", output);
+        }
+
         internal string parseOutput(string output)
         {
             // parse output data
@@ -306,7 +321,7 @@ namespace Management.Storage.ScenarioTest
                         {
                             output += string.Format("{0}_{1}:\'{2}\',\n", lineIndex++, line.Substring(0, index).Trim(), line.Substring(index + 1).Trim());
                         }
-                        else 
+                        else
                         {
                             output += string.Format("{0}_info:\'{1}\',\n", lineIndex++, line.Trim());
                         }
@@ -322,7 +337,12 @@ namespace Management.Storage.ScenarioTest
         {
             if (!onlyNonEmpty || !string.IsNullOrEmpty(optionValue))
             {
-                if (quoted)
+                if (optionValue.Contains("\""))
+                {
+                    optionValue = optionValue.Replace("\"", "\"\"");
+                    command += string.Format(" {0} \"{1}\" ", optionName, optionValue);
+                }
+                else if (quoted)
                 {
                     command += string.Format(" {0} \"{1}\" ", optionName, optionValue);
                 }
@@ -338,6 +358,69 @@ namespace Management.Storage.ScenarioTest
         internal string appendBoolOption(string command, string optionName)
         {
             return command + string.Format(" {0} ", optionName);
+        }
+
+        internal string appendDateTimeOption(string command, string optionName, DateTime? date)
+        {
+            if (date.HasValue)
+            {
+                command = appendStringOption(command, optionName, date.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"));
+            }
+
+            return command;
+        }
+
+        internal string appendAccountOption(string command, object context, bool suffix, bool isSource)
+        {
+            CloudStorageAccount account = context as CloudStorageAccount;
+            if (account != null)
+            {
+                string connectionString = string.Empty;
+                string accountCSOption = suffix ? (isSource ? "--connection-string" : "--dest-connection-string") : "--connection-string";
+                if (account.Credentials.IsSharedKey)
+                {
+                    connectionString = string.Format(
+                        "AccountName={0};AccountKey={1};",
+                        account.Credentials.AccountName,
+                        account.Credentials.ExportBase64EncodedKey());
+                }
+                else if (account.Credentials.IsSAS)
+                {
+                    connectionString = string.Format("SharedAccessSignature={0};", account.Credentials.SASToken);
+                }
+
+                if (account.BlobEndpoint != null)
+                {
+                    connectionString += string.Format("BlobEndpoint={0};", account.BlobEndpoint.AbsoluteUri);
+                }
+
+                if (account.TableEndpoint != null)
+                {
+                    connectionString += string.Format("TableEndpoint={0};", account.TableEndpoint.AbsoluteUri);
+                }
+
+                if (account.QueueEndpoint != null)
+                {
+                    connectionString += string.Format("QueueEndpoint={0};", account.QueueEndpoint.AbsoluteUri);
+                }
+
+                if (account.FileEndpoint != null)
+                {
+                    connectionString += string.Format("FileEndpoint={0};", account.FileEndpoint.AbsoluteUri);
+                }
+
+                command = appendStringOption(command, accountCSOption, connectionString, quoted: true);
+            }
+
+            return command;
+        }
+
+        internal void AssertMandatoryParameter(string name, string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new Exception(string.Format("The required parameter {0} is missing.", name));
+            }
         }
 
         public override bool ChangeCLIMode(Constants.Mode mode)
@@ -358,7 +441,7 @@ namespace Management.Storage.ScenarioTest
             }
             catch (Exception ex)
             {
-                Test.Info("Logout exception: {0}\n Info: {1}", ex,  Output);
+                Test.Info("Logout exception: {0}\n Info: {1}", ex, Output);
             }
         }
 
@@ -632,6 +715,19 @@ namespace Management.Storage.ScenarioTest
             {
                 parameter += " --blobtype page ";
             }
+            else if (type == BlobType.AppendBlob)
+            {
+                parameter += " --blobtype append ";
+            }
+            else
+            {
+                // Randomly set block blob explictly or use default type (block blob)
+                Random random = new Random();
+                if (random.Next(0, 2) > 0)
+                {
+                    parameter += " --blobtype block ";
+                }
+            }
 
             if (properties != null)
             {
@@ -783,50 +879,76 @@ namespace Management.Storage.ScenarioTest
 
         public override bool StartAzureStorageBlobCopy(string sourceUri, string destContainerName, string destBlobName, object destContext = null, bool force = true)
         {
-            string argument = string.Empty;
-            argument = string.Format("blob copy start \"{0}\" \"{1}\"", sourceUri, destContainerName);
+            string command = "blob copy start";
+            command = appendStringOption(command, "", sourceUri, quoted: true);
+            command = appendStringOption(command, "", destContainerName, quoted: true);
+            command = appendStringOption(command, "--dest-blob", destBlobName, quoted: true);
 
-            if (!string.IsNullOrWhiteSpace(destBlobName))
-            {
-                argument = string.Format(argument + " --dest-blob \"{0}\"", destBlobName);
-            }
-
-            return RunNodeJSProcess(argument, force);
+            return RunNodeJSProcess(command, force);
         }
 
         public override bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, object destContext = null, bool force = true)
         {
-            string argument = string.Format("blob copy start --source-container \"{0}\" --source-blob \"{1}\" --dest-container \"{2}\"", srcContainerName, srcBlobName, destContainerName);
+            string command = "blob copy start";
+            command = appendStringOption(command, "--source-container", srcContainerName, quoted: true);
+            command = appendStringOption(command, "--source-blob", srcBlobName, quoted: true);
+            command = appendStringOption(command, "--dest-container", destContainerName, quoted: true);
+            command = appendStringOption(command, "--dest-blob", destBlobName, quoted: true);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
 
-            if (!string.IsNullOrWhiteSpace(destBlobName))
-            {
-                argument = string.Format(argument + " --dest-blob \"{0}\"", destBlobName);
-            }
-
-            CloudStorageAccount account = destContext as CloudStorageAccount;
-            if (account != null)
-            {
-                argument += (" --dest-account-name " + account.Credentials.AccountName + " --dest-account-key " + account.Credentials.ExportBase64EncodedKey());
-            }
-
-            return RunNodeJSProcess(argument, force);
+            return RunNodeJSProcess(command, force);
         }
 
-        public override bool StartAzureStorageBlobCopy(ICloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        public override bool StartAzureStorageBlobCopy(CloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true)
         {
-            string argument = string.Format(string.Format("blob copy start \"{0}\" \"{1}\"", srcBlob.SnapshotQualifiedUri.AbsoluteUri, destContainerName));
-            if (!string.IsNullOrWhiteSpace(destBlobName))
-            {
-                argument = string.Format(argument + " --dest-blob \"{0}\"", destBlobName);
-            }
+            string command = "blob copy start";
+            command = appendStringOption(command, "", srcBlob.SnapshotQualifiedUri.AbsoluteUri, quoted: true);
+            command = appendStringOption(command, "", destContainerName, quoted: true);
+            command = appendStringOption(command, "--dest-blob", destBlobName, quoted: true);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
 
-            CloudStorageAccount account = destContext as CloudStorageAccount;
-            if (account != null)
-            {
-                argument = string.Format(argument + " --dest-account-name {0} --dest-account-key \"{1}\"", account.Credentials.AccountName, account.Credentials.ExportBase64EncodedKey());
-            }
+            return RunNodeJSProcess(command, force);
+        }
 
-            return RunNodeJSProcess(argument, force);
+        public override bool StartAzureStorageBlobCopyFromFile(string srcShareName, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        {
+            string url = string.Empty;
+
+            string command = "blob copy start";
+            command = appendStringOption(command, "--source-share", srcShareName);
+            command = appendStringOption(command, "--source-path", srcFilePath);
+            command = appendStringOption(command, "--dest-container", destContainerName);
+            command = appendStringOption(command, "--dest-blob", destBlobName);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force);
+        }
+
+        public override bool StartAzureStorageBlobCopy(CloudFileShare srcShare, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        {
+            string url = string.Empty;
+
+            string command = "blob copy start";
+            command = appendStringOption(command, "--source-share", srcShare.Name);
+            command = appendStringOption(command, "--source-path", srcFilePath);
+            command = appendStringOption(command, "--dest-container", destContainerName);
+            command = appendStringOption(command, "--dest-blob", destBlobName);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force);
+        }
+
+        public override bool StartAzureStorageBlobCopy(CloudFile srcFile, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        {
+            string fileUri = GetAzureStorageFileSasFromCmd(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), null, "r", null, DateTime.UtcNow.AddHours(1), true);
+
+            string command = "blob copy start";
+            command = appendStringOption(command, "--source-uri", fileUri, quoted: true, onlyNonEmpty: true);
+            command = appendStringOption(command, "--dest-container", destContainerName);
+            command = appendStringOption(command, "--dest-blob", destBlobName);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force, needAccountParam: false);
         }
 
         public override bool GetAzureStorageBlobCopyState(string containerName, string blobName, bool waitForComplete)
@@ -834,24 +956,220 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(string.Format("blob copy show \"{0}\" \"{1}\"", containerName, blobName));
         }
 
-        public override bool GetAzureStorageBlobCopyState(ICloudBlob blob, object context, bool waitForComplete)
+        public override bool GetAzureStorageBlobCopyState(CloudBlob blob, object context, bool waitForComplete)
         {
-            string argument = string.Format("blob copy show \"{0}\" \"{1}\"", blob.Container.Name, blob.Name);
+            string command = "blob copy show";
+            command = appendStringOption(command, "", blob.Container.Name, quoted: true);
+            command = appendStringOption(command, "", blob.Name, quoted: true);
+            command = appendAccountOption(command, context, suffix: false, isSource: false);
 
-            bool needAccountParam = true;
-            CloudStorageAccount account = context as CloudStorageAccount;
-            if (account != null)
-            {
-                needAccountParam = false;
-                argument = string.Format(argument + " --account-name {0} --account-key \"{1}\"", account.Credentials.AccountName, account.Credentials.ExportBase64EncodedKey());
-            }
-
-            return RunNodeJSProcess(argument, needAccountParam: needAccountParam);
+            return RunNodeJSProcess(command, needAccountParam: context == null);
         }
 
         public override bool StopAzureStorageBlobCopy(string containerName, string blobName, string copyId, bool force)
         {
+            AssertMandatoryParameter("--copy-id", copyId);
             return RunNodeJSProcess(string.Format("blob copy stop \"{0}\" \"{1}\" \"{2}\"", containerName, blobName, copyId));
+        }
+
+        public override bool StartFileCopyFromBlob(string containerName, string blobName, string shareName, string filePath, object destContext, bool force = true)
+        {
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-container", containerName);
+            command = appendStringOption(command, "--source-blob", blobName, quoted: true);
+            command = appendStringOption(command, "--dest-share", shareName);
+            command = appendStringOption(command, "--dest-path", filePath, true);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force);
+        }
+
+        public bool StartFileCopyFromBlob(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true)
+        {
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-uri", blob.StorageUri.PrimaryUri.AbsoluteUri, quoted: true);
+            command = appendStringOption(command, "--dest-share", shareName);
+            command = appendStringOption(command, "--dest-path", filePath, true);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force, needAccountParam: false);
+        }
+
+        public override bool StartFileCopyFromFile(string srcShareName, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
+        {
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-share", srcShareName);
+            command = appendStringOption(command, "--source-path", srcFilePath);
+            command = appendStringOption(command, "--dest-share", shareName);
+            command = appendStringOption(command, "--dest-path", filePath, true);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force);
+        }
+
+        public override bool GetFileCopyState(string shareName, string filePath, object context, bool waitForComplete = false)
+        {
+            string command = "file copy show";
+            command = appendStringOption(command, "", shareName, quoted: true);
+            command = appendStringOption(command, "", filePath, quoted: true);
+            command = appendAccountOption(command, context, suffix: false, isSource: false);
+
+            return RunNodeJSProcess(command, needAccountParam: false);
+        }
+
+        public override bool GetFileCopyState(CloudFile file, object context, bool waitForComplete = false)
+        {
+            return GetFileCopyState(file.Share.Name, CloudFileUtil.GetFullPath(file), context, waitForComplete);
+        }
+
+        public override bool StartFileCopy(CloudBlobContainer container, string blobName, string shareName, string filePath, object destContext, bool force = true)
+        {
+            CloudStorageAccount srcContext = new CloudStorageAccount(container.ServiceClient.Credentials, container.ServiceClient.BaseUri, null, null, null);
+
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-container", container.Name);
+            command = appendStringOption(command, "--source-blob", blobName, quoted: true);
+            command = appendStringOption(command, "--dest-share", shareName);
+            command = appendStringOption(command, "--dest-path", filePath, true);
+            command = appendAccountOption(command, srcContext, suffix: false, isSource: true);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force, needAccountParam: false);
+        }
+
+        public override bool StartFileCopy(CloudBlob blob, string shareName, string filePath, object destContext, bool force = true)
+        {
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-uri", blob.StorageUri.PrimaryUri.AbsoluteUri, quoted: true);
+            command = appendStringOption(command, "--dest-share", shareName);
+            command = appendStringOption(command, "--dest-path", filePath, true);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force, needAccountParam: false);
+        }
+
+        public override bool StartFileCopy(CloudBlob blob, CloudFile destFile, object destContext, bool force = true)
+        {
+            CloudStorageAccount srcContext = new CloudStorageAccount(blob.ServiceClient.Credentials, blob.ServiceClient.BaseUri, null, null, null);
+
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-container", blob.Container.Name);
+            command = appendStringOption(command, "--source-blob", blob.Name, quoted: true);
+            command = appendStringOption(command, "--dest-share", destFile.Share.Name);
+            command = appendStringOption(command, "--dest-path", CloudFileUtil.GetFullPath(destFile), true);
+            command = appendAccountOption(command, srcContext, suffix: false, isSource: true);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force, needAccountParam: false);
+        }
+
+        public override bool StartFileCopy(CloudFileShare share, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
+        {
+            CloudStorageAccount srcContext = new CloudStorageAccount(share.ServiceClient.Credentials, null, null, null, share.ServiceClient.BaseUri);
+
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-share", share.Name);
+            command = appendStringOption(command, "--source-path", srcFilePath);
+            command = appendStringOption(command, "--dest-share", shareName);
+            command = appendStringOption(command, "--dest-path", filePath, true);
+            command = appendAccountOption(command, srcContext, suffix: false, isSource: true);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force, needAccountParam: false);
+        }
+
+        public override bool StartFileCopy(CloudFileDirectory dir, string srcFilePath, string shareName, string filePath, object destContext, bool force = true)
+        {
+            CloudStorageAccount srcContext = new CloudStorageAccount(dir.ServiceClient.Credentials, null, null, null, dir.ServiceClient.BaseUri);
+
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-share", dir.Share.Name);
+            command = appendStringOption(command, "--source-path", CloudFileUtil.GetFullPath(dir) + '/' + srcFilePath);
+            command = appendStringOption(command, "--dest-share", shareName);
+            command = appendStringOption(command, "--dest-path", filePath);
+            command = appendAccountOption(command, srcContext, suffix: false, isSource: true);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force, needAccountParam: false);
+        }
+
+        public override bool StartFileCopy(CloudFile srcFile, string shareName, string filePath, object destContext, bool force = true)
+        {
+            CloudStorageAccount srcContext = new CloudStorageAccount(srcFile.ServiceClient.Credentials, null, null, null, srcFile.ServiceClient.BaseUri);
+
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-share", srcFile.Share.Name);
+            command = appendStringOption(command, "--source-path", CloudFileUtil.GetFullPath(srcFile));
+            command = appendStringOption(command, "--dest-share", shareName);
+            command = appendStringOption(command, "--dest-path", filePath, true);
+            command = appendAccountOption(command, srcContext, suffix: false, isSource: true);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force, needAccountParam: false);
+        }
+
+        public override bool StartFileCopy(CloudFile srcFile, CloudFile destFile, bool force = true)
+        {
+            CloudStorageAccount srcContext = new CloudStorageAccount(srcFile.ServiceClient.Credentials, null, null, null, srcFile.ServiceClient.BaseUri);
+            CloudStorageAccount destContext = new CloudStorageAccount(destFile.ServiceClient.Credentials, null, null, null, destFile.ServiceClient.BaseUri);
+
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-share", srcFile.Share.Name);
+            command = appendStringOption(command, "--source-path", CloudFileUtil.GetFullPath(srcFile));
+            command = appendStringOption(command, "--dest-share", destFile.Share.Name);
+            command = appendStringOption(command, "--dest-path", CloudFileUtil.GetFullPath(destFile));
+            command = appendAccountOption(command, srcContext, suffix: false, isSource: true);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force, needAccountParam: false);
+        }
+
+        public override bool StartFileCopy(string uri, string destShareName, string destFilePath, object destContext, bool force = true)
+        {
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-uri", uri, quoted: true);
+            command = appendStringOption(command, "--dest-share", destShareName);
+            command = appendStringOption(command, "--dest-path", destFilePath, true);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force, needAccountParam: false);
+        }
+
+        public override bool StartFileCopy(string uri, CloudFile destFile, bool force = true)
+        {
+            CloudStorageAccount destContext = new CloudStorageAccount(destFile.ServiceClient.Credentials, null, null, null, destFile.ServiceClient.BaseUri);
+
+            string command = "file copy start";
+            command = appendStringOption(command, "--source-uri", uri, quoted: true);
+            command = appendStringOption(command, "--dest-share", destFile.Share.Name);
+            command = appendStringOption(command, "--dest-path", CloudFileUtil.GetFullPath(destFile), true);
+            command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            return RunNodeJSProcess(command, force, needAccountParam: false);
+        }
+
+        public override bool StopFileCopy(string shareName, string filePath, string copyId, bool force = true)
+        {
+            AssertMandatoryParameter("--copy-id", copyId);
+
+            string command = "file copy stop";
+            command = appendStringOption(command, "--share", shareName);
+            command = appendStringOption(command, "--path", filePath, true);
+            command = appendStringOption(command, "--copyid", copyId);
+
+            return RunNodeJSProcess(command, false);
+        }
+
+        public override bool StopFileCopy(CloudFile file, string copyId, bool force = true)
+        {
+            AssertMandatoryParameter("--copy-id", copyId);
+
+            string command = "file copy stop";
+            command = appendStringOption(command, "--share", file.Share.Name);
+            command = appendStringOption(command, "--path", CloudFileUtil.GetFullPath(file), true);
+            command = appendStringOption(command, "--copyid", copyId);
+
+            return RunNodeJSProcess(command, false);
         }
 
         public override void OutputValidation(Collection<Dictionary<string, object>> comp)
@@ -876,8 +1194,8 @@ namespace Management.Storage.ScenarioTest
                                 CompareEntity(dic, (CloudBlobContainer)comp[count]["CloudBlobContainer"]);
                                 break;
 
-                            case "ICloudBlob":
-                                CompareEntity(dic, (ICloudBlob)comp[count]["ICloudBlob"]);
+                            case "CloudBlob":
+                                CompareEntity(dic, (CloudBlob)comp[count]["CloudBlob"]);
                                 break;
 
                             case "ShowContainer":
@@ -891,12 +1209,12 @@ namespace Management.Storage.ScenarioTest
                                 break;
 
                             case "ShowBlob":
-                                CompareEntity(dic, (ICloudBlob)comp[count]["ShowBlob"]);
+                                CompareEntity(dic, (CloudBlob)comp[count]["ShowBlob"]);
                                 {
                                     // construct a json format dictionary object
                                     var jsonDic = new Dictionary<string, object> { { "properties", JsonConvert.SerializeObject(dic) } };
                                     // compare fields in container properties
-                                    CompareEntity(jsonDic, (ICloudBlob)comp[count]["ShowBlob"]);
+                                    CompareEntity(jsonDic, (CloudBlob)comp[count]["ShowBlob"]);
                                 }
                                 break;
                             case "ApproximateMessageCount":
@@ -951,9 +1269,9 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        public override void OutputValidation(IEnumerable<ICloudBlob> blobs)
+        public override void OutputValidation(IEnumerable<CloudBlob> blobs)
         {
-            Test.Info("Validate ICloudBlob objects");
+            Test.Info("Validate CloudBlob objects");
             Test.Assert(blobs.Count() == Output.Count, "Comparison size: {0} = {1} Output size", blobs.Count(), Output.Count);
             if (blobs.Count() != Output.Count)
             {
@@ -961,7 +1279,7 @@ namespace Management.Storage.ScenarioTest
             }
 
             int count = 0;
-            foreach (ICloudBlob blob in blobs)
+            foreach (CloudBlob blob in blobs)
             {
                 blob.FetchAttributes();
                 CompareEntity(Output[count], blob);
@@ -1082,9 +1400,9 @@ namespace Management.Storage.ScenarioTest
             var xsclDic = JsonConvert.DeserializeObject<Dictionary<string, object>>(JsonConvert.SerializeObject(obj, new StringEnumConverter()));
             xsclDic = ConvertXSCLEntities(xsclDic);
 
-            if (obj is ICloudBlob)
+            if (obj is CloudBlob)
             {
-                ICloudBlob blob = (ICloudBlob)obj;
+                CloudBlob blob = (CloudBlob)obj;
                 if (blob.SnapshotTime != null)
                 {
                     string snapshotUri = BlobHttpWebRequestFactory.Get(blob.Uri, 0, blob.SnapshotTime.Value.UtcDateTime, AccessCondition.GenerateEmptyCondition(), new OperationContext()).Address.AbsoluteUri;
@@ -1165,9 +1483,9 @@ namespace Management.Storage.ScenarioTest
         /// <returns></returns>
         internal static object GetProperties(object obj)
         {
-            if (obj is ICloudBlob)
+            if (obj is CloudBlob)
             {
-                return ((ICloudBlob)obj).Properties;
+                return ((CloudBlob)obj).Properties;
             }
             else if (obj.GetType() == typeof(CloudBlobContainer))
             {
@@ -1252,7 +1570,8 @@ namespace Management.Storage.ScenarioTest
 
         public override object CreateStorageContextObject(string connectionString)
         {
-            return connectionString;
+            CloudStorageAccount context = CloudStorageAccount.Parse(connectionString);
+            return context;
         }
 
         public override void SetVariable(string variableName, object value)
@@ -1267,16 +1586,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void NewFileShare(string fileShareName, object contextObject = null)
         {
-            bool needAccountParam = true;
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("share create \"{0}\"", fileShareName);
-            if (contextObject != null)
-            {
-                sb.AppendFormat(" -c \"{0}\"", contextObject);
-                needAccountParam = false;
-            }
+            string command = "share create";
+            command = appendStringOption(command, "", fileShareName);
+            command = appendAccountOption(command, contextObject, false, isSource: true);
 
-            this.RunNodeJSProcess(sb.ToString(), needAccountParam: needAccountParam);
+            this.RunNodeJSProcess(command, needAccountParam: contextObject == null);
         }
 
         public override void NewFileShareFromPipeline()
@@ -1321,16 +1635,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void RemoveFileShareByName(string fileShareName, bool passThru = false, object contextObject = null)
         {
-            bool needAccountParam = true;
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("share delete \"{0}\"", fileShareName);
-            if (contextObject != null)
-            {
-                sb.AppendFormat(" -c \"{0}\"", contextObject);
-                needAccountParam = false;
-            }
+            string command = "share delete";
+            command = appendStringOption(command, "", fileShareName);
+            command = appendAccountOption(command, contextObject, false, isSource: true);
 
-            this.RunNodeJSProcess(sb.ToString(), true, needAccountParam);
+            this.RunNodeJSProcess(command, true, needAccountParam: contextObject == null);
         }
 
         public override void NewDirectory(CloudFileShare fileShare, string directoryName)
@@ -1345,16 +1654,12 @@ namespace Management.Storage.ScenarioTest
 
         public override void NewDirectory(string fileShareName, string directoryName, object contextObject = null)
         {
-            bool needAccountParam = true;
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("directory create \"{0}\" \"{1}\"", fileShareName, directoryName);
-            if (contextObject != null)
-            {
-                sb.AppendFormat(" -c \"{0}\"", contextObject);
-                needAccountParam = false;
-            }
+            string command = "directory create";
+            command = appendStringOption(command, "", fileShareName, quoted: true);
+            command = appendStringOption(command, "", directoryName, quoted: true);
+            command = appendAccountOption(command, contextObject, false, isSource: true);
 
-            this.RunNodeJSProcess(sb.ToString(), needAccountParam: needAccountParam);
+            this.RunNodeJSProcess(command, needAccountParam: contextObject == null);
         }
 
         public override void RemoveDirectory(CloudFileShare fileShare, string directoryName)
@@ -1364,21 +1669,17 @@ namespace Management.Storage.ScenarioTest
 
         public override void RemoveDirectory(CloudFileDirectory directory, string path)
         {
-            throw new NotImplementedException();
+            this.RemoveDirectory(directory.Share.Name, CloudFileUtil.GetFullPath(directory) + "/" + path);
         }
 
         public override void RemoveDirectory(string fileShareName, string directoryName, object contextObject = null)
         {
-            bool needAccountParam = true;
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("directory delete \"{0}\" \"{1}\"", fileShareName, directoryName);
-            if (contextObject != null)
-            {
-                sb.AppendFormat(" -c \"{0}\"", contextObject);
-                needAccountParam = false;
-            }
+            string command = "directory delete";
+            command = appendStringOption(command, "", fileShareName, quoted: true);
+            command = appendStringOption(command, "", directoryName, quoted: true);
+            command = appendAccountOption(command, contextObject, false, isSource: true);
 
-            this.RunNodeJSProcess(sb.ToString(), true, needAccountParam);
+            this.RunNodeJSProcess(command, true, needAccountParam: contextObject == null);
         }
 
         public override void RemoveFile(CloudFileShare fileShare, string fileName)
@@ -1388,7 +1689,7 @@ namespace Management.Storage.ScenarioTest
 
         public override void RemoveFile(CloudFileDirectory directory, string fileName)
         {
-            throw new NotImplementedException();
+            this.RemoveFile(directory.Share.Name, CloudFileUtil.GetFullPath(directory) + "/" + fileName);
         }
 
         public override void RemoveFile(CloudFile file)
@@ -1398,16 +1699,12 @@ namespace Management.Storage.ScenarioTest
 
         public override void RemoveFile(string fileShareName, string fileName, object contextObject = null)
         {
-            bool needAccountParam = true;
-            StringBuilder sb = new StringBuilder();
-            sb.AppendFormat("file delete \"{0}\" \"{1}\"", fileShareName, fileName);
-            if (contextObject != null)
-            {
-                sb.AppendFormat(" -c \"{0}\"", contextObject);
-                needAccountParam = false;
-            }
+            string command = "file delete";
+            command = appendStringOption(command, "", fileShareName, quoted: true);
+            command = appendStringOption(command, "", fileName, quoted: true);
+            command = appendAccountOption(command, contextObject, false, isSource: true);
 
-            this.RunNodeJSProcess(sb.ToString(), true, needAccountParam);
+            this.RunNodeJSProcess(command, true, needAccountParam: contextObject == null);
         }
 
         public override void ListFiles(string fileShareName, string path = null)
@@ -1428,7 +1725,7 @@ namespace Management.Storage.ScenarioTest
 
         public override void ListFiles(CloudFileDirectory directory, string path = null)
         {
-            throw new NotImplementedException();
+            this.ListFiles(directory.Share.Name, directory.Name + '/' + path);
         }
 
         public override void DownloadFile(CloudFile file, string destination, bool overwrite = false)
@@ -1448,21 +1745,19 @@ namespace Management.Storage.ScenarioTest
 
         public override void DownloadFile(string fileShareName, string path, string destination, bool overwrite = false, object contextObject = null)
         {
-            bool needAccountParam = true;
-            StringBuilder sb = new StringBuilder();
             string dest = destination.TrimEnd(CloudFileUtil.PathSeparators);
             if (AgentOSType != OSType.Windows)
             {
                 dest = FileUtil.GetLinuxPath(dest);
             }
-            sb.AppendFormat("file download \"{0}\" \"{1}\" \"{2}\"", fileShareName, path, dest);
-            if (contextObject != null)
-            {
-                sb.AppendFormat(" -c \"{0}\"", contextObject);
-                needAccountParam = false;
-            }
 
-            this.RunNodeJSProcess(sb.ToString(), overwrite, needAccountParam);
+            string command = "file download";
+            command = appendStringOption(command, "", fileShareName, quoted: true);
+            command = appendStringOption(command, "", path, quoted: true);
+            command = appendStringOption(command, "", dest, quoted: true);
+            command = appendAccountOption(command, contextObject, false, isSource: true);
+
+            this.RunNodeJSProcess(command, overwrite, needAccountParam: contextObject == null);
         }
 
         public override void UploadFile(CloudFileShare fileShare, string source, string path, bool overwrite = false, bool passThru = false)
@@ -1477,20 +1772,30 @@ namespace Management.Storage.ScenarioTest
 
         public override void UploadFile(string fileShareName, string source, string path, bool overwrite = false, bool passThru = false, object contextObject = null)
         {
-            bool needAccountParam = true;
-            StringBuilder sb = new StringBuilder();
             if (AgentOSType != OSType.Windows)
             {
                 source = FileUtil.GetLinuxPath(source);
             }
-            sb.AppendFormat("file upload \"{0}\" \"{1}\" \"{2}\"", source, fileShareName, path);
-            if (contextObject != null)
-            {
-                sb.AppendFormat(" -c \"{0}\"", contextObject);
-                needAccountParam = false;
-            }
 
-            this.RunNodeJSProcess(sb.ToString(), overwrite, needAccountParam: needAccountParam);
+            string command = "file upload";
+            command = appendStringOption(command, "", source, quoted: true);
+            command = appendStringOption(command, "", fileShareName, quoted: true);
+            command = appendStringOption(command, "", path, quoted: true);
+            command = appendAccountOption(command, contextObject, false, isSource: true);
+
+            this.RunNodeJSProcess(command, overwrite, needAccountParam: contextObject == null);
+        }
+
+        public override bool SetAzureStorageShareQuota(string shareName, int quota)
+        {
+            string command = string.Format("share set {0} --quota {1}", shareName, quota);
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override bool SetAzureStorageShareQuota(CloudFileShare share, int quota)
+        {
+            return SetAzureStorageShareQuota(share.Name, quota);
         }
 
         public override void AssertNoError()
@@ -1580,7 +1885,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         ///-------------------------------------
-        /// Logging & Metrics APIs
+        /// Logging & Metrics & CORS APIs
         ///-------------------------------------
         public override bool GetAzureStorageServiceLogging(Constants.ServiceType serviceType)
         {
@@ -1599,17 +1904,19 @@ namespace Management.Storage.ScenarioTest
         public override bool SetAzureStorageServiceLogging(Constants.ServiceType serviceType, string loggingOperations = "", string loggingRetentionDays = "",
             string loggingVersion = "", bool passThru = false)
         {
-            string command = string.Format("logging set --{0} ", serviceType.ToString().ToLower());
+            string command = "logging set";
+            command = appendBoolOption(command, string.Format("--{0} ", serviceType.ToString().ToLower()));
+            ;
             command += GetLoggingOptions(loggingOperations);
 
             if (!string.IsNullOrEmpty(loggingRetentionDays))
             {
-                command += string.Format(" --retention {0} ", loggingRetentionDays);
+                command = appendStringOption(command, "--retention", loggingRetentionDays);
             }
 
             if (!string.IsNullOrEmpty(loggingVersion))
             {
-                command += string.Format(" --version {0} ", loggingVersion);
+                command = appendStringOption(command, "--version", loggingVersion);
             }
 
             return RunNodeJSProcess(command);
@@ -1624,37 +1931,39 @@ namespace Management.Storage.ScenarioTest
         public override bool SetAzureStorageServiceMetrics(Constants.ServiceType serviceType, Constants.MetricsType metricsType, string metricsLevel = "", string metricsRetentionDays = "",
             string metricsVersion = "", bool passThru = false)
         {
-            string command = string.Format("metrics set --{0} ", serviceType.ToString().ToLower());
+            string command = "metrics set";
+            command = appendBoolOption(command, string.Format("--{0}", serviceType.ToString().ToLower()));
 
             if (string.Compare(metricsLevel, "None", true) == 0)
             {
                 if (metricsType == Constants.MetricsType.Hour)
                 {
-                    command += " --hour-off ";
+                    command = appendBoolOption(command, "--hour-off");
                 }
                 else if (metricsType == Constants.MetricsType.Minute)
                 {
-                    command += " --minute-off ";
+                    command = appendBoolOption(command, "--minute-off");
                 }
             }
             else
             {
                 if (metricsType == Constants.MetricsType.Hour)
                 {
+                    command = appendBoolOption(command, "--hour");
                     command += " --hour ";
                 }
                 else if (metricsType == Constants.MetricsType.Minute)
                 {
-                    command += " --minute ";
+                    command = appendBoolOption(command, "--minute");
                 }
 
                 if (string.Compare(metricsLevel, "ServiceAndApi", true) == 0)
                 {
-                    command += string.Format(" --api ");
+                    command = appendBoolOption(command, "--api");
                 }
                 else
                 {
-                    command += string.Format(" --api-off ");
+                    command = appendBoolOption(command, "--api-off");
                 }
             }
 
@@ -1665,21 +1974,53 @@ namespace Management.Storage.ScenarioTest
                 {
                     if (retention > 0)
                     {
-                        command += string.Format(" --retention {0} ", metricsRetentionDays);
+                        command = appendStringOption(command, "--retention", metricsRetentionDays);
                     }
                     else
                     {
-                        command += " --retention 0 ";
+                        command = appendStringOption(command, "--retention", "0");
                     }
                 }
             }
 
             if (!string.IsNullOrEmpty(metricsVersion))
             {
-                command += string.Format(" --version {0} ", metricsVersion);
+                command = appendStringOption(command, "--version", metricsVersion);
             }
 
             return RunNodeJSProcess(command);
+        }
+
+        public override bool SetAzureStorageCORSRules(Constants.ServiceType serviceType, PSCorsRule[] corsRules)
+        {
+            string cors = StringifyCORS(corsRules);
+
+            string command = "cors set";
+            command = appendBoolOption(command, string.Format("--{0}", serviceType.ToString().ToLower()));
+            command = appendStringOption(command, "--cors", cors, quoted: true);
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override bool GetAzureStorageCORSRules(Constants.ServiceType serviceType)
+        {
+            string command = "cors show";
+            command = appendBoolOption(command, string.Format("--{0}", serviceType.ToString().ToLower()));
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override bool RemoveAzureStorageCORSRules(Constants.ServiceType serviceType)
+        {
+            string command = "cors delete";
+            command = appendBoolOption(command, string.Format("--{0}", serviceType.ToString().ToLower()));
+
+            return RunNodeJSProcess(command, true);
+        }
+
+        internal string StringifyCORS(PSCorsRule[] corsRules)
+        {
+            return JsonConvert.SerializeObject(corsRules);
         }
 
         internal string GetLoggingOptions(string loggingOperations)
@@ -1829,15 +2170,66 @@ namespace Management.Storage.ScenarioTest
         ///-------------------------------------
         /// SAS token APIs
         ///-------------------------------------
+        internal static object GetStorageContext(string ConnectionString)
+        {
+            return CloudStorageAccount.Parse(ConnectionString);
+        }
+
+        internal static void SetStorageContext(string ConnectionString)
+        {
+            Agent.Context = CloudStorageAccount.Parse(ConnectionString);
+        }
+
+        public override object GetStorageContextWithSASToken(CloudStorageAccount account, string sasToken, string endpointSuffix = null, bool useHttps = false)
+        {
+            string connectionString = string.Format("SharedAccessSignature={0};", sasToken);
+            if (account.BlobEndpoint != null)
+            {
+                connectionString += string.Format("BlobEndpoint={0};", account.BlobEndpoint.AbsoluteUri);
+            }
+
+            if (account.TableEndpoint != null)
+            {
+                connectionString += string.Format("TableEndpoint={0};", account.TableEndpoint.AbsoluteUri);
+            }
+
+            if (account.QueueEndpoint != null)
+            {
+                connectionString += string.Format("QueueEndpoint={0};", account.QueueEndpoint.AbsoluteUri);
+            }
+
+            if (account.FileEndpoint != null)
+            {
+                connectionString += string.Format("FileEndpoint={0};", account.FileEndpoint.AbsoluteUri);
+            }
+
+            return CloudStorageAccount.Parse(connectionString);
+        }
+
         public override void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, bool useHttps = true)
         {
             this.SetStorageContextWithSASToken(StorageAccountName, sasToken, null, useHttps);
         }
 
-        public override void SetStorageContextWithSASToken(string StorageAccountName, string sasToken,  string endpoint,  bool useHttps = true)
+        public override void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, string endpoint, bool useHttps = true)
         {
             AgentConfig.AccountName = StorageAccountName;
             AgentConfig.SAS = sasToken;
+        }
+
+        public override void SetStorageContextWithSASTokenInConnectionString(CloudStorageAccount StorageAccount, string sasToken)
+        {
+            if (sasToken.StartsWith("?"))
+            {
+                sasToken = sasToken.Substring(1);
+            }
+
+            AgentConfig.ConnectionStr = string.Format("BlobEndpoint={0};FileEndpoint={1};TableEndpoint={2};QueueEndpoint={3};SharedAccessSignature={4}",
+                StorageAccount.BlobEndpoint,
+                StorageAccount.FileEndpoint,
+                StorageAccount.TableEndpoint,
+                StorageAccount.QueueEndpoint,
+                sasToken);
         }
 
         public override string SetContextWithSASToken(string accountName, CloudBlobUtil blobUtil, StorageObjectType objectType,
@@ -1887,6 +2279,32 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(command);
         }
 
+        public override bool NewAzureStorageShareSAS(string shareName, string policyName, string permissions = null,
+           DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            string command = string.Format("share sas create {0}", shareName);
+
+            command = GetGeneralSASCmd(command, permissions, startTime, expiryTime, policyName);
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override bool NewAzureStorageFileSAS(string shareName, string filePath, string policyName = null, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            string command = string.Format("file sas create {0} {1}", shareName, filePath);
+
+            command = GetGeneralSASCmd(command, permissions, startTime, expiryTime, policyName);
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override bool NewAzureStorageFileSAS(CloudFile file, string policyName = null, string permissions = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            return NewAzureStorageFileSAS(file.Share.Name, CloudFileUtil.GetFullPath(file), policyName, permissions, startTime, expiryTime, fulluri);
+        }
+
         public override bool NewAzureStorageTableSAS(string name, string policy, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, string startpk = "", string startrk = "", string endpk = "", string endrk = "")
         {
@@ -1934,7 +2352,14 @@ namespace Management.Storage.ScenarioTest
             {
                 string sasToken = Output[0][Constants.SASTokenKeyNode].ToString();
                 Test.Info("Generated sas token: {0}", sasToken);
-                return sasToken;
+                if (fulluri)
+                {
+                    return Output[0][Constants.SASTokenURLNode].ToString();
+                }
+                else
+                {
+                    return sasToken;
+                }
             }
             else
             {
@@ -1942,7 +2367,7 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        public override string GetBlobSasFromCmd(ICloudBlob blob, string policy, string permission,
+        public override string GetBlobSasFromCmd(CloudBlob blob, string policy, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
         {
             return GetBlobSasFromCmd(blob.Container.Name, blob.Name, policy, permission, startTime, expiryTime, fulluri);
@@ -1962,6 +2387,47 @@ namespace Management.Storage.ScenarioTest
             else
             {
                 throw new ArgumentException("Fail to generate sas token.");
+            }
+        }
+
+        public override string GetAzureStorageShareSasFromCmd(string shareName, string policy, string permission = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            NewAzureStorageShareSAS(shareName, policy, permission, startTime, expiryTime, fulluri);
+            if (Output.Count != 0)
+            {
+                string sasToken = Output[0][Constants.SASTokenKeyNode].ToString();
+                Test.Info("Generated sas token: {0}", sasToken);
+                return sasToken;
+            }
+            else
+            {
+                Test.Info("Fail to generate sas token.");
+                return string.Empty;
+            }
+        }
+
+        public override string GetAzureStorageFileSasFromCmd(string shareName, string filePath, string policy, string permission = null,
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        {
+            NewAzureStorageFileSAS(shareName, filePath, policy, permission, startTime, expiryTime, fulluri);
+            if (Output.Count != 0)
+            {
+                string sasToken = Output[0][Constants.SASTokenKeyNode].ToString();
+                Test.Info("Generated sas token: {0}", sasToken);
+                if (fulluri)
+                {
+                    return Output[0][Constants.SASTokenURLNode].ToString();
+                }
+                else
+                {
+                    return sasToken;
+                }
+            }
+            else
+            {
+                Test.Info("Fail to generate sas token.");
+                return string.Empty;
             }
         }
 
@@ -2010,18 +2476,26 @@ namespace Management.Storage.ScenarioTest
                     permission = "r";
                 }
 
-                command += " --permissions " + permission +
-                    " --expiry " + (expiryTime.HasValue ? expiryTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ") : DateTime.UtcNow.AddHours(1).ToString("yyyy-MM-ddTHH:mm:ssZ"));
+                command = appendStringOption(command, "--permissions", permission);
+
+                if (expiryTime.HasValue)
+                {
+                    command = appendDateTimeOption(command, "--expiry", expiryTime);
+                }
+                else
+                {
+                    command = appendDateTimeOption(command, "--expiry", DateTime.UtcNow.AddHours(1));
+                }
             }
             else
             {
-                command += " --policy " + policy;
+                command = appendStringOption(command, "--policy", policy, quoted: true);
+
+                command = appendStringOption(command, "--permissions", permission);
+                command = appendDateTimeOption(command, "--expiry", expiryTime);
             }
 
-            if (startTime.HasValue)
-            {
-                command += " --start " + startTime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ");
-            }
+            command = appendDateTimeOption(command, "--start", startTime);
 
             return command;
         }
@@ -2093,6 +2567,27 @@ namespace Management.Storage.ScenarioTest
             DateTime? startTime = null, DateTime? expiryTime = null, bool NoStartTime = false, bool NoExpiryTime = false)
         {
             return SetAzureStorageStoredAccessPolicy("container", containerName, policyName, permission, startTime, expiryTime, NoStartTime, NoExpiryTime);
+        }
+
+        public override bool NewAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions, DateTime? startTime, DateTime? expiryTime)
+        {
+            return NewAzureStorageStoredAccessPolicy("share", shareName, policyName, permissions, startTime, expiryTime);
+        }
+
+        public override bool GetAzureStorageShareStoredAccessPolicy(string shareName, string policyName)
+        {
+            return GetAzureStorageStoredAccessPolicy("share", shareName, policyName);
+        }
+
+        public override bool RemoveAzureStorageShareStoredAccessPolicy(string shareName, string policyName)
+        {
+            return RemoveAzureStorageStoredAccessPolicy("share", shareName, policyName, true);
+        }
+
+        public override bool SetAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions,
+            DateTime? startTime, DateTime? expiryTime, bool noStartTime = false, bool noExpiryTime = false)
+        {
+            return SetAzureStorageStoredAccessPolicy("share", shareName, policyName, permissions, startTime, expiryTime, noStartTime, noExpiryTime);
         }
 
         internal bool GetAzureStorageStoredAccessPolicy(string resourceType, string resourceName, string policyName)

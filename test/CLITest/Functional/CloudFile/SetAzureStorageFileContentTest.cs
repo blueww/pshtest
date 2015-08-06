@@ -22,7 +22,6 @@
         [ClassInitialize]
         public static void SetAzureStorageFileContentTestInitialize(TestContext context)
         {
-            StorageAccount = Utility.ConstructStorageAccountFromConnectionString();
             TestBase.TestClassInitialize(context);
         }
 
@@ -62,7 +61,7 @@
             this.agent.AssertNoError();
             if (lang == Language.NodeJS)
             {
-                result.AssertObjectCollection(obj => result.AssertCloudFile(obj, cloudFileName));
+                result.AssertObjectCollection(obj => result.AssertCloudFile(obj, "/" + cloudFileName));
             }
             else
             {

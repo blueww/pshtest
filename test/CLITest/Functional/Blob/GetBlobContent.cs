@@ -38,7 +38,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
         private string ContainerName = string.Empty;
         private string BlobName = string.Empty;
-        private ICloudBlob Blob = null;
+        private CloudBlob Blob = null;
         private CloudBlobContainer Container = null;
 
         private static CloudBlobHelper CommonBlobHelper;
@@ -88,16 +88,24 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             ContainerName = Utility.GenNameString("container");
             BlobName = Utility.GenNameString("blob");
             CloudBlobContainer container = blobUtil.CreateContainer(ContainerName);
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference(BlobName);
+            CloudBlob blobRef = blobUtil.GetRandomBlobReference(container, BlobName);
+
             // Create or overwrite the "myblob" blob with contents from a local file.
             using (var fileStream = System.IO.File.OpenRead(filePath))
             {
-                blockBlob.UploadFromStream(fileStream);
+                blobRef.UploadFromStream(fileStream);
+            }
+            
+            blobRef.FetchAttributes();
+
+            if (null == blobRef.Properties.ContentMD5)
+            {
+                blobRef.Properties.ContentMD5 = FileUtil.GetFileContentMD5(filePath);
+                blobRef.SetProperties();
             }
 
             File.Delete(filePath);
-            blockBlob.FetchAttributes();
-            Blob = blockBlob;
+            Blob = blobRef;
             Container = container;
         }
 
@@ -215,7 +223,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 for (int i = 0, count = files.Count(); i < count; i++)
                 {
                     string path = Path.Combine(downloadDirRoot, files[i]);
-                    ICloudBlob blob = blobLists[i] as ICloudBlob;
+                    CloudBlob blob = blobLists[i] as CloudBlob;
                     if (!File.Exists(path))
                     {
                         Test.AssertFail(string.Format("local file '{0}' doesn't exist.", path));
@@ -249,14 +257,14 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                List<ICloudBlob> blobs = new List<ICloudBlob>();
+                List<CloudBlob> blobs = new List<CloudBlob>();
                 int minSnapshot = 1;
                 int maxSnapshot = 5;
                 int snapshotCount = random.Next(minSnapshot, maxSnapshot);
 
                 for (int i = 0; i < snapshotCount; i++)
                 {
-                    ICloudBlob blob = ((CloudBlockBlob)Blob).CreateSnapshot();
+                    CloudBlob blob = Blob.Snapshot();
                     blobs.Add(blob);
                 }
 
@@ -274,7 +282,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 for (int i = 0, count = blobs.Count(); i < count; i++)
                 {
-                    ICloudBlob blob = blobLists[i] as ICloudBlob;
+                    CloudBlob blob = blobLists[i] as CloudBlob;
                     string path = Path.Combine(downloadDirRoot, blobUtil.ConvertBlobNameToFileName(blob.Name, string.Empty, blob.SnapshotTime));
 
                     Test.Assert(File.Exists(path), string.Format("local file '{0}' should exists after downloading.", path));
@@ -369,13 +377,14 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             DownloadBlobWithSpeicialChars(BlobType.BlockBlob);
             DownloadBlobWithSpeicialChars(BlobType.PageBlob);
+            DownloadBlobWithSpeicialChars(BlobType.AppendBlob);
         }
 
         public void DownloadBlobWithSpeicialChars(BlobType blobType)
         {
             CloudBlobContainer container = blobUtil.CreateContainer();
             string blobName = SpecialChars;
-            ICloudBlob blob = blobUtil.CreateBlob(container, blobName, blobType);
+            CloudBlob blob = blobUtil.CreateBlob(container, blobName, blobType);
             
             string downloadFileName = Path.Combine(downloadDirRoot, Utility.GenNameString("download"));
 
@@ -406,6 +415,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             DownloadBlobWithZeroSize(BlobType.BlockBlob);
             DownloadBlobWithZeroSize(BlobType.PageBlob);
+            DownloadBlobWithZeroSize(BlobType.AppendBlob);
         }
 
         public void DownloadBlobWithZeroSize(BlobType blobType)
@@ -416,7 +426,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                ICloudBlob blob = blobUtil.CreateBlob(container, blobName, blobType);
+                CloudBlob blob = blobUtil.CreateBlob(container, blobName, blobType);
                 Test.Assert(agent.GetAzureStorageBlobContent(blobName, downloadFileName, container.Name, true), "download blob with zero size should succeed");
                 string downloadedMD5 = FileUtil.GetFileContentMD5(downloadFileName);
 
