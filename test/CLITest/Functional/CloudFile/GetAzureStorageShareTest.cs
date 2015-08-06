@@ -11,7 +11,7 @@
     using StorageTestLib;
 
     [TestClass]
-    internal class GetAzureStorageShareTest : TestBase
+    public class GetAzureStorageShareTest : TestBase
     {
         private Random randomProvider = new Random();
 
@@ -79,6 +79,43 @@
                         Test.Warn("Unexpected exception when cleanup file share {0}: {1}", shareName, e);
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Positive functional test case 5.3.3
+        /// </summary>
+        [TestMethod]
+        [TestCategory(PsTag.File)]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        public void GetFileShareUsageTest()
+        {
+            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
+            string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
+            var fileShare = fileUtil.EnsureFileShareExists(fileShareName);
+
+            try
+            {
+                agent.GetFileShareByName(fileShareName);
+
+                var result = agent.Invoke();
+
+                agent.AssertNoError();
+                result.AssertObjectCollection(obj => result.AssertCloudFileContainer(obj, fileShareName), 1);
+
+                fileUtil.CreateFile(fileShare.GetRootDirectoryReference(), cloudFileName);
+
+                agent.GetFileShareByName(fileShareName);
+
+                result = agent.Invoke();
+                agent.AssertNoError();
+                result.AssertObjectCollection(obj => result.AssertCloudFileContainer(obj, fileShareName, 1), 1);
+            }
+            finally
+            {
+                agent.Dispose();
+                fileUtil.DeleteFileShareIfExists(fileShareName);
             }
         }
 
