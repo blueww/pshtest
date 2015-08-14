@@ -224,6 +224,17 @@ namespace Management.Storage.ScenarioTest
                 endpoints[3]);
         }
 
+        public static void CleanProfile()
+        {
+            DirectoryInfo directory = new DirectoryInfo(AzureSession.ProfileDirectory);
+            foreach (var file in directory.EnumerateFiles())
+            {
+                file.Delete();
+            }
+
+            PowerShellAgent.LoadProfile();
+        }
+
         public static AzureProfile GetProfile()
         {
             AzureSession.ClientFactory.AddAction(new RPRegistrationAction());
