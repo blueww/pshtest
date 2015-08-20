@@ -3879,5 +3879,14 @@ namespace Management.Storage.ScenarioTest
 
             return InvokePowerShellWithoutContext(ps);
         }
+
+        public override bool CheckNameAvailability(string accountName)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            ps.AddCommand("Get-AzureStorageAccountNameAvailability");
+            ps.BindParameter("Name", accountName);
+            
+            return InvokePowerShellWithoutContext(ps);
+        }
     }
 }

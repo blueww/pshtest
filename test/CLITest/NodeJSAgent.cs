@@ -602,6 +602,11 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(command, needAccountParam: false);
         }
 
+        public override bool CheckNameAvailability(string accountName)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool NewAzureStorageContainer(string containerName)
         {
             return RunNodeJSProcess(string.Format("container create \"{0}\"", containerName));

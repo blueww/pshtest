@@ -120,6 +120,8 @@ namespace Management.Storage.ScenarioTest
         public abstract bool ShowSRPAzureStorageAccountKeys(string resourceGroup, string accountName);
 
         public abstract bool RenewSRPAzureStorageAccountKeys(string resourceGroupName, string accountName, Constants.AccountKeyType type);
+
+        public abstract bool CheckNameAvailability(string accountName);
         #endregion
 
         #region Container
