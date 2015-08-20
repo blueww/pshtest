@@ -278,7 +278,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         [TestCategory(Tag.Function)]
         [TestCategory(CLITag.File)]
         [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.StartCopyFile)]
+        [TestCategory(CLITag.GetFileCopyState)]
         public void GetCopyStateWithSAS()
         {
             string destShareName = Utility.GenNameString("destshare");
@@ -318,6 +318,8 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 {
                     copyId = agent.Output[0]["copyId"] as string;
                 }
+
+                NodeJSAgent.AgentConfig.ConnectionString = StorageAccount.ToString(true);
                 Test.Assert(agent.StopFileCopy(destFile, copyId), "Stop file copy should succeed.");
             }
             finally
