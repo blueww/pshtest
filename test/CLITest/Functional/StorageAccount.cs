@@ -68,6 +68,8 @@ namespace Management.Storage.ScenarioTest
         [ClassInitialize()]
         public static void StorageAccountTestInit(TestContext testContext)
         {
+            TestBase.TestClassInitialize(testContext);
+
             string appPath = Test.Data.Get("LoginAppPath");
 
             if (!string.IsNullOrEmpty(appPath))
@@ -75,8 +77,6 @@ namespace Management.Storage.ScenarioTest
                 Test.Info("Calling {0} to save credential token", appPath);
                 TestHelper.RunCmd(appPath, null);
             }
-
-            TestBase.TestClassInitialize(testContext);
 
             NodeJSAgent.AgentConfig.UseEnvVar = false;
 

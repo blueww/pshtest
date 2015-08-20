@@ -94,6 +94,7 @@ namespace Management.Storage.ScenarioTest.BVT
             lang = AgentFactory.GetLanguage(testContext.Properties);
             if (lang == Language.PowerShell)
             {
+                Utility.CleanProfile();
                 SaveAndCleanSubScriptionAndEnvConnectionString();
 
                 //Clean Storage Context
