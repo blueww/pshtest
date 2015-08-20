@@ -22,6 +22,7 @@ namespace Management.Storage.ScenarioTest
     using System.Threading;
     using Management.Storage.ScenarioTest.Common;
     using Management.Storage.ScenarioTest.Util;
+    using Microsoft.Azure.Management.Storage;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Microsoft.WindowsAzure;
     using Microsoft.WindowsAzure.Management;
@@ -29,8 +30,8 @@ namespace Management.Storage.ScenarioTest
     using Microsoft.WindowsAzure.Management.Storage;
     using Microsoft.WindowsAzure.Management.Storage.Models;
     using MS.Test.Common.MsTestLib;
-    using SRPModel = Microsoft.Azure.Management.Storage.Models;
     using StorageTestLib;
+    using SRPModel = Microsoft.Azure.Management.Storage.Models;
 
     /// <summary>
     /// this class contains all the account parameter settings for Node.js commands
@@ -1779,6 +1780,140 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void FTAccount601_AccountNameAvailability_SameSubscription()
+        {
+            string accountName = accountUtils.GenerateAccountName();
+            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode));
+            string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
+
+            try
+            {
+                if (isResourceMode)
+                {
+                    CreateNewSRPAccount(accountName, location, accountType);
+
+                    Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
+                    var accountNameAvailability = agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse;
+
+                    this.ValidateAccountNameAvailability(accountNameAvailability, accountName, true);
+
+                    accountUtils.SRPStorageClient.StorageAccounts.Delete(resourceGroupName, accountName);
+
+                    Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
+                    accountNameAvailability = agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse;
+
+                    this.ValidateAccountNameAvailability(accountNameAvailability, accountName, false);
+                }
+            }
+            finally
+            {
+                DeleteAccountWrapper(accountName);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void FTAccount602_AccountNameAvailability_DiffSubscription()
+        {
+            string accountName = Test.Data.Get("StorageAccountNameInOtherSubscription");
+
+            if (isResourceMode)
+            {
+                Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
+                var accountNameAvailability = agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse;
+
+                this.ValidateAccountNameAvailability(accountNameAvailability, accountName, true);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void FTAccount603_AccountNameAvailability_NotExist()
+        {
+            string accountName = accountUtils.GenerateAccountName();
+
+            if (isResourceMode)
+            {
+                Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
+                var accountNameAvailability = agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse;
+
+                this.ValidateAccountNameAvailability(accountNameAvailability, accountName, false);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void FTAccount604_AccountNameAvailability_NotExist_LongestName()
+        {
+            string accountName = accountUtils.GenerateAccountName(24);
+
+            if (isResourceMode)
+            {
+                Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
+                var accountNameAvailability = agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse;
+
+                this.ValidateAccountNameAvailability(accountNameAvailability, accountName, false);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void FTAccount605_AccountNameAvailability_Exist_ShortestName()
+        {
+            string accountName = accountUtils.GenerateAvailableAccountName(3);
+
+            try
+            {
+                if (isResourceMode)
+                {
+                    if (accountUtils.StorageClient.StorageAccounts.CheckNameAvailability(accountName).IsAvailable)
+                    {
+                        string location = Constants.Location.EastAsia;
+                        string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
+                        CreateNewSRPAccount(accountName, location, accountType);
+                    }
+
+                    Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
+                    var accountNameAvailability = agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse;
+
+                    this.ValidateAccountNameAvailability(accountNameAvailability, accountName, true);
+                }
+            }
+            finally
+            {
+                DeleteAccountWrapper(accountName);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void FTAccount606_AccountNameAvailability_InvalidName()
+        {
+            string accountName = accountUtils.GenerateAvailableAccountName(2);
+            AccountNameAvailability_InvalidName_Test(accountName);
+
+            accountName = accountUtils.GenerateAvailableAccountName(random.Next(25, 100));
+            AccountNameAvailability_InvalidName_Test(accountName);
+
+            accountName = "ACCOUNT";
+            AccountNameAvailability_InvalidName_Test(accountName);
+
+
+        }
+
+        private void AccountNameAvailability_InvalidName_Test(string accountName)
+        {
+            if (isResourceMode)
+            {
+                Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
+                var accountNameAvailability = agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse;
+
+                this.ValidateAccountNameAvailabilityInvalidName(accountNameAvailability, accountName);
+            }
+        }
+
         protected void SetActiveSubscription()
         {
             NodeJSAgent nodeAgent = (NodeJSAgent)agent;
@@ -1852,6 +1987,34 @@ namespace Management.Storage.ScenarioTest
             {
                 DeleteAccountWrapper(accountName);
             }
+        }
+
+        private void ValidateAccountNameAvailability(SRPModel.CheckNameAvailabilityResponse accountNameAvailability, string accountName, bool exist)
+        {
+            if (exist)
+            {
+                Test.Assert(accountNameAvailability.Message.Contains(string.Format("The storage account named {0} is already taken.", accountName)),
+                    "Account name availatility message should be correct. {0}",
+                    accountNameAvailability.Message);
+                Test.Assert(!accountNameAvailability.NameAvailable, "Account name should be not available.");
+                Test.Assert(accountNameAvailability.Reason == SRPModel.Reason.AlreadyExists, "Reason should be AlreadyExists.");
+            }
+            else
+            {
+                Test.Assert(null == accountNameAvailability.Message,
+                    "Account name availatility message should be null, {0}.", accountNameAvailability.Message);
+                Test.Assert(accountNameAvailability.NameAvailable, "Account name should be available.");
+                Test.Assert(null == accountNameAvailability.Reason, "Reason should be null.");
+            }
+        }
+
+        private void ValidateAccountNameAvailabilityInvalidName(SRPModel.CheckNameAvailabilityResponse accountNameAvailability, string accountName)
+        {
+            Test.Assert(accountNameAvailability.Message.Contains(string.Format("{0} is not a valid storage account name.", accountName)),
+                "Account name availatility message should be correct. {0}",
+                accountNameAvailability.Message);
+            Test.Assert(!accountNameAvailability.NameAvailable, "Account name should be not available.");
+            Test.Assert(accountNameAvailability.Reason == SRPModel.Reason.AccountNameInvalid, "Reason should be AccountNameInvalid.");
         }
 
         private void DeleteAccountWrapper(string accountName)
@@ -1944,20 +2107,19 @@ namespace Management.Storage.ScenarioTest
         #region Resource management account operations
         private void CreateNewSRPAccount(string accountName, string location, string accountType)
         {
-            StorageAccountGetResponse response;
-            try
+            var accountNameAvailability = accountUtils.StorageClient.StorageAccounts.CheckNameAvailability(accountName);
+            // Use service management client to check the existing account for a global search
+            if (accountNameAvailability.IsAvailable)
             {
-                // Use service management client to check the existing account for a global search
-                response = accountUtils.StorageClient.StorageAccounts.Get(accountName);
-            }
-            catch (Hyak.Common.CloudException ex)
-            {
-                Test.Assert(ex.Error.Code.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
                 createdAccounts.Add(accountName);
-            }
 
-            Test.Assert(agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
-                string.Format("Creating storage account {0} in the resource group {1} at location {2} should succeed", accountName, resourceGroupName, location));
+                Test.Assert(agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
+                    string.Format("Creating storage account {0} in the resource group {1} at location {2} should succeed", accountName, resourceGroupName, location));
+            }
+            else
+            {
+                Test.Error("Account name is not available for reason: {0}", accountNameAvailability.Reason);
+            }
         }
 
         private void SetSRPAccount(string accountName, string newAccountType)

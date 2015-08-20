@@ -49,18 +49,14 @@
             this.language = language;
         }
 
-        public string GenerateAccountName()
+        public string GenerateAccountName(int nameLength = 0)
         {
             string name = string.Empty;
 
             while (true)
             {
-                name = this.GenerateAvailableAccountName();
-                try
-                {
-                    StorageClient.StorageAccounts.Get(name);
-                }
-                catch (Exception)
+                name = this.GenerateAvailableAccountName(nameLength);
+                if (StorageClient.StorageAccounts.CheckNameAvailability(name).IsAvailable)
                 {
                     break;
                 }
@@ -149,7 +145,7 @@
             }
         }
 
-        private string GenerateAvailableAccountName()
+        public string GenerateAvailableAccountName(int nameLength = 0)
         { 
             bool regenerate = false;
             string name = string.Empty;
@@ -157,7 +153,18 @@
             do
             {
                 regenerate = false;
-                name = "clitest" + FileNamingGenerator.GenerateNameFromRange(random.Next(10, 18), ValidNameRange);
+                if (0 == nameLength)
+                {
+                    name = "clitest" + FileNamingGenerator.GenerateNameFromRange(random.Next(10, 18), ValidNameRange);
+                }
+                else if (nameLength >= 17)
+                {
+                    name = "clitest" + FileNamingGenerator.GenerateNameFromRange(nameLength - 7, ValidNameRange);
+                }
+                else 
+                {
+                    name = FileNamingGenerator.GenerateNameFromRange(nameLength, ValidNameRange);
+                }
 
                 foreach (string forbiddenWord in ForbiddenWordsInAccountName)
                 {
