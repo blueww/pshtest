@@ -124,6 +124,8 @@ namespace Management.Storage.ScenarioTest
         public abstract bool CheckNameAvailability(string accountName);
         #endregion
 
+        public abstract bool GetAzureStorageUsage();
+
         #region Container
         /// <summary>
         /// Return true if succeed otherwise return false

@@ -1862,7 +1862,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(Tag.Function)]
         public void FTAccount605_AccountNameAvailability_Exist_ShortestName()
         {
-            string accountName = accountUtils.GenerateAvailableAccountName(3);
+            string accountName = AccountUtils.GenerateAvailableAccountName(3);
 
             try
             {
@@ -1891,16 +1891,28 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(Tag.Function)]
         public void FTAccount606_AccountNameAvailability_InvalidName()
         {
-            string accountName = accountUtils.GenerateAvailableAccountName(2);
+            string accountName = AccountUtils.GenerateAvailableAccountName(2);
             AccountNameAvailability_InvalidName_Test(accountName);
 
-            accountName = accountUtils.GenerateAvailableAccountName(random.Next(25, 100));
+            accountName = AccountUtils.GenerateAvailableAccountName(random.Next(25, 100));
             AccountNameAvailability_InvalidName_Test(accountName);
 
             accountName = "ACCOUNT";
             AccountNameAvailability_InvalidName_Test(accountName);
 
+            accountName = FileNamingGenerator.GenerateInvalidAccountName();
+            AccountNameAvailability_InvalidName_Test(accountName);
+        }
 
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void FTAccount607_AccountNameAvailability_Negative()
+        {
+            Test.Assert(!agent.CheckNameAvailability(null), "Check name availability should fail.");
+            ExpectedContainErrorMessage("The argument is null or empty. Provide an argument that is not null or empty, and then try the command again.");
+
+            Test.Assert(!agent.CheckNameAvailability(""), "Check name availability should fail.");
+            ExpectedContainErrorMessage("The argument is null or empty. Provide an argument that is not null or empty, and then try the command again.");
         }
 
         private void AccountNameAvailability_InvalidName_Test(string accountName)
@@ -1912,6 +1924,60 @@ namespace Management.Storage.ScenarioTest
 
                 this.ValidateAccountNameAvailabilityInvalidName(accountNameAvailability, accountName);
             }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void FTAccount701_GetAzureStorageUsage()
+        {
+            if (isResourceMode)
+            {
+                GetAzureStorageUsage_Test();
+
+                List<string> accountNames = new List<string>();
+
+                try
+                {
+                    int accountCount = random.Next(1, 5);
+
+                    while (accountCount > 0)
+                    {
+                        string accountName = accountUtils.GenerateAccountName();
+                        string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode));
+                        string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
+
+                        CreateNewSRPAccount(accountName, location, accountType);
+                    }
+
+                    GetAzureStorageUsage_Test();
+
+                    foreach (var accountName in accountNames)
+                    {
+                        DeleteAccountWrapper(accountName);
+                    }
+
+                    GetAzureStorageUsage_Test();
+                }
+                finally
+                {
+                    foreach (var accountName in accountNames)
+                    {
+                        DeleteAccountWrapper(accountName);
+                    }
+                }
+            }
+            else
+            {
+                Test.Assert(!agent.GetAzureStorageUsage(), "Get azure storage usage should fail.");
+                ExpectedContainErrorMessage("The term 'Get-AzureStorageUsage' is not recognized as the name of a cmdlet, function, script file, or operable program.");
+            }
+        }
+
+        private void GetAzureStorageUsage_Test()
+        {
+            Test.Assert(agent.GetAzureStorageUsage(), "Get azure storage usage should succeeded.");
+            var usages = accountUtils.SRPStorageClient.Usage.List().Usages;
+            ValidateGetUsageOutput(usages);
         }
 
         protected void SetActiveSubscription()
@@ -2015,6 +2081,19 @@ namespace Management.Storage.ScenarioTest
                 accountNameAvailability.Message);
             Test.Assert(!accountNameAvailability.NameAvailable, "Account name should be not available.");
             Test.Assert(accountNameAvailability.Reason == SRPModel.Reason.AccountNameInvalid, "Reason should be AccountNameInvalid.");
+        }
+
+        private void ValidateGetUsageOutput(IList<SRPModel.Usage> usages)
+        {
+            for (int i = 0; i < usages.Count; ++i)
+            {
+                var output = agent.Output[i];
+                Test.Assert(string.Equals(output["Name"] as string, usages[i].Name.Value), "Name should be the same {0} == {1}", output["Name"], usages[i].Name.Value);
+                Test.Assert(string.Equals(output["LocalizedName"] as string, usages[i].Name.LocalizedValue), "LocalizedName should be the same {0} == {1}", output["LocalizedName"], usages[i].Name.LocalizedValue);
+                Test.Assert(output["Unit"] as SRPModel.UsageUnit? == usages[i].Unit, "Unit should be the same {0} == {1}", output["Unit"], usages[i].Unit);
+                Test.Assert(output["CurrentValue"] as int? == usages[i].CurrentValue, "CurrentValue should be the same {0} == {1}", output["CurrentValue"], usages[i].CurrentValue);
+                Test.Assert(output["Limit"] as int? == usages[i].Limit, "Limit should be the same {0} == {1}", output["Limit"], usages[i].Limit);
+            }
         }
 
         private void DeleteAccountWrapper(string accountName)
