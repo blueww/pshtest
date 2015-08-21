@@ -499,17 +499,8 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             }
             else
             {
-                if (AgentFactory.GetOSType() == OSType.Mac)
-                {
-                    Test.Assert(agent.GetAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Get CORS rules of invalid service type should fail but no error message because it is not in the error output.");
-                    Test.Assert(agent.ErrorMessages.Count == 0, "Should contain no error message");
-                    Test.Assert(agent.Output.Count == 0, "Should contain no output");
-                }
-                else
-                {
-                    Test.Assert(!agent.GetAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Get CORS rules of invalid service type should fail.");
-                    ExpectedContainErrorMessage(string.Format("error: unknown option `--{0}'", Constants.ServiceType.InvalidService.ToString().ToLower()));
-                }
+                Test.Assert(!agent.GetAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Get CORS rules of invalid service type should fail.");
+                ExpectedContainErrorMessage(string.Format("error: unknown option `--{0}'", Constants.ServiceType.InvalidService.ToString().ToLower()));
             }
         }
 
@@ -528,17 +519,8 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             }
             else
             {
-                if (AgentFactory.GetOSType() == OSType.Mac)
-                {
-                    Test.Assert(agent.RemoveAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Remove CORS rules of invalid service type should fail but no error message because it is not in the error output.");
-                    Test.Assert(agent.ErrorMessages.Count == 0, "Should contain no error message");
-                    Test.Assert(agent.Output.Count == 0, "Should contain no output");
-                }
-                else
-                {
-                    Test.Assert(!agent.RemoveAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Remove CORS rules of invalid service type should fail.");
-                    ExpectedContainErrorMessage(string.Format("error: unknown option `--{0}'", Constants.ServiceType.InvalidService.ToString().ToLower()));
-                }
+                Test.Assert(!agent.RemoveAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Remove CORS rules of invalid service type should fail.");
+                ExpectedContainErrorMessage(string.Format("error: unknown option `--{0}'", Constants.ServiceType.InvalidService.ToString().ToLower()));
             }
         }
 
