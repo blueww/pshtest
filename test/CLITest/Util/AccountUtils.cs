@@ -55,7 +55,7 @@
 
             while (true)
             {
-                name = this.GenerateAvailableAccountName(nameLength);
+                name = GenerateAvailableAccountName(nameLength);
                 if (StorageClient.StorageAccounts.CheckNameAvailability(name).IsAvailable)
                 {
                     break;
@@ -67,7 +67,7 @@
 
         public string GenerateResourceGroupName()
         {
-            return this.GenerateAvailableAccountName();
+            return GenerateAvailableAccountName();
         }
 
         public string GenerateAccountLocation(string type, bool isResourceMode)
@@ -145,7 +145,7 @@
             }
         }
 
-        public string GenerateAvailableAccountName(int nameLength = 0)
+        public static string GenerateAvailableAccountName(int nameLength = 0)
         { 
             bool regenerate = false;
             string name = string.Empty;

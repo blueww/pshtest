@@ -607,6 +607,11 @@ namespace Management.Storage.ScenarioTest
             throw new NotImplementedException();
         }
 
+        public override bool GetAzureStorageUsage()
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool NewAzureStorageContainer(string containerName)
         {
             return RunNodeJSProcess(string.Format("container create \"{0}\"", containerName));

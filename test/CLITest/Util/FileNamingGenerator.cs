@@ -39,6 +39,11 @@
             Enumerable.Range(0, 26).Select(x => (char)('a' + x)).Concat(
             Enumerable.Range(0, 10).Select(x => (char)('0' + x))).ToArray();
 
+        private static readonly char[] InvalidAccountNameChars =
+            Enumerable.Range(0x0020, 0x07E).Select(x => (char)(x)).Except(
+            Enumerable.Range(0, 26).Select(x => (char)('a' + x))).Except(
+            Enumerable.Range(0, 10).Select(x => (char)('0' + x))).ToArray();
+
         private static readonly UnicodeGenerator[] UnicodeGenerators =
             Assembly.GetAssembly(typeof(UnicodeGenerator)).GetTypes()
             .Where(x => x.IsSubclassOf(typeof(UnicodeGenerator)) &&
@@ -69,6 +74,11 @@
 
                 yield return str;
             }
+        }
+
+        public static string GenerateInvalidAccountName()
+        {
+            return GenerateASCIINameWithInvalidCharacters(RandomGen.Next(10, 25), InvalidAccountNameChars);
         }
 
         public static string GenerateValidateASCIIName(int length)
@@ -112,8 +122,13 @@
             return GenerateShareNameInternal(length, ensureUpperCase: true);
         }
 
-        public static string GenerateASCIINameWithInvalidCharacters(int length)
+        public static string GenerateASCIINameWithInvalidCharacters(int length, char[] InvalidChars= null)
         {
+            if (null == InvalidChars)
+            {
+                InvalidChars = InvalidFileNameCharacters;
+            }
+
             int numberOfInavlidCharacters = RandomGen.Next(1, length);
             int numberOfValidCharacters = length - numberOfInavlidCharacters;
             StringBuilder sb = new StringBuilder(GenerateNameFromRange(numberOfValidCharacters, ValidASCIIRange));
