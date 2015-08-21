@@ -350,7 +350,9 @@ namespace Management.Storage.ScenarioTest
                     }
                     else
                     {
-                        optionValue = optionValue.Replace("\"", "\\\"");
+                        optionValue = optionValue.Replace("$", "\\$");  // escape variable mark
+                        optionValue = optionValue.Replace("`", "\\`");  // escape execution mark
+                        optionValue = optionValue.Replace("\"", "\\\"");  // double quotation
                     }
                 }
 

@@ -33,7 +33,7 @@
 
         private static readonly char[] InvalidFileNameCharacters = new char[] { '\\', '/', ':', '|', '<', '>', '*', '?', '"' };
 
-        private static readonly char[] BashControllers = (AgentFactory.GetOSType() != OSType.Windows) ? new char[] { '(', ')', '$', '\''} : new char[] {};
+        private static readonly char[] BashControllers = (AgentFactory.GetOSType() != OSType.Windows) ? new char[] { '(', ')', '$', '\'', '!', '`' } : new char[] {};
 
         private static readonly char[] ValidShareNameCharactersExceptDash =
             Enumerable.Range(0, 26).Select(x => (char)('a' + x)).Concat(
@@ -155,8 +155,8 @@
                 while (
                     InvalidFileNameCharacters.Contains(ch) ||
                     BashControllers.Contains(ch) ||
-                    (i == length - 1 && ch == '.') ||
-                    (i == 0 && ch == '-'));
+                    (i == length - 1 && ch == '.') || // to avoid ending with dot
+                    (i == 0 && (ch == '-' || ch == ' '))); // to avoid miss-matching to a xplat option or leading with space (it may cause the starting " being replaced to "')
 
                 sb.Append(ch);
             }
