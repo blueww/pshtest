@@ -334,10 +334,6 @@
                 }
                 else
                 {
-                    if (AgentFactory.GetOSType() != OSType.Windows)
-                    {
-                        invalidName = Utility.SqueezeSpaces(invalidName);
-                    }
                     ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", invalidName));
                 }
 
