@@ -18,19 +18,17 @@ namespace Management.Storage.ScenarioTest
     using System.Collections.Generic;
     using System.Net;
     using System.Reflection;
-    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using Management.Storage.ScenarioTest.Common;
     using Management.Storage.ScenarioTest.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Microsoft.WindowsAzure;
     using Microsoft.WindowsAzure.Management;
     using Microsoft.WindowsAzure.Management.Models;
     using Microsoft.WindowsAzure.Management.Storage;
     using Microsoft.WindowsAzure.Management.Storage.Models;
     using MS.Test.Common.MsTestLib;
-    using SRPModel = Microsoft.Azure.Management.Storage.Models;
     using StorageTestLib;
+    using SRPModel = Microsoft.Azure.Management.Storage.Models;
 
     /// <summary>
     /// this class contains all the account parameter settings for Node.js commands
@@ -45,10 +43,6 @@ namespace Management.Storage.ScenarioTest
         protected static string primaryKeyForConnectionStringTest;
         private static ResourceManagerWrapper resourceManager;
         private static string resourceLocation;
-
-        private bool isLogin = false;
-
-        private bool accountImported = false;
 
         private Tuple<int, int> validNameRange = new Tuple<int, int>((int)'a', (int)'z');
 
@@ -147,70 +141,6 @@ namespace Management.Storage.ScenarioTest
 
             TestBase.TestClassCleanup();
         }
-
-        public override void OnTestSetup()
-        {
-            if (isResourceMode)
-            {
-                if (lang == Language.NodeJS)
-                {
-                    agent.ChangeCLIMode(Constants.Mode.arm);
-                }
-
-                if (!isLogin)
-                {
-                    if (Utility.GetAutoLogin())
-                    {
-                        int retry = 0;
-                        do
-                        {
-                            if (agent.HadErrors)
-                            {
-                                Thread.Sleep(5000);
-                                Test.Info(string.Format("Retry login... Count:{0}", retry));
-                            }
-
-                            agent.Logout();
-                            agent.Login();
-                        }
-                        while (agent.HadErrors && retry++ < 5);
-                    }
-
-                    if (lang == Language.NodeJS)
-                    {
-                        SetActiveSubscription();
-                    }
-                    else
-                    {
-                        string subscriptionID = Test.Data.Get("AzureSubscriptionID");
-                        agent.SetActiveSubscription(subscriptionID);
-                    }
-
-                    isLogin = true;
-                }
-            }
-            else
-            {
-                if (!accountImported)
-                {
-                    if (lang == Language.NodeJS)
-                    {
-                        NodeJSAgent nodeAgent = (NodeJSAgent)agent;
-                        nodeAgent.ChangeCLIMode(Constants.Mode.asm);
-                    }
-
-                    string settingFile = Test.Data.Get("AzureSubscriptionPath");
-                    string subscriptionId = Test.Data.Get("AzureSubscriptionID");
-                    agent.ImportAzureSubscription(settingFile);
-
-                    string subscriptionID = Test.Data.Get("AzureSubscriptionID");
-                    agent.SetActiveSubscription(subscriptionID);
-
-                    accountImported = true;
-                }
-            }
-        }
-
         #endregion
         
         /// <summary>
@@ -1752,24 +1682,6 @@ namespace Management.Storage.ScenarioTest
             finally
             {
                 DeleteAccountWrapper(accountName);
-            }
-        }
-
-        protected void SetActiveSubscription()
-        {
-            NodeJSAgent nodeAgent = (NodeJSAgent)agent;
-            string subscriptionID = Test.Data.Get("AzureSubscriptionID");
-            if (!string.IsNullOrEmpty(subscriptionID))
-            {
-                nodeAgent.SetActiveSubscription(subscriptionID);
-            }
-            else
-            {
-                string subscriptionName = Test.Data.Get("AzureSubscriptionName");
-                if (!string.IsNullOrEmpty(subscriptionName))
-                {
-                    nodeAgent.SetActiveSubscription(subscriptionName);
-                }
             }
         }
 
