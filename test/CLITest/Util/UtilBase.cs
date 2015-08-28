@@ -67,7 +67,7 @@
             }
             else if (!string.IsNullOrEmpty(AgentConfig.SAS) && !string.IsNullOrEmpty(AgentConfig.AccountName))
             {
-                if (argument.Contains("blob copy") || argument.Contains("file copy"))
+                if (argument.Contains("copy start"))
                 {
                     ret += string.Format(" -a \"{0}\" --source-sas \"{1}\"", AgentConfig.AccountName, AgentConfig.SAS);
                 }
