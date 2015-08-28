@@ -132,19 +132,25 @@ namespace Management.Storage.ScenarioTest.Functional
         [TestCategory(Tag.Function)]
         public void GetAzureStorageUsageInvalidCredential()
         {
-            PowerShellAgent.RemoveAzureSubscriptionIfExists();
-            Test.Assert(!agent.GetAzureStorageUsage(), "Get azure storage usage should fail.");
-            ExpectedContainErrorMessage("No default subscription has been designated.");
+            if (isResourceMode)
+            {
+                PowerShellAgent.RemoveAzureSubscriptionIfExists();
+                Test.Assert(!agent.GetAzureStorageUsage(), "Get azure storage usage should fail.");
+                ExpectedContainErrorMessage("No default subscription has been designated.");
+            }
         }
 
         [TestMethod]
         [TestCategory(Tag.Function)]
         public void CheckAccountNameAvailabilityInvalidCredential()
         {
-            PowerShellAgent.RemoveAzureSubscriptionIfExists();
-            string accountName = AccountUtils.GenerateAvailableAccountName();
-            Test.Assert(!agent.CheckNameAvailability(accountName), "Check name availability should fail.");
-            ExpectedContainErrorMessage("No default subscription has been designated.");
+            if (isResourceMode)
+            {
+                PowerShellAgent.RemoveAzureSubscriptionIfExists();
+                string accountName = AccountUtils.GenerateAvailableAccountName();
+                Test.Assert(!agent.CheckNameAvailability(accountName), "Check name availability should fail.");
+                ExpectedContainErrorMessage("No default subscription has been designated.");
+            }
         }
 
         private Constants.ServiceType GetRandomServiceType()

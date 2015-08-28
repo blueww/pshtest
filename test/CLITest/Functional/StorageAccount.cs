@@ -1884,11 +1884,14 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(Tag.Function)]
         public void FTAccount607_AccountNameAvailability_Negative()
         {
-            Test.Assert(!agent.CheckNameAvailability(null), "Check name availability should fail.");
-            ExpectedContainErrorMessage("The argument is null or empty. Provide an argument that is not null or empty, and then try the command again.");
+            if (isResourceMode)
+            {
+                Test.Assert(!agent.CheckNameAvailability(null), "Check name availability should fail.");
+                ExpectedContainErrorMessage("The argument is null or empty. Provide an argument that is not null or empty, and then try the command again.");
 
-            Test.Assert(!agent.CheckNameAvailability(""), "Check name availability should fail.");
-            ExpectedContainErrorMessage("The argument is null or empty. Provide an argument that is not null or empty, and then try the command again.");
+                Test.Assert(!agent.CheckNameAvailability(""), "Check name availability should fail.");
+                ExpectedContainErrorMessage("The argument is null or empty. Provide an argument that is not null or empty, and then try the command again.");
+            }
         }
 
         private void AccountNameAvailability_InvalidName_Test(string accountName)

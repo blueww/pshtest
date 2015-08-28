@@ -49,6 +49,7 @@
   <SecondaryStorageAccountName></SecondaryStorageAccountName>
   <SecondaryStorageAccountKey></SecondaryStorageAccountKey>
   <SecondaryStorageEndPoint>core.windows.net</SecondaryStorageEndPoint>
+  <StorageAccountNameInOtherSubscription>xtestragrsxsmb1</StorageAccountNameInOtherSubscription>
     
   <!-- Mooncake subscription -->
   <MooncakeSubscriptionName>Azure Storage DM</MooncakeSubscriptionName>
