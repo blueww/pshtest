@@ -1098,8 +1098,16 @@
         {
             DateTimeOffset beginTime = DateTimeOffset.UtcNow;
             getCopyState();
-            DateTimeOffset endTime = DateTimeOffset.UtcNow;
-            Test.Assert(endTime - beginTime < TimeSpan.FromSeconds(5), "Get copy state should finish immediately");
+            TimeSpan elapsed = DateTimeOffset.UtcNow - beginTime;
+            int expectedSeconds = 5;
+
+            if (lang == Language.NodeJS && NodeJSAgent.AgentOSType != OSType.Windows)
+            {
+                expectedSeconds = 15;
+            }
+
+            Test.Assert(elapsed < TimeSpan.FromSeconds(expectedSeconds),
+                string.Format("Get copy state should finish in {0} seconds and actually it is {1} seconds.", expectedSeconds, elapsed.TotalSeconds));
         }
 
         private void ValidateCopyingResult(CloudFile srcFile, CloudBlob destBlob)

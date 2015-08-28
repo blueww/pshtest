@@ -137,8 +137,12 @@ namespace Management.Storage.ScenarioTest
                     p.StartInfo.Arguments += ExportPathCommand;
                 }
 
-                // replace all " with ' in argument for linux
-                argument = argument.Replace('"', '\'');
+                // Replace all "..." with '"..."' in argument for sending the commands to linux/Mac by plink
+                //   plink uses '...' to identify a string.
+                //   Linux uses "..." to identify a string and ' is used in the command when the option is a json string. 
+                argument += " ";
+                argument = argument.Replace(" \"", " '\"");
+                argument = argument.Replace("\" ", "\"' ");
             }
 
             // replace all double-space parameter according to plink usage
@@ -275,7 +279,8 @@ namespace Management.Storage.ScenarioTest
                 {
                     error = error.Remove(0, UnlockKeyChainOutput.Length);
                 }
-                else
+
+                if (!string.IsNullOrEmpty(error))
                 {
                     Test.Verbose("Error:\n{0}", error);
                 }
@@ -339,10 +344,19 @@ namespace Management.Storage.ScenarioTest
             {
                 if (optionValue.Contains("\""))
                 {
-                    optionValue = optionValue.Replace("\"", "\"\"");
-                    command += string.Format(" {0} \"{1}\" ", optionName, optionValue);
+                    if (AgentOSType == OSType.Windows)
+                    {
+                        optionValue = optionValue.Replace("\"", "\"\"");
+                    }
+                    else
+                    {
+                        optionValue = optionValue.Replace("$", "\\$");  // escape variable mark
+                        optionValue = optionValue.Replace("`", "\\`");  // escape execution mark
+                        optionValue = optionValue.Replace("\"", "\\\"");  // double quotation
+                    }
                 }
-                else if (quoted)
+
+                if (quoted)
                 {
                     command += string.Format(" {0} \"{1}\" ", optionName, optionValue);
                 }
@@ -985,7 +999,7 @@ namespace Management.Storage.ScenarioTest
         public override bool StartFileCopyFromBlob(string containerName, string blobName, string shareName, string filePath, object destContext, bool force = true)
         {
             string command = "file copy start";
-            command = appendStringOption(command, "--source-container", containerName);
+            command = appendStringOption(command, "--source-container", containerName, quoted: true);
             command = appendStringOption(command, "--source-blob", blobName, quoted: true);
             command = appendStringOption(command, "--dest-share", shareName);
             command = appendStringOption(command, "--dest-path", filePath, true);
@@ -1037,7 +1051,7 @@ namespace Management.Storage.ScenarioTest
             CloudStorageAccount srcContext = new CloudStorageAccount(container.ServiceClient.Credentials, container.ServiceClient.BaseUri, null, null, null);
 
             string command = "file copy start";
-            command = appendStringOption(command, "--source-container", container.Name);
+            command = appendStringOption(command, "--source-container", container.Name, quoted: true);
             command = appendStringOption(command, "--source-blob", blobName, quoted: true);
             command = appendStringOption(command, "--dest-share", shareName);
             command = appendStringOption(command, "--dest-path", filePath, true);
@@ -1063,7 +1077,7 @@ namespace Management.Storage.ScenarioTest
             CloudStorageAccount srcContext = new CloudStorageAccount(blob.ServiceClient.Credentials, blob.ServiceClient.BaseUri, null, null, null);
 
             string command = "file copy start";
-            command = appendStringOption(command, "--source-container", blob.Container.Name);
+            command = appendStringOption(command, "--source-container", blob.Container.Name, quoted: true);
             command = appendStringOption(command, "--source-blob", blob.Name, quoted: true);
             command = appendStringOption(command, "--dest-share", destFile.Share.Name);
             command = appendStringOption(command, "--dest-path", CloudFileUtil.GetFullPath(destFile), true);

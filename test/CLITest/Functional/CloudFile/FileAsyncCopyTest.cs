@@ -528,7 +528,16 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
 
                 // To invalid dest file name
-                destFileName = Utility.GenNameString("") + InvalidFileNameChar[random.Next(0, InvalidFileNameChar.Count())] + Utility.GenNameString("");
+                string prefix = Utility.GenNameString("");
+                string suffix = Utility.GenNameString("");
+
+                StringBuilder invalidChars = new StringBuilder();
+                for (int i = 0; i < random.Next(2, 255 - prefix.Length - suffix.Length); ++i)
+                {
+                    invalidChars.Append(InvalidFileNameChar[random.Next(0, InvalidFileNameChar.Count())]);
+                }
+
+                destFileName = prefix + invalidChars.ToString() + suffix;
                 Test.Assert(!agent.StartFileCopy(file, shareName, destFileName, Agent.Context), "Start copying to a invalid file should fail.");
                 if (lang == Language.PowerShell)
                 {

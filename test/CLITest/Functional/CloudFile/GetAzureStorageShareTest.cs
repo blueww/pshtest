@@ -87,7 +87,6 @@
         /// </summary>
         [TestMethod]
         [TestCategory(PsTag.File)]
-        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         public void GetFileShareUsageTest()
         {
