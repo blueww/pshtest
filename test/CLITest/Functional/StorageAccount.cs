@@ -1736,20 +1736,8 @@ namespace Management.Storage.ScenarioTest
                 {
                     CreateNewSRPAccount(accountName, location, accountType);
 
-                    bool succeeded = agent.RenewSRPAzureStorageAccountKeys(resourceGroupName, accountName, Constants.AccountKeyType.Invalid);
-
-                    if (lang == Language.NodeJS)
-                    {
-                        // Invalid parameter prompt is in normal output on Windows, but in error output on Linux/Mac
-                        succeeded = (AgentFactory.GetOSType() == OSType.Windows) ? succeeded == true : succeeded == false;
-                        Test.Assert(succeeded && agent.Output.Count == 0,
-                            string.Format("Renewing an invalid key type of the stoarge account {0} in resource group {1} should fail", accountName, resourceGroupName));
-                    }
-                    else
-                    {
-                        Test.Assert(!succeeded,
-                            string.Format("Renewing an invalid key type of the stoarge account {0} in resource group {1} should fail", accountName, resourceGroupName));
-                    }
+                    Test.Assert(!agent.RenewSRPAzureStorageAccountKeys(resourceGroupName, accountName, Constants.AccountKeyType.Invalid),
+                        string.Format("Renewing an invalid key type of the stoarge account {0} in resource group {1} should fail", accountName, resourceGroupName));
                 }
                 else
                 {
@@ -1758,20 +1746,8 @@ namespace Management.Storage.ScenarioTest
                     string affinityGroup = string.Empty;
                     CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
 
-                    // Invalid parameter prompt is in normal output on Windows, but in error output on Linux/Mac
-                    bool result = agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Invalid);
-
-                    if (Language.NodeJS == lang)
-                    {
-                        result = (AgentFactory.GetOSType() == OSType.Windows) ? result == true : result == false;
-
-                        Test.Assert(result && agent.Output.Count == 0,
-                            string.Format("Renewing an invalid key type of the stoarge account {0} should fail", accountName));
-                    }
-                    else
-                    {
-                        Test.Assert(!result, string.Format("Renewing an invalid key type of the stoarge account {0} should fail", accountName));
-                    }
+                    Test.Assert(!agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Invalid), 
+                        string.Format("Renewing an invalid key type of the stoarge account {0} should fail", accountName));
                 }
             }
             finally

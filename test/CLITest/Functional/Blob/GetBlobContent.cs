@@ -83,7 +83,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             int minFileSize = 1;
             int maxFileSize = 5;
             int fileSize = random.Next(minFileSize, maxFileSize);
-            Helper.GenerateRandomTestFile(filePath, fileSize);
+            string md5sum = Helper.GenerateRandomTestFile(filePath, fileSize);
 
             ContainerName = Utility.GenNameString("container");
             BlobName = Utility.GenNameString("blob");
@@ -100,7 +100,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             if (null == blobRef.Properties.ContentMD5)
             {
-                blobRef.Properties.ContentMD5 = FileUtil.GetFileContentMD5(filePath);
+                blobRef.Properties.ContentMD5 = md5sum;
                 blobRef.SetProperties();
             }
 
