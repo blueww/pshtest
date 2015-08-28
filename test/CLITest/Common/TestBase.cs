@@ -48,6 +48,7 @@ namespace Management.Storage.ScenarioTest.Common
         protected Agent agent;
         protected static Language lang;
         protected static bool isResourceMode = false;
+        protected static bool isMooncake = false;
         private bool isLogin = false;
         private bool accountImported = false;
 
@@ -129,6 +130,8 @@ namespace Management.Storage.ScenarioTest.Common
         {
             //add the language specific initialization
             lang = AgentFactory.GetLanguage(testContext.Properties);
+
+            isMooncake = Utility.GetTargetEnvironment().Name == "AzureChinaCloud";
 
             string mode = Test.Data.Get("IsResourceMode");
 

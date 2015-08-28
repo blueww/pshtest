@@ -4,6 +4,7 @@
     using System.Net;
     using System.Threading;
     using Microsoft.Azure.Common.Authentication;
+    using Microsoft.Azure.Common.Authentication.Models;
     using Microsoft.WindowsAzure.Management.Storage;
     using MS.Test.Common.MsTestLib;
     using SRPManagement = Microsoft.Azure.Management.Storage;
@@ -43,7 +44,9 @@
             }
             else
             {
-                StorageClient = new StorageManagementClient(Utility.GetCertificateCloudCredential());
+                AzureEnvironment environment = Utility.GetTargetEnvironment();
+                StorageClient = new StorageManagementClient(Utility.GetCertificateCloudCredential(),
+                    environment.GetEndpointAsUri(AzureEnvironment.Endpoint.ServiceManagement));
             }
 
             this.language = language;
@@ -74,7 +77,7 @@
             return this.GenerateAvailableAccountName();
         }
 
-        public string GenerateAccountLocation(string type, bool isResourceMode)
+        public string GenerateAccountLocation(string type, bool isResourceMode, bool isMooncake)
         {
             if (type == this.mapAccountType(Constants.AccountType.Premium_LRS))
             {
@@ -82,30 +85,36 @@
                 {
                     throw new InvalidOperationException("SRP does not support Premium_LRS yet");
                 }
+
                 return Constants.Location.WestUS;
             }
             else
             {
-                if (isResourceMode)
+                if (isMooncake)
                 {
-                    return Constants.SRPLocations[random.Next(0, Constants.SRPLocations.Length)];
+                    return Constants.MCLocations[random.Next(0, Constants.MCLocations.Length)];
+                }
+                else if (isResourceMode)
+                {
+                    return Constants.SRPLocations[random.Next(0, Constants.SRPLocations.Length)]; 
                 }
                 else
                 {
                     return Constants.Locations[random.Next(0, Constants.Locations.Length)];
                 }
-
             }
         }
 
-        public string GenerateAccountType(bool isResourceMode)
+        public string GenerateAccountType(bool isResourceMode, bool isMooncake)
         {
             string accountType = null;
             do
             {
                 accountType = Constants.AccountTypes[random.Next(0, Constants.AccountTypes.Length)];
             }
-            while (isResourceMode && accountType.Equals(Constants.AccountType.Premium_LRS, StringComparison.InvariantCultureIgnoreCase));
+            while ((isResourceMode && accountType.Equals(Constants.AccountType.Premium_LRS, StringComparison.InvariantCultureIgnoreCase)) ||
+                (isMooncake && (accountType.Equals(Constants.AccountType.Premium_LRS, StringComparison.InvariantCultureIgnoreCase) ||
+                accountType.Equals(Constants.AccountType.Standard_ZRS, StringComparison.InvariantCultureIgnoreCase))));
 
             return accountType;
         }
