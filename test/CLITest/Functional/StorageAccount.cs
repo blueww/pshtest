@@ -18,13 +18,12 @@ namespace Management.Storage.ScenarioTest
     using System.Collections.Generic;
     using System.Net;
     using System.Reflection;
-    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using Management.Storage.ScenarioTest.Common;
     using Management.Storage.ScenarioTest.Util;
+    using Microsoft.Azure.Common.Authentication.Models;
     using Microsoft.Azure.Management.Storage;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Microsoft.WindowsAzure;
     using Microsoft.WindowsAzure.Management;
     using Microsoft.WindowsAzure.Management.Models;
     using Microsoft.WindowsAzure.Management.Storage;
@@ -46,10 +45,6 @@ namespace Management.Storage.ScenarioTest
         protected static string primaryKeyForConnectionStringTest;
         private static ResourceManagerWrapper resourceManager;
         private static string resourceLocation;
-
-        private bool isLogin = false;
-
-        private bool accountImported = false;
 
         private Tuple<int, int> validNameRange = new Tuple<int, int>((int)'a', (int)'z');
 
@@ -81,7 +76,9 @@ namespace Management.Storage.ScenarioTest
 
             NodeJSAgent.AgentConfig.UseEnvVar = false;
 
-            managementClient = new ManagementClient(Utility.GetCertificateCloudCredential());
+            AzureEnvironment environment = Utility.GetTargetEnvironment();
+            managementClient = new ManagementClient(Utility.GetCertificateCloudCredential(),
+                    environment.GetEndpointAsUri(AzureEnvironment.Endpoint.ServiceManagement));
 
             accountUtils = new AccountUtils(lang, isResourceMode);
 
@@ -89,25 +86,26 @@ namespace Management.Storage.ScenarioTest
 
             if (isResourceMode)
             {
-                resourceLocation = accountUtils.GenerateAccountLocation(Constants.AccountType.Standard_GRS, true);
+                resourceLocation = accountUtils.GenerateAccountLocation(Constants.AccountType.Standard_GRS, true, isMooncake);
                 resourceManager = new ResourceManagerWrapper();
                 resourceGroupName = accountUtils.GenerateResourceGroupName();
                 resourceManager.CreateResourceGroup(resourceGroupName, resourceLocation);
 
                 accountNameForConnectionStringTest = accountUtils.GenerateAccountName();
 
-                var parameters = new SRPModel.StorageAccountCreateParameters(SRPModel.AccountType.StandardGRS, Constants.Location.EastAsia);
+                var parameters = new SRPModel.StorageAccountCreateParameters(SRPModel.AccountType.StandardGRS,
+                    isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia);
                 accountUtils.SRPStorageClient.StorageAccounts.CreateAsync(resourceGroupName, accountNameForConnectionStringTest, parameters, CancellationToken.None).Wait();
                 var keys = accountUtils.SRPStorageClient.StorageAccounts.ListKeysAsync(resourceGroupName, accountNameForConnectionStringTest, CancellationToken.None).Result;
                 primaryKeyForConnectionStringTest = keys.StorageAccountKeys.Key1;
             }
-            else 
+            else
             {
                 var parameters = new StorageAccountCreateParameters();
                 parameters.Name = accountNameForConnectionStringTest;
                 parameters.Label = "Test account in service mode";
                 parameters.AccountType = Constants.AccountType.Standard_GRS;
-                parameters.Location = Constants.Location.WestUS;
+                parameters.Location = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.WestUS;
                 accountUtils.StorageClient.StorageAccounts.CreateAsync(parameters).Wait();
                 var keys = accountUtils.StorageClient.StorageAccounts.GetKeysAsync(accountNameForConnectionStringTest).Result;
                 primaryKeyForConnectionStringTest = keys.PrimaryKey;
@@ -148,72 +146,8 @@ namespace Management.Storage.ScenarioTest
 
             TestBase.TestClassCleanup();
         }
-
-        public override void OnTestSetup()
-        {
-            if (isResourceMode)
-            {
-                if (lang == Language.NodeJS)
-                {
-                    agent.ChangeCLIMode(Constants.Mode.arm);
-                }
-
-                if (!isLogin)
-                {
-                    if (Utility.GetAutoLogin())
-                    {
-                        int retry = 0;
-                        do
-                        {
-                            if (agent.HadErrors)
-                            {
-                                Thread.Sleep(5000);
-                                Test.Info(string.Format("Retry login... Count:{0}", retry));
-                            }
-
-                            agent.Logout();
-                            agent.Login();
-                        }
-                        while (agent.HadErrors && retry++ < 5);
-                    }
-
-                    if (lang == Language.NodeJS)
-                    {
-                        SetActiveSubscription();
-                    }
-                    else
-                    {
-                        string subscriptionID = Test.Data.Get("AzureSubscriptionID");
-                        agent.SetActiveSubscription(subscriptionID);
-                    }
-
-                    isLogin = true;
-                }
-            }
-            else
-            {
-                if (!accountImported)
-                {
-                    if (lang == Language.NodeJS)
-                    {
-                        NodeJSAgent nodeAgent = (NodeJSAgent)agent;
-                        nodeAgent.ChangeCLIMode(Constants.Mode.asm);
-                    }
-
-                    string settingFile = Test.Data.Get("AzureSubscriptionPath");
-                    string subscriptionId = Test.Data.Get("AzureSubscriptionID");
-                    agent.ImportAzureSubscription(settingFile);
-
-                    string subscriptionID = Test.Data.Get("AzureSubscriptionID");
-                    agent.SetActiveSubscription(subscriptionID);
-
-                    accountImported = true;
-                }
-            }
-        }
-
         #endregion
-        
+
         /// <summary>
         /// Sprint 35 Test Spec: 1.1; 1.2
         /// </summary>
@@ -852,7 +786,7 @@ namespace Management.Storage.ScenarioTest
             string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Description";
-            string location = Constants.Location.EastAsia;
+            string location = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
             string affinityGroup = null;
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
 
@@ -872,7 +806,7 @@ namespace Management.Storage.ScenarioTest
             string affinityGroup = null;
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
 
-            string[] locationsArray = isResourceMode ? Constants.SRPLocations : Constants.Locations;
+            string[] locationsArray = isResourceMode ? Constants.SRPLocations : (isMooncake ? Constants.MCLocations : Constants.Locations);
 
             foreach (var location in locationsArray)
             {
@@ -888,7 +822,7 @@ namespace Management.Storage.ScenarioTest
             string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Affinity Group";
-            string location = Constants.Location.EastAsia;
+            string location = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
             string affinityGroup = "TestAffinityGroup";
 
@@ -921,8 +855,15 @@ namespace Management.Storage.ScenarioTest
                     continue;
                 }
 
+                if (isMooncake &&
+                    (accountType.Equals(Constants.AccountType.Premium_LRS) ||
+                     accountType.Equals(Constants.AccountType.Standard_ZRS)))
+                {
+                    continue;
+                }
+
                 string accountName = accountUtils.GenerateAccountName();
-                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode);
+                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
                 CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountUtils.mapAccountType(accountType));
             }
         }
@@ -935,7 +876,7 @@ namespace Management.Storage.ScenarioTest
         public void FTAccount105_CreateAccount_ExistingAccount()
         {
             string accountName = accountUtils.GenerateAccountName();
-            string location = Constants.Location.EastAsia;
+            string location = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
 
             try
@@ -946,12 +887,12 @@ namespace Management.Storage.ScenarioTest
                     Test.Assert(agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
                         string.Format("Creating an storage account {0} in location {1} with the same properties with an existing account should succeed", accountName, location));
 
-                    string newLocation = Constants.Location.WestUS;
+                    string newLocation = isMooncake ? Constants.MCLocation.ChinaNorth : Constants.Location.WestUS;
                     Test.Assert(!agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, newLocation),
                         string.Format("Creating an existing storage account {0} in location {1} should fail", accountName, newLocation));
                     ExpectedContainErrorMessage(string.Format("Invalid Resource location '{0}'. The Resource already exists in location '{1}'", newLocation, location.Replace(" ", "").ToLower()));
 
-                    string newType = accountUtils.mapAccountType(Constants.AccountType.Standard_RAGRS);;
+                    string newType = accountUtils.mapAccountType(Constants.AccountType.Standard_RAGRS); ;
                     Test.Assert(!agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, newType, location),
                         string.Format("Creating an existing storage account {0} in location {1} should fail", accountName, newLocation));
                     ExpectedContainErrorMessage(string.Format("The storage account named {0} already exists under the subscription", accountName));
@@ -983,8 +924,8 @@ namespace Management.Storage.ScenarioTest
             string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Location and Affinity Group";
-            string accoutLocation = Constants.Location.EastAsia;
-            string groupLocation = Constants.Location.SoutheastAsia;
+            string accoutLocation = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
+            string groupLocation = isMooncake ? Constants.MCLocation.ChinaNorth : Constants.Location.SoutheastAsia;
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
             string affinityGroup = "TestAffinityGroupAndLocation";
 
@@ -1009,7 +950,7 @@ namespace Management.Storage.ScenarioTest
             string subscriptionId = Test.Data.Get("AzureSubscriptionID");
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Non-Existing Affinity Group";
-            string location = Constants.Location.EastAsia;
+            string location = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
             string affinityGroup = FileNamingGenerator.GenerateNameFromRange(15, validNameRange);
 
@@ -1066,7 +1007,7 @@ namespace Management.Storage.ScenarioTest
             string subscriptionId = Test.Data.Get("AzureSubscriptionID");
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Invalid Type";
-            string location = Constants.Location.EastAsia;
+            string location = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
             string accountType = FileNamingGenerator.GenerateNameFromRange(8, validNameRange);
             string affinityGroup = null;
 
@@ -1174,10 +1115,12 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount204_SetAccount_ZRSToOthers()
         {
+            if (isMooncake) return;
+
             string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Set Type";
-            string location = Constants.Location.EastAsia;
+            string location = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS);
             string affinityGroup = null;
 
@@ -1253,11 +1196,13 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount205_SetAccount_PLRSToOthers()
         {
+            if (isMooncake) return;
+
             string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Set Type";
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Premium_LRS);
-            string location = accountUtils.GenerateAccountLocation(accountType, false);
+            string location = accountUtils.GenerateAccountLocation(accountType, false, isMooncake);
             string affinityGroup = null;
 
             try
@@ -1334,10 +1279,12 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount206_SetAccount_OthersToZRSOrPLRS()
         {
+            if (isMooncake) return;
+
             string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Set Type";
-            string location = Constants.Location.EastAsia;
+            string location = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
 
             if (isResourceMode)
@@ -1356,7 +1303,7 @@ namespace Management.Storage.ScenarioTest
             foreach (string targetAccountType in newAccountTypes)
             {
                 string type = accountUtils.mapAccountType(targetAccountType);
-                string errorMessage = string.Format("Storage account type cannot be changed from Standard-LRS to {0} or vice versa.", ConvertAccountType(targetAccountType)); 
+                string errorMessage = string.Format("Storage account type cannot be changed from Standard-LRS to {0} or vice versa.", ConvertAccountType(targetAccountType));
 
                 if (isResourceMode)
                 {
@@ -1388,8 +1335,8 @@ namespace Management.Storage.ScenarioTest
         public void FTAccount301_DeleteAccount_ExistingAccount()
         {
             string accountName = accountUtils.GenerateAccountName();
-            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode));
-            string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
+            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode, isMooncake));
+            string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode, isMooncake);
 
             try
             {
@@ -1461,8 +1408,8 @@ namespace Management.Storage.ScenarioTest
         public void FTAccount401_GetAccount_ShowAnExistingAccount()
         {
             string accountName = accountUtils.GenerateAccountName();
-            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode));
-            string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
+            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode, isMooncake));
+            string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode, isMooncake);
 
             try
             {
@@ -1506,9 +1453,9 @@ namespace Management.Storage.ScenarioTest
             {
                 for (int i = 0; i < accountCount; i++)
                 {
-                    accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode));
+                    accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode, isMooncake));
                     accountName = accountUtils.GenerateAccountName();
-                    location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
+                    location = accountUtils.GenerateAccountLocation(accountType, isResourceMode, isMooncake);
 
                     if (isResourceMode)
                     {
@@ -1578,8 +1525,8 @@ namespace Management.Storage.ScenarioTest
             {
                 if (isResourceMode)
                 {
-                    string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode));
-                    string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
+                    string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode, isMooncake));
+                    string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode, isMooncake);
                     CreateNewSRPAccount(accountName, location, accountType);
                     Test.Assert(!agent.ShowSRPAzureStorageAccount(nonExsitingGroupName, accountName),
                         string.Format("Showing the existing stoarge account {0} in non-existing resource group {1} should fail", accountName, nonExsitingGroupName));
@@ -1599,8 +1546,8 @@ namespace Management.Storage.ScenarioTest
         public void FTAccount501_AccountKey_ListKeys()
         {
             string accountName = accountUtils.GenerateAccountName();
-            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode));
-            string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
+            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode, isMooncake));
+            string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode, isMooncake);
 
             try
             {
@@ -1663,8 +1610,8 @@ namespace Management.Storage.ScenarioTest
         public void FTAccount503_AccountKey_RenewKeys()
         {
             string accountName = accountUtils.GenerateAccountName();
-            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode));
-            string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
+            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode, isMooncake));
+            string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode, isMooncake);
 
             try
             {
@@ -1728,8 +1675,8 @@ namespace Management.Storage.ScenarioTest
 
             try
             {
-                string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode));
-                string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
+                string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode, isMooncake));
+                string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode, isMooncake);
                 accountName = accountUtils.GenerateAccountName();
 
                 if (isResourceMode)
@@ -1746,7 +1693,7 @@ namespace Management.Storage.ScenarioTest
                     string affinityGroup = string.Empty;
                     CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
 
-                    Test.Assert(!agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Invalid), 
+                    Test.Assert(!agent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Invalid),
                         string.Format("Renewing an invalid key type of the stoarge account {0} should fail", accountName));
                 }
             }
@@ -1761,8 +1708,8 @@ namespace Management.Storage.ScenarioTest
         public void FTAccount601_AccountNameAvailability_SameSubscription()
         {
             string accountName = accountUtils.GenerateAccountName();
-            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode));
-            string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
+            string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode, isMooncake));
+            string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode, isMooncake);
 
             try
             {
@@ -1922,8 +1869,8 @@ namespace Management.Storage.ScenarioTest
                     while (accountCount > 0)
                     {
                         string accountName = accountUtils.GenerateAccountName();
-                        string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode));
-                        string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode);
+                        string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode, isMooncake));
+                        string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode, isMooncake);
 
                         CreateNewSRPAccount(accountName, location, accountType);
                     }
@@ -2000,7 +1947,7 @@ namespace Management.Storage.ScenarioTest
 
         private void SetAndValidateAccount(string accountName, string originalAccountType, string newLabel, string newDescription, string newAccountType, bool? geoReplication = null)
         {
-            string location = Constants.Location.EastAsia;
+            string location = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
             string affinityGroup = null;
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Setting";

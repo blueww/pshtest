@@ -411,6 +411,22 @@ namespace Management.Storage.ScenarioTest
             return false;
         }
 
+        public static AzureEnvironment GetTargetEnvironment()
+        {
+            AzureEnvironment environment = null;
+            string storageEndpoint = Test.Data.Get("StorageEndPoint");
+            foreach (string key in AzureEnvironment.PublicEnvironments.Keys)
+            {
+                if (AzureEnvironment.PublicEnvironments[key].Endpoints[AzureEnvironment.Endpoint.StorageEndpointSuffix] == storageEndpoint)
+                {
+                    environment = AzureEnvironment.PublicEnvironments[key];
+                    break;
+                }
+            }
+
+            return environment;
+        }
+
         /// <summary>
         /// Get OS config from testdata.xml
         /// </summary>
