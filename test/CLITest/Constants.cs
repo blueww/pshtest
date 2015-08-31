@@ -51,6 +51,12 @@ namespace Management.Storage.ScenarioTest
             public const string EastAsia = "East Asia";
         };
 
+        public struct MCLocation
+        {
+            public const string ChinaEast = "China East";
+            public const string ChinaNorth = "China North";
+        };
+
         public static readonly string[] Locations = { Location.WestUS,
                                                         Location.SouthCentralUS,
                                                         Location.EastUS,
@@ -66,6 +72,9 @@ namespace Management.Storage.ScenarioTest
                                                         Location.SoutheastAsia,
                                                         Location.EastAsia,
                                                         Location.WestEurope };
+
+        public static readonly string[] MCLocations = { MCLocation.ChinaEast,
+                                                        MCLocation.ChinaNorth };
 
         /// <summary>
         /// used for Set/Get Service Properties
