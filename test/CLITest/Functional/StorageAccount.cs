@@ -1144,7 +1144,7 @@ namespace Management.Storage.ScenarioTest
 
                     if (isResourceMode)
                     {
-                        errorMsg = string.Format("Storage account type cannot be changed from Standard-ZRS to {0} or vice versa", ConvertAccountType(info.Name));
+                        errorMsg = string.Format("The storage account type Standard_ZRS cannot be changed.");
                         Test.Assert(!agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, newAccountType),
                             string.Format("Setting storage account {0} to type {1} should fail", accountName, newAccountType));
                     }
@@ -1174,9 +1174,10 @@ namespace Management.Storage.ScenarioTest
                     }
                     else
                     {
-                        if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS))
+                        if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS)
+                            || newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
                         {
-                            errorMsg = "Storage account type Standard-ZRS cannot be changed.";
+                            errorMsg = string.Format("Storage account type cannot be changed to {0}.", info.Name);
                         }
                     }
 
@@ -1225,7 +1226,7 @@ namespace Management.Storage.ScenarioTest
 
                     if (isResourceMode)
                     {
-                        errorMsg = string.Format("Storage account type cannot be changed from Provisioned-LRS to {0} or vice versa", info.Name.Replace('_', '-'));
+                        errorMsg = string.Format("The storage account type Premium_LRS cannot be changed.");
                         Test.Assert(!agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, newAccountType),
                             string.Format("Setting storage account {0} to type {1} should fail", accountName, newAccountType));
                     }
@@ -1256,9 +1257,10 @@ namespace Management.Storage.ScenarioTest
                         }
                         else
                         {
-                            if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
+                            if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS)
+                                || newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS))
                             {
-                                errorMsg = "Storage account type Provisioned-LRS cannot be changed.";
+                                errorMsg = string.Format("Storage account type cannot be changed to {0}.", info.Name);
                             }
                         }
 
@@ -1303,7 +1305,7 @@ namespace Management.Storage.ScenarioTest
             foreach (string targetAccountType in newAccountTypes)
             {
                 string type = accountUtils.mapAccountType(targetAccountType);
-                string errorMessage = string.Format("Storage account type cannot be changed from Standard-LRS to {0} or vice versa.", ConvertAccountType(targetAccountType));
+                string errorMessage = string.Format("Storage account type cannot be changed to {0}.", targetAccountType); 
 
                 if (isResourceMode)
                 {
@@ -1315,7 +1317,7 @@ namespace Management.Storage.ScenarioTest
                     Test.Assert(!agent.SetAzureStorageAccount(accountName, label, description, type),
                         string.Format("Setting stoarge account {0} to type {1} should fail", accountName, type));
 
-                    errorMessage = string.Format("Cannot change storage account type from Standard_LRS to {0} or vice versa", ConvertAccountType(targetAccountType)).Replace("-", "_");
+                    errorMessage = string.Format("Cannot change storage account type from Standard_LRS to {0} or vice versa", targetAccountType);
                 }
 
                 if (Language.NodeJS == lang)
@@ -2302,18 +2304,6 @@ namespace Management.Storage.ScenarioTest
             {
                 Thread.Sleep(60000);
             }
-        }
-
-        private string ConvertAccountType(string accountType)
-        {
-            string accountTypeInErrorMessage = accountType.Replace('_', '-');
-
-            if ((Language.PowerShell == lang) && isResourceMode)
-            {
-                return accountTypeInErrorMessage.Replace("Premium", "Provisioned");
-            }
-
-            return accountTypeInErrorMessage;
         }
 
         private enum ServiceType { Blob, Queue, Table, File }
