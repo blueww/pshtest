@@ -1021,6 +1021,49 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+        public static int ParseIntFromJsonOutput(Dictionary<string, object> output, string key)
+        {
+            int result = 0;
+            if (output.ContainsKey(key))
+            {
+                int.TryParse(output[key].ToString(), out result);
+            }
+
+            return result;
+        }
+
+        public static string ParseStringFromJsonOutput(Dictionary<string, object> output, string key)
+        {
+            return output.ContainsKey(key) ? output[key] as string : null;
+        }
+
+        public static bool ParseBoolFromJsonOutput(Dictionary<string, object> output, string key)
+        {
+            return output.ContainsKey(key) ? bool.Parse(output[key].ToString()) : false;
+        }
+
+        public static T? ParseEnumFromJsonOutput<T>(Dictionary<string, object> output, string key) where T : struct
+        {
+            T result;
+            if (output.ContainsKey(key))
+            {
+                if (Enum.TryParse<T>(output[key] as string, true, out result))
+                {
+                    return result;
+                } 
+                else
+                {
+                    int value = 0;
+                    if (int.TryParse(output[key].ToString(), out value))
+                    {
+                        return (T)Enum.ToObject(typeof(T), value);
+                    }
+                }
+            }
+
+            return (T?)null;
+        }
+
         /// <summary>
         /// Set up shared access policy permission for SharedAccessTablePolicy
         /// </summary>

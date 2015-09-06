@@ -1,10 +1,12 @@
 ﻿namespace Management.Storage.ScenarioTest.Util
 {
     using System;
+    using System.Collections.Generic;
     using System.Net;
     using System.Threading;
     using Microsoft.Azure.Common.Authentication;
     using Microsoft.Azure.Common.Authentication.Models;
+    using Microsoft.Azure.Management.Storage.Models;
     using Microsoft.WindowsAzure.Management.Storage;
     using MS.Test.Common.MsTestLib;
     using SRPManagement = Microsoft.Azure.Management.Storage;
@@ -186,6 +188,48 @@
             while (regenerate);
 
             return name;
+        }
+
+        public class CheckNameAvailabilityResponse
+        {
+            public bool NameAvailable { get; set; }
+
+            public Reason? Reason { get; set; }
+
+            public string Message { get; set; }
+
+            public HttpStatusCode? StatusCode { get; set; }
+
+            public string RequestId  { get; set; }
+
+            public static CheckNameAvailabilityResponse Create(Dictionary<string, object> output, bool isResourceMode)
+            {  
+                CheckNameAvailabilityResponse response = new CheckNameAvailabilityResponse();
+                response.NameAvailable = Utility.ParseBoolFromJsonOutput(output, "nameAvailable");
+                response.StatusCode = Utility.ParseEnumFromJsonOutput<HttpStatusCode>(output, "statusCode");
+                if (isResourceMode)
+                {
+                    response.Message = Utility.ParseStringFromJsonOutput(output, "message");
+                    response.Reason = Utility.ParseEnumFromJsonOutput<Reason>(output, "reason");
+                }
+                else
+                {
+                    response.Message = Utility.ParseStringFromJsonOutput(output, "reason");
+                }
+
+                return response;
+            }
+
+            public static CheckNameAvailabilityResponse Create(SRPModel.CheckNameAvailabilityResponse rawResponse)
+            {
+                CheckNameAvailabilityResponse response = new CheckNameAvailabilityResponse();
+                response.NameAvailable = rawResponse.NameAvailable;
+                response.Message = rawResponse.Message;
+                response.Reason = rawResponse.Reason;
+                response.RequestId = rawResponse.RequestId;
+
+                return response;
+            }
         }
     }
 }
