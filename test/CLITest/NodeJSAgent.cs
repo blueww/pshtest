@@ -618,12 +618,16 @@ namespace Management.Storage.ScenarioTest
 
         public override bool CheckNameAvailability(string accountName)
         {
-            throw new NotImplementedException();
+            string command = string.Format("account check \"{0}\"", accountName);
+
+            return RunNodeJSProcess(command, needAccountParam: false);
         }
 
         public override bool GetAzureStorageUsage()
         {
-            throw new NotImplementedException();
+            string command = string.Format("account usage show");
+
+            return RunNodeJSProcess(command, needAccountParam: false);
         }
 
         public override bool NewAzureStorageContainer(string containerName)

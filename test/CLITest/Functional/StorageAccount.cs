@@ -1707,6 +1707,9 @@ namespace Management.Storage.ScenarioTest
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount601_AccountNameAvailability_SameSubscription()
         {
             string accountName = accountUtils.GenerateAccountName();
@@ -1720,16 +1723,55 @@ namespace Management.Storage.ScenarioTest
                     CreateNewSRPAccount(accountName, location, accountType);
 
                     Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
-                    var accountNameAvailability = agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse;
+                    AccountUtils.CheckNameAvailabilityResponse accountNameAvailability = null;
 
-                    this.ValidateAccountNameAvailability(accountNameAvailability, accountName, true);
+                    if (lang == Language.PowerShell)
+                    {
+                        accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(
+                            agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse);
+                    }
+                    else
+                    {
+                        accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(agent.Output[0], isResourceMode);
+                    }
+
+                    this.ValidateAccountNameAvailability(accountNameAvailability, accountName, true, true);
 
                     accountUtils.SRPStorageClient.StorageAccounts.Delete(resourceGroupName, accountName);
 
                     Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
-                    accountNameAvailability = agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse;
+                    if (lang == Language.PowerShell)
+                    {
+                        accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(
+                            agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse);
+                    }
+                    else
+                    {
+                        accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(agent.Output[0], isResourceMode);
+                    }
 
-                    this.ValidateAccountNameAvailability(accountNameAvailability, accountName, false);
+                    this.ValidateAccountNameAvailability(accountNameAvailability, accountName, false, true);
+                }
+                else
+                {
+                    string label = "StorageAccountLabel";
+                    string description = "Storage Account Positive Case";
+                    string affinityGroup = null;
+                    CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
+
+                    Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
+                    AccountUtils.CheckNameAvailabilityResponse accountNameAvailability = null;
+
+                    accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(agent.Output[0], isResourceMode);
+
+                    this.ValidateAccountNameAvailability(accountNameAvailability, accountName, true, true);
+
+                    accountUtils.StorageClient.StorageAccounts.Delete(accountName);
+
+                    Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
+                    accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(agent.Output[0], isResourceMode);
+
+                    this.ValidateAccountNameAvailability(accountNameAvailability, accountName, false, true);
                 }
             }
             finally
@@ -1740,70 +1782,132 @@ namespace Management.Storage.ScenarioTest
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount602_AccountNameAvailability_DiffSubscription()
         {
+            AccountUtils.CheckNameAvailabilityResponse accountNameAvailability = null;
+
             string accountName = Test.Data.Get("StorageAccountNameInOtherSubscription");
+            Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
 
-            if (isResourceMode)
+            if (isResourceMode && lang == Language.PowerShell)
             {
-                Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
-                var accountNameAvailability = agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse;
-
-                this.ValidateAccountNameAvailability(accountNameAvailability, accountName, true);
+                accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(
+                    agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse);
             }
+            else
+            {
+                accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(agent.Output[0], isResourceMode);
+            }
+
+            this.ValidateAccountNameAvailability(accountNameAvailability, accountName, true, false);
         }
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount603_AccountNameAvailability_NotExist()
         {
+            AccountUtils.CheckNameAvailabilityResponse accountNameAvailability = null;
+
             string accountName = accountUtils.GenerateAccountName();
+            Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
 
-            if (isResourceMode)
+            if (isResourceMode && lang == Language.PowerShell)
             {
-                Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
-                var accountNameAvailability = agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse;
-
-                this.ValidateAccountNameAvailability(accountNameAvailability, accountName, false);
+                accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(
+                    agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse);
             }
+            else
+            {
+                accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(agent.Output[0], isResourceMode);
+            }
+
+            this.ValidateAccountNameAvailability(accountNameAvailability, accountName, false, true);
         }
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount604_AccountNameAvailability_NotExist_LongestName()
         {
+            AccountUtils.CheckNameAvailabilityResponse accountNameAvailability = null;
+
             string accountName = accountUtils.GenerateAccountName(24);
+            Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
 
-            if (isResourceMode)
+            if (isResourceMode && lang == Language.PowerShell)
             {
-                Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
-                var accountNameAvailability = agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse;
-
-                this.ValidateAccountNameAvailability(accountNameAvailability, accountName, false);
+                accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(
+                    agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse);
             }
+            else
+            {
+                accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(agent.Output[0], isResourceMode);
+            }
+
+            this.ValidateAccountNameAvailability(accountNameAvailability, accountName, false, true);
         }
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount605_AccountNameAvailability_Exist_ShortestName()
         {
+            AccountUtils.CheckNameAvailabilityResponse accountNameAvailability = null;
+
             string accountName = AccountUtils.GenerateAvailableAccountName(3);
 
             try
             {
                 if (isResourceMode)
                 {
-                    if (accountUtils.StorageClient.StorageAccounts.CheckNameAvailability(accountName).IsAvailable)
+                    if (accountUtils.SRPStorageClient.StorageAccounts.CheckNameAvailability(accountName).NameAvailable)
                     {
-                        string location = Constants.Location.EastAsia;
+                        string location = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
                         string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
                         CreateNewSRPAccount(accountName, location, accountType);
                     }
 
                     Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
-                    var accountNameAvailability = agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse;
 
-                    this.ValidateAccountNameAvailability(accountNameAvailability, accountName, true);
+                    if (lang == Language.PowerShell)
+                    {
+                        accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(
+                            agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse);
+                    }
+                    else
+                    {
+                        accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(agent.Output[0], isResourceMode);
+                    }
+
+                    this.ValidateAccountNameAvailability(accountNameAvailability, accountName, true, true);
+                }
+                else
+                {
+                    if (accountUtils.StorageClient.StorageAccounts.CheckNameAvailability(accountName).IsAvailable)
+                    {
+                        string location = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
+                        string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
+                        string label = "StorageAccountLabel";
+                        string description = "Storage Account Positive Case";
+                        string affinityGroup = null;
+                        CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
+                    }
+
+                    Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
+
+                    accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(agent.Output[0], isResourceMode);
+
+                    this.ValidateAccountNameAvailability(accountNameAvailability, accountName, true, true);
                 }
             }
             finally
@@ -1814,6 +1918,9 @@ namespace Management.Storage.ScenarioTest
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount606_AccountNameAvailability_InvalidName()
         {
             string accountName = AccountUtils.GenerateAvailableAccountName(2);
@@ -1831,31 +1938,54 @@ namespace Management.Storage.ScenarioTest
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount607_AccountNameAvailability_Negative()
         {
             if (isResourceMode)
             {
+                string errorMsg;
+                if (lang == Language.PowerShell)
+                {
+                    errorMsg = "The argument is null or empty. Provide an argument that is not null or empty, and then try the command again.";
+                }
+                else
+                {
+                    errorMsg = "The check name availability request must have an account name";
+                }
+
                 Test.Assert(!agent.CheckNameAvailability(null), "Check name availability should fail.");
-                ExpectedContainErrorMessage("The argument is null or empty. Provide an argument that is not null or empty, and then try the command again.");
+                ExpectedContainErrorMessage(errorMsg);
 
                 Test.Assert(!agent.CheckNameAvailability(""), "Check name availability should fail.");
-                ExpectedContainErrorMessage("The argument is null or empty. Provide an argument that is not null or empty, and then try the command again.");
+                ExpectedContainErrorMessage(errorMsg);
             }
         }
 
         private void AccountNameAvailability_InvalidName_Test(string accountName)
         {
-            if (isResourceMode)
-            {
-                Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
-                var accountNameAvailability = agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse;
+            AccountUtils.CheckNameAvailabilityResponse accountNameAvailability = null;
 
-                this.ValidateAccountNameAvailabilityInvalidName(accountNameAvailability, accountName);
+            Test.Assert(agent.CheckNameAvailability(accountName), "Check name availability should succeed.");
+
+            if (isResourceMode && lang == Language.PowerShell)
+            {
+                accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(
+                    agent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse);
             }
+            else
+            {
+                accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(agent.Output[0], isResourceMode);
+            }
+
+            this.ValidateAccountNameAvailabilityInvalidName(accountNameAvailability, accountName);
         }
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount701_GetAzureStorageUsage()
         {
             if (isResourceMode)
@@ -1875,6 +2005,7 @@ namespace Management.Storage.ScenarioTest
                         string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode, isMooncake);
 
                         CreateNewSRPAccount(accountName, location, accountType);
+                        accountCount--;
                     }
 
                     GetAzureStorageUsage_Test();
@@ -1906,24 +2037,6 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(agent.GetAzureStorageUsage(), "Get azure storage usage should succeeded.");
             var usages = accountUtils.SRPStorageClient.Usage.List().Usages;
             ValidateGetUsageOutput(usages);
-        }
-
-        protected void SetActiveSubscription()
-        {
-            NodeJSAgent nodeAgent = (NodeJSAgent)agent;
-            string subscriptionID = Test.Data.Get("AzureSubscriptionID");
-            if (!string.IsNullOrEmpty(subscriptionID))
-            {
-                nodeAgent.SetActiveSubscription(subscriptionID);
-            }
-            else
-            {
-                string subscriptionName = Test.Data.Get("AzureSubscriptionName");
-                if (!string.IsNullOrEmpty(subscriptionName))
-                {
-                    nodeAgent.SetActiveSubscription(subscriptionName);
-                }
-            }
         }
 
         private void CreateAndValidateAccount(string accountName, string label, string description, string location, string affinityGroup, string accountType, bool? geoReplication = null)
@@ -1983,32 +2096,64 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        private void ValidateAccountNameAvailability(SRPModel.CheckNameAvailabilityResponse accountNameAvailability, string accountName, bool exist)
+        private void ValidateAccountNameAvailability(AccountUtils.CheckNameAvailabilityResponse accountNameAvailability, string accountName, bool exist, bool sameSubscription)
         {
             if (exist)
             {
-                Test.Assert(accountNameAvailability.Message.Contains(string.Format("The storage account named {0} is already taken.", accountName)),
-                    "Account name availatility message should be correct. {0}",
-                    accountNameAvailability.Message);
-                Test.Assert(!accountNameAvailability.NameAvailable, "Account name should be not available.");
-                Test.Assert(accountNameAvailability.Reason == SRPModel.Reason.AlreadyExists, "Reason should be AlreadyExists.");
+                if (isResourceMode)
+                {
+                    Test.Assert(accountNameAvailability.Message.Contains(string.Format("The storage account named {0} is already taken.", accountName)),
+                        "Account name availability message should be correct. {0}",
+                        accountNameAvailability.Message);
+                    Test.Assert(!accountNameAvailability.NameAvailable, "Account name should be not available.");
+                    Test.Assert(accountNameAvailability.Reason == SRPModel.Reason.AlreadyExists, "Reason should be AlreadyExists.");
+                }
+                else
+                {
+                    if (sameSubscription)
+                    {
+                        Test.Assert(accountNameAvailability.Message.Contains(string.Format("A storage account named '{0}' already exists in the subscription", accountName)),
+                        "Account name availability message should be correct. {0}",
+                        accountNameAvailability.Message);
+                    }
+                    else
+                    {
+                        Test.Assert(accountNameAvailability.Message.Contains(string.Format("The storage account named '{0}' is already taken.", accountName)),
+                        "Account name availability message should be correct. {0}",
+                        accountNameAvailability.Message);
+                    }
+
+                    Test.Assert(!accountNameAvailability.NameAvailable, "Account name should be not available.");
+                }
             }
             else
             {
                 Test.Assert(null == accountNameAvailability.Message,
-                    "Account name availatility message should be null, {0}.", accountNameAvailability.Message);
+                    "Account name availability message should be null, {0}.", accountNameAvailability.Message);
                 Test.Assert(accountNameAvailability.NameAvailable, "Account name should be available.");
                 Test.Assert(null == accountNameAvailability.Reason, "Reason should be null.");
             }
         }
 
-        private void ValidateAccountNameAvailabilityInvalidName(SRPModel.CheckNameAvailabilityResponse accountNameAvailability, string accountName)
+        private void ValidateAccountNameAvailabilityInvalidName(AccountUtils.CheckNameAvailabilityResponse accountNameAvailability, string accountName)
         {
-            Test.Assert(accountNameAvailability.Message.Contains(string.Format("{0} is not a valid storage account name.", accountName)),
-                "Account name availatility message should be correct. {0}",
-                accountNameAvailability.Message);
             Test.Assert(!accountNameAvailability.NameAvailable, "Account name should be not available.");
-            Test.Assert(accountNameAvailability.Reason == SRPModel.Reason.AccountNameInvalid, "Reason should be AccountNameInvalid.");
+
+            if (isResourceMode)
+            {
+                Test.Assert(accountNameAvailability.Reason == SRPModel.Reason.AccountNameInvalid, "Reason should be AccountNameInvalid.");
+                Test.Assert(accountNameAvailability.Message.Contains(string.Format("{0} is not a valid storage account name.", accountName)),
+                "Account name availability message should be correct. {0}",
+                accountNameAvailability.Message);
+            }
+            else
+            {
+                string errorMsg1 = "The name is not a valid storage account name. Storage account names must be between 3 and 24 characters in length and use numbers and lower-case letters only.";
+                string errorMsg2 = "The resource service name storageservices is not supported.";
+                Test.Assert(accountNameAvailability.Message.Contains(errorMsg1) || accountNameAvailability.Message.Contains(errorMsg2),
+                "Account name availability message should be correct. {0}",
+                accountNameAvailability.Message);
+            }
         }
 
         private void ValidateGetUsageOutput(IList<SRPModel.Usage> usages)
@@ -2016,11 +2161,21 @@ namespace Management.Storage.ScenarioTest
             for (int i = 0; i < usages.Count; ++i)
             {
                 var output = agent.Output[i];
-                Test.Assert(string.Equals(output["Name"] as string, usages[i].Name.Value), "Name should be the same {0} == {1}", output["Name"], usages[i].Name.Value);
-                Test.Assert(string.Equals(output["LocalizedName"] as string, usages[i].Name.LocalizedValue), "LocalizedName should be the same {0} == {1}", output["LocalizedName"], usages[i].Name.LocalizedValue);
-                Test.Assert(output["Unit"] as SRPModel.UsageUnit? == usages[i].Unit, "Unit should be the same {0} == {1}", output["Unit"], usages[i].Unit);
-                Test.Assert(output["CurrentValue"] as int? == usages[i].CurrentValue, "CurrentValue should be the same {0} == {1}", output["CurrentValue"], usages[i].CurrentValue);
-                Test.Assert(output["Limit"] as int? == usages[i].Limit, "Limit should be the same {0} == {1}", output["Limit"], usages[i].Limit);
+                if (lang == Language.PowerShell)
+                {
+                    Test.Assert(string.Equals(output["Name"] as string, usages[i].Name.Value), "Name should be the same {0} == {1}", output["Name"], usages[i].Name.Value);
+                    Test.Assert(string.Equals(output["LocalizedName"] as string, usages[i].Name.LocalizedValue), "LocalizedName should be the same {0} == {1}", output["LocalizedName"], usages[i].Name.LocalizedValue);
+                    Test.Assert(output["Unit"] as SRPModel.UsageUnit? == usages[i].Unit, "Unit should be the same {0} == {1}", output["Unit"], usages[i].Unit);
+                    Test.Assert(output["CurrentValue"] as int? == usages[i].CurrentValue, "CurrentValue should be the same {0} == {1}", output["CurrentValue"], usages[i].CurrentValue);
+                    Test.Assert(output["Limit"] as int? == usages[i].Limit, "Limit should be the same {0} == {1}", output["Limit"], usages[i].Limit);
+                }
+                else
+                {
+                    int used = Utility.ParseIntFromJsonOutput(output, "used");
+                    int limit = Utility.ParseIntFromJsonOutput(output, "limit");
+                    Test.Assert(used == usages[i].CurrentValue, "CurrentValue should be the same {0} == {1}", used, usages[i].CurrentValue);
+                    Test.Assert(limit == usages[i].Limit, "Limit should be the same {0} == {1}", limit, usages[i].Limit);
+                }
             }
         }
 
