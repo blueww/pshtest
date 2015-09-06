@@ -159,7 +159,13 @@ namespace Management.Storage.ScenarioTest
 
             p.StartInfo.Arguments += string.Format(" azure {0} {1} --json", category, argument);
 
-            Test.Info("NodeJS command: \"{0}\" {1}", p.StartInfo.FileName, p.StartInfo.Arguments);
+            string argumentsLog = p.StartInfo.Arguments;
+            if (category == "login")
+            {
+                argumentsLog = Regex.Replace(argumentsLog, " -[p|P] .*", " -p ******");
+            }
+
+            Test.Info("NodeJS command: \"{0}\" {1}", p.StartInfo.FileName, argumentsLog);
         }
 
         public override void ImportAzureSubscription(string settingFile)
@@ -451,7 +457,7 @@ namespace Management.Storage.ScenarioTest
         {
             try
             {
-                RunNodeJSProcess(string.Format("{0}", Test.Data.Get("AADUser")), needAccountParam: false, category: "logout");
+                RunNodeJSProcess("clear -q", needAccountParam: false, category: "account");
             }
             catch (Exception ex)
             {
