@@ -865,7 +865,6 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount102_CreateAccount_Location()
         {
-            string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Location Setting";
             string affinityGroup = null;
@@ -875,6 +874,7 @@ namespace Management.Storage.ScenarioTest
 
             foreach (var location in locationsArray)
             {
+                string accountName = accountUtils.GenerateAccountName();
                 CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType);
             }
         }
