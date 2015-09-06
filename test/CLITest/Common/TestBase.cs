@@ -238,11 +238,6 @@ namespace Management.Storage.ScenarioTest.Common
         {
             if (isResourceMode)
             {
-                if (lang == Language.NodeJS)
-                {
-                    agent.ChangeCLIMode(Constants.Mode.arm);
-                }
-
                 if (!isLogin)
                 {
                     if (Utility.GetAutoLogin())
@@ -265,6 +260,7 @@ namespace Management.Storage.ScenarioTest.Common
                     if (lang == Language.NodeJS)
                     {
                         SetActiveSubscription();
+                        agent.ChangeCLIMode(Constants.Mode.arm);
                     }
                     else
                     {
@@ -282,6 +278,7 @@ namespace Management.Storage.ScenarioTest.Common
                     if (lang == Language.NodeJS)
                     {
                         NodeJSAgent nodeAgent = (NodeJSAgent)agent;
+                        nodeAgent.Logout();
                         nodeAgent.ChangeCLIMode(Constants.Mode.asm);
                     }
 
