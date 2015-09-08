@@ -579,7 +579,7 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(command, needAccountParam: false);
         }
 
-        public override bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string type, string location)
+        public override bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string type, string location, Hashtable[] tags = null)
         {
             string command = string.Format("account create {0}", accountName);
             command = appendStringOption(command, "--resource-group", resourceGroupName);
@@ -596,6 +596,16 @@ namespace Management.Storage.ScenarioTest
             command = appendStringOption(command, "--type", type);
 
             return RunNodeJSProcess(command, needAccountParam: false);
+        }
+
+        public override bool SetSRPAzureStorageAccountTags(string resourceGroupName, string accountName, Hashtable[] tags)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool SetSRPAzureStorageAccountCustomDomain(string resourceGroupName, string accountName, string customDomain, bool? useSubdomain)
+        {
+            throw new NotImplementedException();
         }
 
         public override bool DeleteSRPAzureStorageAccount(string resourceGroupName, string accountName)
