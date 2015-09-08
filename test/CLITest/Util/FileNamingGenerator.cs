@@ -33,6 +33,8 @@
 
         private static readonly char[] InvalidFileNameCharacters = new char[] { '\\', '/', ':', '|', '<', '>', '*', '?', '"' };
 
+        private static readonly char[] InvalidTagNameCharacters = new char[] { '<', '>', '%', '&', '\\', '?', '/' };
+
         private static readonly char[] BashControllers = (AgentFactory.GetOSType() != OSType.Windows) ? new char[] { '(', ')', '$', '\'', '!', '`' } : new char[] {};
 
         private static readonly char[] ValidShareNameCharactersExceptDash =
@@ -50,16 +52,32 @@
                       !x.IsAbstract)
             .Select(x => Activator.CreateInstance(x, InvalidFileNameCharacters)).Cast<UnicodeGenerator>().ToArray();
 
+        private static readonly UnicodeGenerator[] TagUnicodeGenerators =
+            Assembly.GetAssembly(typeof(UnicodeGenerator)).GetTypes()
+            .Where(x => x.IsSubclassOf(typeof(UnicodeGenerator)) &&
+            !x.IsAbstract)
+            .Select(x => Activator.CreateInstance(x, InvalidFileNameCharacters)).Cast<UnicodeGenerator>().ToArray();
+
         private static Random RandomGen = new Random();
 
         public static IEnumerable<string> GenerateValidateUnicodeName(int length)
+        {
+            return GenerateValidateUnicodeName(UnicodeGenerators, length);
+        }
+
+        public static IEnumerable<string> GenerateTagValidateUnicodeName(int length)
+        {
+            return GenerateValidateUnicodeName(TagUnicodeGenerators, length);
+        }
+
+        public static IEnumerable<string> GenerateValidateUnicodeName(UnicodeGenerator[] generators, int length)
         {
             if (AgentFactory.GetOSType() != OSType.Windows)
             {
                 yield break;
             }
 
-            foreach (var generator in UnicodeGenerators)
+            foreach (var generator in generators)
             {
                 string str = generator.GenerateRandomString(length);
 

@@ -3796,7 +3796,7 @@ namespace Management.Storage.ScenarioTest
             return !ps.HadErrors;
         }
 
-        public override bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string type, string location)
+        public override bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string type, string location, Hashtable[] tags = null)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
@@ -3805,6 +3805,7 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("Name", accountName);
             ps.BindParameter("Type", type);
             ps.BindParameter("Location", location);
+            ps.BindParameter("Tags", tags);
 
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
 
@@ -3819,6 +3820,31 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
             ps.BindParameter("Type", accountType);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool SetSRPAzureStorageAccountTags(string resourceGroupName, string accountName, Hashtable[] tags)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Set-AzureStorageAccount");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("Name", accountName);
+            ps.BindParameter("Tags", tags);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool SetSRPAzureStorageAccountCustomDomain(string resourceGroupName, string accountName, string customDomain, bool? useSubdomain)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Set-AzureStorageAccount");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("Name", accountName);
+            ps.BindParameter("CustomDomainName", customDomain);
+            ps.BindParameter("UseSubDomain", useSubdomain);
 
             return InvokePowerShellWithoutContext(ps);
         }
