@@ -1,6 +1,8 @@
 ﻿namespace Management.Storage.ScenarioTest.Util
 {
     using System;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.Net;
     using System.Threading;
     using Microsoft.Azure.Common.Authentication;
@@ -132,7 +134,7 @@
             return type;
         }
 
-        public void ValidateSRPAccount(string resourceGroupName, string accountName, string location, string accountType)
+        public void ValidateSRPAccount(string resourceGroupName, string accountName, string location, string accountType, Hashtable[] tags = null)
         {
             SRPModel.StorageAccountGetPropertiesResponse response = this.SRPStorageClient.StorageAccounts.GetPropertiesAsync(resourceGroupName, accountName, CancellationToken.None).Result;
             Test.Assert(response.StatusCode == HttpStatusCode.OK, string.Format("Account {0} should be created successfully.", accountName));
@@ -146,6 +148,24 @@
             if (!string.IsNullOrEmpty(location))
             {
                 Test.Assert(location == account.Location, string.Format("Expected location is {0} and actually it is {1}", location, account.Location));
+            }
+
+            this.ValidateTags(tags, account.Tags);
+        }
+
+        public void ValidateTags(Hashtable[] originTags, IDictionary<string, string> targetTags)
+        {
+            if (null == originTags || 0 == originTags.Length)
+            {
+                Test.Assert(0 == targetTags.Count, "Should be no tags got set.");
+                return;
+            }
+
+            foreach (var sourceTag in originTags)
+            {
+                string tagValue = null;
+                Test.Assert(targetTags.TryGetValue(sourceTag["Name"].ToString(), out tagValue), "Tag {0} should exist", sourceTag["Name"]);
+                Test.Assert(string.Equals(tagValue, sourceTag["Value"].ToString()), "Tag value should be the same.");
             }
         }
 

@@ -109,9 +109,13 @@ namespace Management.Storage.ScenarioTest
         #endregion
 
         #region SRPAccount
-        public abstract bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string type, string location);
+        public abstract bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string type, string location, Hashtable[] tags = null);
 
         public abstract bool SetSRPAzureStorageAccount(string resourceGroupName, string accountName, string accountType);
+
+        public abstract bool SetSRPAzureStorageAccountTags(string resourceGroupName, string accountName, Hashtable[] tags);
+
+        public abstract bool SetSRPAzureStorageAccountCustomDomain(string resourceGroupName, string accountName, string customDomain, bool? useSubdomain);
 
         public abstract bool DeleteSRPAzureStorageAccount(string resourceGroup, string accountName);
 
