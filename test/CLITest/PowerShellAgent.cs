@@ -3843,7 +3843,7 @@ namespace Management.Storage.ScenarioTest
             ps.AddCommand("Set-AzureStorageAccount");
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
-            ps.BindParameter("CustomDomainName", customDomain);
+            ps.BindParameter("CustomDomainName", customDomain, true);
             ps.BindParameter("UseSubDomain", useSubdomain);
 
             return InvokePowerShellWithoutContext(ps);
