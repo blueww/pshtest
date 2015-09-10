@@ -50,6 +50,12 @@
   <SecondaryStorageAccountKey></SecondaryStorageAccountKey>
   <SecondaryStorageEndPoint>core.windows.net</SecondaryStorageEndPoint>
     
+  <!-- Following setting are for custom domain setting test cases-->
+  <CustomDomainAccountResourceGroup></CustomDomainAccountResourceGroup>
+  <CustomDomainAccountName></CustomDomainAccountName>
+  <CustomDomainAccountKey></CustomDomainAccountKey>
+  <CustomDomain></CustomDomain>
+    
   <!-- Mooncake subscription -->
   <MooncakeSubscriptionName>Azure Storage DM</MooncakeSubscriptionName>
   <MooncakeSubscriptionPath>D:\powershell\Azure Storage DM-7-16-2015-credentials.publishsettings</MooncakeSubscriptionPath>
