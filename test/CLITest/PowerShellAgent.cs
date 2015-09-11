@@ -133,6 +133,21 @@ namespace Management.Storage.ScenarioTest
             PowerShellAgent.InitCommand = instance.Commands;
         }
 
+        public static void RemoveModule(string moduleName)
+        {
+            PowerShell ps = PowerShell.Create(_InitState);
+            //TODO add tests for positional parameter
+            ps.AddCommand("Remove-Module");
+            ps.BindParameter("Name", moduleName);
+            ps.Invoke();
+
+            if (ps.Streams.Error.Count > 0)
+            {
+                Test.Error("Failed to remove module: {0} due to error {1}", moduleName, ps.Streams.Error[0].Exception.Message);
+                return;
+            }
+        }
+
         public static void ImportModule(string ModuleFilePath)
         {
             if (string.IsNullOrEmpty(ModuleFilePath))
