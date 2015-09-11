@@ -20,7 +20,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
     public class FileAsyncCopyTest : TestBase
     {
         private static CloudFileUtil FileUtil2 = null;
-        private static readonly string[] InvalidFileNameChar = { "\"", "\\", ":", "|", "<", ">", "*", "?" };
+        private static readonly string[] InvalidFileNameChar = { "\"", ":", "|", "<", ">", "*", "?" };
 
         [ClassInitialize]
         public static void FileAsyncCopyTestInitialize(TestContext context)

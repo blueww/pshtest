@@ -146,8 +146,13 @@ namespace Management.Storage.ScenarioTest.Common
 
                 if (!string.IsNullOrWhiteSpace(moduleFileFolder))
                 {
-                    string relativePath = isResourceMode ? Constants.ResourceModulePath : Constants.ServiceModulePath;
-                    PowerShellAgent.ImportModule(Path.Combine(moduleFileFolder, relativePath));
+                    PowerShellAgent.ImportModule(Path.Combine(moduleFileFolder, Constants.ServiceModulePath));
+
+                    if (isResourceMode)
+                    {
+                        PowerShellAgent.RemoveModule("Azure");
+                        PowerShellAgent.ImportModule(Path.Combine(moduleFileFolder, Constants.ResourceModulePath));
+                    }
                 }
 
                 string snapInName = Test.Data.Get("PSSnapInName");
