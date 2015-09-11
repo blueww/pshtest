@@ -2028,7 +2028,15 @@ namespace Management.Storage.ScenarioTest
             else
             {
                 Test.Assert(!agent.GetAzureStorageUsage(), "Get azure storage usage should fail.");
-                ExpectedContainErrorMessage("The term 'Get-AzureStorageUsage' is not recognized as the name of a cmdlet, function, script file, or operable program.");
+
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("The term 'Get-AzureStorageUsage' is not recognized as the name of a cmdlet, function, script file, or operable program.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("'usage' is not an azure command. See 'azure help'.");
+                }
             }
         }
 
