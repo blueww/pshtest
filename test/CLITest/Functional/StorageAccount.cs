@@ -32,6 +32,7 @@ namespace Management.Storage.ScenarioTest
     using Microsoft.WindowsAzure.Storage.Auth;
     using Microsoft.WindowsAzure.Storage.Blob;
     using MS.Test.Common.MsTestLib;
+    using Newtonsoft.Json.Linq;
     using StorageTestLib;
     using SRPModel = Microsoft.Azure.Management.Storage.Models;
 
@@ -1090,22 +1091,44 @@ namespace Management.Storage.ScenarioTest
                 tags[0].Add("Name", "");
                 tags[0].Add("Value", Utility.GenNameString("Value"));
                 CreateAndValidateAccountWithInvalidTags(accountName, location, accountUtils.mapAccountType(accountType), tags);
-                ExpectedContainErrorMessage("InvalidTagName: The tag name must be non-null, non-empty and non-whitespace only. Please provide an actual value.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("InvalidTagName: The tag name must be non-null, non-empty and non-whitespace only. Please provide an actual value.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Missing key");
+                }
 
                 accountName = accountUtils.GenerateAccountName();
                 tags[0] = new Hashtable();
                 tags[0].Add("Name", Utility.GenNameString("Name", random.Next(125, 500)));
                 tags[0].Add("Value", Utility.GenNameString("Value"));
                 CreateAndValidateAccountWithInvalidTags(accountName, location, accountUtils.mapAccountType(accountType), tags);
-                ExpectedContainErrorMessage("MaxTagKeyLengthExceeded: Maximum allowed length of 128 for tag key exceeded.");
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage("MaxTagKeyLengthExceeded: Maximum allowed length of 128 for tag key exceeded.");
+                }
+                else
+                {
+                    ExpectedContainErrorMessage("Maximum allowed length of 128 for tag key exceeded.");
+                }
 
                 accountName = accountUtils.GenerateAccountName();
                 tags[0] = new Hashtable();
                 tags[0].Add("Name", Utility.GenNameString("Name"));
                 tags[0].Add("Value", Utility.GenNameString("Value", random.Next(253, 500)));
                 CreateAndValidateAccountWithInvalidTags(accountName, location, accountUtils.mapAccountType(accountType), tags);
-                ExpectedContainErrorMessage(string.Format("InvalidTagValueLength: Tag value too large.  Following tag value '{0}' exceeded the maximum length. Maximum allowed length for tag value - '256' characters.",
-                    tags[0]["Value"].ToString()));
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage(string.Format("InvalidTagValueLength: Tag value too large.  Following tag value '{0}' exceeded the maximum length. Maximum allowed length for tag value - '256' characters.",
+                        tags[0]["Value"].ToString()));
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("Tag value too large.  Following tag value '{0}' exceeded the maximum length. Maximum allowed length for tag value - '256' characters.",
+                        tags[0]["Value"].ToString()));
+                }
 
                 accountName = accountUtils.GenerateAccountName();
                 tags = new Hashtable[random.Next(16, 50)];
@@ -1116,8 +1139,16 @@ namespace Management.Storage.ScenarioTest
                     tags[i].Add("Value", Utility.GenNameString("Value"));
                 }
                 CreateAndValidateAccountWithInvalidTags(accountName, location, accountUtils.mapAccountType(accountType), tags);
-                ExpectedContainErrorMessage(string.Format("InvalidTags: Too many tags on the resource/resource group. Requested tag count - '{0}'. Maximum number of tags allowed - '15'.",
-                    tags.Length));
+                if (lang == Language.PowerShell)
+                {
+                    ExpectedContainErrorMessage(string.Format("InvalidTags: Too many tags on the resource/resource group. Requested tag count - '{0}'. Maximum number of tags allowed - '15'.",
+                       tags.Length));
+                }
+                else
+                {
+                    ExpectedContainErrorMessage(string.Format("Too many tags on the resource/resource group. Requested tag count - '{0}'. Maximum number of tags allowed - '15'.",
+                       tags.Length));
+                }
             }
         }
 
@@ -1394,7 +1425,7 @@ namespace Management.Storage.ScenarioTest
             foreach (string targetAccountType in newAccountTypes)
             {
                 string type = accountUtils.mapAccountType(targetAccountType);
-                string errorMessage = string.Format("Storage account type cannot be changed to {0}.", targetAccountType); 
+                string errorMessage = string.Format("Storage account type cannot be changed to {0}.", targetAccountType);
 
                 if (isResourceMode)
                 {
@@ -1434,18 +1465,18 @@ namespace Management.Storage.ScenarioTest
                     string location = Constants.Location.EastAsia;
 
                     this.CreateNewSRPAccount(accountName, location, accountType);
-                    
+
                     WaitForAccountAvailableToSet();
 
                     Hashtable[] tags = this.GetUnicodeTags();
 
-                    Test.Assert(this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags), 
+                    Test.Assert(this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
                         "Set tags of account {0} in reource group {1} should succeed", accountName, resourceGroupName);
 
                     Test.Assert(this.agent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
                         "Get storage account {0} in resource group {1} should succeed.", resourceGroupName, accountName);
-                    
-                    var targetTags = agent.Output[0]["Tags"] as IDictionary<string, string>;
+
+                    var targetTags = GetTagsFromOutput();
                     accountUtils.ValidateTags(tags, targetTags);
 
                     tags = new Hashtable[1];
@@ -1454,22 +1485,22 @@ namespace Management.Storage.ScenarioTest
                     tags[0].Add("Value", "");
 
                     Test.Assert(this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
-                        "Set tags of account {0} in reource group {1} should succeed", accountName, resourceGroupName);
+                        "Set tags of account {0} in reource group {1} with empty value should succeed", accountName, resourceGroupName);
 
                     Test.Assert(this.agent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
                         "Get storage account {0} in resource group {1} should succeed.", resourceGroupName, accountName);
 
-                    targetTags = agent.Output[0]["Tags"] as IDictionary<string, string>;
+                    targetTags = GetTagsFromOutput();
                     accountUtils.ValidateTags(tags, targetTags);
 
                     tags = new Hashtable[0];
                     Test.Assert(this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
-                        "Set tags of account {0} in reource group {1} should succeed", accountName, resourceGroupName);
+                        "Set tags of account {0} in reource group {1} with empty name and value should succeed", accountName, resourceGroupName);
 
                     Test.Assert(this.agent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
                         "Get storage account {0} in resource group {1} should succeed.", resourceGroupName, accountName);
 
-                    targetTags = agent.Output[0]["Tags"] as IDictionary<string, string>;
+                    targetTags = GetTagsFromOutput();
                     accountUtils.ValidateTags(tags, targetTags);
                 }
                 finally
@@ -1503,22 +1534,44 @@ namespace Management.Storage.ScenarioTest
 
                     Test.Assert(!this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
                         "Set tags of account {0} in reource group {1} should fail", accountName, resourceGroupName);
-                    ExpectedContainErrorMessage("InvalidTagName: The tag name must be non-null, non-empty and non-whitespace only. Please provide an actual value.");
+                    if (lang == Language.PowerShell)
+                    {
+                        ExpectedContainErrorMessage("InvalidTagName: The tag name must be non-null, non-empty and non-whitespace only. Please provide an actual value.");
+                    }
+                    else
+                    {
+                        ExpectedContainErrorMessage("Missing key");
+                    }
 
                     tags[0] = new Hashtable();
                     tags[0].Add("Name", Utility.GenNameString("Name", random.Next(125, 500)));
                     tags[0].Add("Value", Utility.GenNameString("Value"));
                     Test.Assert(!this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
                         "Set tags of account {0} in reource group {1} should fail", accountName, resourceGroupName);
-                    ExpectedContainErrorMessage("MaxTagKeyLengthExceeded: Maximum allowed length of 128 for tag key exceeded.");
+                    if (lang == Language.PowerShell)
+                    {
+                        ExpectedContainErrorMessage("MaxTagKeyLengthExceeded: Maximum allowed length of 128 for tag key exceeded.");
+                    }
+                    else
+                    {
+                        ExpectedContainErrorMessage("Maximum allowed length of 128 for tag key exceeded");
+                    }
 
                     tags[0] = new Hashtable();
                     tags[0].Add("Name", Utility.GenNameString("Name"));
                     tags[0].Add("Value", Utility.GenNameString("Value", random.Next(253, 500)));
                     Test.Assert(!this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
                         "Set tags of account {0} in reource group {1} should fail", accountName, resourceGroupName);
-                    ExpectedContainErrorMessage(string.Format("InvalidTagValueLength: Tag value too large.  Following tag value '{0}' exceeded the maximum length. Maximum allowed length for tag value - '256' characters.",
-                        tags[0]["Value"].ToString()));
+                    if (lang == Language.PowerShell)
+                    {
+                        ExpectedContainErrorMessage(string.Format("InvalidTagValueLength: Tag value too large.  Following tag value '{0}' exceeded the maximum length. Maximum allowed length for tag value - '256' characters.",
+                            tags[0]["Value"].ToString()));
+                    }
+                    else
+                    {
+                        ExpectedContainErrorMessage(string.Format("Tag value too large.  Following tag value '{0}' exceeded the maximum length. Maximum allowed length for tag value - '256' characters.",
+                            tags[0]["Value"].ToString()));
+                    }
 
                     tags = new Hashtable[random.Next(16, 50)];
                     for (int i = 0; i < tags.Length; ++i)
@@ -1529,8 +1582,16 @@ namespace Management.Storage.ScenarioTest
                     }
                     Test.Assert(!this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
                         "Set tags of account {0} in reource group {1} should fail", accountName, resourceGroupName);
-                    ExpectedContainErrorMessage(string.Format("InvalidTags: Too many tags on the resource/resource group. Requested tag count - '{0}'. Maximum number of tags allowed - '15'.",
-                        tags.Length));
+                    if (lang == Language.PowerShell)
+                    {
+                        ExpectedContainErrorMessage(string.Format("InvalidTags: Too many tags on the resource/resource group. Requested tag count - '{0}'. Maximum number of tags allowed - '15'.",
+                           tags.Length));
+                    }
+                    else
+                    {
+                        ExpectedContainErrorMessage(string.Format("Too many tags on the resource/resource group. Requested tag count - '{0}'. Maximum number of tags allowed - '15'.",
+                           tags.Length));
+                    }
                 }
                 finally
                 {
@@ -1560,7 +1621,7 @@ namespace Management.Storage.ScenarioTest
                     bool? useSubdomain = null;
 
                     switch (random.Next(0, 3))
-                    { 
+                    {
                         case 0:
                             useSubdomain = null;
                             break;
@@ -1577,7 +1638,7 @@ namespace Management.Storage.ScenarioTest
 
                     Test.Assert(this.agent.ShowSRPAzureStorageAccount(resourceGroup, accountName), "Get storage account should succeed.");
 
-                    var targetCustomDomain = this.agent.Output[0]["CustomDomain"] as SRPModel.CustomDomain;
+                    var targetCustomDomain = GetCustomDomainFromOutput();
 
                     Test.Assert(string.Equals(customDomainName, targetCustomDomain.Name), "Custom should be the one got set {0}.", targetCustomDomain.Name);
 
@@ -1623,12 +1684,12 @@ namespace Management.Storage.ScenarioTest
                     string customDomainName = Test.Data.Get("CustomDomain");
 
                     this.SetCustomDomain(resourceGroup, accountName, customDomainName, null);
-                    
+
                     Test.Assert(this.agent.SetSRPAzureStorageAccountCustomDomain(resourceGroup, accountName, "", null), "Set custom domain should succeed.");
 
                     Test.Assert(this.agent.ShowSRPAzureStorageAccount(resourceGroup, accountName), "Get storage account should succeed.");
 
-                    var targetCustomDomain = this.agent.Output[0]["CustomDomain"] as SRPModel.CustomDomain;
+                    var targetCustomDomain = GetCustomDomainFromOutput();
 
                     Test.Assert(null == targetCustomDomain, "There should be no custom domain got set anymore.");
                 }
@@ -2415,12 +2476,12 @@ namespace Management.Storage.ScenarioTest
         }
 
         private void CreateAndValidateAccount(
-            string accountName, 
-            string label, 
-            string description, 
-            string location, 
-            string affinityGroup, 
-            string accountType, 
+            string accountName,
+            string label,
+            string description,
+            string location,
+            string affinityGroup,
+            string accountType,
             Hashtable[] tags,
             bool? geoReplication = null)
         {
@@ -2650,21 +2711,19 @@ namespace Management.Storage.ScenarioTest
         #endregion
 
         #region Resource management account operations
-        
+
         private void CreateNewSRPAccount(string accountName, string location, string accountType, Hashtable[] tags = null)
         {
-            var accountNameAvailability = accountUtils.StorageClient.StorageAccounts.CheckNameAvailability(accountName);
-            // Use service management client to check the existing account for a global search
-            if (accountNameAvailability.IsAvailable)
+            StorageAccountGetResponse response;
+            try
             {
-                createdAccounts.Add(accountName);
-
-                Test.Assert(agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
-                    string.Format("Creating storage account {0} in the resource group {1} at location {2} should succeed", accountName, resourceGroupName, location));
+                // Use service management client to check the existing account for a global search 
+                response = accountUtils.StorageClient.StorageAccounts.Get(accountName);
             }
-            else
+            catch (Hyak.Common.CloudException ex)
             {
-                Test.Error("Account name is not available for reason: {0}", accountNameAvailability.Reason);
+                Test.Assert(ex.Error.Code.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
+                createdAccounts.Add(accountName);
             }
 
             Test.Assert(agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location, tags),
@@ -2890,6 +2949,47 @@ namespace Management.Storage.ScenarioTest
                     }
                 },
                 CancellationToken.None).Result;
+        }
+
+        private IDictionary<string, string> GetTagsFromOutput()
+        {
+            Dictionary<string, string> tags = null;
+            if (lang == Language.PowerShell)
+            {
+                return agent.Output[0]["Tags"] as IDictionary<string, string>;
+            }
+            else
+            {
+                tags = new Dictionary<string, string>();
+                IDictionary<string, JToken> targetTags = (IDictionary<string, JToken>)agent.Output[0]["tags"];
+
+                foreach (string key in targetTags.Keys)
+                {
+                    tags[key] = targetTags[key].ToString();
+                }
+            }
+
+            return tags;
+        }
+
+        private SRPModel.CustomDomain GetCustomDomainFromOutput()
+        {
+            if (lang == Language.PowerShell)
+            {
+                return agent.Output[0]["CustomDomain"] as SRPModel.CustomDomain;
+            }
+            else
+            {
+                SRPModel.CustomDomain customDomain = null;
+                if (agent.Output[0].ContainsKey("customDomain"))
+                {
+                    customDomain = new SRPModel.CustomDomain();
+                    JObject outputObj = (JObject)agent.Output[0]["customDomain"];
+                    customDomain.Name = outputObj["name"].ToString();
+                }
+
+                return customDomain;
+            }
         }
 
         private enum ServiceType { Blob, Queue, Table, File }
