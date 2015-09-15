@@ -361,6 +361,29 @@ namespace Management.Storage.ScenarioTest
         }
 
         /// <summary>
+        /// Convert Hashtables to string
+        /// The output would be "k1=v1;k2=v2"
+        /// </summary>
+        public static string ConvertTables(Hashtable[] tables)
+        {
+            string result = string.Empty;
+            foreach (Hashtable table in tables)
+            {    
+                if (!string.IsNullOrEmpty(result))
+                {
+                    result += ";";
+                }
+                 
+                if (table.ContainsKey("Name") && table.ContainsKey("Value"))
+                {
+                    result += table["Name"] + "=" + table["Value"];
+                }
+            }
+
+            return "\"" + result + "\"";
+        }
+
+        /// <summary>
         /// Generate a random small int number for test
         /// </summary>
         /// <returns>Random int</returns>

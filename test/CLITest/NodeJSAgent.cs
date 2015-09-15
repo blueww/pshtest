@@ -380,6 +380,16 @@ namespace Management.Storage.ScenarioTest
             return command + string.Format(" {0} ", optionName);
         }
 
+        internal string appendBoolOption(string command, string optionName, bool? value)
+        {
+            if (value.HasValue && value.Value)
+            {
+                return command + string.Format(" {0} ", optionName);
+            }
+
+            return command;
+        }
+
         internal string appendDateTimeOption(string command, string optionName, DateTime? date)
         {
             if (date.HasValue)
@@ -430,6 +440,24 @@ namespace Management.Storage.ScenarioTest
                 }
 
                 command = appendStringOption(command, accountCSOption, connectionString, quoted: true);
+            }
+
+            return command;
+        }
+
+        internal string appendHashOption(string command, string optionName, Hashtable[] tags)
+        {
+            if (tags != null)
+            {
+                if (tags.Length > 0)
+                {
+                    return command + string.Format(" {0} {1} ", optionName, Utility.ConvertTables(tags));
+                }
+                else
+                {
+                    // Double space to indicate the empty string which is a constrain on CLI
+                    return command + string.Format(" {0} \"  \" ", optionName);
+                }
             }
 
             return command;
@@ -585,6 +613,7 @@ namespace Management.Storage.ScenarioTest
             command = appendStringOption(command, "--resource-group", resourceGroupName);
             command = appendStringOption(command, "--location", location, true);
             command = appendStringOption(command, "--type", type);
+            command = appendHashOption(command, "--tags", tags);
 
             return RunNodeJSProcess(command, needAccountParam: false);
         }
@@ -600,12 +629,26 @@ namespace Management.Storage.ScenarioTest
 
         public override bool SetSRPAzureStorageAccountTags(string resourceGroupName, string accountName, Hashtable[] tags)
         {
-            throw new NotImplementedException();
+            string command = string.Format("account set {0}", accountName);
+            command = appendStringOption(command, "--resource-group", resourceGroupName);
+            command = appendHashOption(command, "--tags", tags);
+
+            return RunNodeJSProcess(command, needAccountParam: false);
         }
 
         public override bool SetSRPAzureStorageAccountCustomDomain(string resourceGroupName, string accountName, string customDomain, bool? useSubdomain)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(customDomain))
+            {
+                customDomain = "  ";
+            }
+
+            string command = string.Format("account set {0}", accountName);
+            command = appendStringOption(command, "--resource-group", resourceGroupName);
+            command = appendStringOption(command, "--custom-domain", customDomain, quoted: true);
+            command = appendBoolOption(command, "--subdomain", useSubdomain);
+
+            return RunNodeJSProcess(command, needAccountParam: false);
         }
 
         public override bool DeleteSRPAzureStorageAccount(string resourceGroupName, string accountName)
