@@ -177,7 +177,7 @@
                 }
                 else
                 {
-                    key = sourceTag["Name"].ToString().ToLower();
+                    key = sourceTag["Name"].ToString().ToLowerInvariant();
                 }
 
                 Test.Assert(targetTags.TryGetValue(key, out tagValue),
