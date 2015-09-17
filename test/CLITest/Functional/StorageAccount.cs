@@ -1154,6 +1154,24 @@ namespace Management.Storage.ScenarioTest
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount112_CreateAccount_TagsWordCase()
+        {
+            if (isResourceMode)
+            {
+                string accountType = Constants.AccountType.Standard_GRS;
+                string accountName = accountUtils.GenerateAccountName();
+                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
+
+                Hashtable[] tags = this.GetUnicodeTags(true);
+                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), tags);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -1602,10 +1620,58 @@ namespace Management.Storage.ScenarioTest
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount209_SetAccount_TagsWordCaseAndDuplicatedName()
+        {
+            if (isResourceMode)
+            {
+                string accountName = accountUtils.GenerateAccountName();
+                try
+                {
+                    string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
+                    string location = Constants.Location.EastAsia;
+
+                    this.CreateNewSRPAccount(accountName, location, accountType);
+
+                    WaitForAccountAvailableToSet();
+
+                    Hashtable[] tags = this.GetUnicodeTags(caseTest: true);
+
+                    Test.Assert(this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
+                        "Set tags of account {0} in reource group {1} should succeed", accountName, resourceGroupName);
+
+                    Test.Assert(this.agent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
+                        "Get storage account {0} in resource group {1} should succeed.", resourceGroupName, accountName);
+
+                    var targetTags = GetTagsFromOutput();
+                    accountUtils.ValidateTags(tags, targetTags);
+
+                    tags = this.GetUnicodeTags(duplicatedName: true);
+
+                    Test.Assert(this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
+                        "Set tags of account {0} in reource group {1} with empty value should succeed", accountName, resourceGroupName);
+
+                    Test.Assert(this.agent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
+                        "Get storage account {0} in resource group {1} should succeed.", resourceGroupName, accountName);
+
+                    targetTags = GetTagsFromOutput();
+                    accountUtils.ValidateTags(tags, targetTags);
+                }
+                finally
+                {
+                    DeleteAccountWrapper(accountName);
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
-        public void FTAccount209_SetAccount_CustomDomain()
+        public void FTAccount210_SetAccount_CustomDomain()
         {
             if (isResourceMode)
             {
@@ -1672,7 +1738,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
-        public void FTAccount210_SetAccount_EmptyCustomDomain()
+        public void FTAccount211_SetAccount_EmptyCustomDomain()
         {
             if (isResourceMode)
             {
@@ -1705,7 +1771,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
-        public void FTAccount211_SetAccount_InvalidCustomDomain()
+        public void FTAccount212_SetAccount_InvalidCustomDomain()
         {
             if (isResourceMode)
             {
@@ -2919,19 +2985,48 @@ namespace Management.Storage.ScenarioTest
             return accountTypeInErrorMessage;
         }
 
-        private Hashtable[] GetUnicodeTags()
+        private Hashtable[] GetUnicodeTags(bool caseTest = false, bool duplicatedName = false)
         {
             var unicodeNameChars = new List<string>(FileNamingGenerator.GenerateTagValidateUnicodeName(random.Next(1, 129)));
             var unicodeValueChars = new List<string>(FileNamingGenerator.GenerateTagValidateUnicodeName(random.Next(0, 257)));
-            Hashtable[] tags = new Hashtable[unicodeNameChars.Count];
 
-            for (int i = 0; i < tags.Length; ++i)
+            int maxTagCount = duplicatedName ? 16 : 15;
+            int count = (caseTest || duplicatedName) ? maxTagCount : unicodeNameChars.Count;
+            Hashtable[] tags = new Hashtable[count];
+
+            for (int i = 0; i < unicodeNameChars.Count; ++i)
             {
                 tags[i] = new Hashtable();
                 tags[i].Add("Name", unicodeNameChars[i]);
                 tags[i].Add("Value", unicodeValueChars[i]);
 
                 Test.Info("Tag Name: '{0}'  Tag Value: '{1}'", unicodeNameChars[i], unicodeValueChars[i]);
+            }
+
+            if (caseTest || duplicatedName)
+            {
+                for (int j = unicodeNameChars.Count; j < count; j++)
+                {
+                    tags[j] = new Hashtable();
+                    string name = string.Empty;
+
+                    foreach (char ch in unicodeNameChars[j - unicodeNameChars.Count])
+                    {
+                        string s = new string(ch, 1);
+                        if (random.Next() % 2 == 0)
+                        {
+                            name += s.ToLowerInvariant();
+                        }
+                        else
+                        {
+                            name += s.ToUpperInvariant();
+                        }
+                    }
+                    tags[j].Add("Name", name);
+                    tags[j].Add("Value", unicodeValueChars[j - unicodeNameChars.Count]);
+
+                    Test.Info("Tag Name for word case: '{0}'  Tag Value: '{1}'", name, unicodeValueChars[j - unicodeNameChars.Count]);
+                }
             }
 
             return tags;
