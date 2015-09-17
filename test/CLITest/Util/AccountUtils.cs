@@ -170,17 +170,7 @@
             foreach (var sourceTag in originTags)
             {
                 string tagValue = null;
-                string key = null;
-                if (language == Language.PowerShell)
-                {
-                    key = sourceTag["Name"].ToString();
-                }
-                else
-                {
-                    key = sourceTag["Name"].ToString().ToLowerInvariant();
-                }
-
-                Test.Assert(targetTags.TryGetValue(key, out tagValue),
+                Test.Assert(targetTags.TryGetValue(sourceTag["Name"].ToString(), out tagValue),
                     "Tag {0} should exist", sourceTag["Name"]);
                 Test.Assert(string.Equals(tagValue, sourceTag["Value"].ToString()),
                     "Tag value should be the same. Expect: {0}, actual is: {1}", sourceTag["Value"].ToString(), tagValue);
