@@ -36,11 +36,11 @@
             if (isResourceMode)
             {
                 StorageClient = AzureSession.ClientFactory.CreateClient<StorageManagementClient>(
-                    Utility.GetProfile(),
+                    Utility.GetProfile().Context,
                     Microsoft.Azure.Common.Authentication.Models.AzureEnvironment.Endpoint.ServiceManagement);
 
                 SRPStorageClient = AzureSession.ClientFactory.CreateClient<SRPManagement.StorageManagementClient>(
-                    Utility.GetProfile(),
+                    Utility.GetProfile().Context,
                     Microsoft.Azure.Common.Authentication.Models.AzureEnvironment.Endpoint.ResourceManager);
             }
             else

@@ -28,6 +28,7 @@ namespace Management.Storage.ScenarioTest
     using Management.Storage.ScenarioTest.Util;
     using Microsoft.Azure;
     using Microsoft.Azure.Common.Authentication;
+    using Microsoft.Azure.Common.Authentication.Factories;
     using Microsoft.Azure.Common.Authentication.Models;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
     using Microsoft.WindowsAzure.Storage;
@@ -38,6 +39,7 @@ namespace Management.Storage.ScenarioTest
     using Microsoft.WindowsAzure.Storage.Queue.Protocol;
     using Microsoft.WindowsAzure.Storage.Shared.Protocol;
     using Microsoft.WindowsAzure.Storage.Table;
+    using Microsoft.Azure.Subscriptions;
     using MS.Test.Common.MsTestLib;
     using StorageTestLib;
     using StorageBlobType = Microsoft.WindowsAzure.Storage.Blob.BlobType;
@@ -224,53 +226,132 @@ namespace Management.Storage.ScenarioTest
                 endpoints[3]);
         }
 
-        public static void CleanProfile()
+        public static AzureRMProfile GetProfile()
         {
-            DirectoryInfo directory = new DirectoryInfo(AzureSession.ProfileDirectory);
-            foreach (var file in directory.EnumerateFiles())
+            AzureSubscription newSubscription = null;
+            AzureTenant newTenant = null;
+            string passwd = Test.Data.Get("AADPassword");
+            SecureString securePassword = null;
+            AzureRMProfile profile = new AzureRMProfile();
+
+            unsafe
             {
-                file.Delete();
-            }
-
-            PowerShellAgent.LoadProfile();
-        }
-
-        public static AzureProfile GetProfile()
-        {
-            AzureSession.ClientFactory.AddAction(new RPRegistrationAction());
-            AzureSession.DataStore = new DiskDataStore();
-            AzureSession.TokenCache = new ProtectedFileTokenCache(Path.Combine(AzureSession.ProfileDirectory, AzureSession.TokenCacheFile));
-
-            AzureProfile azureProfile = new AzureProfile(Path.Combine(AzureSession.ProfileDirectory, AzureSession.ProfileFile));
-            ProfileClient profileClient = new ProfileClient(azureProfile);
-
-            if (GetAutoLogin())
-            {
-                string passwd = Test.Data.Get("AADPassword");
-
-                if (!string.IsNullOrEmpty(passwd))
+                fixed (char* ppw = passwd.ToCharArray())
                 {
-                    SecureString securePassword = null;
-
-                    unsafe
-                    {
-                        fixed (char* ppw = passwd.ToCharArray())
-                        {
-                            securePassword = new SecureString(ppw, passwd.Length);
-                        }
-                    }
-
-                    profileClient.AddAccountAndLoadSubscriptions(new AzureAccount()
-                    {
-                        Id = Test.Data.Get("AADUser"),
-                        Type = AzureAccount.AccountType.User
-                    }, profileClient.GetEnvironmentOrDefault(null), securePassword);
+                    securePassword = new SecureString(ppw, passwd.Length);
                 }
             }
 
-            profileClient.SetSubscriptionAsDefault(Test.Data.Get("AzureSubscriptionName"), Test.Data.Get("AADUser"));
+            ShowDialog promptBehavior = securePassword == null ? ShowDialog.Always : ShowDialog.Never;
 
-            return profileClient.Profile;
+            AzureAccount account = new AzureAccount()
+                    {
+                        Id = Test.Data.Get("AADUser"),
+                        Type = AzureAccount.AccountType.User
+                    };
+
+            AzureEnvironment environment = AzureEnvironment.PublicEnvironments[EnvironmentName.AzureCloud];
+
+            // (tenant is not provided and subscription is present) OR
+            // (tenant is not provided and subscription is not provided)
+            foreach (var tenant in ListAccountTenants(account, environment, securePassword, promptBehavior))
+            {
+                if (TryGetTenantSubscription(account, environment, tenant.Id.ToString(), Test.Data.Get("AzureSubscriptionID"), securePassword, ShowDialog.Auto, out newSubscription, out newTenant))
+                {
+                    break;
+                }
+            }
+
+            if (newSubscription == null)
+            {
+                throw new InvalidOperationException("Subscription was not found.");
+            }
+
+            profile.Context = new AzureContext(newSubscription, account, environment, newTenant);
+            profile.Context.TokenCache = TokenCache.DefaultShared.Serialize();
+
+            return profile;
+        }
+
+        private static List<AzureTenant> ListAccountTenants(AzureAccount account, AzureEnvironment environment, SecureString password, ShowDialog promptBehavior)
+        {
+            var commonTenantToken = AzureSession.AuthenticationFactory.Authenticate(
+                account,
+                environment,
+                AuthenticationFactory.CommonAdTenant,
+                password,
+                promptBehavior,
+                TokenCache.DefaultShared);
+
+            using (var subscriptionClient = AzureSession.ClientFactory.CreateCustomClient<SubscriptionClient>(
+                    new TokenCloudCredentials(commonTenantToken.AccessToken),
+                    environment.GetEndpointAsUri(AzureEnvironment.Endpoint.ResourceManager)))
+            {
+                return subscriptionClient.Tenants.List().TenantIds
+                    .Select(ti => new AzureTenant() { Id = new Guid(ti.TenantId), Domain = GetDomain(commonTenantToken) })
+                    .ToList();
+            }
+        }
+
+        private static bool TryGetTenantSubscription(
+            AzureAccount account,
+            AzureEnvironment environment,
+            string tenantId,
+            string subscriptionId,
+            SecureString password,
+            ShowDialog promptBehavior,
+            out AzureSubscription subscription,
+            out AzureTenant tenant)
+        {
+            var accessToken = AzureSession.AuthenticationFactory.Authenticate(
+                    account,
+                    environment,
+                    tenantId,
+                    password,
+                    promptBehavior,
+                    TokenCache.DefaultShared);
+            using (var subscriptionClient = AzureSession.ClientFactory.CreateCustomClient<SubscriptionClient>(
+                new TokenCloudCredentials(accessToken.AccessToken),
+                environment.GetEndpointAsUri(AzureEnvironment.Endpoint.ResourceManager)))
+            {
+                Microsoft.Azure.Subscriptions.Models.Subscription subscriptionFromServer = null;
+
+                subscriptionFromServer = subscriptionClient.Subscriptions.Get(subscriptionId).Subscription;
+
+                if (subscriptionFromServer != null)
+                {
+                    subscription = new AzureSubscription
+                    {
+                        Id = new Guid(subscriptionFromServer.SubscriptionId),
+                        Account = accessToken.UserId,
+                        Environment = environment.Name,
+                        Name = subscriptionFromServer.DisplayName,
+                        Properties = new Dictionary<AzureSubscription.Property, string> { { AzureSubscription.Property.Tenants, accessToken.TenantId } }
+                    };
+
+                    account.Properties[AzureAccount.Property.Tenants] = accessToken.TenantId;
+                    tenant = new AzureTenant();
+                    tenant.Id = new Guid(accessToken.TenantId);
+                    tenant.Domain = GetDomain(accessToken);
+                    return true;
+                }
+
+                subscription = null;
+                tenant = null;
+                return false;
+            }
+        }
+
+        private static string GetDomain(IAccessToken token)
+        {
+            if (token != null && token.UserId != null && token.UserId.Contains('@'))
+            {
+                return token.UserId.Split(
+                    new[] { '@' },
+                    StringSplitOptions.RemoveEmptyEntries).Last();
+            }
+
+            return null;
         }
 
         public static CertificateCloudCredentials GetCertificateCloudCredential()
