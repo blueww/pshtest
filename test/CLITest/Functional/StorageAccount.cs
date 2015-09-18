@@ -1097,7 +1097,7 @@ namespace Management.Storage.ScenarioTest
                 }
                 else
                 {
-                    ExpectedContainErrorMessage("Missing key");
+                    ExpectedContainErrorMessage("The tag name must be non-null, non-empty and non-whitespace only. Please provide an actual value.");
                 }
 
                 accountName = accountUtils.GenerateAccountName();
@@ -1558,7 +1558,7 @@ namespace Management.Storage.ScenarioTest
                     }
                     else
                     {
-                        ExpectedContainErrorMessage("Missing key");
+                        ExpectedContainErrorMessage("The tag name must be non-null, non-empty and non-whitespace only. Please provide an actual value.");
                     }
 
                     tags[0] = new Hashtable();
