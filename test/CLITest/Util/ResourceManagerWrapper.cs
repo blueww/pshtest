@@ -11,7 +11,7 @@
         public ResourceManagerWrapper()
         {
             resourceManager = AzureSession.ClientFactory.CreateClient<ResourceManagementClient>(
-                Utility.GetProfile(),
+                Utility.GetProfile().Context,
                 Microsoft.Azure.Common.Authentication.Models.AzureEnvironment.Endpoint.ResourceManager);
         }
 

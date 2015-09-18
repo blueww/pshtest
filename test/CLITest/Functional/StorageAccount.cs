@@ -112,11 +112,6 @@ namespace Management.Storage.ScenarioTest
                 var keys = accountUtils.StorageClient.StorageAccounts.GetKeysAsync(accountNameForConnectionStringTest).Result;
                 primaryKeyForConnectionStringTest = keys.PrimaryKey;
             }
-
-            if (isResourceMode && (Language.PowerShell == lang))
-            {
-                PowerShellAgent.LoadProfile();
-            }
         }
 
         [ClassCleanup()]
@@ -184,7 +179,7 @@ namespace Management.Storage.ScenarioTest
                     else
                     {
                         string subscriptionID = Test.Data.Get("AzureSubscriptionID");
-                        agent.SetActiveSubscription(subscriptionID);
+                        //agent.SetActiveSubscription(subscriptionID);
                     }
 
                     isLogin = true;
