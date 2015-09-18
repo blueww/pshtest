@@ -176,11 +176,6 @@ namespace Management.Storage.ScenarioTest
                     {
                         SetActiveSubscription();
                     }
-                    else
-                    {
-                        string subscriptionID = Test.Data.Get("AzureSubscriptionID");
-                        //agent.SetActiveSubscription(subscriptionID);
-                    }
 
                     isLogin = true;
                 }
