@@ -105,7 +105,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Commands.Storage">
-      <HintPath>..\..\PowerShell\src\Package\$(Configuration)\ServiceManagement\Azure\Storage\Microsoft.WindowsAzure.Commands.Storage.dll</HintPath>
+      <HintPath>..\..\PowerShell\src\Package\$(Configuration)\ServiceManagement\Azure\Azure.Storage\Microsoft.WindowsAzure.Commands.Storage.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
