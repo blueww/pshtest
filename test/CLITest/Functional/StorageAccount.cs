@@ -1305,7 +1305,7 @@ namespace Management.Storage.ScenarioTest
                             errorMsg = string.Format(NodeJSInvalidSetTypeError, newAccountType);
                         }
                     }
-                    else
+                    else if (isResourceMode)
                     {
                         if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS)
                             || newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS))
@@ -1386,7 +1386,7 @@ namespace Management.Storage.ScenarioTest
                                 errorMsg = string.Format(NodeJSInvalidSetTypeError, newAccountType);
                             }
                         }
-                        else
+                        else if (isResourceMode)
                         {
                             if (newAccountType == accountUtils.mapAccountType(Constants.AccountType.Premium_LRS)
                                 || newAccountType == accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS))
@@ -1434,7 +1434,7 @@ namespace Management.Storage.ScenarioTest
             foreach (string targetAccountType in newAccountTypes)
             {
                 string type = accountUtils.mapAccountType(targetAccountType);
-                string errorMessage = string.Format("Storage account type cannot be changed from Standard-LRS to {0} or vice versa.", ConvertAccountType(targetAccountType)); 
+                string errorMessage = string.Empty;
 
                 if (isResourceMode)
                 {
