@@ -228,47 +228,57 @@ namespace Management.Storage.ScenarioTest
 
         public static AzureRMProfile GetProfile()
         {
-            AzureSubscription newSubscription = null;
-            AzureTenant newTenant = null;
-            string passwd = Test.Data.Get("AADPassword");
-            SecureString securePassword = null;
-            AzureRMProfile profile = new AzureRMProfile();
+            AzureRMProfile profile = null;
 
-            unsafe
+            if (GetAutoLogin())
             {
-                fixed (char* ppw = passwd.ToCharArray())
+                AzureSubscription newSubscription = null;
+                AzureTenant newTenant = null;
+                string passwd = Test.Data.Get("AADPassword");
+                SecureString securePassword = null;
+                profile = new AzureRMProfile();
+
+                unsafe
                 {
-                    securePassword = new SecureString(ppw, passwd.Length);
-                }
-            }
-
-            ShowDialog promptBehavior = securePassword == null ? ShowDialog.Always : ShowDialog.Never;
-
-            AzureAccount account = new AzureAccount()
+                    fixed (char* ppw = passwd.ToCharArray())
                     {
-                        Id = Test.Data.Get("AADUser"),
-                        Type = AzureAccount.AccountType.User
-                    };
-
-            AzureEnvironment environment = AzureEnvironment.PublicEnvironments[EnvironmentName.AzureCloud];
-
-            // (tenant is not provided and subscription is present) OR
-            // (tenant is not provided and subscription is not provided)
-            foreach (var tenant in ListAccountTenants(account, environment, securePassword, promptBehavior))
-            {
-                if (TryGetTenantSubscription(account, environment, tenant.Id.ToString(), Test.Data.Get("AzureSubscriptionID"), securePassword, ShowDialog.Auto, out newSubscription, out newTenant))
-                {
-                    break;
+                        securePassword = new SecureString(ppw, passwd.Length);
+                    }
                 }
-            }
 
-            if (newSubscription == null)
+                ShowDialog promptBehavior = securePassword == null ? ShowDialog.Always : ShowDialog.Never;
+
+                AzureAccount account = new AzureAccount()
+                        {
+                            Id = Test.Data.Get("AADUser"),
+                            Type = AzureAccount.AccountType.User
+                        };
+
+                AzureEnvironment environment = AzureEnvironment.PublicEnvironments[EnvironmentName.AzureCloud];
+
+                // (tenant is not provided and subscription is present) OR
+                // (tenant is not provided and subscription is not provided)
+                foreach (var tenant in ListAccountTenants(account, environment, securePassword, promptBehavior))
+                {
+                    if (TryGetTenantSubscription(account, environment, tenant.Id.ToString(), Test.Data.Get("AzureSubscriptionID"), securePassword, ShowDialog.Auto, out newSubscription, out newTenant))
+                    {
+                        break;
+                    }
+                }
+
+                if (newSubscription == null)
+                {
+                    throw new InvalidOperationException("Subscription was not found.");
+                }
+
+                profile.Context = new AzureContext(newSubscription, account, environment, newTenant);
+                profile.Context.TokenCache = TokenCache.DefaultShared.Serialize();
+            }
+            else
             {
-                throw new InvalidOperationException("Subscription was not found.");
+                AzureSession.DataStore = new DiskDataStore();
+                profile = new AzureRMProfile(Test.Data.Get("ProfilePath"));
             }
-
-            profile.Context = new AzureContext(newSubscription, account, environment, newTenant);
-            profile.Context.TokenCache = TokenCache.DefaultShared.Serialize();
 
             return profile;
         }

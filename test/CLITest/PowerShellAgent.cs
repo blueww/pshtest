@@ -286,6 +286,21 @@ namespace Management.Storage.ScenarioTest
             SetStorageContext(ps);
         }
 
+        public static void LoadProfile()
+        {
+            PowerShell ps = PowerShell.Create(_InitState);
+            ps.AddCommand("Select-AzureRMProfile");
+            ps.BindParameter("Path", Test.Data.Get("ProfilePath"));
+
+            Test.Info("Loading resource mode profile, Cmdline: {0}", GetCommandLine(ps));
+            ps.Invoke();
+
+            if (ps.HadErrors)
+            {
+                throw new InvalidOperationException(ps.Streams.Error[0].Exception.Message);
+            }
+        }
+
         public static void SetAnonymousStorageContext(string StorageAccountName, bool useHttps, string endPoint = "")
         {
             PowerShell ps = PowerShell.Create(_InitState);

@@ -71,12 +71,20 @@ namespace Management.Storage.ScenarioTest
         {
             TestBase.TestClassInitialize(testContext);
 
-            string appPath = Test.Data.Get("LoginAppPath");
-
-            if (!string.IsNullOrEmpty(appPath))
+            if (isResourceMode)
             {
-                Test.Info("Calling {0} to save credential token", appPath);
-                TestHelper.RunCmd(appPath, null);
+                string appPath = Test.Data.Get("LoginAppPath");
+
+                if (!string.IsNullOrEmpty(appPath))
+                {
+                    Test.Info("Calling {0} to save credential token", appPath);
+                    TestHelper.RunCmd(appPath, Test.Data.Get("AzureSubscriptionID"));
+                }
+
+                if (Language.PowerShell == lang)
+                {
+                    PowerShellAgent.LoadProfile();
+                }
             }
 
             NodeJSAgent.AgentConfig.UseEnvVar = false;
