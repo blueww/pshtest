@@ -1943,7 +1943,7 @@ namespace Management.Storage.ScenarioTest
                     accountNames[i] = accountName;
                 }
 
-                string message = "Listing all stoarge accounts in the subsription should succeed";
+                string message = "Listing all stoarge accounts in the subscription should succeed";
                 if (isResourceMode)
                 {
                     Test.Assert(agent.ShowSRPAzureStorageAccount(string.Empty, string.Empty), message);
@@ -2991,7 +2991,7 @@ namespace Management.Storage.ScenarioTest
             var unicodeValueChars = new List<string>(FileNamingGenerator.GenerateTagValidateUnicodeName(random.Next(0, 257)));
 
             int maxTagCount = duplicatedName ? 16 : 15;
-            int count = (caseTest || duplicatedName) ? maxTagCount : unicodeNameChars.Count;
+            int count = (caseTest || duplicatedName) ? Math.Min(maxTagCount, 2 * unicodeNameChars.Count) : unicodeNameChars.Count;
             Hashtable[] tags = new Hashtable[count];
 
             for (int i = 0; i < unicodeNameChars.Count; ++i)
