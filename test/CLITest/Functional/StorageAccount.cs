@@ -15,22 +15,23 @@
 namespace Management.Storage.ScenarioTest
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Net;
     using System.Reflection;
-    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using Management.Storage.ScenarioTest.Common;
     using Management.Storage.ScenarioTest.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Microsoft.WindowsAzure;
     using Microsoft.WindowsAzure.Management;
     using Microsoft.WindowsAzure.Management.Models;
     using Microsoft.WindowsAzure.Management.Storage;
     using Microsoft.WindowsAzure.Management.Storage.Models;
+    using Microsoft.WindowsAzure.Storage.Auth;
+    using Microsoft.WindowsAzure.Storage.Blob;
     using MS.Test.Common.MsTestLib;
-    using SRPModel = Microsoft.Azure.Management.Storage.Models;
     using StorageTestLib;
+    using SRPModel = Microsoft.Azure.Management.Storage.Models;
 
     /// <summary>
     /// this class contains all the account parameter settings for Node.js commands
@@ -111,11 +112,6 @@ namespace Management.Storage.ScenarioTest
                 var keys = accountUtils.StorageClient.StorageAccounts.GetKeysAsync(accountNameForConnectionStringTest).Result;
                 primaryKeyForConnectionStringTest = keys.PrimaryKey;
             }
-
-            if (isResourceMode && (Language.PowerShell == lang))
-            {
-                PowerShellAgent.LoadProfile();
-            }
         }
 
         [ClassCleanup()]
@@ -179,11 +175,6 @@ namespace Management.Storage.ScenarioTest
                     if (lang == Language.NodeJS)
                     {
                         SetActiveSubscription();
-                    }
-                    else
-                    {
-                        string subscriptionID = Test.Data.Get("AzureSubscriptionID");
-                        agent.SetActiveSubscription(subscriptionID);
                     }
 
                     isLogin = true;
@@ -854,8 +845,16 @@ namespace Management.Storage.ScenarioTest
             string location = Constants.Location.EastAsia;
             string affinityGroup = null;
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
+            Hashtable[] tags = new Hashtable[random.Next(1, 5)];
 
-            CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType);
+            for (int i = 0; i < tags.Length; ++i)
+            {
+                tags[i] = new Hashtable();
+                tags[i].Add("Name", Utility.GenNameString("Name"));
+                tags[i].Add("Value", Utility.GenNameString("Value"));
+            }
+
+            CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType, tags);
         }
 
         [TestMethod]
@@ -875,7 +874,7 @@ namespace Management.Storage.ScenarioTest
             foreach (var location in locationsArray)
             {
                 string accountName = accountUtils.GenerateAccountName();
-                CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType);
+                CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType, null);
             }
         }
 
@@ -894,7 +893,7 @@ namespace Management.Storage.ScenarioTest
             try
             {
                 AffinityGroupOperationsExtensions.Create(managementClient.AffinityGroups, new AffinityGroupCreateParameters(affinityGroup, "AffinityGroupLabel", location));
-                CreateAndValidateAccount(accountName, label, description, isResourceMode ? location : null, affinityGroup, accountType);
+                CreateAndValidateAccount(accountName, label, description, isResourceMode ? location : null, affinityGroup, accountType, null);
             }
             finally
             {
@@ -922,7 +921,7 @@ namespace Management.Storage.ScenarioTest
 
                 string accountName = accountUtils.GenerateAccountName();
                 string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode);
-                CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountUtils.mapAccountType(accountType));
+                CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountUtils.mapAccountType(accountType), null);
             }
         }
 
@@ -990,7 +989,7 @@ namespace Management.Storage.ScenarioTest
             try
             {
                 AffinityGroupOperationsExtensions.Create(managementClient.AffinityGroups, new AffinityGroupCreateParameters(affinityGroup, "AffinityGroupLabel", groupLocation));
-                CreateAndValidateAccount(accountName, label, description, accoutLocation, affinityGroup, accountType);
+                CreateAndValidateAccount(accountName, label, description, accoutLocation, affinityGroup, accountType, null);
             }
             finally
             {
@@ -1088,6 +1087,84 @@ namespace Management.Storage.ScenarioTest
             }
 
             ExpectedContainErrorMessage(string.Format(errorMessageFormat, accountType));
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount110_CreateAccount_Tags()
+        {
+            if (isResourceMode)
+            {
+                string accountType = Constants.AccountType.Standard_GRS;
+                string accountName = accountUtils.GenerateAccountName();
+                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode);
+
+                Hashtable[] tags = this.GetUnicodeTags();
+                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), tags);
+
+                accountName = accountUtils.GenerateAccountName();
+                tags = new Hashtable[0];
+                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), tags);
+
+                accountName = accountUtils.GenerateAccountName();
+                tags = new Hashtable[1];
+                tags[0] = new Hashtable();
+                tags[0].Add("Name", Utility.GenNameString("Name"));
+                tags[0].Add("Value", "");
+                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), tags);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount111_CreateAccount_InvalidTags()
+        {
+            if (isResourceMode)
+            {
+                string accountType = Constants.AccountType.Standard_GRS;
+                string accountName = accountUtils.GenerateAccountName();
+                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode);
+
+                Hashtable[] tags = new Hashtable[1];
+                tags[0] = new Hashtable();
+                tags[0].Add("Name", "");
+                tags[0].Add("Value", Utility.GenNameString("Value"));
+                CreateAndValidateAccountWithInvalidTags(accountName, location, accountUtils.mapAccountType(accountType), tags);
+                ExpectedContainErrorMessage("InvalidTagName: The tag name must be non-null, non-empty and non-whitespace only. Please provide an actual value.");
+
+                accountName = accountUtils.GenerateAccountName();
+                tags[0] = new Hashtable();
+                tags[0].Add("Name", Utility.GenNameString("Name", random.Next(125, 500)));
+                tags[0].Add("Value", Utility.GenNameString("Value"));
+                CreateAndValidateAccountWithInvalidTags(accountName, location, accountUtils.mapAccountType(accountType), tags);
+                ExpectedContainErrorMessage("MaxTagKeyLengthExceeded: Maximum allowed length of 128 for tag key exceeded.");
+
+                accountName = accountUtils.GenerateAccountName();
+                tags[0] = new Hashtable();
+                tags[0].Add("Name", Utility.GenNameString("Name"));
+                tags[0].Add("Value", Utility.GenNameString("Value", random.Next(253, 500)));
+                CreateAndValidateAccountWithInvalidTags(accountName, location, accountUtils.mapAccountType(accountType), tags);
+                ExpectedContainErrorMessage(string.Format("InvalidTagValueLength: Tag value too large.  Following tag value '{0}' exceeded the maximum length. Maximum allowed length for tag value - '256' characters.",
+                    tags[0]["Value"].ToString()));
+
+                accountName = accountUtils.GenerateAccountName();
+                tags = new Hashtable[random.Next(16, 50)];
+                for (int i = 0; i < tags.Length; ++i)
+                {
+                    tags[i] = new Hashtable();
+                    tags[i].Add("Name", Utility.GenNameString("Name"));
+                    tags[i].Add("Value", Utility.GenNameString("Value"));
+                }
+                CreateAndValidateAccountWithInvalidTags(accountName, location, accountUtils.mapAccountType(accountType), tags);
+                ExpectedContainErrorMessage(string.Format("InvalidTags: Too many tags on the resource/resource group. Requested tag count - '{0}'. Maximum number of tags allowed - '15'.",
+                    tags.Length));
+            }
         }
 
         [TestMethod]
@@ -1376,6 +1453,259 @@ namespace Management.Storage.ScenarioTest
                 }
 
                 ExpectedContainErrorMessage(errorMessage);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount207_SetAccount_Tags()
+        {
+            if (isResourceMode)
+            {
+                string accountName = accountUtils.GenerateAccountName();
+                try
+                {
+                    string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
+                    string location = Constants.Location.EastAsia;
+
+                    this.CreateNewSRPAccount(accountName, location, accountType);
+                    
+                    WaitForAccountAvailableToSet();
+
+                    Hashtable[] tags = this.GetUnicodeTags();
+
+                    Test.Assert(this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags), 
+                        "Set tags of account {0} in reource group {1} should succeed", accountName, resourceGroupName);
+
+                    Test.Assert(this.agent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
+                        "Get storage account {0} in resource group {1} should succeed.", resourceGroupName, accountName);
+                    
+                    var targetTags = agent.Output[0]["Tags"] as IDictionary<string, string>;
+                    accountUtils.ValidateTags(tags, targetTags);
+
+                    tags = new Hashtable[1];
+                    tags[0] = new Hashtable();
+                    tags[0].Add("Name", Utility.GenNameString("Value"));
+                    tags[0].Add("Value", "");
+
+                    Test.Assert(this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
+                        "Set tags of account {0} in reource group {1} should succeed", accountName, resourceGroupName);
+
+                    Test.Assert(this.agent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
+                        "Get storage account {0} in resource group {1} should succeed.", resourceGroupName, accountName);
+
+                    targetTags = agent.Output[0]["Tags"] as IDictionary<string, string>;
+                    accountUtils.ValidateTags(tags, targetTags);
+
+                    tags = new Hashtable[0];
+                    Test.Assert(this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
+                        "Set tags of account {0} in reource group {1} should succeed", accountName, resourceGroupName);
+
+                    Test.Assert(this.agent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
+                        "Get storage account {0} in resource group {1} should succeed.", resourceGroupName, accountName);
+
+                    targetTags = agent.Output[0]["Tags"] as IDictionary<string, string>;
+                    accountUtils.ValidateTags(tags, targetTags);
+                }
+                finally
+                {
+                    DeleteAccountWrapper(accountName);
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount208_SetAccount_InvalidTags()
+        {
+            if (isResourceMode)
+            {
+                string accountName = accountUtils.GenerateAccountName();
+                try
+                {
+                    string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
+                    string location = Constants.Location.EastAsia;
+
+                    this.CreateNewSRPAccount(accountName, location, accountType);
+
+                    Hashtable[] tags = new Hashtable[1];
+                    tags[0] = new Hashtable();
+                    tags[0].Add("Name", "");
+                    tags[0].Add("Value", Utility.GenNameString("Value"));
+
+                    Test.Assert(!this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
+                        "Set tags of account {0} in reource group {1} should fail", accountName, resourceGroupName);
+                    ExpectedContainErrorMessage("InvalidTagName: The tag name must be non-null, non-empty and non-whitespace only. Please provide an actual value.");
+
+                    tags[0] = new Hashtable();
+                    tags[0].Add("Name", Utility.GenNameString("Name", random.Next(125, 500)));
+                    tags[0].Add("Value", Utility.GenNameString("Value"));
+                    Test.Assert(!this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
+                        "Set tags of account {0} in reource group {1} should fail", accountName, resourceGroupName);
+                    ExpectedContainErrorMessage("MaxTagKeyLengthExceeded: Maximum allowed length of 128 for tag key exceeded.");
+
+                    tags[0] = new Hashtable();
+                    tags[0].Add("Name", Utility.GenNameString("Name"));
+                    tags[0].Add("Value", Utility.GenNameString("Value", random.Next(253, 500)));
+                    Test.Assert(!this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
+                        "Set tags of account {0} in reource group {1} should fail", accountName, resourceGroupName);
+                    ExpectedContainErrorMessage(string.Format("InvalidTagValueLength: Tag value too large.  Following tag value '{0}' exceeded the maximum length. Maximum allowed length for tag value - '256' characters.",
+                        tags[0]["Value"].ToString()));
+
+                    tags = new Hashtable[random.Next(16, 50)];
+                    for (int i = 0; i < tags.Length; ++i)
+                    {
+                        tags[i] = new Hashtable();
+                        tags[i].Add("Name", Utility.GenNameString("Name"));
+                        tags[i].Add("Value", Utility.GenNameString("Value"));
+                    }
+                    Test.Assert(!this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
+                        "Set tags of account {0} in reource group {1} should fail", accountName, resourceGroupName);
+                    ExpectedContainErrorMessage(string.Format("InvalidTags: Too many tags on the resource/resource group. Requested tag count - '{0}'. Maximum number of tags allowed - '15'.",
+                        tags.Length));
+                }
+                finally
+                {
+                    DeleteAccountWrapper(accountName);
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount209_SetAccount_CustomDomain()
+        {
+            if (isResourceMode)
+            {
+                string resourceGroup = Test.Data.Get("CustomDomainAccountResourceGroup");
+                string accountName = Test.Data.Get("CustomDomainAccountName");
+                string accountKey = Test.Data.Get("CustomDomainAccountKey");
+                try
+                {
+                    this.SetCustomDomain(resourceGroup, accountName, "", null);
+
+                    string customDomainName = Test.Data.Get("CustomDomain");
+
+                    bool? useSubdomain = null;
+
+                    switch (random.Next(0, 3))
+                    { 
+                        case 0:
+                            useSubdomain = null;
+                            break;
+                        case 1:
+                            useSubdomain = false;
+                            break;
+                        case 2:
+                        default:
+                            useSubdomain = true;
+                            break;
+                    }
+
+                    Test.Assert(this.agent.SetSRPAzureStorageAccountCustomDomain(resourceGroup, accountName, customDomainName, useSubdomain), "Set custom domain should succeed.");
+
+                    Test.Assert(this.agent.ShowSRPAzureStorageAccount(resourceGroup, accountName), "Get storage account should succeed.");
+
+                    var targetCustomDomain = this.agent.Output[0]["CustomDomain"] as SRPModel.CustomDomain;
+
+                    Test.Assert(string.Equals(customDomainName, targetCustomDomain.Name), "Custom should be the one got set {0}.", targetCustomDomain.Name);
+
+                    CloudBlobContainer container = new CloudBlobContainer(
+                        new Uri(string.Format("http://{0}/{1}", customDomainName, Utility.GenNameString("container"))),
+                        new StorageCredentials(accountName, accountKey));
+
+                    try
+                    {
+                        container.CreateIfNotExists();
+                        container.FetchAttributes();
+                    }
+                    catch (Exception)
+                    {
+                        Test.Error("Operation on container with custom domain should succeed.");
+                    }
+                    finally
+                    {
+                        container.Delete();
+                    }
+                }
+                finally
+                {
+                    this.SetCustomDomain(resourceGroup, accountName, "", null);
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount210_SetAccount_EmptyCustomDomain()
+        {
+            if (isResourceMode)
+            {
+                string resourceGroup = Test.Data.Get("CustomDomainAccountResourceGroup");
+                string accountName = Test.Data.Get("CustomDomainAccountName");
+                string accountKey = Test.Data.Get("CustomDomainAccountKey");
+                try
+                {
+                    string customDomainName = Test.Data.Get("CustomDomain");
+
+                    this.SetCustomDomain(resourceGroup, accountName, customDomainName, null);
+                    
+                    Test.Assert(this.agent.SetSRPAzureStorageAccountCustomDomain(resourceGroup, accountName, "", null), "Set custom domain should succeed.");
+
+                    Test.Assert(this.agent.ShowSRPAzureStorageAccount(resourceGroup, accountName), "Get storage account should succeed.");
+
+                    var targetCustomDomain = this.agent.Output[0]["CustomDomain"] as SRPModel.CustomDomain;
+
+                    Test.Assert(null == targetCustomDomain, "There should be no custom domain got set anymore.");
+                }
+                finally
+                {
+                    this.SetCustomDomain(resourceGroup, accountName, "", null);
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount211_SetAccount_InvalidCustomDomain()
+        {
+            if (isResourceMode)
+            {
+                string accountName = accountUtils.GenerateAccountName();
+                try
+                {
+                    string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
+                    string location = Constants.Location.EastAsia;
+
+                    this.CreateNewSRPAccount(accountName, location, accountType);
+
+                    string invalidCustomDomainName = "www.bing.com";
+                    Test.Assert(!this.agent.SetSRPAzureStorageAccountCustomDomain(resourceGroupName, accountName, invalidCustomDomainName, null), "Set custom domain should fail.");
+                    ExpectedContainErrorMessage(string.Format("The custom domain name could not be verified. CNAME mapping from {0} to {1}.blob.core.windows.net does not exist.", invalidCustomDomainName, accountName));
+
+                    invalidCustomDomainName = accountUtils.GenerateAccountName();
+                    Test.Assert(!this.agent.SetSRPAzureStorageAccountCustomDomain(resourceGroupName, accountName, invalidCustomDomainName, null), "Set custom domain should fail.");
+                    ExpectedContainErrorMessage(string.Format("The custom domain name could not be verified. CNAME mapping from {0} to {1}.blob.core.windows.net does not exist.", invalidCustomDomainName, accountName));
+                }
+                finally
+                {
+                    this.DeleteAccountWrapper(accountName);
+                }
             }
         }
 
@@ -1773,14 +2103,47 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        private void CreateAndValidateAccount(string accountName, string label, string description, string location, string affinityGroup, string accountType, bool? geoReplication = null)
+        private void CreateAndValidateAccountWithInvalidTags(string accountName, string location, string accountType, Hashtable[] tags)
+        {
+            try
+            {
+                StorageAccountGetResponse response;
+                try
+                {
+                    // Use service management client to check the existing account for a global search
+                    response = accountUtils.StorageClient.StorageAccounts.Get(accountName);
+                }
+                catch (Hyak.Common.CloudException ex)
+                {
+                    Test.Assert(ex.Error.Code.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
+                    createdAccounts.Add(accountName);
+                }
+
+                Test.Assert(!agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location, tags),
+                    string.Format("Creating storage account {0} in the resource group {1} at location {2} should failed", accountName, resourceGroupName, location));
+            }
+            finally
+            {
+                DeleteAccountWrapper(accountName);
+            }
+        }
+
+        private void CreateAndValidateAccount(
+            string accountName, 
+            string label, 
+            string description, 
+            string location, 
+            string affinityGroup, 
+            string accountType, 
+            Hashtable[] tags,
+            bool? geoReplication = null)
         {
             try
             {
                 if (isResourceMode)
                 {
-                    CreateNewSRPAccount(accountName, location, accountType);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType);
+                    CreateNewSRPAccount(accountName, location, accountType, tags);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, tags);
                 }
                 else
                 {
@@ -1918,7 +2281,8 @@ namespace Management.Storage.ScenarioTest
         #endregion
 
         #region Resource management account operations
-        private void CreateNewSRPAccount(string accountName, string location, string accountType)
+        
+        private void CreateNewSRPAccount(string accountName, string location, string accountType, Hashtable[] tags = null)
         {
             StorageAccountGetResponse response;
             try
@@ -1932,7 +2296,7 @@ namespace Management.Storage.ScenarioTest
                 createdAccounts.Add(accountName);
             }
 
-            Test.Assert(agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
+            Test.Assert(agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location, tags),
                 string.Format("Creating storage account {0} in the resource group {1} at location {2} should succeed", accountName, resourceGroupName, location));
         }
 
@@ -2123,6 +2487,38 @@ namespace Management.Storage.ScenarioTest
             }
 
             return accountTypeInErrorMessage;
+        }
+
+        private Hashtable[] GetUnicodeTags()
+        {
+            var unicodeNameChars = new List<string>(FileNamingGenerator.GenerateTagValidateUnicodeName(random.Next(1, 129)));
+            var unicodeValueChars = new List<string>(FileNamingGenerator.GenerateTagValidateUnicodeName(random.Next(0, 257)));
+            Hashtable[] tags = new Hashtable[unicodeNameChars.Count];
+
+            for (int i = 0; i < tags.Length; ++i)
+            {
+                tags[i] = new Hashtable();
+                tags[i].Add("Name", unicodeNameChars[i]);
+                tags[i].Add("Value", unicodeValueChars[i]);
+
+                Test.Info("Tag Name: '{0}'  Tag Value: '{1}'", unicodeNameChars[i], unicodeValueChars[i]);
+            }
+
+            return tags;
+        }
+
+        private void SetCustomDomain(string resourceGroupName, string accountName, string customDomain, bool? useSubdomain)
+        {
+            var result = accountUtils.SRPStorageClient.StorageAccounts.UpdateAsync(resourceGroupName, accountName,
+                new SRPModel.StorageAccountUpdateParameters()
+                {
+                    CustomDomain = new SRPModel.CustomDomain
+                    {
+                        Name = customDomain,
+                        UseSubDomain = useSubdomain
+                    }
+                },
+                CancellationToken.None).Result;
         }
 
         private enum ServiceType { Blob, Queue, Table, File }

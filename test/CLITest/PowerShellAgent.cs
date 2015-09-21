@@ -117,16 +117,6 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        public static void LoadProfile()
-        {
-            AzureProfile azureProfile = new AzureProfile(Path.Combine(AzureSession.ProfileDirectory, AzureSession.ProfileFile));
-
-            PowerShell ps = PowerShell.Create(_InitState);
-            ps.AddCommand("Select-AzureProfile");
-            ps.BindParameter("Profile", azureProfile);
-            ps.Invoke();
-        }
-
         public static void SetPowerShellInstance(PowerShell instance)
         {
             PowerShellAgent.PowerShellInstance = instance;
@@ -3613,6 +3603,7 @@ namespace Management.Storage.ScenarioTest
         public override bool Login()
         {
             string password = Test.Data.Get("AADPassword");
+            string subscriptionId = Test.Data.Get("AzureSubscriptionID");
 
             SecureString securePassword = null;
 
@@ -3628,8 +3619,9 @@ namespace Management.Storage.ScenarioTest
 
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
-            ps.AddCommand("Add-AzureAccount");
+            ps.AddCommand("Login-AzureRMAccount");
             ps.BindParameter("Credential", psCredential);
+            ps.BindParameter("SubscriptionId", subscriptionId);
 
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
 
@@ -3641,13 +3633,7 @@ namespace Management.Storage.ScenarioTest
 
         public override void Logout()
         {
-            PowerShell ps = GetPowerShellInstance();
-            AttachPipeline(ps);
-            ps.AddCommand("Remove-AzureAccount");
-            ps.BindParameter("Name", Test.Data.Get("AADUser"));
-
-            Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
-            ps.Invoke();
+            //Do nothing
         }
 
         public override bool ShowAzureStorageAccountConnectionString(string accountName, string resourceGroupName = null)
@@ -3811,15 +3797,16 @@ namespace Management.Storage.ScenarioTest
             return !ps.HadErrors;
         }
 
-        public override bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string type, string location)
+        public override bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string type, string location, Hashtable[] tags = null)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
-            ps.AddCommand("New-AzureStorageAccount");
+            ps.AddCommand("New-AzureRMStorageAccount");
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
             ps.BindParameter("Type", type);
             ps.BindParameter("Location", location);
+            ps.BindParameter("Tags", tags);
 
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
 
@@ -3830,10 +3817,35 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
-            ps.AddCommand("Set-AzureStorageAccount");
+            ps.AddCommand("Set-AzureRMStorageAccount");
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
             ps.BindParameter("Type", accountType);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool SetSRPAzureStorageAccountTags(string resourceGroupName, string accountName, Hashtable[] tags)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Set-AzureRMStorageAccount");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("Name", accountName);
+            ps.BindParameter("Tags", tags);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool SetSRPAzureStorageAccountCustomDomain(string resourceGroupName, string accountName, string customDomain, bool? useSubdomain)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Set-AzureRMStorageAccount");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("Name", accountName);
+            ps.BindParameter("CustomDomainName", customDomain, true);
+            ps.BindParameter("UseSubDomain", useSubdomain);
 
             return InvokePowerShellWithoutContext(ps);
         }
@@ -3842,7 +3854,7 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
-            ps.AddCommand("Remove-AzureStorageAccount");
+            ps.AddCommand("Remove-AzureRMStorageAccount");
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
 
@@ -3853,7 +3865,7 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
-            ps.AddCommand("Get-AzureStorageAccount");
+            ps.AddCommand("Get-AzureRMStorageAccount");
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
 
@@ -3864,7 +3876,7 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
-            ps.AddCommand("Get-AzureStorageAccountKey");
+            ps.AddCommand("Get-AzureRMStorageAccountKey");
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
 
@@ -3875,7 +3887,7 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
-            ps.AddCommand("New-AzureStorageAccountKey");
+            ps.AddCommand("New-AzureRMStorageAccountKey");
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
 
