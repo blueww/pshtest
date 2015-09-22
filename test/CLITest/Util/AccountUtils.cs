@@ -158,23 +158,7 @@
 
             this.ValidateTags(tags, account.Tags);
         }
-
-        public void ValidateTags(Hashtable[] originTags, IDictionary<string, string> targetTags)
-        {
-            if (null == originTags || 0 == originTags.Length)
-            {
-                Test.Assert(0 == targetTags.Count, "Should be no tags got set.");
-                return;
-            }
-
-            foreach (var sourceTag in originTags)
-            {
-                string tagValue = null;
-                Test.Assert(targetTags.TryGetValue(sourceTag["Name"].ToString(), out tagValue), "Tag {0} should exist", sourceTag["Name"]);
-                Test.Assert(string.Equals(tagValue, sourceTag["Value"].ToString()), "Tag value should be the same.");
-            }
-        }
-
+        
         public void ValidateTags(Hashtable[] originTags, IDictionary<string, string> targetTags)
         {
             if (null == originTags || 0 == originTags.Length)
