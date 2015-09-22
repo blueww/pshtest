@@ -21,6 +21,7 @@
   <AADPassword></AADPassword>
   <AutoLogin></AutoLogin>
   <LoginAppPath>D:\powershell\SaveTokenCache\SaveTokenCache.exe</LoginAppPath>
+  <ProfilePath>C:\PowerShell\Profile</ProfilePath>
 
   <!-- These settings are only for service mode which accepts certificate authentication -->
   <ManagementCert></ManagementCert>
@@ -29,7 +30,7 @@
 
   <!-- These settings are for Powershell only -->
   <PSSnapInName></PSSnapInName>
-  <ModuleFileFolder>C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\</ModuleFileFolder>  
+  <ModuleFileFolder>C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\</ModuleFileFolder>
 
   <!-- These settings are for platform specific -->
   <PLinkPath></PLinkPath>
@@ -50,6 +51,12 @@
   <SecondaryStorageAccountKey></SecondaryStorageAccountKey>
   <SecondaryStorageEndPoint>core.windows.net</SecondaryStorageEndPoint>
   <StorageAccountNameInOtherSubscription>xtestragrsxsmb1</StorageAccountNameInOtherSubscription>
+    
+  <!-- Following setting are for custom domain setting test cases-->
+  <CustomDomainAccountResourceGroup></CustomDomainAccountResourceGroup>
+  <CustomDomainAccountName></CustomDomainAccountName>
+  <CustomDomainAccountKey></CustomDomainAccountKey>
+  <CustomDomain></CustomDomain>
     
   <!-- Following setting are for custom domain setting test cases-->
   <CustomDomainAccountResourceGroup></CustomDomainAccountResourceGroup>
