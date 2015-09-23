@@ -3925,7 +3925,7 @@ namespace Management.Storage.ScenarioTest
         public override bool CheckNameAvailability(string accountName)
         {
             PowerShell ps = GetPowerShellInstance();
-            ps.AddCommand("Get-AzureStorageAccountNameAvailability");
+            ps.AddCommand("Get-AzureRMStorageAccountNameAvailability");
             ps.BindParameter("Name", accountName, true);
             
             return InvokePowerShellWithoutContext(ps);
@@ -3934,7 +3934,7 @@ namespace Management.Storage.ScenarioTest
         public override bool GetAzureStorageUsage()
         {
             PowerShell ps = GetPowerShellInstance();
-            ps.AddCommand("Get-AzureStorageUsage");
+            ps.AddCommand("Get-AzureRMStorageUsage");
 
             return InvokePowerShellWithoutContext(ps);
         }
