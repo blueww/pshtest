@@ -10,6 +10,7 @@
   <logerror>true</logerror>
   
   <!-- These settings are for both resource mode and service mode for the subscription information -->
+  <IsPowerShellGet></IsPowerShellGet>
   <IsResourceMode></IsResourceMode>
   <AzureSubscriptionName></AzureSubscriptionName>
   <AzureSubscriptionID></AzureSubscriptionID>
@@ -19,8 +20,6 @@
   <AADClient>e3f21156-febf-4587-9449-68fb6a757747</AADClient>
   <AADPassword>oKLElUo6PpfmA/Dz+EA6TZne2OadLkYiUyG/G/Js204=</AADPassword>
   <AutoLogin>true</AutoLogin>
-  <LoginAppPath>D:\powershell\SaveTokenCache\SaveTokenCache.exe</LoginAppPath>
-  <ProfilePath>C:\PowerShell\Profile</ProfilePath>
 
   <!-- These settings are only for service mode which accepts certificate authentication -->
   <ManagementCert></ManagementCert>
