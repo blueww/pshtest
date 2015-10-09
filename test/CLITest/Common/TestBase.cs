@@ -136,16 +136,19 @@ namespace Management.Storage.ScenarioTest.Common
 
             if (lang == Language.PowerShell)
             {
-                string moduleFileFolder = Test.Data.Get("ModuleFileFolder");
-
-                if (!string.IsNullOrWhiteSpace(moduleFileFolder))
+                if (!bool.Parse(Test.Data.Get("IsPowerShellGet")))
                 {
-                    PowerShellAgent.ImportModule(Path.Combine(moduleFileFolder, Constants.ServiceModulePath));
+                    string moduleFileFolder = Test.Data.Get("ModuleFileFolder");
 
-                    if (isResourceMode)
+                    if (!string.IsNullOrWhiteSpace(moduleFileFolder))
                     {
-                        PowerShellAgent.RemoveModule("Azure");
-                        PowerShellAgent.ImportModule(Path.Combine(moduleFileFolder, Constants.ResourceModulePath));
+                        PowerShellAgent.ImportModule(Path.Combine(moduleFileFolder, Constants.ServiceModulePath));
+
+                        if (isResourceMode)
+                        {
+                            PowerShellAgent.RemoveModule("Azure");
+                            PowerShellAgent.ImportModule(Path.Combine(moduleFileFolder, Constants.ResourceModulePath));
+                        }
                     }
                 }
 

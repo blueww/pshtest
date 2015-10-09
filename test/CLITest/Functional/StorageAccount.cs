@@ -70,23 +70,7 @@ namespace Management.Storage.ScenarioTest
         public static void StorageAccountTestInit(TestContext testContext)
         {
             TestBase.TestClassInitialize(testContext);
-
-            if (isResourceMode)
-            {
-                string appPath = Test.Data.Get("LoginAppPath");
-
-                if (!string.IsNullOrEmpty(appPath))
-                {
-                    Test.Info("Calling {0} to save credential token", appPath);
-                    TestHelper.RunCmd(appPath, Test.Data.Get("AzureSubscriptionID"));
-                }
-
-                if (Language.PowerShell == lang)
-                {
-                    PowerShellAgent.LoadProfile();
-                }
-            }
-
+            
             NodeJSAgent.AgentConfig.UseEnvVar = false;
 
             managementClient = new ManagementClient(Utility.GetCertificateCloudCredential());

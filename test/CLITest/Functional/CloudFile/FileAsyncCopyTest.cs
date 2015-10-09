@@ -295,7 +295,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 PowerShellAgent psAgent = agent as PowerShellAgent;
 
-                Test.Assert(psAgent.StartFileCopyFromContainer(GetModulePath(), StorageAccount.ToString(true), StorageAccount.ToString(true), containerName, shareName),
+                Test.Assert(psAgent.StartFileCopyFromContainer(StorageAccount.ToString(true), StorageAccount.ToString(true), containerName, shareName),
                     "Start file copy should succeed.");
 
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageFile -ShareName {0}", shareName));
@@ -338,7 +338,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 PowerShellAgent psAgent = agent as PowerShellAgent;
 
-                Test.Assert(psAgent.StartFileCopyFromShare(GetModulePath(), StorageAccount.ToString(true), StorageAccount.ToString(true), srcShareName, destShareName),
+                Test.Assert(psAgent.StartFileCopyFromShare(StorageAccount.ToString(true), StorageAccount.ToString(true), srcShareName, destShareName),
                     "Start file copy should succeed.");
 
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageFile -ShareName {0}", destShareName));
@@ -657,7 +657,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             object srcContext;
             if (lang == Language.PowerShell)
             {
-                srcContext = PowerShellAgent.GetStorageContext(srcAccount.ToString());
+                srcContext = PowerShellAgent.GetStorageContext(srcAccount.ToString(true));
             }
             else
             {
@@ -753,7 +753,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 var blobs = blobUtil.CreateRandomBlob(container, true);
                 PowerShellAgent psAgent = agent as PowerShellAgent;
 
-                Test.Assert(psAgent.StartFileCopyFromContainer(GetModulePath(), StorageAccount.ToString(true), StorageAccount.ToString(true), container.Name, shareName), 
+                Test.Assert(psAgent.StartFileCopyFromContainer(StorageAccount.ToString(true), StorageAccount.ToString(true), container.Name, shareName), 
                     "Start file copy should succeed.");
 
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageFile -ShareName {0}", shareName));
@@ -788,7 +788,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             object srcContext;
             if (lang == Language.PowerShell)
             {
-                srcContext = PowerShellAgent.GetStorageContext(srcAccount.ToString());
+                srcContext = PowerShellAgent.GetStorageContext(srcAccount.ToString(true));
             }
             else
             {
@@ -842,7 +842,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             object srcContext;
             if (lang == Language.PowerShell)
             {
-                srcContext = PowerShellAgent.GetStorageContext(srcAccount.ToString());
+                srcContext = PowerShellAgent.GetStorageContext(srcAccount.ToString(true));
             }
             else
             {
