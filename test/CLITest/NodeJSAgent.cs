@@ -478,7 +478,13 @@ namespace Management.Storage.ScenarioTest
 
         public override bool Login()
         {
-            return RunNodeJSProcess(string.Format("-u {0} -p {1}", Test.Data.Get("AADUser"), Test.Data.Get("AADPassword")), needAccountParam: false, category: "login");
+            return RunNodeJSProcess(
+                string.Format("-u {0} -p {1} --tenant {2} --service-principal",
+                    Test.Data.Get("AADClient"),
+                    Test.Data.Get("AADPassword"),
+                    Test.Data.Get("AADRealm")), 
+                needAccountParam: false, 
+                category: "login");
         }
 
         public override void Logout()

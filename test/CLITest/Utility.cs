@@ -372,6 +372,14 @@ namespace Management.Storage.ScenarioTest
             return new CertificateCloudCredentials(Test.Data.Get("AzureSubscriptionID"), cert);
         }
 
+        public static TokenCloudCredentials GetTokenCloudCredential()
+        {
+            AuthenticationContext context = new AuthenticationContext(string.Format("https://login.windows.net/{0}", Test.Data.Get("AADRealm")));
+            ClientCredential clientCred = new ClientCredential(Test.Data.Get("AADClient"), Test.Data.Get("AADPassword"));
+            AuthenticationResult result = context.AcquireToken("https://management.core.windows.net/", clientCred);
+            return new TokenCloudCredentials(Test.Data.Get("AzureSubscriptionID"), result.AccessToken);
+        }
+
         /// <summary>
         /// Generate the data for output comparison
         /// </summary> 

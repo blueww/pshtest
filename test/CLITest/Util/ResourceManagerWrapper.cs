@@ -10,9 +10,7 @@
 
         public ResourceManagerWrapper()
         {
-            resourceManager = AzureSession.ClientFactory.CreateClient<ResourceManagementClient>(
-                Utility.GetProfile().Context,
-                Microsoft.Azure.Common.Authentication.Models.AzureEnvironment.Endpoint.ResourceManager);
+            resourceManager = new ResourceManagementClient(Utility.GetTokenCloudCredential());
         }
 
         public void CreateResourceGroup(string resourceGroupName, string location)
