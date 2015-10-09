@@ -35,13 +35,8 @@
         {
             if (isResourceMode)
             {
-                StorageClient = AzureSession.ClientFactory.CreateClient<StorageManagementClient>(
-                    Utility.GetProfile().Context,
-                    Microsoft.Azure.Common.Authentication.Models.AzureEnvironment.Endpoint.ServiceManagement);
-
-                SRPStorageClient = AzureSession.ClientFactory.CreateClient<SRPManagement.StorageManagementClient>(
-                    Utility.GetProfile().Context,
-                    Microsoft.Azure.Common.Authentication.Models.AzureEnvironment.Endpoint.ResourceManager);
+                StorageClient = new StorageManagementClient(Utility.GetCertificateCloudCredential());
+                SRPStorageClient = new SRPManagement.StorageManagementClient(Utility.GetTokenCloudCredential());
             }
             else
             {
