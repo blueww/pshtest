@@ -3630,12 +3630,14 @@ namespace Management.Storage.ScenarioTest
                 }
             }
 
-            PSCredential psCredential = new PSCredential(Test.Data.Get("AADUser"), securePassword);
+            PSCredential psCredential = new PSCredential(Test.Data.Get("AADClient"), securePassword);
 
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
             ps.AddCommand("Login-AzureRMAccount");
             ps.BindParameter("Credential", psCredential);
+            ps.BindParameter("ServicePrincipal");
+            ps.BindParameter("Tenant", Test.Data.Get("AADRealm"));
             ps.BindParameter("SubscriptionId", subscriptionId);
 
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
