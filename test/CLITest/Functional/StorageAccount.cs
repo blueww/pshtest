@@ -1501,8 +1501,8 @@ namespace Management.Storage.ScenarioTest
 
                     Test.Assert(this.agent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
                         "Get storage account {0} in resource group {1} should succeed.", resourceGroupName, accountName);
-                    
-                    var targetTags = agent.Output[0]["Tags"] as IDictionary<string, string>;
+
+                    var targetTags = GetTagsFromOutput();
                     accountUtils.ValidateTags(tags, targetTags);
 
                     tags = new Hashtable[1];
@@ -1516,7 +1516,7 @@ namespace Management.Storage.ScenarioTest
                     Test.Assert(this.agent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
                         "Get storage account {0} in resource group {1} should succeed.", resourceGroupName, accountName);
 
-                    targetTags = agent.Output[0]["Tags"] as IDictionary<string, string>;
+                    targetTags = GetTagsFromOutput();
                     accountUtils.ValidateTags(tags, targetTags);
 
                     tags = new Hashtable[0];
@@ -1526,7 +1526,7 @@ namespace Management.Storage.ScenarioTest
                     Test.Assert(this.agent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
                         "Get storage account {0} in resource group {1} should succeed.", resourceGroupName, accountName);
 
-                    targetTags = agent.Output[0]["Tags"] as IDictionary<string, string>;
+                    targetTags = GetTagsFromOutput();
                     accountUtils.ValidateTags(tags, targetTags);
                 }
                 finally
