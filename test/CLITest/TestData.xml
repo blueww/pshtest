@@ -16,10 +16,9 @@
 
   <!-- These settings are only for resource mode which requires AAD authentication -->
   <AADRealm>72f988bf-86f1-41af-91ab-2d7cd011db47</AADRealm>
-  <AADClient>f64ce98e-0381-4800-b914-1022149a2fa5</AADClient>
-  <AADUser>xtestlab@microsoft.com</AADUser>
-  <AADPassword></AADPassword>
-  <AutoLogin></AutoLogin>
+  <AADClient>e3f21156-febf-4587-9449-68fb6a757747</AADClient>
+  <AADPassword>oKLElUo6PpfmA/Dz+EA6TZne2OadLkYiUyG/G/Js204=</AADPassword>
+  <AutoLogin>true</AutoLogin>
   <LoginAppPath>D:\powershell\SaveTokenCache\SaveTokenCache.exe</LoginAppPath>
   <ProfilePath>C:\PowerShell\Profile</ProfilePath>
 
