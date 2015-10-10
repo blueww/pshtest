@@ -2480,6 +2480,7 @@ namespace Management.Storage.ScenarioTest
         internal void ParseErrorMessages(PowerShell ps, Exception runtimeException = null)
         {
             _ErrorMessages.Clear();
+            _RuntimeException = null;
             if (ps.HadErrors)
             {
                 foreach (ErrorRecord record in ps.Streams.Error)
@@ -2504,6 +2505,7 @@ namespace Management.Storage.ScenarioTest
 
                 if (runtimeException != null)
                 {
+                    _RuntimeException = runtimeException;
                     _ErrorMessages.Add(runtimeException.Message);
                 }
             }
@@ -3355,16 +3357,24 @@ namespace Management.Storage.ScenarioTest
                 Test.Info("About to invoke powershell command: {0}", PowerShellAgent.GetCommandLine(this.shell));
             }
 
-            var result = input == null ? this.shell.Invoke() : this.shell.Invoke(input);
-            if (this.shell.HadErrors)
+            try
             {
-                foreach (var record in this.shell.Streams.Error)
+                var result = input == null ? this.shell.Invoke() : this.shell.Invoke(input);
+                if (this.shell.HadErrors)
                 {
-                    Test.Info(record.ToString());
+                    foreach (var record in this.shell.Streams.Error)
+                    {
+                        Test.Info(record.ToString());
+                    }
                 }
-            }
 
-            return new PowerShellExecutionResult(result);
+                return new PowerShellExecutionResult(result);
+            }
+            catch (Exception ex)
+            {
+                ParseErrorMessages(this.shell, ex);
+                return null;
+            }
         }
 
         public override void AssertNoError()
@@ -3374,6 +3384,12 @@ namespace Management.Storage.ScenarioTest
 
         public override void AssertErrors(Action<IExecutionError> assertErrorAction, int expectedErrorCount = 1)
         {
+            if (null != _RuntimeException)
+            {
+                assertErrorAction(new PowerShellExecutionError(new ErrorRecord(_RuntimeException, _RuntimeException.GetType().ToString(), ErrorCategory.InvalidOperation, null)));
+                expectedErrorCount--;
+            }
+
             Test.Assert(this.shell.Streams.Error.Count == expectedErrorCount, "Expected {0} error records while there's {1}.", expectedErrorCount, this.shell.Streams.Error.Count);
             foreach (var errorRecord in this.shell.Streams.Error)
             {
