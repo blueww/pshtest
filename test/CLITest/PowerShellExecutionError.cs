@@ -41,7 +41,7 @@ namespace Management.Storage.ScenarioTest
         {
             var record = this.ErrorRecord;
             string errorCode = record.FullyQualifiedErrorId;
-            if (record.FullyQualifiedErrorId.StartsWith("StorageException"))
+            if (record.FullyQualifiedErrorId.Contains("StorageException"))
             {
                 var exception = (StorageException)record.Exception;
                 if (exception.RequestInformation != null && exception.RequestInformation.ExtendedErrorInformation != null)
@@ -49,12 +49,12 @@ namespace Management.Storage.ScenarioTest
                     errorCode = exception.RequestInformation.ExtendedErrorInformation.ErrorCode;
                 }
             }
-            else if (record.FullyQualifiedErrorId.StartsWith("DirectoryNotFoundException") ||
-                     record.FullyQualifiedErrorId.StartsWith("FileNotFoundException"))
+            else if (record.FullyQualifiedErrorId.Contains("DirectoryNotFoundException") ||
+                     record.FullyQualifiedErrorId.Contains("FileNotFoundException"))
             {
                 errorCode = AssertUtil.PathNotFoundFullQualifiedErrorId;
             }
-            else if (record.FullyQualifiedErrorId.StartsWith("ArgumentException"))
+            else if (record.FullyQualifiedErrorId.Contains("ArgumentException"))
             {
                 errorCode = AssertUtil.InvalidArgumentFullQualifiedErrorId;
             }

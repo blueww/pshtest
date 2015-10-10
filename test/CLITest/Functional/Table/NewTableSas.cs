@@ -191,7 +191,7 @@
 
                 Test.Assert(!agent.NewAzureStorageTableSAS(table.Name, policyName, string.Empty),
                     "Generate table sas token with not exist policy should fail");
-                ExpectedEqualErrorMessage(string.Format("Invalid access policy '{0}'.", policyName));
+                ExpectedContainErrorMessage(string.Format("Invalid access policy '{0}'.", policyName));
             }
             finally
             {
@@ -218,7 +218,7 @@
                 DateTime end = start.AddHours(1.0);
                 Test.Assert(!agent.NewAzureStorageTableSAS(table.Name, string.Empty, "d", end, start),
                         "Generate table sas token with invalid should fail");
-                ExpectedStartsWithErrorMessage("The expiry time of the specified access policy should be greater than start time");
+                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
             }
             finally
             {

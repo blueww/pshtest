@@ -98,6 +98,7 @@ namespace Management.Storage.ScenarioTest
 
             //--------------1. New operation--------------
             Test.Assert(agent.NewAzureStorageQueue(QUEUE_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", true));
+
             if (multiOutput)
             {
                 // Verification for returned values
@@ -120,16 +121,7 @@ namespace Management.Storage.ScenarioTest
                     // Verification for returned values
                     Test.Assert(agent.Output.Count == 0, "0 row returned : {0}", agent.Output.Count);
 
-                    int i = 0;
-                    foreach (string name in QUEUE_NAMES)
-                    {
-                        Test.Assert(agent.ErrorMessages[i].Equals(String.Format("Queue '{0}' already exists.", name)), agent.ErrorMessages[i]);
-                        ++i;
-                    }
-
-                    //--------------3. New operation--------------
-                    Test.Assert(!agent.NewAzureStorageQueue(PARTLY_EXISTING_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", false));
-                    Test.Assert(agent.Output.Count == 1, "1 row returned : {0}", agent.Output.Count);
+                    Test.Assert(agent.ErrorMessages[0].Contains(String.Format("Queue '{0}' already exists.", QUEUE_NAMES[0])), agent.ErrorMessages[0]);
                 }
                 else
                 {
@@ -164,7 +156,7 @@ namespace Management.Storage.ScenarioTest
             finally
             {
                 //--------------5. Remove operation--------------
-                Test.Assert(agent.RemoveAzureStorageQueue(MERGED_NAMES), Utility.GenComparisonData("RemoveAzureStorageQueue", true));
+                Test.Assert(agent.RemoveAzureStorageQueue(QUEUE_NAMES), Utility.GenComparisonData("RemoveAzureStorageQueue", true));
                 // Check if all the above queues have been removed
                 foreach (string name in QUEUE_NAMES)
                 {
@@ -325,7 +317,7 @@ namespace Management.Storage.ScenarioTest
                 Test.Assert(!agent.RemoveAzureStorageQueue(QUEUE_NAME, false), Utility.GenComparisonData("RemoveAzureStorageQueue", false));
                 // Verification for returned values
                 Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-                Test.Assert(agent.ErrorMessages[0].StartsWith("A command that prompts the user failed because"), agent.ErrorMessages[0]);
+                Test.Assert(agent.ErrorMessages[0].Contains("A command that prompts the user failed because"), agent.ErrorMessages[0]);
             }
             finally
             {
