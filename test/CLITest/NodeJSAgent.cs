@@ -479,10 +479,10 @@ namespace Management.Storage.ScenarioTest
         public override bool Login()
         {
             return RunNodeJSProcess(
-                string.Format("-u {0} --tenant {1} --service-principal -p {2}",
+                string.Format("-u {0} -p {1} --tenant {2} --service-principal",
                     Test.Data.Get("AADClient"),
-                    Test.Data.Get("AADRealm"),
-                    Test.Data.Get("AADPassword")), 
+                    Test.Data.Get("AADPassword"),
+                    Test.Data.Get("AADRealm")), 
                 needAccountParam: false, 
                 category: "login");
         }
@@ -491,7 +491,7 @@ namespace Management.Storage.ScenarioTest
         {
             try
             {
-                RunNodeJSProcess("clear -q", needAccountParam: false, category: "account");
+                RunNodeJSProcess(string.Format("{0}", Test.Data.Get("AADClient")), needAccountParam: false, category: "logout");
             }
             catch (Exception ex)
             {
