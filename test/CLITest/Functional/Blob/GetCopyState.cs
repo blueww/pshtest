@@ -112,9 +112,9 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 invalidBlobErrorMessage = "BadRequest";
             }
             Test.Assert(!agent.GetAzureStorageBlobCopyState(invalidContainerName, Utility.GenNameString("blob"), false), "get copy state should failed with invalid container name");
-            ExpectedStartsWithErrorMessage(invalidContainerErrorMessage);
+            ExpectedContainErrorMessage(invalidContainerErrorMessage);
             Test.Assert(!agent.GetAzureStorageBlobCopyState(Utility.GenNameString("container"), invalidBlobName, false), "get copy state should failed with invalid blob name");
-            ExpectedStartsWithErrorMessage(invalidBlobErrorMessage);
+            ExpectedContainErrorMessage(invalidBlobErrorMessage);
         }
 
         /// <summary>
@@ -138,7 +138,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             if (lang == Language.PowerShell)
             {
                 errorMessage = string.Format("Can not find blob '{0}' in container '{1}', or the blob type is unsupported.", blobName, srcContainerName);
-                validator = ExpectedEqualErrorMessage;
+                validator = ExpectedContainErrorMessage;
             }
             else
             {

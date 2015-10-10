@@ -198,7 +198,8 @@ namespace Management.Storage.ScenarioTest
                 int i = 0;
                 foreach (string name in CONTAINER_NAMES)
                 {
-                    Test.Assert(agent.ErrorMessages[i].StartsWith(String.Format("Container '{0}' already exists", name)), agent.ErrorMessages[i]);
+                    string errorMsg = String.Format("Container '{0}' already exists", name);
+                    Test.Assert(agent.ErrorMessages[i].Contains(errorMsg), "Expect error message {0}, actually it's: {1}", errorMsg, agent.ErrorMessages[i]);
                     ++i;
                 }
 
@@ -289,11 +290,11 @@ namespace Management.Storage.ScenarioTest
                             Test.AssertFail("Can not create $root container and can't get any error messages");
                             break;
                         }
-                        else if (agent.ErrorMessages[0].StartsWith("The remote server returned an error: (409) Conflict."))
+                        else if (agent.ErrorMessages[0].Contains("The remote server returned an error: (409) Conflict."))
                         {
                             retryCount++;
                         }
-                        else if (agent.ErrorMessages[0].StartsWith("The specified container is being deleted."))
+                        else if (agent.ErrorMessages[0].Contains("The specified container is being deleted."))
                         {
                             retryCount++;
                         }
@@ -404,7 +405,7 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(!agent.GetAzureStorageContainer(CONTAINER_NAME), Utility.GenComparisonData("GetAzureStorageContainer", false));
             // Verification for returned values
             Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-            Test.Assert(agent.ErrorMessages[0].Equals(String.Format("Can not find the container '{0}'.", CONTAINER_NAME)), agent.ErrorMessages[0]);
+            Test.Assert(agent.ErrorMessages[0].Contains(String.Format("Can not find the container '{0}'.", CONTAINER_NAME)), agent.ErrorMessages[0]);
         }
 
         /// <summary>
@@ -459,7 +460,7 @@ namespace Management.Storage.ScenarioTest
                 Test.Assert(!agent.RemoveAzureStorageContainer(CONTAINER_NAME, false), Utility.GenComparisonData("RemoveAzureStorageContainer", false));
                 // Verification for returned values
                 Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-                Test.Assert(agent.ErrorMessages[0].StartsWith("A command that prompts the user failed because"), agent.ErrorMessages[0]);
+                Test.Assert(agent.ErrorMessages[0].Contains("A command that prompts the user failed because"), agent.ErrorMessages[0]);
             }
             finally
             {

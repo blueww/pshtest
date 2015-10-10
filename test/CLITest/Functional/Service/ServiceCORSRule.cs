@@ -479,7 +479,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             if (lang == Language.PowerShell)
             {
                 Test.Assert(!agent.SetAzureStorageCORSRules(Constants.ServiceType.InvalidService, corsRules), "Set cors rules to invalid service type should fail.");
-                ExpectedContainErrorMessage(string.Format("Unable to match the identifier name {0} to a valid enumerator name.  Specify one of the following enumerator names and try again: Blob, Table, Queue, File",
+                ExpectedContainErrorMessage(string.Format("Unable to match the identifier name {0} to a valid enumerator name. Specify one of the following enumerator names and try again:",
                     Constants.ServiceType.InvalidService.ToString()));
             }
         }
@@ -494,7 +494,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             if (lang == Language.PowerShell)
             {
                 Test.Assert(!agent.GetAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Get CORS rules of invalid service type should fail.");
-                ExpectedContainErrorMessage(string.Format("Unable to match the identifier name {0} to a valid enumerator name.  Specify one of the following enumerator names and try again: Blob, Table, Queue, File",
+                ExpectedContainErrorMessage(string.Format("Unable to match the identifier name {0} to a valid enumerator name. Specify one of the following enumerator names and try again:",
                     Constants.ServiceType.InvalidService.ToString()));
             }
             else
@@ -514,7 +514,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             if (lang == Language.PowerShell)
             {
                 Test.Assert(!agent.RemoveAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Remove CORS rules of invalid service type should fail.");
-                ExpectedContainErrorMessage(string.Format("Unable to match the identifier name {0} to a valid enumerator name.  Specify one of the following enumerator names and try again: Blob, Table, Queue, File",
+                ExpectedContainErrorMessage(string.Format("Unable to match the identifier name {0} to a valid enumerator name. Specify one of the following enumerator names and try again:",
                     Constants.ServiceType.InvalidService.ToString()));
             }
             else

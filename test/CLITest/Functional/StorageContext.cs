@@ -123,12 +123,11 @@ namespace Management.Storage.ScenarioTest.Functional
                 psAgent.AddPipelineScript(cmd);
 
                 Test.Assert(!agent.GetAzureStorageContainer(containerName), Utility.GenComparisonData("Get-AzureStorageContainer using valid and invalid storage contexts", false));
-                Test.Assert(agent.Output.Count == 1, "valid storage context should return 1 container");
                 Test.Assert(agent.ErrorMessages.Count == 1, "invalid storage context should return error");
 
                 //the same error may output different error messages in different environments
-                bool expectedError = agent.ErrorMessages[0].StartsWith("The remote server returned an error: (502) Bad Gateway") ||
-                    agent.ErrorMessages[0].StartsWith("The remote name could not be resolved") || agent.ErrorMessages[0].StartsWith("The operation has timed out");
+                bool expectedError = agent.ErrorMessages[0].Contains("The remote server returned an error: (502) Bad Gateway") ||
+                    agent.ErrorMessages[0].Contains("The remote name could not be resolved") || agent.ErrorMessages[0].Contains("The operation has timed out");
                 Test.Assert(expectedError, "use invalid storage account should return 502 or could not be resolved exception or The operation has timed out, actually {0}", agent.ErrorMessages[0]);
             }
             finally
