@@ -497,6 +497,7 @@ namespace Management.Storage.ScenarioTest
 
         protected Collection<Dictionary<string, object>> _Output = new Collection<Dictionary<string, object>>();
         protected Collection<string> _ErrorMessages = new Collection<string>();
+        protected Exception _RuntimeException = null;
 
         protected virtual void DisposeInternal()
         {
