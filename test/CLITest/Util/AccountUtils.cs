@@ -148,7 +148,7 @@
 
             if (!string.IsNullOrEmpty(location))
             {
-                Test.Assert(location == account.Location, string.Format("Expected location is {0} and actually it is {1}", location, account.Location));
+                Test.Assert(location.Replace(" ", "").ToLower() == account.Location, string.Format("Expected location is {0} and actually it is {1}", location, account.Location));
             }
 
             this.ValidateTags(tags, account.Tags);
