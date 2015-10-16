@@ -178,7 +178,7 @@
 
                 Test.Assert(!agent.NewAzureStorageBlobSAS(blobUtil.Container.Name, blobUtil.Blob.Name, policyName, string.Empty),
                     "Generate Blob sas token with not exist policy should fail");
-                ExpectedEqualErrorMessage(string.Format("Invalid access policy '{0}'.", policyName));
+                ExpectedContainErrorMessage(string.Format("Invalid access policy '{0}'.", policyName));
             }
             finally
             {
@@ -203,7 +203,7 @@
             DateTime end = start.AddHours(1.0);
             Test.Assert(!agent.NewAzureStorageBlobSAS(containerName, blobName, string.Empty, string.Empty, end, start),
                     "Generate Blob sas token with invalid should fail");
-            ExpectedStartsWithErrorMessage("The expiry time of the specified access policy should be greater than start time");
+            ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
         }
 
         /// <summary>

@@ -926,7 +926,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 {
                     Test.Assert(!agent.NewAzureStorageShareSAS(shareName, policyName, string.Empty),
                         "Generate share sas token with non-exist policy should fail");
-                    ExpectedEqualErrorMessage(string.Format("Invalid access policy '{0}'.", policyName));
+                    ExpectedContainErrorMessage(string.Format("Invalid access policy '{0}'.", policyName));
                 }
                 else
                 {
@@ -960,7 +960,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 DateTime end = start.AddHours(1.0);
                 Test.Assert(!agent.NewAzureStorageShareSAS(shareName, string.Empty, "l", end, start),
                         "Generate share sas token with invalid should fail");
-                ExpectedStartsWithErrorMessage("The expiry time of the specified access policy should be greater than start time");
+                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
             }
             finally
             {
@@ -1297,7 +1297,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 {
                     Test.Assert(!agent.NewAzureStorageFileSAS(shareName, fileName, policyName, string.Empty),
                         "Generate file sas token with non-exist policy should fail");
-                    ExpectedEqualErrorMessage(string.Format("Invalid access policy '{0}'.", policyName));
+                    ExpectedContainErrorMessage(string.Format("Invalid access policy '{0}'.", policyName));
                 }
                 else
                 {
@@ -1334,7 +1334,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 DateTime end = start.AddHours(1.0);
                 Test.Assert(!agent.NewAzureStorageFileSAS(shareName, fileName, string.Empty, "l", end, start),
                         "Generate file sas token with invalid should fail");
-                ExpectedStartsWithErrorMessage("The expiry time of the specified access policy should be greater than start time");
+                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
             }
             finally
             {
