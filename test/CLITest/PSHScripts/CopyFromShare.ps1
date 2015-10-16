@@ -1,11 +1,9 @@
-﻿param ([string]$modulePath,
-[string]$sourceConnectionString,
+﻿param ([string]$sourceConnectionString,
 [string]$destConnectionString,
 [string]$sourceShareName,
 [string]$destShareName)
 
 
-Import-Module $modulePath
 $sourceCtx = New-AzureStorageContext -ConnectionString $sourceConnectionString
 $destCtx = New-AzureStorageContext -ConnectionString $destConnectionString
 

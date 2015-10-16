@@ -75,7 +75,7 @@ namespace Management.Storage.ScenarioTest
             {
                 throw new Exception("returned error message is empty!");
             }
-            Test.Assert(ErrorMessages[0].StartsWith(expectedErrorMessage), String.Format("Expected error message should start with {0}, and actually it's {1}",
+            Test.Assert(ErrorMessages[0].Contains(expectedErrorMessage), String.Format("Expected error message should start with {0}, and actually it's {1}",
                 expectedErrorMessage, ErrorMessages[0]));
         }
 

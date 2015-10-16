@@ -709,6 +709,11 @@ namespace Management.Storage.ScenarioTest
             ps.AddCommand("Remove-AzureStorageContainer");
             ps.BindParameter("Name", ContainerName);
 
+            if (Force)
+            {
+                ps.AddParameter("Force");
+            }
+
             return InvokeStoragePowerShell(ps);
         }
 
@@ -717,6 +722,11 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = GetPowerShellInstance();
             ps.AddScript(FormatNameList(ContainerNames));
             ps.AddCommand("Remove-AzureStorageContainer");
+
+            if (Force)
+            {
+                ps.AddParameter("Force");
+            }
 
             return InvokeStoragePowerShell(ps);
         }
@@ -764,6 +774,11 @@ namespace Management.Storage.ScenarioTest
             ps.AddCommand("Remove-AzureStorageQueue");
             ps.BindParameter("Name", QueueName);
 
+            if (Force)
+            {
+                ps.AddParameter("Force");
+            }
+
             return InvokeStoragePowerShell(ps);
         }
 
@@ -772,6 +787,11 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = GetPowerShellInstance();
             ps.AddScript(FormatNameList(QueueNames));
             ps.AddCommand("Remove-AzureStorageQueue");
+
+            if (Force)
+            {
+                ps.AddParameter("Force");
+            }
 
             return InvokeStoragePowerShell(ps);
         }
@@ -800,6 +820,8 @@ namespace Management.Storage.ScenarioTest
             {
                 ps.BindParameter("BlobType", "Append");
             }
+
+            ps.AddParameter("Force");
 
             if (ConcurrentCount != -1)
             {
@@ -907,6 +929,11 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("Container", ContainerName);
             ps.BindParameter("DeleteSnapshot", onlySnapshot);
 
+            if (force)
+            {
+                ps.AddParameter("Force");
+            }
+
             return InvokeStoragePowerShell(ps);
         }
 
@@ -953,6 +980,11 @@ namespace Management.Storage.ScenarioTest
             ps.AddCommand("Remove-AzureStorageTable");
             ps.BindParameter("Name", TableName);
 
+            if (Force)
+            {
+                ps.AddParameter("Force");
+            }
+
             return InvokeStoragePowerShell(ps);
         }
 
@@ -961,6 +993,11 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = GetPowerShellInstance();
             ps.AddScript(FormatNameList(TableNames));
             ps.AddCommand("Remove-AzureStorageTable");
+
+            if (Force)
+            {
+                ps.AddParameter("Force");
+            }
 
             return InvokeStoragePowerShell(ps);
         }
@@ -2220,6 +2257,8 @@ namespace Management.Storage.ScenarioTest
         private bool InvokePowerShellWithoutContext(PowerShell ps, ParseCollectionFunc parseFunc = null)
         {
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
+            
+            _Output.Clear();
 
             //TODO We should add a time out for this invoke. Bad news, powershell don't support buildin time out for invoking.
             Exception runtimeException = null;
@@ -2485,7 +2524,7 @@ namespace Management.Storage.ScenarioTest
             {
                 foreach (ErrorRecord record in ps.Streams.Error)
                 {
-                    _ErrorMessages.Add(record.Exception.Message);
+                    _ErrorMessages.Add(record.Exception.ToString());
                     Test.Info(record.Exception.Message);
 
                     //Display the stack trace for storage exception in order to investigate the root cause of errors
@@ -2505,8 +2544,10 @@ namespace Management.Storage.ScenarioTest
 
                 if (runtimeException != null)
                 {
-                    _RuntimeException = runtimeException;
-                    _ErrorMessages.Add(runtimeException.Message);
+                    CmdletInvocationException invocationException = runtimeException as CmdletInvocationException;
+                    _RuntimeException = null == invocationException ? runtimeException : invocationException.InnerException;
+
+                    _ErrorMessages.Add(_RuntimeException.ToString());
                 }
             }
         }

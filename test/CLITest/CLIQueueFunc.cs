@@ -325,7 +325,7 @@ namespace Management.Storage.ScenarioTest
                 Test.Assert(!agent.RemoveAzureStorageQueue(QUEUE_NAME, false), Utility.GenComparisonData("RemoveAzureStorageQueue", false));
                 // Verification for returned values
                 Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-                Test.Assert(agent.ErrorMessages[0].StartsWith("A command that prompts the user failed because"), agent.ErrorMessages[0]);
+                Test.Assert(agent.ErrorMessages[0].Contains("A command that prompts the user failed because"), agent.ErrorMessages[0]);
             }
             finally
             {
