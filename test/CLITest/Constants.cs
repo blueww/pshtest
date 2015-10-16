@@ -71,7 +71,8 @@ namespace Management.Storage.ScenarioTest
                                                         Location.EastUS,
                                                         Location.SoutheastAsia,
                                                         Location.EastAsia,
-                                                        Location.WestEurope };
+                                                        Location.WestEurope,
+                                                        Location.NorthEurope };
 
         public static readonly string[] MCLocations = { MCLocation.ChinaEast,
                                                         MCLocation.ChinaNorth };
