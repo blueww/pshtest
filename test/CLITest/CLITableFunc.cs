@@ -118,11 +118,27 @@ namespace Management.Storage.ScenarioTest
                 if (multiOutput)
                 {
                     Test.Assert(agent.Output.Count == 0, "0 row returned : {0}", agent.Output.Count);
-                    Test.Assert(agent.ErrorMessages[0].Contains(string.Format("Table '{0}' already exists.", TABLE_NAMES[0])), agent.ErrorMessages[0]);
                 }
-                else
+                int i = 0;
+                foreach (string name in TABLE_NAMES)
                 {
-                    Test.Assert(agent.ErrorMessages[0].Contains("The table specified already exists"), agent.ErrorMessages[0]);
+                    if (multiOutput)
+                    {
+                        Test.Assert(agent.ErrorMessages[i].Equals(String.Format("Table '{0}' already exists.", name)), agent.ErrorMessages[i]);
+                    }
+                    else
+                    {
+                        Test.Assert(agent.ErrorMessages[0].StartsWith("The table specified already exists"), agent.ErrorMessages[0]);
+                    }
+                    ++i;
+                }
+
+                //--------------3. New operation--------------
+                Test.Assert(!agent.NewAzureStorageTable(PARTLY_EXISTING_NAMES), Utility.GenComparisonData("NewAzureStorageTable", false));
+                // Verification for returned values
+                if (multiOutput)
+                {
+                    Test.Assert(agent.Output.Count == 1, "1 row returned : {0}", agent.Output.Count);
                 }
 
                 // Check if all the above tables have been created
@@ -148,7 +164,7 @@ namespace Management.Storage.ScenarioTest
             finally
             {
                 //--------------5. Remove operation--------------
-                Test.Assert(agent.RemoveAzureStorageTable(TABLE_NAMES), Utility.GenComparisonData("RemoveAzureStorageTable", true));
+                Test.Assert(agent.RemoveAzureStorageTable(MERGED_NAMES), Utility.GenComparisonData("RemoveAzureStorageTable", true));
                 // Check if all the above tables have been removed
                 foreach (string name in TABLE_NAMES)
                 {
