@@ -227,6 +227,84 @@
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
         [TestCategory(CLITag.NodeJSBVT)]
+        public void ListFileTest_FileShareNameParameterSet()
+        {
+            if (!this.ShouldRunFileTest())
+            {
+                return;
+            }
+
+            ListFileTest((fileShare) =>
+            {
+                agent.GetFile(fileShare.Name);
+            });
+        }
+
+        /// <summary>
+        /// BVT case 5.7.1 using parameter set FileShare
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        public void ListFileTest_FileShareParameterSet()
+        {
+            if (!this.ShouldRunFileTest())
+            {
+                return;
+            }
+
+            ListFileTest((fileShare) =>
+            {
+                agent.GetFile(fileShare);
+            });
+        }
+
+        /// <summary>
+        /// BVT case 5.7.1 using parameter set Directory
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        public void ListFileTest_DirectoryParameterSet()
+        {
+            if (!this.ShouldRunFileTest())
+            {
+                return;
+            }
+
+            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
+            string directoryName = CloudFileUtil.GenerateUniqueDirectoryName();
+            string fileName = CloudFileUtil.GenerateUniqueFileName();
+            var fileShare = fileUtil.EnsureFileShareExists(fileShareName);
+            var directory = fileUtil.EnsureDirectoryExists(fileShare, directoryName);
+            var file = fileUtil.CreateFile(directory, fileName);
+
+            try
+            {
+                agent.GetFile(directory);
+
+                var result = (PowerShellExecutionResult)agent.Invoke();
+
+                agent.AssertNoError();
+                result.AssertObjectCollection(obj => obj.AssertCloudFile(fileName, directoryName), 1);
+            }
+            finally
+            {
+                agent.Dispose();
+                fileUtil.DeleteFileShareIfExists(fileShareName);
+            }
+        }
+
+        /// <summary>
+        /// BVT case 5.7.1 using parameter set FileShareName
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
         public void GetFileTest_FileShareNameParameterSet()
         {
             if (!this.ShouldRunFileTest())
@@ -234,10 +312,31 @@
                 return;
             }
 
-            GetFileTest((fileShare) =>
+            this.GetFileTest((fileShare, path) =>
             {
-                agent.ListFiles(fileShare.Name);
-            });
+                agent.GetFile(fileShare.Name, path);
+            }, false);
+        }
+
+        /// <summary>
+        /// BVT case 5.7.1 using parameter set FileShareName
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        public void GetDirectoryTest_FileShareNameParameterSet()
+        {
+            if (!this.ShouldRunFileTest())
+            {
+                return;
+            }
+
+            this.GetFileTest((fileShare, path) =>
+            {
+                agent.GetFile(fileShare.Name, path);
+            }, true);
         }
 
         /// <summary>
@@ -254,10 +353,30 @@
                 return;
             }
 
-            GetFileTest((fileShare) =>
+            GetFileTest((fileShare, path) =>
             {
-                agent.ListFiles(fileShare);
-            });
+                agent.GetFile(fileShare, path);
+            }, false);
+        }
+
+        /// <summary>
+        /// BVT case 5.7.1 using parameter set FileShare
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        public void GetDirectoryTest_FileShareParameterSet()
+        {
+            if (!this.ShouldRunFileTest())
+            {
+                return;
+            }
+
+            GetFileTest((fileShare, path) =>
+            {
+                agent.GetFile(fileShare, path);
+            }, true);
         }
 
         /// <summary>
@@ -274,27 +393,24 @@
                 return;
             }
 
-            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
-            string directoryName = CloudFileUtil.GenerateUniqueDirectoryName();
-            string fileName = CloudFileUtil.GenerateUniqueFileName();
-            var fileShare = fileUtil.EnsureFileShareExists(fileShareName);
-            var directory = fileUtil.EnsureDirectoryExists(fileShare, directoryName);
-            var file = fileUtil.CreateFile(directory, fileName);
+            this.GetFileTest(false);
+        }
 
-            try
+        /// <summary>
+        /// BVT case 5.7.1 using parameter set Directory
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        public void GetDirectoryTest_DirectoryParameterSet()
+        {
+            if (!this.ShouldRunFileTest())
             {
-                agent.ListFiles(directory);
-
-                var result = (PowerShellExecutionResult)agent.Invoke();
-
-                agent.AssertNoError();
-                result.AssertObjectCollection(obj => obj.AssertCloudFile(fileName, directoryName), 1);
+                return;
             }
-            finally
-            {
-                agent.Dispose();
-                fileUtil.DeleteFileShareIfExists(fileShareName);
-            }
+
+            this.GetFileTest(true);
         }
 
         /// <summary>
@@ -1245,7 +1361,7 @@
             }
         }
 
-        private void GetFileTest(Action<CloudFileShare> getFileAction)
+        private void ListFileTest(Action<CloudFileShare> getFileAction)
         {
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
             var fileNames = Enumerable.Range(0, random.Next(5, 20)).Select(x => CloudFileUtil.GenerateUniqueFileName()).ToList();
@@ -1262,6 +1378,80 @@
 
                 agent.AssertNoError();
                 result.AssertFileListItems(files, directories);
+            }
+            finally
+            {
+                agent.Dispose();
+                fileUtil.DeleteFileShareIfExists(fileShareName);
+            }
+        }
+
+        private void GetFileTest(Action<CloudFileShare, string> getFileAction, bool isDirectory)
+        {
+            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
+            var fileName = CloudFileUtil.GenerateUniqueFileName();
+            var fileShare = fileUtil.EnsureFileShareExists(fileShareName);
+
+            if (isDirectory)
+            {
+                fileUtil.EnsureDirectoryExists(fileShare, fileName);
+            }
+            else
+            {
+                fileUtil.CreateFile(fileShare, fileName);
+            }
+
+            try
+            {
+                getFileAction(fileShare, fileName);
+
+                var result = agent.Invoke();
+
+                agent.AssertNoError();
+                if (isDirectory)
+                {
+                    result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory(fileName));
+                }
+                else
+                {
+                    result.AssertObjectCollection(obj => obj.AssertCloudFile(fileName));
+                }
+            }
+            finally
+            {
+                agent.Dispose();
+                fileUtil.DeleteFileShareIfExists(fileShareName);
+            }
+        }
+
+        private void GetFileTest(bool isDirectory)
+        {
+            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
+            string directoryName = CloudFileUtil.GenerateUniqueDirectoryName();
+            string fileName = CloudFileUtil.GenerateUniqueFileName();
+            var fileShare = fileUtil.EnsureFileShareExists(fileShareName);
+            var directory = fileUtil.EnsureDirectoryExists(fileShare, directoryName);
+
+            List<CloudFile> fileList = new List<CloudFile>();
+            List<CloudFileDirectory> dirList = new List<CloudFileDirectory>();
+
+            if (isDirectory)
+            {
+                dirList.Add(fileUtil.EnsureDirectoryExists(directory, fileName));
+            }
+            else
+            {
+                fileList.Add(fileUtil.CreateFile(directory, fileName));
+            }
+
+            try
+            {
+                agent.GetFile(directory, fileName);
+
+                var result = (PowerShellExecutionResult)agent.Invoke();
+
+                agent.AssertNoError();
+                result.AssertFileListItems(fileList, dirList);
             }
             finally
             {

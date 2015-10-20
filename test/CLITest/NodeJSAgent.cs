@@ -1800,7 +1800,7 @@ namespace Management.Storage.ScenarioTest
             this.RunNodeJSProcess(command, true, needAccountParam: contextObject == null);
         }
 
-        public override void ListFiles(string fileShareName, string path = null)
+        public override void GetFile(string fileShareName, string path = null)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendFormat("file list \"{0}\"", fileShareName);
@@ -1811,14 +1811,14 @@ namespace Management.Storage.ScenarioTest
             this.RunNodeJSProcess(sb.ToString());
         }
 
-        public override void ListFiles(CloudFileShare fileShare, string path = null)
+        public override void GetFile(CloudFileShare fileShare, string path = null)
         {
-            this.ListFiles(fileShare.Name, path);
+            this.GetFile(fileShare.Name, path);
         }
 
-        public override void ListFiles(CloudFileDirectory directory, string path = null)
+        public override void GetFile(CloudFileDirectory directory, string path = null)
         {
-            this.ListFiles(directory.Share.Name, directory.Name + '/' + path);
+            this.GetFile(directory.Share.Name, directory.Name + '/' + path);
         }
 
         public override void DownloadFile(CloudFile file, string destination, bool overwrite = false)
