@@ -459,20 +459,27 @@ namespace Management.Storage.ScenarioTest.BVT
             {
                 foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
                 {
-                    if (serviceType == Constants.ServiceType.File || serviceType == Constants.ServiceType.InvalidService)
+                    if (serviceType == Constants.ServiceType.InvalidService)
                     {
                         continue;
                     }
 
-                    ServiceProperties propertiesBeforeSet = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
+                    ServiceProperties propertiesBeforeSet = null;
+                    if (serviceType != Constants.ServiceType.File)
+                    {
+                        propertiesBeforeSet = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
+                    }
                     int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
                     string metricsLevel = Utility.GenRandomMetricsLevel();
                     // set ServiceProperties(metrics)
                     Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, metricsType, metricsLevel, retentionDays.ToString()),
                         Utility.GenComparisonData("SetAzureStorageServiceHourMetrics", true));
 
-                    Utility.ValidateLoggingProperties(CommonStorageAccount, serviceType, propertiesBeforeSet.Logging.RetentionDays,
-                        propertiesBeforeSet.Logging.LoggingOperations.ToString());
+                    if (serviceType != Constants.ServiceType.File)
+                    {
+                        Utility.ValidateLoggingProperties(CommonStorageAccount, serviceType, propertiesBeforeSet.Logging.RetentionDays,
+                            propertiesBeforeSet.Logging.LoggingOperations.ToString());
+                    }
 
                     Utility.ValidateMetricsProperties(CommonStorageAccount, serviceType, metricsType, retentionDays, metricsLevel);
                 }
@@ -524,7 +531,7 @@ namespace Management.Storage.ScenarioTest.BVT
 
             foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
             {
-                if (serviceType == Constants.ServiceType.File || serviceType == Constants.ServiceType.InvalidService)
+                if (serviceType == Constants.ServiceType.InvalidService)
                 {
                     continue;
                 }
