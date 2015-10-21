@@ -52,7 +52,7 @@
             GenericEnableDisableServiceMetrics(ServiceType.Table,
                 (metricsType, retentionDays, metricsLevel) => Utility.WaitForMetricsPropertyTakingEffect(StorageAccount, ServiceType.Table, metricsType, retentionDays, metricsLevel));
 
-            //Table service
+            //File service
             GenericEnableDisableServiceMetrics(ServiceType.File,
                 (metricsType, retentionDays, metricsLevel) => Utility.WaitForMetricsPropertyTakingEffect(StorageAccount, ServiceType.File, metricsType, retentionDays, metricsLevel));
         }
