@@ -258,9 +258,11 @@ namespace Management.Storage.ScenarioTest.Common
                                 Thread.Sleep(5000);
                                 Test.Info(string.Format("Retry login... Count:{0}", retry));
                             }
-
-                            agent.Logout();
-                            agent.Login();
+                            if (!TestContext.FullyQualifiedTestClassName.Contains("SubScriptionBVT")) //For SubScriptionBVT, we already login and set current account, don't need re-login
+                            {
+                                agent.Logout();
+                                agent.Login();
+                            }
                         }
                         while (agent.HadErrors && retry++ < 5);
                     }

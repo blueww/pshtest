@@ -228,6 +228,22 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+        /// <summary>
+        /// Set the Reource Mode Current Storage Account
+        /// </summary>
+        /// <param name="storageAccountName"></param>
+        /// <param name="resourceGroupName"></param>
+        public override bool SetRmCurrentStorageAccount(string storageAccountName, string resourceGroupName)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Set-AzureRmCurrentStorageAccount");
+            ps.BindParameter("StorageAccountName", storageAccountName);
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
         public static string AddRandomAzureEnvironment(string endpoint, string prefix = "")
         {
             string envName = Utility.GenNameString(prefix);
