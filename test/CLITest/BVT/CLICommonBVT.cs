@@ -350,7 +350,7 @@ namespace Management.Storage.ScenarioTest.BVT
         {
             GetBlobTest(agent, CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             GetBlobTest(agent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
-            GetBlobTest(agent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
+            GetBlobTest(agent, CommonAppendFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -364,7 +364,7 @@ namespace Management.Storage.ScenarioTest.BVT
             string downloadDirPath = Test.Data.Get("DownloadDir");
             DownloadBlobTest(agent, CommonBlockFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             DownloadBlobTest(agent, CommonPageFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
-            DownloadBlobTest(agent, CommonPageFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
+            DownloadBlobTest(agent, CommonAppendFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -377,7 +377,7 @@ namespace Management.Storage.ScenarioTest.BVT
         {
             RemoveBlobTest(agent, CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             RemoveBlobTest(agent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
-            RemoveBlobTest(agent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
+            RemoveBlobTest(agent, CommonAppendFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -596,7 +596,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 Test.Assert(!agent.GetAzureStorageBlobCopyState(blobUtil.ContainerName, blobUtil.BlobName, false), "Get copy state should be fail since the specified blob don't have any copy operation");
                 Test.Assert(agent.ErrorMessages.Count > 0, "Should return error message");
                 string errorMessage = "Can not find copy task on the specified blob";
-                Test.Assert(agent.ErrorMessages[0].StartsWith(errorMessage), String.Format("Error message should start with {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
+                Test.Assert(agent.ErrorMessages[0].Contains(errorMessage), String.Format("Error message should contain {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
             }
             finally
             {
@@ -697,7 +697,7 @@ namespace Management.Storage.ScenarioTest.BVT
         {
             ShowBlobTest(CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             ShowBlobTest(CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
-            ShowBlobTest(CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
+            ShowBlobTest(CommonAppendFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         internal void ShowBlobTest(string UploadFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType Type)
