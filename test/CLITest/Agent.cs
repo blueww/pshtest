@@ -83,6 +83,8 @@ namespace Management.Storage.ScenarioTest
 
         public abstract void ImportAzureSubscription(string settingFile);
 
+        public abstract bool SetRmCurrentStorageAccount(string storageAccountName, string resourceGroupName);
+
         public abstract void SetActiveSubscription(string subscriptionId);
 
         public abstract bool Login();
