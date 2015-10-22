@@ -1156,8 +1156,11 @@ namespace Management.Storage.ScenarioTest
                 string accountName = accountUtils.GenerateAccountName();
                 string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
 
-                Hashtable[] tags = this.GetUnicodeTags(true);
-                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), tags);
+                Hashtable[] tags = this.GetUnicodeTags(true); 
+                Test.Assert(!agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountUtils.mapAccountType(accountType), location, tags),
+                    string.Format("Creating storage account {0} in the resource group {1} at location {2} should succeed", accountName, resourceGroupName, location));
+
+                ExpectedContainErrorMessage("Invalid tag format. Ensure that each tag has a unique name.");
             }
         }
 
@@ -1631,25 +1634,16 @@ namespace Management.Storage.ScenarioTest
 
                     Hashtable[] tags = this.GetUnicodeTags(caseTest: true);
 
-                    Test.Assert(this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
-                        "Set tags of account {0} in reource group {1} should succeed", accountName, resourceGroupName);
-
-                    Test.Assert(this.agent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
-                        "Get storage account {0} in resource group {1} should succeed.", resourceGroupName, accountName);
-
-                    var targetTags = GetTagsFromOutput();
-                    accountUtils.ValidateTags(tags, targetTags);
+                    Test.Assert(!this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
+                        "Set tags of account {0} in reource group {1} should fail.", accountName, resourceGroupName);
+                    ExpectedContainErrorMessage("Invalid tag format. Ensure that each tag has a unique name.");
+                    
 
                     tags = this.GetUnicodeTags(duplicatedName: true);
 
-                    Test.Assert(this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
-                        "Set tags of account {0} in reource group {1} with empty value should succeed", accountName, resourceGroupName);
-
-                    Test.Assert(this.agent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
-                        "Get storage account {0} in resource group {1} should succeed.", resourceGroupName, accountName);
-
-                    targetTags = GetTagsFromOutput();
-                    accountUtils.ValidateTags(tags, targetTags);
+                    Test.Assert(!this.agent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
+                        "Set tags of account {0} in reource group {1} with empty value should fail", accountName, resourceGroupName);
+                    ExpectedContainErrorMessage("Invalid tag format. Ensure that each tag has a unique name.");
                 }
                 finally
                 {
