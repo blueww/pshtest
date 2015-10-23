@@ -241,7 +241,7 @@
             blobUtil.SetupTestContainerAndBlob();
             try
             {
-                agent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, StorageEndpoint, string.Empty, "d");
+                agent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, StorageEndpoint, string.Empty, "rd");
 
                 // Delete blob with the generated SAS token
                 Test.Assert(agent.RemoveAzureStorageBlob(blobUtil.Blob.Name, blobUtil.ContainerName),

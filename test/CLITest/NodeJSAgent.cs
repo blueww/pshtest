@@ -173,6 +173,11 @@ namespace Management.Storage.ScenarioTest
             RunNodeJSProcess(string.Format("import \"{0}\"", settingFile), needAccountParam: false, category: "account");
         }
 
+        public override bool SetRmCurrentStorageAccount(string storageAccountName, string resourceGroupName)
+        {
+            throw new NotImplementedException();
+        }
+
         public override void SetActiveSubscription(string subscriptionId)
         {
             RunNodeJSProcess(string.Format("set \"{0}\"", subscriptionId), needAccountParam: false, category: "account");
