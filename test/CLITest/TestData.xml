@@ -42,6 +42,7 @@
   <StorageAccountName>testaccount1</StorageAccountName>
   <StorageAccountKey>FjUfNl1KiJttbXlsdkMzBTC7WagvrRM9/g6UPBuy0ypCpAbYTL6/KA+dI/7gyoWvLFYmah3IviUP1jykOHHOlA==</StorageAccountKey>
   <StorageConnectionString>DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/testaccount1;QueueEndpoint=http://127.0.0.1:10001/testaccount1;TableEndpoint=http://127.0.0.1:10002/testaccount1;FileEndpoint=http://127.0.0.1:10004/testaccount1;AccountName=testaccount1;AccountKey=FjUfNl1KiJttbXlsdkMzBTC7WagvrRM9/g6UPBuy0ypCpAbYTL6/KA+dI/7gyoWvLFYmah3IviUP1jykOHHOlA==</StorageConnectionString>
+  <StorageAccountResourceGroup>Default-Storage-EastAsia</StorageAccountResourceGroup>
   <StorageConnectionString2></StorageConnectionString2>
   <Pre42StorageConnectionString></Pre42StorageConnectionString>
   <StorageEndPoint>core.windows.net</StorageEndPoint>

@@ -241,7 +241,7 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("StorageAccountName", storageAccountName);
             ps.BindParameter("ResourceGroupName", resourceGroupName);
 
-            return InvokeStoragePowerShell(ps);
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public static string AddRandomAzureEnvironment(string endpoint, string prefix = "")
