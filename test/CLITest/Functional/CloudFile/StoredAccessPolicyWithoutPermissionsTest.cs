@@ -58,7 +58,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             DateTime? expiryTime = DateTime.Today.AddDays(10);
             string permission = "rwdl";
 
-            string errorMsg = "The specified resource does not exist";
+            string errorMsg = "This request is not authorized to perform this operation.";
 
             Test.Assert(!agent.NewAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p"), permission, null, expiryTime),
                 "Should fail to new a stored access policy to share with sas token credentials");
