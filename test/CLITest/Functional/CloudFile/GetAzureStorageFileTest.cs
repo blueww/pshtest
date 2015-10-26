@@ -292,33 +292,34 @@
         [TestMethod]
         [TestCategory(PsTag.File)]
         [TestCategory(Tag.Function)]
-        public void GetDirsToRemoveDir()
+        public void GetDirsToListDir()
         {
             fileUtil.CleanupDirectory(this.fileShare.GetRootDirectoryReference());
             var dirNames = Enumerable.Range(0, this.randomProvider.Next(5, 20)).Select(x => CloudFileUtil.GenerateUniqueFileName()).ToList();
             fileUtil.CleanupDirectory(this.fileShare.GetRootDirectoryReference());
             var dirs = dirNames.Select(name => fileUtil.EnsureDirectoryExists(this.fileShare, name)).ToList();
+            var fileNames = Enumerable.Range(0, this.randomProvider.Next(5, 20)).Select(x => CloudFileUtil.GenerateUniqueFileName()).ToList();
+            var files = fileNames.Select(name => fileUtil.CreateFile(dirs[0], name)).ToList();
 
             this.agent.GetFile(this.fileShare, dirNames[0]);
-            ((PowerShellAgent)this.agent).PowerShellSession.AddCommand("Remove-AzureStorageDirectory");
-            ((PowerShellAgent)this.agent).PowerShellSession.AddParameter("Path", ".");
-            ((PowerShellAgent)this.agent).PowerShellSession.AddParameter("Force");
-            this.agent.Invoke();
+            ((PowerShellAgent)this.agent).PowerShellSession.AddCommand("Get-AzureStorageFile");
+            var result = this.agent.Invoke();
             this.agent.AssertNoError();
-            fileUtil.AssertDirectoryNotExists(this.fileShare, dirNames[0], string.Format("Directory {0} should be removed.", dirNames[0]));
+            result.AssertFileListItems(files, Enumerable.Empty<CloudFileDirectory>());
+
+            foreach (var dir in dirs)
+            {
+                fileNames = Enumerable.Range(0, this.randomProvider.Next(5, 20)).Select(x => CloudFileUtil.GenerateUniqueFileName()).ToList();
+                files.AddRange(fileNames.Select(name => fileUtil.CreateFile(dir, name)).ToList());
+            }
 
             this.agent.Clear();
             this.agent.GetFile(this.fileShare);
-            ((PowerShellAgent)this.agent).PowerShellSession.AddCommand("Remove-AzureStorageDirectory");
-            ((PowerShellAgent)this.agent).PowerShellSession.AddParameter("Path", ".");
-            ((PowerShellAgent)this.agent).PowerShellSession.AddParameter("Force");
-            this.agent.Invoke();
+            ((PowerShellAgent)this.agent).PowerShellSession.AddCommand("Get-AzureStorageFile");
+            result = this.agent.Invoke();
             this.agent.AssertNoError();
-
-            foreach (var dirName in dirNames)
-            {
-                fileUtil.AssertDirectoryNotExists(this.fileShare, dirName, string.Format("Directory {0} should be removed.", dirName));
-            }
+            result.AssertFileListItems(files, Enumerable.Empty<CloudFileDirectory>());
+            fileUtil.CleanupDirectory(this.fileShare.GetRootDirectoryReference());
         }
 
         /// <summary>
@@ -456,7 +457,7 @@
         [TestCategory(CLITag.NodeJSFT)]
         public void GetFilesFromRelativePathWhereIntermediatePathMightNotExistTest()
         {
-            var fileNames = Enumerable.Range(0, this.randomProvider.Next(5, 20)).Select(x => CloudFileUtil.GenerateUniqueFileName()).ToList();
+            var fileNames = Enumerable.Range(0, this.randomProvider.Next(5, 10)).Select(x => CloudFileUtil.GenerateUniqueFileName()).ToList();
             var dir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
             fileUtil.CleanupDirectory(dir);
             var files = fileNames.Select(name => fileUtil.CreateFile(dir, name)).ToList();
@@ -464,7 +465,13 @@
             this.agent.GetFile(this.fileShare, "a/c/./../b/./c/e/..");
             var result = this.agent.Invoke();
             this.agent.AssertNoError();
-            result.AssertFileListItems(files, Enumerable.Empty<CloudFileDirectory>());
+            result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory("a/b/c"));
+
+            this.agent.Clear();
+            this.agent.GetFile(this.fileShare, string.Format("a/c/./../b/./c/e/../{0}", fileNames[0]));
+            result = this.agent.Invoke();
+            this.agent.AssertNoError();
+            result.AssertObjectCollection(obj => obj.AssertCloudFile(fileNames[0], "a/b/c"));
         }
     }
 }
