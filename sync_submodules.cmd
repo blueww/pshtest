@@ -15,7 +15,7 @@ cd ..
 echo "update submodule xplat"
 cd Xplat
 git fetch
-git reset origin/dev --hard
+git reset origin/srpga --hard
 cd ..
 
 if [%1] == [DEV] GOTO :END
