@@ -674,6 +674,8 @@ namespace Management.Storage.ScenarioTest.Functional.Service
                 case Constants.ServiceType.File:
                     FileServiceProperties fileProperties = new FileServiceProperties();
                     fileProperties.Cors = serviceProperties.Cors;
+                    fileProperties.HourMetrics = serviceProperties.HourMetrics;
+                    fileProperties.MinuteMetrics = serviceProperties.MinuteMetrics;
                     StorageAccount.CreateCloudFileClient().SetServiceProperties(fileProperties);
                     break;
             }
