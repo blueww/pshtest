@@ -10,7 +10,7 @@ cd ..
 echo "update submodule Powershell"
 cd PowerShell
 git fetch
-git reset origin/sprint55 --hard
+git reset origin/accountsas --hard
 cd ..
 echo "update submodule xplat"
 cd Xplat
