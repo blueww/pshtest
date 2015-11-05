@@ -611,7 +611,7 @@
                 catch (StorageException e)
                 {
                     Test.Info(e.Message);
-                    ExpectEqual(e.RequestInformation.HttpStatusCode, 404, "(404) Not Found");
+                    ExpectEqual(403, e.RequestInformation.HttpStatusCode, "(403) Forbidden");
                 }
 
                 //add back the Add permission

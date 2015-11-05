@@ -287,7 +287,12 @@
 
         public CloudFileDirectory EnsureDirectoryExists(CloudFileShare share, string directoryName)
         {
-            var directory = share.GetRootDirectoryReference().GetDirectoryReference(directoryName);
+            return this.EnsureDirectoryExists(share.GetRootDirectoryReference(), directoryName);
+        }
+
+        public CloudFileDirectory EnsureDirectoryExists(CloudFileDirectory parent, string directoryName)
+        {
+            var directory = parent.GetDirectoryReference(directoryName);
             directory.CreateIfNotExists();
             return directory;
         }

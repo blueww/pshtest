@@ -44,11 +44,6 @@
         [TestCategory(CLITag.NodeJSBVT)]
         public void NewFileShareTest()
         {
-            if (!this.ShouldRunFileTest())
-            {
-                return;
-            }
-
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
             fileUtil.DeleteFileShareIfExistsWithSleep(fileShareName);
 
@@ -78,11 +73,6 @@
         [TestCategory(CLITag.NodeJSBVT)]
         public void GetExistingFileShareTest()
         {
-            if (!this.ShouldRunFileTest())
-            {
-                return;
-            }
-
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
             fileUtil.EnsureFileShareExists(fileShareName);
 
@@ -112,11 +102,6 @@
         [TestCategory(CLITag.NodeJSBVT)]
         public void RemoveFileShareTest()
         {
-            if (!this.ShouldRunFileTest())
-            {
-                return;
-            }
-
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
             fileUtil.EnsureFileShareExists(fileShareName);
 
@@ -146,11 +131,6 @@
         [TestCategory(PsTag.FileBVT)]
         public void NewDirectoryTest_FileShareParameterSet()
         {
-            if (!this.ShouldRunFileTest())
-            {
-                return;
-            }
-
             NewDirectoryTest((fileShare, directoryName) =>
             {
                 agent.NewDirectory(fileShare, directoryName);
@@ -167,11 +147,6 @@
         [TestCategory(CLITag.NodeJSBVT)]
         public void NewDirectoryTest_FileShareNameParameterSet()
         {
-            if (!this.ShouldRunFileTest())
-            {
-                return;
-            }
-
             NewDirectoryTest((fileShare, directoryName) =>
             {
                 agent.NewDirectory(fileShare.Name, directoryName);
@@ -187,11 +162,6 @@
         [TestCategory(PsTag.FileBVT)]
         public void RemoveDirectoryTest_FileShareParameterSet()
         {
-            if (!this.ShouldRunFileTest())
-            {
-                return;
-            }
-
             RemoveDirectoryTest((directory) =>
             {
                 agent.RemoveDirectory(directory.Share, CloudFileUtil.GetFullPath(directory));
@@ -208,11 +178,6 @@
         [TestCategory(CLITag.NodeJSBVT)]
         public void RemoveDirectoryTest_FileShareNameParameterSet()
         {
-            if (!this.ShouldRunFileTest())
-            {
-                return;
-            }
-
             RemoveDirectoryTest((directory) =>
             {
                 agent.RemoveDirectory(directory.Share.Name, CloudFileUtil.GetFullPath(directory));
@@ -227,16 +192,11 @@
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
         [TestCategory(CLITag.NodeJSBVT)]
-        public void GetFileTest_FileShareNameParameterSet()
+        public void ListFileTest_FileShareNameParameterSet()
         {
-            if (!this.ShouldRunFileTest())
+            ListFileTest((fileShare) =>
             {
-                return;
-            }
-
-            GetFileTest((fileShare) =>
-            {
-                agent.ListFiles(fileShare.Name);
+                agent.GetFile(fileShare.Name);
             });
         }
 
@@ -247,16 +207,11 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
-        public void GetFileTest_FileShareParameterSet()
+        public void ListFileTest_FileShareParameterSet()
         {
-            if (!this.ShouldRunFileTest())
+            ListFileTest((fileShare) =>
             {
-                return;
-            }
-
-            GetFileTest((fileShare) =>
-            {
-                agent.ListFiles(fileShare);
+                agent.GetFile(fileShare);
             });
         }
 
@@ -267,13 +222,8 @@
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
-        public void GetFileTest_DirectoryParameterSet()
+        public void ListFileTest_DirectoryParameterSet()
         {
-            if (!this.ShouldRunFileTest())
-            {
-                return;
-            }
-
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
             string directoryName = CloudFileUtil.GenerateUniqueDirectoryName();
             string fileName = CloudFileUtil.GenerateUniqueFileName();
@@ -283,7 +233,7 @@
 
             try
             {
-                agent.ListFiles(directory);
+                agent.GetFile(directory);
 
                 var result = (PowerShellExecutionResult)agent.Invoke();
 
@@ -298,6 +248,92 @@
         }
 
         /// <summary>
+        /// BVT case 5.7.1 using parameter set FileShareName
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        public void GetFileTest_FileShareNameParameterSet()
+        {
+            this.GetFileTest((fileShare, path) =>
+            {
+                agent.GetFile(fileShare.Name, path);
+            }, false);
+        }
+
+        /// <summary>
+        /// BVT case 5.7.1 using parameter set FileShareName
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        public void GetDirectoryTest_FileShareNameParameterSet()
+        {
+            this.GetFileTest((fileShare, path) =>
+            {
+                agent.GetFile(fileShare.Name, path);
+            }, true);
+        }
+
+        /// <summary>
+        /// BVT case 5.7.1 using parameter set FileShare
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        public void GetFileTest_FileShareParameterSet()
+        {
+            GetFileTest((fileShare, path) =>
+            {
+                agent.GetFile(fileShare, path);
+            }, false);
+        }
+
+        /// <summary>
+        /// BVT case 5.7.1 using parameter set FileShare
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        public void GetDirectoryTest_FileShareParameterSet()
+        {
+            GetFileTest((fileShare, path) =>
+            {
+                agent.GetFile(fileShare, path);
+            }, true);
+        }
+
+        /// <summary>
+        /// BVT case 5.7.1 using parameter set Directory
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        public void GetFileTest_DirectoryParameterSet()
+        {
+            this.GetFileTest(false);
+        }
+
+        /// <summary>
+        /// BVT case 5.7.1 using parameter set Directory
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(PsTag.FileBVT)]
+        public void GetDirectoryTest_DirectoryParameterSet()
+        {
+            this.GetFileTest(true);
+        }
+
+        /// <summary>
         /// BVT case 5.8.1 using parameter set FileShare
         /// Positive functional test case 5.8.4.
         /// </summary>
@@ -307,11 +343,6 @@
         [TestCategory(PsTag.FileBVT)]
         public void GetFileContentTest_FileShareParameterSet()
         {
-            if (!this.ShouldRunFileTest())
-            {
-                return;
-            }
-
             Test.Info("Testing against medium file.");
             GetFileContentTest(
                 CommonMediumFilePath,
@@ -341,11 +372,6 @@
         [TestCategory(CLITag.NodeJSBVT)]
         public void GetFileContentTest_FileShareNameParameterSet()
         {
-            if (!this.ShouldRunFileTest())
-            {
-                return;
-            }
-
             Test.Info("Testing against medium file.");
             GetFileContentTest(
                 CommonMediumFilePath,
@@ -375,11 +401,6 @@
         [TestCategory(PsTag.FileBVT)]
         public void GetFileContentTest_FileParameterSet()
         {
-            if (!this.ShouldRunFileTest())
-            {
-                return;
-            }
-
             Test.Info("Testing against medium file.");
             GetFileContentTest(
                 CommonMediumFilePath,
@@ -408,11 +429,6 @@
         [TestCategory(PsTag.FileBVT)]
         public void SetFileContentTest_FileShareParameterSet()
         {
-            if (!this.ShouldRunFileTest())
-            {
-                return;
-            }
-
             Test.Info("Testing against medium file.");
             SetFileContentTest(
                 CommonMediumFilePath,
@@ -442,11 +458,6 @@
         [TestCategory(CLITag.NodeJSBVT)]
         public void SetFileContentTest_FileShareNameParameterSet()
         {
-            if (!this.ShouldRunFileTest())
-            {
-                return;
-            }
-
             Test.Info("Testing against medium file.");
             SetFileContentTest(
                 CommonMediumFilePath,
@@ -475,11 +486,6 @@
         [TestCategory(PsTag.FileBVT)]
         public void RemoveFileTest_FileShareParameterSet()
         {
-            if (!this.ShouldRunFileTest())
-            {
-                return;
-            }
-
             RemoveFileTest((file) =>
             {
                 agent.RemoveFile(file.Share, file.Name);
@@ -496,11 +502,6 @@
         [TestCategory(CLITag.NodeJSBVT)]
         public void RemoveFileTest_FileShareNameParameterSet()
         {
-            if (!this.ShouldRunFileTest())
-            {
-                return;
-            }
-
             RemoveFileTest((file) =>
             {
                 agent.RemoveFile(file.Share.Name, file.Name);
@@ -516,11 +517,6 @@
         [TestCategory(PsTag.FileBVT)]
         public void RemoveFileTest_FileParameterSet()
         {
-            if (!this.ShouldRunFileTest())
-            {
-                return;
-            }
-
             RemoveFileTest((file) =>
             {
                 agent.RemoveFile(file);
@@ -1245,7 +1241,7 @@
             }
         }
 
-        private void GetFileTest(Action<CloudFileShare> getFileAction)
+        private void ListFileTest(Action<CloudFileShare> getFileAction)
         {
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
             var fileNames = Enumerable.Range(0, random.Next(5, 20)).Select(x => CloudFileUtil.GenerateUniqueFileName()).ToList();
@@ -1262,6 +1258,80 @@
 
                 agent.AssertNoError();
                 result.AssertFileListItems(files, directories);
+            }
+            finally
+            {
+                agent.Dispose();
+                fileUtil.DeleteFileShareIfExists(fileShareName);
+            }
+        }
+
+        private void GetFileTest(Action<CloudFileShare, string> getFileAction, bool isDirectory)
+        {
+            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
+            var fileName = CloudFileUtil.GenerateUniqueFileName();
+            var fileShare = fileUtil.EnsureFileShareExists(fileShareName);
+
+            if (isDirectory)
+            {
+                fileUtil.EnsureDirectoryExists(fileShare, fileName);
+            }
+            else
+            {
+                fileUtil.CreateFile(fileShare, fileName);
+            }
+
+            try
+            {
+                getFileAction(fileShare, fileName);
+
+                var result = agent.Invoke();
+
+                agent.AssertNoError();
+                if (isDirectory)
+                {
+                    result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory(fileName));
+                }
+                else
+                {
+                    result.AssertObjectCollection(obj => obj.AssertCloudFile(fileName));
+                }
+            }
+            finally
+            {
+                agent.Dispose();
+                fileUtil.DeleteFileShareIfExists(fileShareName);
+            }
+        }
+
+        private void GetFileTest(bool isDirectory)
+        {
+            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
+            string directoryName = CloudFileUtil.GenerateUniqueDirectoryName();
+            string fileName = CloudFileUtil.GenerateUniqueFileName();
+            var fileShare = fileUtil.EnsureFileShareExists(fileShareName);
+            var directory = fileUtil.EnsureDirectoryExists(fileShare, directoryName);
+
+            List<CloudFile> fileList = new List<CloudFile>();
+            List<CloudFileDirectory> dirList = new List<CloudFileDirectory>();
+
+            if (isDirectory)
+            {
+                dirList.Add(fileUtil.EnsureDirectoryExists(directory, fileName));
+            }
+            else
+            {
+                fileList.Add(fileUtil.CreateFile(directory, fileName));
+            }
+
+            try
+            {
+                agent.GetFile(directory, fileName);
+
+                var result = (PowerShellExecutionResult)agent.Invoke();
+
+                agent.AssertNoError();
+                result.AssertFileListItems(fileList, dirList);
             }
             finally
             {
@@ -1347,11 +1417,6 @@
 
         private void SharedAccessPolicyTest(Action<CloudFileShare, List<Utility.RawStoredAccessPolicy>> testAction)
         {
-            if (!this.ShouldRunFileTest())
-            {
-                return;
-            }
-
             if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
             {
                 Test.Info("skip NewShareStoredPolicyTest as Azure emulator does not support stored access policy");
@@ -1369,32 +1434,6 @@
             finally
             {
                 fileUtil.DeleteFileShareIfExists(fileShareName);
-            }
-        }
-
-        /// <summary>
-        /// Determine whether the current configuration set allows to run
-        /// test cases for cloud file services.
-        /// </summary>
-        /// <returns>
-        /// Returns a value indicating whether the current configuration set
-        /// allows cloud file services test cases to run.
-        /// </returns>
-        /// <remarks>
-        /// For perview, the cloud file service does not support subscriptions
-        /// and azure environments. So these test cases from BVT would be
-        /// ignored.
-        /// </remarks>
-        private bool ShouldRunFileTest()
-        {
-            if (AllowedConfigurationSets.Contains(this.GetType()))
-            {
-                return true;
-            }
-            else
-            {
-                Test.Warn("Test case for cloud file services will not run since it does not support the configuration set {0}.", this.GetType().Name);
-                return false;
             }
         }
     }
