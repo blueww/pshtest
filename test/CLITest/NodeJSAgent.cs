@@ -2441,6 +2441,12 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(command);
         }
 
+        public override bool NewAzureStorageAccountSAS(SharedAccessAccountServices service, SharedAccessAccountResourceTypes resourceType, string permission, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null,
+            DateTime? startTime = null, DateTime? expiryTime = null)
+        {
+            throw new NotImplementedException();
+        }
+
         public override string GetBlobSasFromCmd(string containerName, string blobName, string policy, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
         {
@@ -2556,6 +2562,23 @@ namespace Management.Storage.ScenarioTest
             if (Output.Count != 0)
             {
                 string sasToken = Output[0][Constants.SASTokenKeyNode].ToString();
+                Test.Info("Generated sas token: {0}", sasToken);
+                return sasToken;
+            }
+            else
+            {
+                throw new ArgumentException("Fail to generate sas token.");
+            }
+        }
+
+        public override string GetAccountSasFromCmd(SharedAccessAccountServices service, SharedAccessAccountResourceTypes resourceType, string permission, SharedAccessProtocol? protocol, string iPAddressOrRange,
+            DateTime? startTime = null, DateTime? expiryTime = null)
+        {
+            Test.Assert(NewAzureStorageAccountSAS(service, resourceType, permission, protocol, iPAddressOrRange, startTime, expiryTime),
+                    "Generate account sas token should succeed");
+            if (Output.Count != 0)
+            {
+                string sasToken = Output[0][Constants.SASTokenKey].ToString();
                 Test.Info("Generated sas token: {0}", sasToken);
                 return sasToken;
             }
