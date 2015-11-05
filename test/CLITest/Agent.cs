@@ -83,6 +83,8 @@ namespace Management.Storage.ScenarioTest
 
         public abstract void ImportAzureSubscription(string settingFile);
 
+        public abstract bool SetRmCurrentStorageAccount(string storageAccountName, string resourceGroupName);
+
         public abstract void SetActiveSubscription(string subscriptionId);
 
         public abstract bool Login();
@@ -404,11 +406,11 @@ namespace Management.Storage.ScenarioTest
 
         public abstract void RemoveFile(string fileShareName, string fileName, object contextObject = null);
 
-        public abstract void ListFiles(string fileShareName, string path = null);
+        public abstract void GetFile(string fileShareName, string path = null);
 
-        public abstract void ListFiles(CloudFileShare fileShare, string path = null);
+        public abstract void GetFile(CloudFileShare fileShare, string path = null);
 
-        public abstract void ListFiles(CloudFileDirectory directory, string path = null);
+        public abstract void GetFile(CloudFileDirectory directory, string path = null);
 
         public abstract void DownloadFile(CloudFile file, string destination, bool overwrite = false);
 

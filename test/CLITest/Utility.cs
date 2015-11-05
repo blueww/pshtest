@@ -38,6 +38,7 @@ namespace Management.Storage.ScenarioTest
     using Microsoft.WindowsAzure.Storage.Queue;
     using Microsoft.WindowsAzure.Storage.Queue.Protocol;
     using Microsoft.WindowsAzure.Storage.Shared.Protocol;
+    using Microsoft.WindowsAzure.Storage.File.Protocol;
     using Microsoft.WindowsAzure.Storage.Table;
     using Microsoft.Azure.Subscriptions;
     using MS.Test.Common.MsTestLib;
@@ -599,6 +600,14 @@ namespace Management.Storage.ScenarioTest
                 case Constants.ServiceType.Queue:
                     properties = account.CreateCloudQueueClient().GetServiceProperties();
                     break;
+                case Constants.ServiceType.File:
+                    FileServiceProperties fileProperties = account.CreateCloudFileClient().GetServiceProperties();
+                    properties = new ServiceProperties();
+                    properties.Clean();
+                    properties.Cors = fileProperties.Cors;
+                    properties.HourMetrics = fileProperties.HourMetrics;
+                    properties.MinuteMetrics = fileProperties.MinuteMetrics;
+                    break;
             }
             return properties;
         }
@@ -651,7 +660,7 @@ namespace Management.Storage.ScenarioTest
                     metricsLevel.Equals(properties.HourMetrics.MetricsLevel.ToString(), StringComparison.OrdinalIgnoreCase))
                     ||
                     (metricsType == Constants.MetricsType.Hour &&
-                    properties.HourMetrics.RetentionDays == retentionDays &&
+                    (properties.HourMetrics.RetentionDays == retentionDays || (!properties.HourMetrics.RetentionDays.HasValue && retentionDays < 0)) &&
                     metricsLevel.Equals(properties.HourMetrics.MetricsLevel.ToString(), StringComparison.OrdinalIgnoreCase))
                     ||
                     (metricsType == Constants.MetricsType.Minute &&
@@ -659,7 +668,7 @@ namespace Management.Storage.ScenarioTest
                     metricsLevel.Equals(properties.MinuteMetrics.MetricsLevel.ToString(), StringComparison.OrdinalIgnoreCase))
                     ||
                     (metricsType == Constants.MetricsType.Minute &&
-                    properties.MinuteMetrics.RetentionDays == retentionDays &&
+                    (properties.MinuteMetrics.RetentionDays == retentionDays || (!properties.MinuteMetrics.RetentionDays.HasValue && retentionDays < 0)) &&
                     metricsLevel.Equals(properties.MinuteMetrics.MetricsLevel.ToString(), StringComparison.OrdinalIgnoreCase)))
                 {
                     break;

@@ -178,9 +178,9 @@
             this.agent.GetFileShareByName(shareName);
             this.agent.Invoke();
             this.agent.AssertErrors(err => err.AssertError(
-                AssertUtil.ShareBeingDeletedFullQualifiedErrorId,
+                AssertUtil.ResourceNotFoundFullQualifiedErrorId,
                 AssertUtil.ShareNotFoundFullQualifiedErrorId,
-                AssertUtil.ProtocolErrorFullQualifiedErrorId));
+                AssertUtil.ShareBeingDeletedFullQualifiedErrorId));
         }
 
         /// <summary>

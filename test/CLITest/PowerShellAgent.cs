@@ -228,6 +228,22 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+        /// <summary>
+        /// Set the Reource Mode Current Storage Account
+        /// </summary>
+        /// <param name="storageAccountName"></param>
+        /// <param name="resourceGroupName"></param>
+        public override bool SetRmCurrentStorageAccount(string storageAccountName, string resourceGroupName)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Set-AzureRmCurrentStorageAccount");
+            ps.BindParameter("StorageAccountName", storageAccountName);
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
         public static string AddRandomAzureEnvironment(string endpoint, string prefix = "")
         {
             string envName = Utility.GenNameString(prefix);
@@ -3047,7 +3063,7 @@ namespace Management.Storage.ScenarioTest
             this.shell.AddParameter("Context", contextObject ?? PowerShellAgent.Context);
         }
 
-        public override void ListFiles(string fileShareName, string path = null)
+        public override void GetFile(string fileShareName, string path = null)
         {
             this.shell.AddCommand("Get-AzureStorageFile");
             this.shell.AddParameter("ShareName", fileShareName);
@@ -3059,7 +3075,7 @@ namespace Management.Storage.ScenarioTest
             this.shell.AddParameter("Context", PowerShellAgent.Context);
         }
 
-        public override void ListFiles(CloudFileShare fileShare, string path = null)
+        public override void GetFile(CloudFileShare fileShare, string path = null)
         {
             this.shell.AddCommand("Get-AzureStorageFile");
             this.shell.AddParameter("Share", fileShare);
@@ -3069,7 +3085,7 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        public override void ListFiles(CloudFileDirectory directory, string path = null)
+        public override void GetFile(CloudFileDirectory directory, string path = null)
         {
             this.shell.AddCommand("Get-AzureStorageFile");
             this.shell.AddParameter("Directory", directory);
