@@ -19,7 +19,7 @@ namespace Management.Storage.ScenarioTest
         /// <summary>
         /// Used for retrieve SAS token value in agent.Output
         /// </summary>
-        public const string SASTokenKey = "";
+        public const string SASTokenKey = "sastoken";
         public const string SASTokenKeyNode = "sas";
         public const string SASTokenURLNode = "url";
 
