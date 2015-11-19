@@ -10,12 +10,12 @@ cd ..
 echo "update submodule Powershell"
 cd PowerShell
 git fetch
-git reset origin/sprint55 --hard
+git reset origin/dev --hard
 cd ..
 echo "update submodule xplat"
 cd Xplat
 git fetch
-git reset origin/srpga --hard
+git reset origin/dev --hard
 cd ..
 
 if [%1] == [DEV] GOTO :END
