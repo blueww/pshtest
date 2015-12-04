@@ -459,7 +459,8 @@ namespace Management.Storage.ScenarioTest.BVT
             {
                 foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
                 {
-                    if (serviceType == Constants.ServiceType.InvalidService)
+                    if ((serviceType == Constants.ServiceType.InvalidService)
+                        || (serviceType == Constants.ServiceType.File && Language.NodeJS == lang))
                     {
                         continue;
                     }
@@ -531,7 +532,8 @@ namespace Management.Storage.ScenarioTest.BVT
 
             foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
             {
-                if (serviceType == Constants.ServiceType.InvalidService)
+                if ((serviceType == Constants.ServiceType.InvalidService)
+                    || (serviceType == Constants.ServiceType.File && Language.NodeJS == lang))
                 {
                     continue;
                 }

@@ -188,11 +188,45 @@
         /// BVT case 5.7.1 using parameter set FileShareName
         /// </summary>
         [TestMethod]
+        [TestCategory(CLITag.NodeJSBVT)]
+        public void ListFileTest_FileShareNameParameterSet()
+        {
+            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
+            var fileShare = fileUtil.EnsureFileShareExists(fileShareName);
+
+            string dirName = CloudFileUtil.GenerateUniqueDirectoryName();
+            var dir = fileUtil.EnsureDirectoryExists(fileShare.GetRootDirectoryReference(), dirName);
+            
+            var fileNames = Enumerable.Range(0, random.Next(5, 20)).Select(x => CloudFileUtil.GenerateUniqueFileName()).ToList();
+            var directoryNames = Enumerable.Range(0, random.Next(5, 20)).Select(x => CloudFileUtil.GenerateUniqueDirectoryName()).ToList();
+            var files = fileNames.Select(name => fileUtil.CreateFile(dir, name)).ToList();
+            var directories = directoryNames.Select(name => fileUtil.EnsureDirectoryExists(dir, name)).ToList();
+
+            try
+            {
+                agent.GetFile(fileShare.Name, dirName);
+
+                var result = agent.Invoke();
+
+                agent.AssertNoError();
+                result.AssertFileListItems(files, directories);
+            }
+            finally
+            {
+                agent.Dispose();
+                fileUtil.DeleteFileShareIfExists(fileShareName);
+            }
+        }
+
+        /// <summary>
+        /// BVT case 5.7.1 using parameter set FileShareName
+        /// </summary>
+        [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
         [TestCategory(CLITag.NodeJSBVT)]
-        public void ListFileTest_FileShareNameParameterSet()
+        public void ListFileTest_ShareNameParameterSet()
         {
             ListFileTest((fileShare) =>
             {
@@ -249,12 +283,13 @@
 
         /// <summary>
         /// BVT case 5.7.1 using parameter set FileShareName
+        /// XPlat doesn't support to get single file, it only supports list files,
+        /// so we only keep list file test cases for NodeJS
         /// </summary>
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
-        [TestCategory(CLITag.NodeJSBVT)]
         public void GetFileTest_FileShareNameParameterSet()
         {
             this.GetFileTest((fileShare, path) =>
@@ -265,12 +300,13 @@
 
         /// <summary>
         /// BVT case 5.7.1 using parameter set FileShareName
+        /// XPlat doesn't support to get single file/directory instance, it only supports list files,
+        /// so we only keep list file test cases for NodeJS
         /// </summary>
         [TestMethod]
         [TestCategory(Tag.BVT)]
         [TestCategory(PsTag.File)]
         [TestCategory(PsTag.FileBVT)]
-        [TestCategory(CLITag.NodeJSBVT)]
         public void GetDirectoryTest_FileShareNameParameterSet()
         {
             this.GetFileTest((fileShare, path) =>
