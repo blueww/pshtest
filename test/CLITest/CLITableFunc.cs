@@ -119,14 +119,18 @@ namespace Management.Storage.ScenarioTest
                 {
                     Test.Assert(agent.Output.Count == 0, "0 row returned : {0}", agent.Output.Count);
                 }
-
-                if (multiOutput)
+                int i = 0;
+                foreach (string name in TABLE_NAMES)
                 {
-                    Test.Assert(agent.ErrorMessages[0].Contains(String.Format("Table '{0}' already exists.", TABLE_NAMES[0])), agent.ErrorMessages[0]);
-                }
-                else
-                {
-                    Test.Assert(agent.ErrorMessages[0].StartsWith("The table specified already exists"), agent.ErrorMessages[0]);
+                    if (multiOutput)
+                    {
+                        Test.Assert(agent.ErrorMessages[i].Contains(String.Format("Table '{0}' already exists.", name)), agent.ErrorMessages[i]);
+                    }
+                    else
+                    {
+                        Test.Assert(agent.ErrorMessages[0].Contains("The table specified already exists"), agent.ErrorMessages[0]);
+                    }
+                    ++i;
                 }
 
                 //--------------3. New operation--------------
@@ -134,8 +138,7 @@ namespace Management.Storage.ScenarioTest
                 // Verification for returned values
                 if (multiOutput)
                 {
-                    Test.Assert(agent.Output.Count == 0, "0 row returned : {0}", agent.Output.Count);
-                    Test.Assert(agent.ErrorMessages[0].Contains(String.Format("Table '{0}' already exists.", PARTLY_EXISTING_NAMES[0])), agent.ErrorMessages[0]);
+                    Test.Assert(agent.Output.Count == 1, "1 row returned : {0}", agent.Output.Count);
                 }
 
                 // Check if all the above tables have been created
