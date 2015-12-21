@@ -148,10 +148,6 @@
     <Reference Include="Microsoft.WindowsAzure.Management.Storage">
       <HintPath>..\packages\Microsoft.WindowsAzure.Management.Storage.5.1.1\lib\net40\Microsoft.WindowsAzure.Management.Storage.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Storage, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\WindowsAzure.Storage.6.0.0\lib\net40\Microsoft.WindowsAzure.Storage.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.Wtt.Log, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8a96d095ee9fe264">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\azcopy\dmlib\internal\imports\WTT\2.6\Logger\amd64\Microsoft.Wtt.Log.dll</HintPath>
