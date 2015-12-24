@@ -159,12 +159,23 @@ namespace Management.Storage.ScenarioTest
 
             p.StartInfo.Arguments += string.Format(" azure {0} {1} --json", category, argument);
 
-            Test.Info("NodeJS command: \"{0}\" {1}", p.StartInfo.FileName, p.StartInfo.Arguments);
+            string argumentsLog = p.StartInfo.Arguments;
+            if (category == "login")
+            {
+                argumentsLog = Regex.Replace(argumentsLog, " -[p|P] .*", " -p ******");
+            }
+
+            Test.Info("NodeJS command: \"{0}\" {1}", p.StartInfo.FileName, argumentsLog);
         }
 
         public override void ImportAzureSubscription(string settingFile)
         {
             RunNodeJSProcess(string.Format("import \"{0}\"", settingFile), needAccountParam: false, category: "account");
+        }
+
+        public override bool SetRmCurrentStorageAccount(string storageAccountName, string resourceGroupName)
+        {
+            throw new NotImplementedException();
         }
 
         public override void SetActiveSubscription(string subscriptionId)
@@ -374,6 +385,16 @@ namespace Management.Storage.ScenarioTest
             return command + string.Format(" {0} ", optionName);
         }
 
+        internal string appendBoolOption(string command, string optionName, bool? value)
+        {
+            if (value.HasValue && value.Value)
+            {
+                return command + string.Format(" {0} ", optionName);
+            }
+
+            return command;
+        }
+
         internal string appendDateTimeOption(string command, string optionName, DateTime? date)
         {
             if (date.HasValue)
@@ -424,6 +445,24 @@ namespace Management.Storage.ScenarioTest
                 }
 
                 command = appendStringOption(command, accountCSOption, connectionString, quoted: true);
+            }
+
+            return command;
+        }
+
+        internal string appendHashOption(string command, string optionName, Hashtable[] tags)
+        {
+            if (tags != null)
+            {
+                if (tags.Length > 0)
+                {
+                    return command + string.Format(" {0} {1} ", optionName, Utility.ConvertTables(tags));
+                }
+                else
+                {
+                    // Double space to indicate the empty string which is a constrain on CLI
+                    return command + string.Format(" {0} \"  \" ", optionName);
+                }
             }
 
             return command;
@@ -585,6 +624,7 @@ namespace Management.Storage.ScenarioTest
             command = appendStringOption(command, "--resource-group", resourceGroupName);
             command = appendStringOption(command, "--location", location, true);
             command = appendStringOption(command, "--type", type);
+            command = appendHashOption(command, "--tags", tags);
 
             return RunNodeJSProcess(command, needAccountParam: false);
         }
@@ -600,12 +640,26 @@ namespace Management.Storage.ScenarioTest
 
         public override bool SetSRPAzureStorageAccountTags(string resourceGroupName, string accountName, Hashtable[] tags)
         {
-            throw new NotImplementedException();
+            string command = string.Format("account set {0}", accountName);
+            command = appendStringOption(command, "--resource-group", resourceGroupName);
+            command = appendHashOption(command, "--tags", tags);
+
+            return RunNodeJSProcess(command, needAccountParam: false);
         }
 
         public override bool SetSRPAzureStorageAccountCustomDomain(string resourceGroupName, string accountName, string customDomain, bool? useSubdomain)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(customDomain))
+            {
+                customDomain = "  ";
+            }
+
+            string command = string.Format("account set {0}", accountName);
+            command = appendStringOption(command, "--resource-group", resourceGroupName);
+            command = appendStringOption(command, "--custom-domain", customDomain, quoted: true);
+            command = appendBoolOption(command, "--subdomain", useSubdomain);
+
+            return RunNodeJSProcess(command, needAccountParam: false);
         }
 
         public override bool DeleteSRPAzureStorageAccount(string resourceGroupName, string accountName)
@@ -628,6 +682,20 @@ namespace Management.Storage.ScenarioTest
                 command = string.Format("account show {0}", accountName);
             }
             command = appendStringOption(command, "--resource-group", resourceGroupName);
+
+            return RunNodeJSProcess(command, needAccountParam: false);
+        }
+
+        public override bool CheckNameAvailability(string accountName)
+        {
+            string command = string.Format("account check \"{0}\"", accountName);
+
+            return RunNodeJSProcess(command, needAccountParam: false);
+        }
+
+        public override bool GetAzureStorageUsage()
+        {
+            string command = string.Format("account usage show");
 
             return RunNodeJSProcess(command, needAccountParam: false);
         }
@@ -1737,7 +1805,7 @@ namespace Management.Storage.ScenarioTest
             this.RunNodeJSProcess(command, true, needAccountParam: contextObject == null);
         }
 
-        public override void ListFiles(string fileShareName, string path = null)
+        public override void GetFile(string fileShareName, string path = null)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendFormat("file list \"{0}\"", fileShareName);
@@ -1748,14 +1816,14 @@ namespace Management.Storage.ScenarioTest
             this.RunNodeJSProcess(sb.ToString());
         }
 
-        public override void ListFiles(CloudFileShare fileShare, string path = null)
+        public override void GetFile(CloudFileShare fileShare, string path = null)
         {
-            this.ListFiles(fileShare.Name, path);
+            this.GetFile(fileShare.Name, path);
         }
 
-        public override void ListFiles(CloudFileDirectory directory, string path = null)
+        public override void GetFile(CloudFileDirectory directory, string path = null)
         {
-            this.ListFiles(directory.Share.Name, directory.Name + '/' + path);
+            this.GetFile(directory.Share.Name, directory.Name + '/' + path);
         }
 
         public override void DownloadFile(CloudFile file, string destination, bool overwrite = false)

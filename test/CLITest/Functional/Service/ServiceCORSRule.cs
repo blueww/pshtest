@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Management.Storage.ScenarioTest.Common;
 using Management.Storage.ScenarioTest.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -676,6 +674,8 @@ namespace Management.Storage.ScenarioTest.Functional.Service
                 case Constants.ServiceType.File:
                     FileServiceProperties fileProperties = new FileServiceProperties();
                     fileProperties.Cors = serviceProperties.Cors;
+                    fileProperties.HourMetrics = serviceProperties.HourMetrics;
+                    fileProperties.MinuteMetrics = serviceProperties.MinuteMetrics;
                     StorageAccount.CreateCloudFileClient().SetServiceProperties(fileProperties);
                     break;
             }

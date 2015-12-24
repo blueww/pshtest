@@ -12,6 +12,8 @@ cd PowerShell\tools
 powershell -File BuildInstaller.ps1
 IF %ERRORLEVEL% NEQ 0 Exit /B %ERRORLEVEL%
 cd ..\..
+powershell -NonInteractive -NoLogo -NoProfile -File PublishModules.ps1
+IF %ERRORLEVEL% NEQ 0 Exit /B %ERRORLEVEL%
 
 if [%PRODUCT%] == [] GOTO :xPlat
 GOTO :END

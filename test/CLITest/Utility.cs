@@ -38,6 +38,7 @@ namespace Management.Storage.ScenarioTest
     using Microsoft.WindowsAzure.Storage.Queue;
     using Microsoft.WindowsAzure.Storage.Queue.Protocol;
     using Microsoft.WindowsAzure.Storage.Shared.Protocol;
+    using Microsoft.WindowsAzure.Storage.File.Protocol;
     using Microsoft.WindowsAzure.Storage.Table;
     using Microsoft.Azure.Subscriptions;
     using MS.Test.Common.MsTestLib;
@@ -322,6 +323,29 @@ namespace Management.Storage.ScenarioTest
         }
 
         /// <summary>
+        /// Convert Hashtables to string
+        /// The output would be "k1=v1;k2=v2"
+        /// </summary>
+        public static string ConvertTables(Hashtable[] tables)
+        {
+            string result = string.Empty;
+            foreach (Hashtable table in tables)
+            {    
+                if (!string.IsNullOrEmpty(result))
+                {
+                    result += ";";
+                }
+                 
+                if (table.ContainsKey("Name") && table.ContainsKey("Value"))
+                {
+                    result += table["Name"] + "=" + table["Value"];
+                }
+            }
+
+            return "\"" + result + "\"";
+        }
+
+        /// <summary>
         /// Generate a random small int number for test
         /// </summary>
         /// <returns>Random int</returns>
@@ -370,6 +394,22 @@ namespace Management.Storage.ScenarioTest
             }
 
             return false;
+        }
+
+        public static AzureEnvironment GetTargetEnvironment()
+        {
+            AzureEnvironment environment = null;
+            string storageEndpoint = Test.Data.Get("StorageEndPoint");
+            foreach (string key in AzureEnvironment.PublicEnvironments.Keys)
+            {
+                if (AzureEnvironment.PublicEnvironments[key].Endpoints[AzureEnvironment.Endpoint.StorageEndpointSuffix] == storageEndpoint)
+                {
+                    environment = AzureEnvironment.PublicEnvironments[key];
+                    break;
+                }
+            }
+
+            return environment;
         }
 
         /// <summary>
@@ -560,6 +600,14 @@ namespace Management.Storage.ScenarioTest
                 case Constants.ServiceType.Queue:
                     properties = account.CreateCloudQueueClient().GetServiceProperties();
                     break;
+                case Constants.ServiceType.File:
+                    FileServiceProperties fileProperties = account.CreateCloudFileClient().GetServiceProperties();
+                    properties = new ServiceProperties();
+                    properties.Clean();
+                    properties.Cors = fileProperties.Cors;
+                    properties.HourMetrics = fileProperties.HourMetrics;
+                    properties.MinuteMetrics = fileProperties.MinuteMetrics;
+                    break;
             }
             return properties;
         }
@@ -612,7 +660,7 @@ namespace Management.Storage.ScenarioTest
                     metricsLevel.Equals(properties.HourMetrics.MetricsLevel.ToString(), StringComparison.OrdinalIgnoreCase))
                     ||
                     (metricsType == Constants.MetricsType.Hour &&
-                    properties.HourMetrics.RetentionDays == retentionDays &&
+                    (properties.HourMetrics.RetentionDays == retentionDays || (!properties.HourMetrics.RetentionDays.HasValue && retentionDays < 0)) &&
                     metricsLevel.Equals(properties.HourMetrics.MetricsLevel.ToString(), StringComparison.OrdinalIgnoreCase))
                     ||
                     (metricsType == Constants.MetricsType.Minute &&
@@ -620,7 +668,7 @@ namespace Management.Storage.ScenarioTest
                     metricsLevel.Equals(properties.MinuteMetrics.MetricsLevel.ToString(), StringComparison.OrdinalIgnoreCase))
                     ||
                     (metricsType == Constants.MetricsType.Minute &&
-                    properties.MinuteMetrics.RetentionDays == retentionDays &&
+                    (properties.MinuteMetrics.RetentionDays == retentionDays || (!properties.MinuteMetrics.RetentionDays.HasValue && retentionDays < 0)) &&
                     metricsLevel.Equals(properties.MinuteMetrics.MetricsLevel.ToString(), StringComparison.OrdinalIgnoreCase)))
                 {
                     break;
@@ -964,6 +1012,49 @@ namespace Management.Storage.ScenarioTest
 
                 return state;
             }
+        }
+
+        public static int ParseIntFromJsonOutput(Dictionary<string, object> output, string key)
+        {
+            int result = 0;
+            if (output.ContainsKey(key))
+            {
+                int.TryParse(output[key].ToString(), out result);
+            }
+
+            return result;
+        }
+
+        public static string ParseStringFromJsonOutput(Dictionary<string, object> output, string key)
+        {
+            return output.ContainsKey(key) ? output[key] as string : null;
+        }
+
+        public static bool ParseBoolFromJsonOutput(Dictionary<string, object> output, string key)
+        {
+            return output.ContainsKey(key) ? bool.Parse(output[key].ToString()) : false;
+        }
+
+        public static T? ParseEnumFromJsonOutput<T>(Dictionary<string, object> output, string key) where T : struct
+        {
+            T result;
+            if (output.ContainsKey(key))
+            {
+                if (Enum.TryParse<T>(output[key] as string, true, out result))
+                {
+                    return result;
+                } 
+                else
+                {
+                    int value = 0;
+                    if (int.TryParse(output[key].ToString(), out value))
+                    {
+                        return (T)Enum.ToObject(typeof(T), value);
+                    }
+                }
+            }
+
+            return (T?)null;
         }
 
         /// <summary>

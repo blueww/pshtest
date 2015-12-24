@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Management.Storage.ScenarioTest.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Commands.Storage.Model.ResourceModel;
@@ -47,6 +48,9 @@ namespace Management.Storage.ScenarioTest.Common
         protected Agent agent;
         protected static Language lang;
         protected static bool isResourceMode = false;
+        protected static bool isMooncake = false;
+        private bool isLogin = false;
+        private bool accountImported = false;
 
         private TestContext testContextInstance;
 
@@ -126,6 +130,8 @@ namespace Management.Storage.ScenarioTest.Common
         {
             //add the language specific initialization
             lang = AgentFactory.GetLanguage(testContext.Properties);
+
+            isMooncake = Utility.GetTargetEnvironment().Name == "AzureChinaCloud";
 
             string mode = Test.Data.Get("IsResourceMode");
 
@@ -238,6 +244,59 @@ namespace Management.Storage.ScenarioTest.Common
         /// </summary>
         public virtual void OnTestSetup()
         {
+            if (isResourceMode)
+            {
+                if (!isLogin)
+                {
+                    if (Utility.GetAutoLogin())
+                    {
+                        int retry = 0;
+                        do
+                        {
+                            if (agent.HadErrors)
+                            {
+                                Thread.Sleep(5000);
+                                Test.Info(string.Format("Retry login... Count:{0}", retry));
+                            }
+                            if (!TestContext.FullyQualifiedTestClassName.Contains("SubScriptionBVT")) //For SubScriptionBVT, we already login and set current account, don't need re-login
+                            {
+                                agent.Logout();
+                                agent.Login();
+                            }
+                        }
+                        while (agent.HadErrors && retry++ < 5);
+                    }
+
+                    if (lang == Language.NodeJS)
+                    {
+                        SetActiveSubscription();
+                        agent.ChangeCLIMode(Constants.Mode.arm);
+                    }
+
+                    isLogin = true;
+                }
+            }
+            else
+            {
+                if (!accountImported)
+                {
+                    if (lang == Language.NodeJS)
+                    {
+                        NodeJSAgent nodeAgent = (NodeJSAgent)agent;
+                        nodeAgent.Logout();
+                        nodeAgent.ChangeCLIMode(Constants.Mode.asm);
+                    }
+
+                    string settingFile = Test.Data.Get("AzureSubscriptionPath");
+                    string subscriptionId = Test.Data.Get("AzureSubscriptionID");
+                    agent.ImportAzureSubscription(settingFile);
+
+                    string subscriptionID = Test.Data.Get("AzureSubscriptionID");
+                    agent.SetActiveSubscription(subscriptionID);
+
+                    accountImported = true;
+                }
+            }
         }
 
         /// <summary>
@@ -483,6 +542,24 @@ namespace Management.Storage.ScenarioTest.Common
         {
             StorageCredentials credentials = new StorageCredentials(sastoken);
             return Utility.GetStorageAccountWithEndPoint(credentials, useHttps, endpoint, accountName);
+        }
+
+        protected void SetActiveSubscription()
+        {
+            NodeJSAgent nodeAgent = (NodeJSAgent)agent;
+            string subscriptionID = Test.Data.Get("AzureSubscriptionID");
+            if (!string.IsNullOrEmpty(subscriptionID))
+            {
+                nodeAgent.SetActiveSubscription(subscriptionID);
+            }
+            else
+            {
+                string subscriptionName = Test.Data.Get("AzureSubscriptionName");
+                if (!string.IsNullOrEmpty(subscriptionName))
+                {
+                    nodeAgent.SetActiveSubscription(subscriptionName);
+                }
+            }
         }
     }
 }
