@@ -123,7 +123,7 @@ namespace Management.Storage.ScenarioTest
                     int i = 0;
                     foreach (string name in QUEUE_NAMES)
                     {
-                        Test.Assert(agent.ErrorMessages[i].Equals(String.Format("Queue '{0}' already exists.", name)), agent.ErrorMessages[i]);
+                        Test.Assert(agent.ErrorMessages[i].Contains(String.Format("Queue '{0}' already exists.", name)), agent.ErrorMessages[i]);
                         ++i;
                     }
 

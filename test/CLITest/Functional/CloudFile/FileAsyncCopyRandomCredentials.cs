@@ -61,9 +61,11 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 object destContext = this.agent.GetStorageContextWithSASToken(StorageAccount2, destSasToken);
 
-                Test.Assert(!agent.StartFileCopy(sourceFile, destShareName, destFileName, destContext), "Copy to file with sas token credential should fail.");
+                Test.Assert(agent.StartFileCopy(sourceFile, destShareName, destFileName, destContext), "Copy to file with sas token credential should fail.");
 
-                ExpectedContainErrorMessage("The specified resource does not exist.");
+                Test.Assert(agent.GetFileCopyState(destShareName, destFileName, destContext, true), "Get file copy state should succeed.");
+
+                CloudFileUtil.ValidateCopyResult(sourceFile, destShare.GetRootDirectoryReference().GetFileReference(destFileName));
             }
             finally
             {
@@ -265,7 +267,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 string destFileName = Utility.GenNameString("destfile");
                 Test.Assert(!agent.StartFileCopyFromFile(sourceShareName, sourceFile.Name, destShareName, destFileName, destContext), "Copy to file with invalid sas token credential should fail.");
-                ExpectedContainErrorMessage("The specified resource does not exist.");
+                ExpectedContainErrorMessage("This request is not authorized to perform this operation using this permission.");
             }
             finally
             {
@@ -397,9 +399,11 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 SetSourceContext(container);
 
-                Test.Assert(!agent.StartFileCopyFromBlob(sourceContainerName, sourceBlob.Name, destShareName, sourceBlob.Name, destContext), "Copy to file with sas token credential should succeed.");
+                Test.Assert(agent.StartFileCopyFromBlob(sourceContainerName, sourceBlob.Name, destShareName, sourceBlob.Name, destContext), "Copy to file with sas token credential should succeed.");
 
-                ExpectedContainErrorMessage("The specified resource does not exist.");
+                Test.Assert(agent.GetFileCopyState(destShareName, sourceBlob.Name, destContext, true), "Waiting for async copying state should succeed.");
+
+                CloudFileUtil.ValidateCopyResult(sourceBlob, destShare.GetRootDirectoryReference().GetFileReference(sourceBlob.Name));
 
             }
             finally

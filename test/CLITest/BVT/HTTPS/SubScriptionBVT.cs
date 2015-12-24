@@ -49,11 +49,23 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
         /// </summary>
         private static void SetupSubscription()
         {
-            string subscriptionFile = Test.Data.Get("AzureSubscriptionPath");
-            string subscriptionName = Test.Data.Get("AzureSubscriptionName");
-            //TODO add tests about invalid storage account name
-            string storageAccountName = Test.Data.Get("StorageAccountName");
-            PowerShellAgent.ImportAzureSubscriptionAndSetStorageAccount(subscriptionFile, subscriptionName, storageAccountName);
+            if (!isResourceMode) //Service Mode
+            {
+                string subscriptionFile = Test.Data.Get("AzureSubscriptionPath");
+                string subscriptionName = Test.Data.Get("AzureSubscriptionName");
+                //TODO add tests about invalid storage account name
+                string storageAccountName = Test.Data.Get("StorageAccountName");
+                PowerShellAgent.ImportAzureSubscriptionAndSetStorageAccount(subscriptionFile, subscriptionName, storageAccountName);
+            }
+            else
+            {
+                PowerShellAgent ps = new PowerShellAgent();
+                ps.Logout();
+                ps.Login();
+                string storageAccountName = Test.Data.Get("StorageAccountName");
+                string resourceGroupName = Test.Data.Get("StorageAccountResourceGroup");
+                ps.SetRmCurrentStorageAccount(storageAccountName, resourceGroupName);
+            }
         }
 
         [ClassCleanup()]

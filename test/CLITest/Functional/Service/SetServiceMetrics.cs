@@ -10,6 +10,7 @@
     using Microsoft.WindowsAzure.Storage.Queue;
     using Microsoft.WindowsAzure.Storage.Shared.Protocol;
     using Microsoft.WindowsAzure.Storage.Table;
+    using Microsoft.WindowsAzure.Storage.File;
     using MS.Test.Common.MsTestLib;
     using StorageTestLib;
     using Constants = Management.Storage.ScenarioTest.Constants;
@@ -50,6 +51,10 @@
             //Table service
             GenericEnableDisableServiceMetrics(ServiceType.Table,
                 (metricsType, retentionDays, metricsLevel) => Utility.WaitForMetricsPropertyTakingEffect(StorageAccount, ServiceType.Table, metricsType, retentionDays, metricsLevel));
+
+            //File service
+            GenericEnableDisableServiceMetrics(ServiceType.File,
+                (metricsType, retentionDays, metricsLevel) => Utility.WaitForMetricsPropertyTakingEffect(StorageAccount, ServiceType.File, metricsType, retentionDays, metricsLevel));
         }
 
         internal void GenericEnableDisableServiceMetrics(ServiceType serviceType, GetMetricsProperty<ServiceProperties> getServiceProperties)
@@ -71,13 +76,13 @@
             Test.Info("Enable/Disable service minute metrics for {0}", serviceType);
             retentionDays = 10;
             Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, MetricsLevel.ServiceAndApi.ToString(), retentionDays.ToString(), string.Empty), "Enable service minute metrics should succeed");
-            retrievedProperties = getServiceProperties(Constants.MetricsType.Minute, retentionDays, string.Empty);
+            retrievedProperties = getServiceProperties(Constants.MetricsType.Minute, retentionDays, MetricsLevel.ServiceAndApi.ToString());
             ExpectEqual(retentionDays, retrievedProperties.MinuteMetrics.RetentionDays.Value, "metrics retention days");
 
             retentionDays = lang == Language.PowerShell ? -1 : 0;
             Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute, MetricsLevel.ServiceAndApi.ToString(), retentionDays.ToString(), string.Empty), "Disable blob service minute metrics should succeed");
 
-            retrievedProperties = getServiceProperties(Constants.MetricsType.Minute, retentionDays, string.Empty);
+            retrievedProperties = getServiceProperties(Constants.MetricsType.Minute, retentionDays, MetricsLevel.ServiceAndApi.ToString());
             Test.Assert(!retrievedProperties.MinuteMetrics.RetentionDays.HasValue, "service minute metrics retention days should be null");
         }
 
@@ -99,6 +104,10 @@
             //Table service
             GenericSetMetricsOperation(ServiceType.Table,
                 (metricsType, retentionDays, metricsLevel) => Utility.WaitForMetricsPropertyTakingEffect(StorageAccount, ServiceType.Table, metricsType, retentionDays, metricsLevel));
+
+            //File service
+            GenericSetMetricsOperation(ServiceType.File,
+                (metricsType, retentionDays, metricsLevel) => Utility.WaitForMetricsPropertyTakingEffect(StorageAccount, ServiceType.File, metricsType, retentionDays, metricsLevel));
         }
 
         internal void GenericSetMetricsOperation(ServiceType serviceType, GetMetricsProperty<ServiceProperties> getServiceProperties)
@@ -145,6 +154,9 @@
             //Table service
             CloudTableClient tableClient = StorageAccount.CreateCloudTableClient();
             GenericSetInvalidMetricsOperation(ServiceType.Table, () => tableClient.GetServiceProperties());
+
+            //File service
+            GenericSetInvalidMetricsOperation(ServiceType.File, () => Utility.GetServiceProperties(StorageAccount, ServiceType.File));
         }
 
         internal void GenericSetInvalidMetricsOperation(ServiceType serviceType, Func<ServiceProperties> getServiceProperties)
@@ -194,6 +206,9 @@
             //Table service
             CloudTableClient tableClient = StorageAccount.CreateCloudTableClient();
             GenericSetMetricsRetentionDays(ServiceType.Table, () => tableClient.GetServiceProperties());
+
+            //File service
+            GenericSetMetricsRetentionDays(ServiceType.File, () => Utility.GetServiceProperties(StorageAccount, ServiceType.File));
         }
 
         internal void GenericSetMetricsRetentionDays(ServiceType serviceType, Func<ServiceProperties> getServiceProperties)
@@ -278,6 +293,9 @@
             //Table service
             CloudTableClient tableClient = StorageAccount.CreateCloudTableClient();
             GenericSetMetricsVersion(ServiceType.Table, () => tableClient.GetServiceProperties());
+
+            //File service
+            GenericSetMetricsVersion(ServiceType.File, () => Utility.GetServiceProperties(StorageAccount, ServiceType.File));
         }
 
         internal void GenericSetMetricsVersion(ServiceType serviceType, Func<ServiceProperties> getServiceProperties)
