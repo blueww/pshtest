@@ -118,6 +118,8 @@ namespace Management.Storage.ScenarioTest
         public const string ResourceModulePath = "ResourceManager\\AzureResourceManager\\AzureResourceManager.psd1";
         public const string ServiceModulePath = "ServiceManagement\\Azure\\Azure.psd1";
 
-        public const int Iterations = 5;
+        public const int Iterations = 5; 
+        
+        public const int DefaultMaxWaitingTime = 900000;  // in miliseconds, increased from 600s to 900s due to AppendBlob. It should be less than the default timeout value of mstest2, which is 3600s for now.
     }
 }
