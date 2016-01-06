@@ -176,6 +176,11 @@ namespace Management.Storage.ScenarioTest.Common
 
                 FileUtil.GetOSConfig(Test.Data);
             }
+            else if (lang == Language.CLU)
+            {
+                CLUAgent.GetOSConfig(Test.Data);
+                FileUtil.GetOSConfig(Test.Data);
+            }
         }
 
         protected static string GetModulePath()
