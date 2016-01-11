@@ -146,15 +146,8 @@ namespace Management.Storage.ScenarioTest
                 return;
             }
 
-            if (File.Exists(ModuleFilePath))
-            {
-                Test.Info("Import-Module {0}", ModuleFilePath);
-                _InitState.ImportPSModule(new string[] { ModuleFilePath });
-            }
-            else
-            {
-                throw new Exception(String.Format("Module file path : {0} not found!", ModuleFilePath));
-            }
+            Test.Info("Import-Module {0}", ModuleFilePath);
+            _InitState.ImportPSModule(new string[] { ModuleFilePath });
         }
 
         public static void InstallAzureModule()
