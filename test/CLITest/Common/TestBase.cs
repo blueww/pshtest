@@ -157,6 +157,18 @@ namespace Management.Storage.ScenarioTest.Common
                         }
                     }
                 }
+                else
+                {
+                    if (isResourceMode)
+                    {
+                        PowerShellAgent.ImportModule("AzureRm.Storage");
+                        PowerShellAgent.ImportModule("Azure.Storage");
+                    }
+                    else
+                    {
+                        PowerShellAgent.ImportModule("Azure");
+                    }
+                }
 
                 string snapInName = Test.Data.Get("PSSnapInName");
                 if (!string.IsNullOrWhiteSpace(snapInName))
