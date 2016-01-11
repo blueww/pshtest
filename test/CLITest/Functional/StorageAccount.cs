@@ -144,7 +144,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         #endregion
-        
+
         /// <summary>
         /// Sprint 35 Test Spec: 1.1; 1.2
         /// </summary>

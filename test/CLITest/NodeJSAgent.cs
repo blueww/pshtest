@@ -49,7 +49,7 @@ namespace Management.Storage.ScenarioTest
         private const string DOUBLE_SPACE = "CLITEST_DOUBLESPACE_INDICATOR";
 
         private static string UnlockKeyChainCommand = string.Format(" security -v unlock-keychain \"-p\" \"{0}\";", Test.Data.Get("UserName"));
-        private static string UnlockKeyChainOutput = string.Format("unlock-keychain \"-p\" \"{0}\"\n", Test.Data.Get("UserName"));        
+        private static string UnlockKeyChainOutput = string.Format("unlock-keychain \"-p\" \"{0}\"\n", Test.Data.Get("UserName"));
 
         private static Hashtable ExpectedErrorMsgTableNodeJS = new Hashtable() {
                 {"GetBlobContentWithNotExistsBlob", "Can not find blob '{0}' in container '{1}'"},
