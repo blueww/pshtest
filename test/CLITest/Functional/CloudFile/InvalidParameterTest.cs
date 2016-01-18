@@ -119,7 +119,7 @@
                 this.agent.DownloadFile(file, Test.Data.Get("TempDir"), true);
                 var result = this.agent.Invoke();
                 result.AssertNoResult();
-                this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.InvalidOperationExceptionFullQualifiedErrorId));
+                this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
             }
             finally
             {
