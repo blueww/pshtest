@@ -97,6 +97,11 @@ namespace Management.Storage.ScenarioTest
             }
             else
             {
+                if (Language.CLU == lang)
+                {
+                    throw new InvalidOperationException("CLU doesn't have cmdlets in service mode");
+                }
+
                 var parameters = new StorageAccountCreateParameters();
                 parameters.Name = accountNameForConnectionStringTest;
                 parameters.Label = "Test account in service mode";

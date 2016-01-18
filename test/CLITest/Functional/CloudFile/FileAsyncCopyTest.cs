@@ -220,7 +220,8 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 CloudFileUtil destFileUtil = toSecondaryAccout ? FileUtil2 : fileUtil;
                 object destContext = toSecondaryAccout ? Agent.SecondaryContext : Agent.Context;
 
-                string srcFileName = this.GetDeepestFilePath();
+                //TODO: Currently "copy file" only support path with 1024 character at maximum, update the code accordingly after the FE's behavior get updated
+                string srcFileName = this.GetDeepestFilePath(1024);
                 StorageFile.CloudFile srcFile = fileUtil.CreateFile(srcShare.GetRootDirectoryReference(), srcFileName);
 
                 string destShareName = Utility.GenNameString("destshare");
@@ -673,7 +674,8 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
             try
             {
-                string filePath = this.GetDeepestFilePath();
+                //TODO: Currently "copy file" only support path with 1024 character at maximum, update the code accordingly after the FE's behavior get updated
+                string filePath = this.GetDeepestFilePath(1024);
                 StorageFile.CloudFile srcFile = srcFileUtil.CreateFile(srcShare.GetRootDirectoryReference(), filePath);
 
                 fileUtil.CreateFileFolders(destShare, filePath);
@@ -1229,17 +1231,17 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             }
         }
 
-        private string GetDeepestFilePath()
+        private string GetDeepestFilePath(int maxLength = 2048)
         {
             StringBuilder sb = new StringBuilder();
-            int maxDirLength = 2032;
+            int maxDirLength = maxLength - 16;
             while (sb.Length < maxDirLength)
             {
                 sb.Append(Utility.GenNameString("", Math.Min(16, maxDirLength - sb.Length)));
                 sb.Append("/");
             }
 
-            sb.Append(Utility.GenNameString("", 2048 - sb.Length));
+            sb.Append(Utility.GenNameString("", maxLength - sb.Length));
 
             return sb.ToString();
         }
