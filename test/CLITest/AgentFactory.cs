@@ -40,6 +40,10 @@
                 {
                     agentLanguage = Language.NodeJS;
                 }
+                else if (String.Compare(Language.CLU.ToString(), v, StringComparison.InvariantCultureIgnoreCase) == 0)
+                {
+                    agentLanguage = Language.CLU;
+                }
                 else
                 {
                     throw new Exception(String.Format("Unsupported lang value: {0}", properties["lang"]));
@@ -100,6 +104,8 @@
                     return new PowerShellAgent();
                 case Language.NodeJS:
                     return new NodeJSAgent();
+                case Language.CLU:
+                    return new CLUAgent();
                 default:
                     throw new Exception(String.Format("Please specify language parameter value!"));
             }
@@ -108,7 +114,7 @@
 
     public enum Language 
     { 
-        PowerShell, NodeJS 
+        PowerShell, NodeJS, CLU
     };
 
     public enum OSType

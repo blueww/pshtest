@@ -14,7 +14,7 @@
     using StorageTestLib;
 
     [TestClass]
-    internal class GetAzureStorageFileTest : TestBase
+    public class GetAzureStorageFileTest : TestBase
     {
         private Random randomProvider = new Random();
 
@@ -30,7 +30,7 @@
         public static void NewAzureStorageFileShareTestCleanup()
         {
             TestBase.TestClassCleanup();
-        }
+        } 
 
         public override void OnTestSetup()
         {
@@ -96,6 +96,7 @@
             var dirNames = Enumerable.Range(0, this.randomProvider.Next(5, 20)).Select(x => CloudFileUtil.GenerateUniqueFileName()).ToList();
             var dir = this.fileShare.GetRootDirectoryReference();
             fileUtil.CleanupDirectory(dir);
+
             var files = fileNames.Select(name => fileUtil.CreateFile(dir, name)).ToList();
             var dirs = dirNames.Select(name => fileUtil.EnsureDirectoryExists(dir, name)).ToList();
 
@@ -105,23 +106,27 @@
             this.agent.AssertNoError();
             result.AssertFileListItems(files, dirs);
 
-            this.agent.Clear();
-            this.agent.GetFile(this.fileShare, fileNames[0]);
-            result = this.agent.Invoke();
-            this.agent.AssertNoError();
-            result.AssertObjectCollection(obj => obj.AssertCloudFile(fileNames[0]));
+            // xPlat doesn't have the "file show" command. It only has the "file list" command which is only target for the directory
+            if (lang != Language.NodeJS)
+            {
+                this.agent.Clear();
+                this.agent.GetFile(this.fileShare, fileNames[0]);
+                result = this.agent.Invoke();
+                this.agent.AssertNoError();
+                result.AssertObjectCollection(obj => obj.AssertCloudFile(fileNames[0]));
 
-            this.agent.Clear();
-            this.agent.GetFile(this.fileShare.Name, fileNames[0]);
-            result = this.agent.Invoke();
-            this.agent.AssertNoError();
-            result.AssertObjectCollection(obj => obj.AssertCloudFile(fileNames[0]));
+                this.agent.Clear();
+                this.agent.GetFile(this.fileShare.Name, fileNames[0]);
+                result = this.agent.Invoke();
+                this.agent.AssertNoError();
+                result.AssertObjectCollection(obj => obj.AssertCloudFile(fileNames[0]));
 
-            this.agent.Clear();
-            this.agent.GetFile(this.fileShare.GetRootDirectoryReference(), fileNames[0]);
-            result = this.agent.Invoke();
-            this.agent.AssertNoError();
-            result.AssertObjectCollection(obj => obj.AssertCloudFile(fileNames[0]));
+                this.agent.Clear();
+                this.agent.GetFile(this.fileShare.GetRootDirectoryReference(), fileNames[0]);
+                result = this.agent.Invoke();
+                this.agent.AssertNoError();
+                result.AssertObjectCollection(obj => obj.AssertCloudFile(fileNames[0]));
+            }
         }
 
         /// <summary>
@@ -157,17 +162,42 @@
             fileUtil.CleanupDirectory(dir);
 
             this.agent.Clear();
-            this.agent.GetFile(this.fileShare, "/a/b/c");
-            var result = this.agent.Invoke();
-            this.agent.AssertNoError();
-            result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory("a/b/c"));
+            IExecutionResult result;
+
+            if (lang == Language.NodeJS)
+            {
+                this.agent.GetFile(this.fileShare, "/a/b");
+                result = this.agent.Invoke();
+                this.agent.AssertNoError();
+
+                result.AssertFileListItems(Enumerable.Empty<CloudFile>(), new []{ dir });
+            }
+            else
+            {
+                this.agent.GetFile(this.fileShare, "/a/b/c");
+                result = this.agent.Invoke();
+                this.agent.AssertNoError();
+                result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory("a/b/c"));
+            }
 
             this.agent.Clear();
             var file = fileUtil.CreateFile(dir, "d");
-            this.agent.GetFile(this.fileShare, "/a/b/c/d");
-            result = this.agent.Invoke();
-            this.agent.AssertNoError();
-            result.AssertObjectCollection(obj => obj.AssertCloudFile("d", "a/b/c"));
+
+            if (lang == Language.NodeJS)
+            {
+                this.agent.GetFile(this.fileShare, "/a/b/c");
+                result = this.agent.Invoke();
+                this.agent.AssertNoError();
+
+                result.AssertFileListItems(new [] { file }, Enumerable.Empty<CloudFileDirectory>());
+            }
+            else
+            {
+                this.agent.GetFile(this.fileShare, "/a/b/c/d");
+                result = this.agent.Invoke();
+                this.agent.AssertNoError();
+                result.AssertObjectCollection(obj => obj.AssertCloudFile("d", "a/b/c"));
+            }
         }
 
         /// <summary>
@@ -179,21 +209,46 @@
         [TestCategory(CLITag.NodeJSFT)]
         public void GetFilesFromSubDirectoryUsingRelativePathFromRootTest()
         {
-            var fileNames = Enumerable.Range(0, this.randomProvider.Next(5, 20)).Select(x => CloudFileUtil.GenerateUniqueFileName()).ToList();
             var dir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
+            fileUtil.CleanupDirectory(dir);
+
+            this.agent.Clear();
+            IExecutionResult result;
+
+            if (lang == Language.NodeJS)
+            {
+                this.agent.GetFile(this.fileShare, "a/b/.././b/../b/");
+                result = this.agent.Invoke();
+                this.agent.AssertNoError();
+
+                result.AssertFileListItems(Enumerable.Empty<CloudFile>(), new[] { dir });
+            }
+            else
+            {
+                this.agent.GetFile(this.fileShare, "a/b/.././b/../b/c");
+                result = this.agent.Invoke();
+                this.agent.AssertNoError();
+                result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory("a/b/c"));
+            }
+
+            this.agent.Clear();
             var file = fileUtil.CreateFile(dir, "d");
+            if (lang == Language.NodeJS)
+            {
+                this.agent.GetFile(this.fileShare, "a/b/.././b/../b/c");
+                result = this.agent.Invoke();
+                this.agent.AssertNoError();
 
-            this.agent.Clear();
-            this.agent.GetFile(this.fileShare, "a/b/.././b/../b/c");
-            var result = this.agent.Invoke();
-            this.agent.AssertNoError();
-            result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory("a/b/c"));
-
-            this.agent.Clear();
-            this.agent.GetFile(this.fileShare, "a/b/.././b/../b/c/d");
-            result = this.agent.Invoke();
-            this.agent.AssertNoError();
-            result.AssertObjectCollection(obj => obj.AssertCloudFile("d", "a/b/c"));
+                result.AssertFileListItems(new[] { file }, Enumerable.Empty<CloudFileDirectory>());
+            }
+            else
+            {
+                this.agent.Clear();
+                this.agent.GetFile(this.fileShare, "a/b/.././b/../b/c/d");
+                result = this.agent.Invoke();
+                this.agent.AssertNoError();
+                result.AssertObjectCollection(obj => obj.AssertCloudFile("d", "a/b/c"));
+            }
         }
 
         /// <summary>
@@ -460,18 +515,46 @@
             var fileNames = Enumerable.Range(0, this.randomProvider.Next(5, 10)).Select(x => CloudFileUtil.GenerateUniqueFileName()).ToList();
             var dir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
             fileUtil.CleanupDirectory(dir);
-            var files = fileNames.Select(name => fileUtil.CreateFile(dir, name)).ToList();
-
-            this.agent.GetFile(this.fileShare, "a/c/./../b/./c/e/..");
-            var result = this.agent.Invoke();
-            this.agent.AssertNoError();
-            result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory("a/b/c"));
 
             this.agent.Clear();
-            this.agent.GetFile(this.fileShare, string.Format("a/c/./../b/./c/e/../{0}", fileNames[0]));
-            result = this.agent.Invoke();
-            this.agent.AssertNoError();
-            result.AssertObjectCollection(obj => obj.AssertCloudFile(fileNames[0], "a/b/c"));
+            IExecutionResult result;
+
+            if (lang == Language.NodeJS)
+            {
+                this.agent.GetFile(this.fileShare, "a/c/./../b/./e/..");
+                result = this.agent.Invoke();
+                this.agent.AssertNoError();
+
+                result.AssertFileListItems(Enumerable.Empty<CloudFile>(), new[] { dir });
+            }
+            else
+            {
+                this.agent.GetFile(this.fileShare, "a/c/./../b/./c/e/..");
+                result = this.agent.Invoke();
+                this.agent.AssertNoError();
+                result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory("a/b/c"));
+            }
+
+            this.agent.Clear();
+            var files = fileNames.Select(name => fileUtil.CreateFile(dir, name)).ToList();
+
+            if (lang == Language.NodeJS)
+            {
+                this.agent.GetFile(this.fileShare, "a/c/./../b/./c/e/..");
+                result = this.agent.Invoke();
+                this.agent.AssertNoError();
+
+                result.AssertFileListItems(files, Enumerable.Empty<CloudFileDirectory>());
+            }
+            else
+            {
+                this.agent.Clear();
+                this.agent.GetFile(this.fileShare, string.Format("a/c/./../b/./c/e/../{0}", fileNames[0]));
+                result = this.agent.Invoke();
+                this.agent.AssertNoError();
+                result.AssertObjectCollection(obj => obj.AssertCloudFile(fileNames[0], "a/b/c"));
+
+            }
         }
     }
 }

@@ -51,8 +51,6 @@ namespace Management.Storage.ScenarioTest
         private static string UnlockKeyChainCommand = string.Format(" security -v unlock-keychain \"-p\" \"{0}\";", Test.Data.Get("UserName"));
         private static string UnlockKeyChainOutput = string.Format("unlock-keychain \"-p\" \"{0}\"\n", Test.Data.Get("UserName"));
 
-        private static int DefaultMaxWaitingTime = 900000;  // in miliseconds, increased from 600s to 900s due to AppendBlob. It should be less than the default timeout value of mstest2, which is 3600s for now.
-
         private static Hashtable ExpectedErrorMsgTableNodeJS = new Hashtable() {
                 {"GetBlobContentWithNotExistsBlob", "Can not find blob '{0}' in container '{1}'"},
                 {"GetBlobContentWithNotExistsContainer", "Can not find blob '{0}' in container '{1}'"},
@@ -90,7 +88,7 @@ namespace Management.Storage.ScenarioTest
 
         public NodeJSAgent()
         {
-            MaxWaitingTime = DefaultMaxWaitingTime;
+            MaxWaitingTime = Constants.DefaultMaxWaitingTime;
             WorkingDirectory = ".";
 
             //assign the error message table for error validation
