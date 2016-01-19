@@ -59,18 +59,18 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             NodeJSAgent nodejsAgent = (NodeJSAgent)agent;
             try
             {
-                ICloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
-                ICloudBlob blockBlob = blobUtil.CreateBlockBlob(container, blockBlobName);
+                CloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
+                CloudBlob blockBlob = blobUtil.CreateBlockBlob(container, blockBlobName);
                 ((CloudPageBlob)pageBlob).AcquireLease(null, string.Empty);
                 ((CloudBlockBlob)blockBlob).AcquireLease(null, string.Empty);
                 pageBlob.FetchAttributes();
                 blockBlob.FetchAttributes();
 
                 Test.Assert(nodejsAgent.ShowAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("show blob with lease", true));
-                nodejsAgent.OutputValidation(new List<ICloudBlob>() { pageBlob });
+                nodejsAgent.OutputValidation(new List<CloudBlob>() { pageBlob });
 
                 Test.Assert(nodejsAgent.ShowAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("show blob with lease", true));
-                nodejsAgent.OutputValidation(new List<ICloudBlob>() { blockBlob });
+                nodejsAgent.OutputValidation(new List<CloudBlob>() { blockBlob });
             }
             finally
             {
@@ -95,8 +95,8 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             NodeJSAgent nodejsAgent = (NodeJSAgent)agent;
             try
             {
-                ICloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
-                ICloudBlob blockBlob = blobUtil.CreateBlockBlob(container, blockBlobName);
+                CloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
+                CloudBlob blockBlob = blobUtil.CreateBlockBlob(container, blockBlobName);
 
                 int count = Utility.GetRandomTestCount();
                 for (int i = 0; i < count; i++)
@@ -109,11 +109,11 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 Test.Assert(nodejsAgent.ShowAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("show blob with metadata", true));
                 Test.Assert(nodejsAgent.Output.Count == 1, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 1, nodejsAgent.Output.Count));
-                nodejsAgent.OutputValidation(new List<ICloudBlob>() { pageBlob });
+                nodejsAgent.OutputValidation(new List<CloudBlob>() { pageBlob });
 
                 Test.Assert(nodejsAgent.ShowAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("show blob with metadata", true));
                 Test.Assert(nodejsAgent.Output.Count == 1, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 1, nodejsAgent.Output.Count));
-                nodejsAgent.OutputValidation(new List<ICloudBlob>() { blockBlob });
+                nodejsAgent.OutputValidation(new List<CloudBlob>() { blockBlob });
             }
             finally
             {
@@ -139,7 +139,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             CloudBlobContainer container = blobUtil.CreateContainer();
             string blobName = SpecialChars;
-            ICloudBlob blob = blobUtil.CreateBlob(container, blobName, blobType);
+            CloudBlob blob = blobUtil.CreateBlob(container, blobName, blobType);
 
             NodeJSAgent nodejsAgent = (NodeJSAgent)agent;
 
@@ -148,7 +148,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 Test.Assert(nodejsAgent.ShowAzureStorageBlob(blobName, container.Name), "show blob name with special chars should succeed");
                 blob.FetchAttributes();
 
-                nodejsAgent.OutputValidation(new List<ICloudBlob>() { blob });
+                nodejsAgent.OutputValidation(new List<CloudBlob>() { blob });
             }
             finally
             {

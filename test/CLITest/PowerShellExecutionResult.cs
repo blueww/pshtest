@@ -88,14 +88,14 @@ namespace Management.Storage.ScenarioTest
                     throw new InvalidOperationException(string.Format("Unexpected output object: {0}.", psObject.ImmediateBaseObject));
                 }
 
-                Test.Assert(expectedList.Remove(fullPath), "Path {0} was not found in the expected list.", fullPath);
+                Test.Assert(expectedList.Remove(fullPath), "Path {0} was found in the expected list.", fullPath);
             }
 
             Test.Assert(fileList.Count == 0, "{0} leftover items in file list.", fileList.Count);
             Test.Assert(directoryList.Count == 0, "{0} leftover items in directory list.", directoryList.Count);
         }
 
-        public void AssertCloudFileContainer(object containerObj, string fileShareName)
+        public void AssertCloudFileContainer(object containerObj, string fileShareName, int expectedUsage = 0)
         {
             var containerObject = ((PSObject)containerObj).ImmediateBaseObject as CloudFileShare;
             Test.Assert(containerObject != null, "Output object should be an instance of CloudFileShare.");

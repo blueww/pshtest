@@ -17,20 +17,33 @@ namespace Management.Storage.ScenarioTest
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.IO;
     using System.Linq;
+    using System.Security;
+    using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using System.Text.RegularExpressions;
     using System.Threading;
     using Management.Storage.ScenarioTest.Util;
+    using Microsoft.Azure;
+    using Microsoft.Azure.Common.Authentication;
+    using Microsoft.Azure.Common.Authentication.Factories;
+    using Microsoft.Azure.Common.Authentication.Models;
+    using Microsoft.IdentityModel.Clients.ActiveDirectory;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Auth;
     using Microsoft.WindowsAzure.Storage.Blob;
+    using Microsoft.WindowsAzure.Storage.File;
     using Microsoft.WindowsAzure.Storage.Queue;
     using Microsoft.WindowsAzure.Storage.Queue.Protocol;
     using Microsoft.WindowsAzure.Storage.Shared.Protocol;
+    using Microsoft.WindowsAzure.Storage.File.Protocol;
     using Microsoft.WindowsAzure.Storage.Table;
+    using Microsoft.Azure.Subscriptions;
     using MS.Test.Common.MsTestLib;
     using StorageTestLib;
+    using StorageBlobType = Microsoft.WindowsAzure.Storage.Blob.BlobType;
 
     internal static class Utility
     {
@@ -40,8 +53,10 @@ namespace Management.Storage.ScenarioTest
         public static List<string> TablePermissionPS = new List<string>() { "r", "q", "a", "u", "d" };
         public static List<string> TablePermissionNode = new List<string>() { "r", "a", "u", "d" };
         public static List<string> QueuePermission = new List<string>() { "r", "a", "u", "p" };
+        public static List<string> SharePermission = new List<string>() { "r", "w", "d", "l" };
+        public static List<string> FilePermission = new List<string>() { "r", "w", "d" };
 
-        internal static int RetryLimit = 6;
+        internal static int RetryLimit = 7;
 
         /// <summary>
         /// Generate a random string for azure object name
@@ -51,7 +66,17 @@ namespace Management.Storage.ScenarioTest
         /// <returns>a random string for azure object name</returns>
         public static string GenNameString(string prefix, int len = 8)
         {
-            return prefix + Guid.NewGuid().ToString().Replace("-", "").Substring(0, len);
+            string guidString = Guid.NewGuid().ToString().Replace("-", "");
+
+            string nameString = prefix;
+
+            while (len > 0)
+            {
+                nameString = nameString + guidString.Substring(0, Math.Min(len, guidString.Length));
+                len -= Math.Min(len, guidString.Length);
+            }
+
+            return nameString;
         }
 
         /// <summary>
@@ -141,19 +166,6 @@ namespace Management.Storage.ScenarioTest
             return account;
         }
 
-        /// <summary>
-        /// Constructs the storage account instance using the provided
-        /// connection string from configuration file.
-        /// </summary>
-        /// <returns>
-        /// Returns the constructed CloudStorageAccount instance.
-        /// </returns>
-        public static CloudStorageAccount ConstructStorageAccountFromConnectionString(string configurationName = "StorageConnectionString")
-        {
-            string connectionString = Test.Data.Get(configurationName);
-            return CloudStorageAccount.Parse(connectionString);
-        }
-
         public static List<string> GenNameLists(string prefix, int count = 1, int len = 8)
         {
             List<string> names = new List<string>();
@@ -198,9 +210,37 @@ namespace Management.Storage.ScenarioTest
             return builder.ToString();
         }
 
-        public static string GenConnectionString(string StorageAccountName, string StorageAccountKey)
+        public static string GenConnectionString(string storageAccountName, string storageAccountKey, bool useHttps = true, string endPoint = "")
         {
-            return String.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}", StorageAccountName, StorageAccountKey);
+            if (string.IsNullOrEmpty(endPoint))
+            {
+                return String.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}", storageAccountName, storageAccountKey);
+            }
+
+            string[] endpoints = GetStorageEndPoints(storageAccountName, useHttps, endPoint);
+            return String.Format("DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};BlobEndpoint={2};QueueEndpoint={3};TableEndpoint={4};FileEndpoint={5}",
+                storageAccountName,
+                storageAccountKey,
+                endpoints[0],
+                endpoints[1],
+                endpoints[2],
+                endpoints[3]);
+        }
+
+        public static CertificateCloudCredentials GetCertificateCloudCredential()
+        {
+            string certFile = Test.Data.Get("ManagementCert");
+            string certPassword = Test.Data.Get("CertPassword");
+            X509Certificate2 cert = new X509Certificate2(certFile, certPassword);
+            return new CertificateCloudCredentials(Test.Data.Get("AzureSubscriptionID"), cert);
+        }
+
+        public static TokenCloudCredentials GetTokenCloudCredential()
+        {
+            AuthenticationContext context = new AuthenticationContext(string.Format("https://login.windows.net/{0}", Test.Data.Get("AADRealm")));
+            ClientCredential clientCred = new ClientCredential(Test.Data.Get("AADClient"), Test.Data.Get("AADPassword"));
+            AuthenticationResult result = context.AcquireToken("https://management.core.windows.net/", clientCred);
+            return new TokenCloudCredentials(Test.Data.Get("AzureSubscriptionID"), result.AccessToken);
         }
 
         /// <summary>
@@ -283,6 +323,29 @@ namespace Management.Storage.ScenarioTest
         }
 
         /// <summary>
+        /// Convert Hashtables to string
+        /// The output would be "k1=v1;k2=v2"
+        /// </summary>
+        public static string ConvertTables(Hashtable[] tables)
+        {
+            string result = string.Empty;
+            foreach (Hashtable table in tables)
+            {    
+                if (!string.IsNullOrEmpty(result))
+                {
+                    result += ";";
+                }
+                 
+                if (table.ContainsKey("Name") && table.ContainsKey("Value"))
+                {
+                    result += table["Name"] + "=" + table["Value"];
+                }
+            }
+
+            return "\"" + result + "\"";
+        }
+
+        /// <summary>
         /// Generate a random small int number for test
         /// </summary>
         /// <returns>Random int</returns>
@@ -319,6 +382,34 @@ namespace Management.Storage.ScenarioTest
                 throw e;
             }
             return bytes;
+        }
+
+        public static bool GetAutoLogin()
+        {
+            string autoLogin = Test.Data.Get("AutoLogin");
+
+            if (!string.IsNullOrEmpty(autoLogin))
+            {
+                return bool.Parse(autoLogin);
+            }
+
+            return false;
+        }
+
+        public static AzureEnvironment GetTargetEnvironment()
+        {
+            AzureEnvironment environment = null;
+            string storageEndpoint = Test.Data.Get("StorageEndPoint");
+            foreach (string key in AzureEnvironment.PublicEnvironments.Keys)
+            {
+                if (AzureEnvironment.PublicEnvironments[key].Endpoints[AzureEnvironment.Endpoint.StorageEndpointSuffix] == storageEndpoint)
+                {
+                    environment = AzureEnvironment.PublicEnvironments[key];
+                    break;
+                }
+            }
+
+            return environment;
         }
 
         /// <summary>
@@ -466,6 +557,35 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+        public static void VerifyCopyState(CopyState expectedCopyState, CLICopyState actualCopyState)
+        {
+            Test.Assert(string.Equals(actualCopyState.CopyId, expectedCopyState.CopyId), "Copy Id should be the same, {0} == {1}", actualCopyState.CopyId, expectedCopyState.CopyId);
+            Test.Assert(string.Equals(actualCopyState.StatusDescription, expectedCopyState.StatusDescription), "StatusDescription should be the same, {0} == {1}", actualCopyState.StatusDescription, expectedCopyState.StatusDescription);
+            Test.Assert(actualCopyState.Status == expectedCopyState.Status, "Status should be the same, {0} == {1}", actualCopyState.Status, expectedCopyState.Status);
+            Test.Assert(actualCopyState.Source == expectedCopyState.Source, "Source should be the same, {0} == {1}", actualCopyState.Source.ToString(), expectedCopyState.Source.ToString());
+        }
+
+        public static void WaitCopyToFinish(Func<CopyState> getCopyState)
+        {
+            while (true)
+            {
+                CopyState copyState = getCopyState();
+
+                if (copyState == null)
+                {
+                    Test.Error("Copy state doesn't exist, starting copying may not work.");
+                    return;
+                }
+
+                if (copyState.Status != CopyStatus.Pending)
+                {
+                    return;
+                }
+
+                Thread.Sleep(2000);
+            }
+        }
+
         public static ServiceProperties GetServiceProperties(CloudStorageAccount account, Constants.ServiceType serviceType)
         {
             ServiceProperties properties = null;
@@ -479,6 +599,14 @@ namespace Management.Storage.ScenarioTest
                     break;
                 case Constants.ServiceType.Queue:
                     properties = account.CreateCloudQueueClient().GetServiceProperties();
+                    break;
+                case Constants.ServiceType.File:
+                    FileServiceProperties fileProperties = account.CreateCloudFileClient().GetServiceProperties();
+                    properties = new ServiceProperties();
+                    properties.Clean();
+                    properties.Cors = fileProperties.Cors;
+                    properties.HourMetrics = fileProperties.HourMetrics;
+                    properties.MinuteMetrics = fileProperties.MinuteMetrics;
                     break;
             }
             return properties;
@@ -508,6 +636,11 @@ namespace Management.Storage.ScenarioTest
             }
             while (retry <= RetryLimit);
 
+            if (retry > RetryLimit)
+            {
+                Test.Warn("Has been up to retry limit, this case may fail due to setting has not taken effect yet.");
+            }
+
             return properties;
         }
 
@@ -527,7 +660,7 @@ namespace Management.Storage.ScenarioTest
                     metricsLevel.Equals(properties.HourMetrics.MetricsLevel.ToString(), StringComparison.OrdinalIgnoreCase))
                     ||
                     (metricsType == Constants.MetricsType.Hour &&
-                    properties.HourMetrics.RetentionDays == retentionDays &&
+                    (properties.HourMetrics.RetentionDays == retentionDays || (!properties.HourMetrics.RetentionDays.HasValue && retentionDays < 0)) &&
                     metricsLevel.Equals(properties.HourMetrics.MetricsLevel.ToString(), StringComparison.OrdinalIgnoreCase))
                     ||
                     (metricsType == Constants.MetricsType.Minute &&
@@ -535,7 +668,7 @@ namespace Management.Storage.ScenarioTest
                     metricsLevel.Equals(properties.MinuteMetrics.MetricsLevel.ToString(), StringComparison.OrdinalIgnoreCase))
                     ||
                     (metricsType == Constants.MetricsType.Minute &&
-                    properties.MinuteMetrics.RetentionDays == retentionDays &&
+                    (properties.MinuteMetrics.RetentionDays == retentionDays || (!properties.MinuteMetrics.RetentionDays.HasValue && retentionDays < 0)) &&
                     metricsLevel.Equals(properties.MinuteMetrics.MetricsLevel.ToString(), StringComparison.OrdinalIgnoreCase)))
                 {
                     break;
@@ -548,6 +681,11 @@ namespace Management.Storage.ScenarioTest
                 }
             }
             while (retry <= RetryLimit);
+
+            if (retry > RetryLimit)
+            {
+                Test.Warn("Has been up to retry limit, this case may fail due to setting has not taken effect yet.");
+            }
 
             return properties;
         }
@@ -615,11 +753,12 @@ namespace Management.Storage.ScenarioTest
 
             if (typeof(T) == typeof(SharedAccessTablePolicy))
             {
-                permission1 = skipTableQPermission? "raud" : "rqaud";
+                permission1 = skipTableQPermission ? "raud" : "rqaud";
                 permission2 = "aud";
                 permission3 = "ud";
             }
-            else if (typeof(T) == typeof(SharedAccessBlobPolicy))
+            else if ((typeof(T) == typeof(SharedAccessBlobPolicy))
+                || (typeof(T) == typeof(SharedAccessFilePolicy)))
             {
                 permission1 = "rwdl";
                 permission2 = "wdl";
@@ -671,6 +810,15 @@ namespace Management.Storage.ScenarioTest
             return sampleStordAccessPolicies;
         }
 
+        public static RawStoredAccessPolicy GetExpectedStoredAccessPolicy(RawStoredAccessPolicy originPolicy, RawStoredAccessPolicy newPolicy)
+        {
+            return new RawStoredAccessPolicy(
+                originPolicy.PolicyName,
+                newPolicy.StartTime ?? originPolicy.StartTime,
+                newPolicy.ExpiryTime ?? originPolicy.ExpiryTime,
+                newPolicy.Permission ?? originPolicy.Permission);
+        }
+
         public static void ClearStoredAccessPolicy<T>(T serviceRef)
         {
             if (typeof(T) == typeof(CloudTable))
@@ -691,6 +839,12 @@ namespace Management.Storage.ScenarioTest
                 permissions.SharedAccessPolicies.Clear();
                 ((CloudQueue)(Object)serviceRef).SetPermissions(permissions);
             }
+            else if (typeof(T) == typeof(CloudFileShare))
+            {
+                FileSharePermissions permissions = ((CloudFileShare)(Object)serviceRef).GetPermissions();
+                permissions.SharedAccessPolicies.Clear();
+                ((CloudFileShare)(Object)serviceRef).SetPermissions(permissions);
+            }
             else
             {
                 throw new Exception("Unknown Service Type!");
@@ -701,7 +855,8 @@ namespace Management.Storage.ScenarioTest
         {
             if (!(typeof(T) == typeof(SharedAccessTablePolicy) ||
                typeof(T) == typeof(SharedAccessBlobPolicy) ||
-               typeof(T) == typeof(SharedAccessQueuePolicy)))
+               typeof(T) == typeof(SharedAccessQueuePolicy) ||
+               typeof(T) == typeof(SharedAccessFilePolicy)))
             {
                 throw new Exception("Unknown Policy Type!");
             }
@@ -724,7 +879,8 @@ namespace Management.Storage.ScenarioTest
         {
             if (!(typeof(T) == typeof(SharedAccessTablePolicy) ||
                typeof(T) == typeof(SharedAccessBlobPolicy) ||
-               typeof(T) == typeof(SharedAccessQueuePolicy)))
+               typeof(T) == typeof(SharedAccessQueuePolicy) ||
+               typeof(T) == typeof(SharedAccessFilePolicy)))
             {
                 throw new Exception("Unknown Policy Type!");
             }
@@ -737,7 +893,7 @@ namespace Management.Storage.ScenarioTest
 
             return dic;
         }
-    
+
 
         public static void ValidateStoredAccessPolicies<T>(IDictionary<string, T> actualSharedPolicies, IDictionary<string, T> expectedSharedPolicies)
         {
@@ -760,7 +916,8 @@ namespace Management.Storage.ScenarioTest
         {
             if (!(typeof(T) == typeof(SharedAccessTablePolicy) ||
                 typeof(T) == typeof(SharedAccessBlobPolicy) ||
-                typeof(T) == typeof(SharedAccessQueuePolicy)))
+                typeof(T) == typeof(SharedAccessQueuePolicy) ||
+                typeof(T) == typeof(SharedAccessFilePolicy)))
             {
                 throw new Exception("Unknown Service Type!");
             }
@@ -789,6 +946,10 @@ namespace Management.Storage.ScenarioTest
             {
                 SetupAccessPolicyPermission((SharedAccessQueuePolicy)(Object)policy, permission);
             }
+            else if (typeof(T) == typeof(SharedAccessFilePolicy))
+            {
+                SetupAccessPolicyPermission((SharedAccessFilePolicy)(Object)policy, permission);
+            }
             else
             {
                 throw new Exception("Unknown Service Type!");
@@ -798,6 +959,102 @@ namespace Management.Storage.ScenarioTest
         public static string SqueezeSpaces(string value)
         {
             return Regex.Replace(value, "\\s{2,}", " ");
+        }
+
+        public static CLICopyState GetCopyState(Agent agent, Language lang)
+        {
+            if (lang == Language.PowerShell)
+            {
+                return new CLICopyState(agent.Output[0][PowerShellAgent.BaseObject] as CopyState);
+            }
+            else
+            {
+                CLICopyState state = new CLICopyState();
+                string progess = agent.Output[0]["copyProgress"] as string;
+                long bytesCopied = 0;
+                long totalBytes = 0;
+                if (!string.IsNullOrEmpty(progess))
+                {
+                    int index = progess.IndexOf("/");
+                    long.TryParse(progess.Substring(0, index), out bytesCopied);
+                    long.TryParse(progess.Substring(index + 1), out totalBytes);
+                }
+
+                string time = null;
+                if (agent.Output[0].ContainsKey("copyCompletionTime"))
+                {
+                    time = agent.Output[0]["copyCompletionTime"] as string;
+                }
+
+                DateTimeOffset completionTime = new DateTimeOffset();
+                DateTimeOffset.TryParse(time, out completionTime);
+
+                string raw = agent.Output[0]["copySource"] as string;
+                Uri source = new Uri(raw);
+
+                raw = agent.Output[0]["copyStatus"] as string;
+                CopyStatus status;
+                Enum.TryParse<CopyStatus>(raw, true, out status);
+
+                string statusDescription = null;
+                if (agent.Output[0].ContainsKey("copyStatusDescription"))
+                {
+                    statusDescription = agent.Output[0]["copyStatusDescription"] as string;
+                }
+
+                state.BytesCopied = bytesCopied;
+                state.CompletionTime = completionTime;
+                state.CopyId = agent.Output[0]["copyId"] as string;
+                state.Source = source;
+                state.Status = status;
+                state.StatusDescription = statusDescription;
+                state.TotalBytes = totalBytes;
+
+                return state;
+            }
+        }
+
+        public static int ParseIntFromJsonOutput(Dictionary<string, object> output, string key)
+        {
+            int result = 0;
+            if (output.ContainsKey(key))
+            {
+                int.TryParse(output[key].ToString(), out result);
+            }
+
+            return result;
+        }
+
+        public static string ParseStringFromJsonOutput(Dictionary<string, object> output, string key)
+        {
+            return output.ContainsKey(key) ? output[key] as string : null;
+        }
+
+        public static bool ParseBoolFromJsonOutput(Dictionary<string, object> output, string key)
+        {
+            return output.ContainsKey(key) ? bool.Parse(output[key].ToString()) : false;
+        }
+
+        public static T? ParseEnumFromJsonOutput<T>(Dictionary<string, object> output, string key) where T : struct
+        {
+            T result;
+            if (output.ContainsKey(key))
+            {
+                if (Enum.TryParse<T>(output[key] as string, true, out result))
+                {
+                    return result;
+                } 
+                else
+                {
+                    int value = 0;
+                    if (int.TryParse(output[key].ToString(), out value))
+                    {
+                        return (T)Enum.ToObject(typeof(T), value);
+                    }
+                }
+            }
+
+            return (T?)null;
         }
 
         /// <summary>
@@ -867,6 +1124,38 @@ namespace Management.Storage.ScenarioTest
         }
 
         /// <summary>
+        /// Set up shared access policy permission for SharedAccessFilePolicy
+        /// </summary>
+        /// <param name="policy">SharedAccessFilePolicy object</param>
+        /// <param name="permission">Permission</param>
+        internal static void SetupAccessPolicyPermission(SharedAccessFilePolicy policy, string permission)
+        {
+            if (string.IsNullOrEmpty(permission)) return;
+            policy.Permissions = SharedAccessFilePermissions.None;
+            permission = permission.ToLower();
+            foreach (char op in permission)
+            {
+                switch (op)
+                {
+                    case Permission.Read:
+                        policy.Permissions |= SharedAccessFilePermissions.Read;
+                        break;
+                    case Permission.Write:
+                        policy.Permissions |= SharedAccessFilePermissions.Write;
+                        break;
+                    case Permission.Delete:
+                        policy.Permissions |= SharedAccessFilePermissions.Delete;
+                        break;
+                    case Permission.List:
+                        policy.Permissions |= SharedAccessFilePermissions.List;
+                        break;
+                    default:
+                        throw new Exception("Unknown Permission Type!");
+                }
+            }
+        }
+
+        /// <summary>
         /// Set up shared access policy permission for SharedAccessQueuePolicy
         /// </summary>
         /// <param name="policy">SharedAccessQueuePolicy object</param>
@@ -905,7 +1194,7 @@ namespace Management.Storage.ScenarioTest
             bool found = true;
             while (((dynamic)resource).GetPermissions().SharedAccessPolicies.Keys.Count != expectedCount)
             {
-                if ((DateTimeOffset.Now - start) <= TimeSpan.FromSeconds(30))
+                if ((DateTimeOffset.Now - start) <= TimeSpan.FromSeconds(45))
                 {
                     Test.Info("Sleep and retry to get the policies again");
                     Thread.Sleep(5000);
@@ -919,13 +1208,13 @@ namespace Management.Storage.ScenarioTest
             }
 
             if (found && expectedCount == 1 && expectedPolicy != null)
-            { 
+            {
                 bool match = false;
                 start = DateTimeOffset.Now;
 
-                do 
+                do
                 {
-                    dynamic policy = null; 
+                    dynamic policy = null;
                     if (typeof(T) == typeof(CloudBlobContainer))
                     {
                         SharedAccessBlobPolicy output = null;
@@ -939,17 +1228,23 @@ namespace Management.Storage.ScenarioTest
                         policy = output;
                     }
                     else if (typeof(T) == typeof(CloudQueue))
-                    { 
+                    {
                         SharedAccessQueuePolicy output = null;
                         match = ((dynamic)resource).GetPermissions().SharedAccessPolicies.TryGetValue(expectedPolicy.PolicyName, out output);
                         policy = output;
                     }
-                     
+                    else if (typeof(T) == typeof(CloudFileShare))
+                    {
+                        SharedAccessFilePolicy output = null;
+                        match = ((dynamic)resource).GetPermissions().SharedAccessPolicies.TryGetValue(expectedPolicy.PolicyName, out output);
+                        policy = output;
+                    }
+
                     match = match && IsEqualPolicy(policy, expectedPolicy);
 
                     if (!match)
                     {
-                        if ((DateTimeOffset.Now - start) <= TimeSpan.FromSeconds(30))
+                        if ((DateTimeOffset.Now - start) <= TimeSpan.FromSeconds(45))
                         {
                             Test.Info("Sleep and retry to get the policies again");
                             Thread.Sleep(5000);
@@ -1054,6 +1349,42 @@ namespace Management.Storage.ScenarioTest
                 Permission = permission;
             }
 
+            public RawStoredAccessPolicy(RawStoredAccessPolicy accessPolicy)
+            {
+                this.PolicyName = accessPolicy.PolicyName;
+                this.StartTime = accessPolicy.StartTime;
+                this.ExpiryTime = accessPolicy.ExpiryTime;
+                this.Permission = accessPolicy.Permission;
+            }
+
+        }
+
+        public class CLICopyState
+        {
+            public CLICopyState()
+            {
+                BytesCopied = 0;
+                TotalBytes = 0;
+            }
+
+            public CLICopyState(CopyState state)
+            {
+                BytesCopied = state.BytesCopied;
+                CompletionTime = state.CompletionTime;
+                CopyId = state.CopyId;
+                Source = state.Source;
+                Status = state.Status;
+                StatusDescription = state.StatusDescription;
+                TotalBytes = state.TotalBytes;
+            }
+
+            public long? BytesCopied { get; internal set; }
+            public DateTimeOffset? CompletionTime { get; internal set; }
+            public string CopyId { get; internal set; }
+            public Uri Source { get; internal set; }
+            public CopyStatus Status { get; internal set; }
+            public string StatusDescription { get; internal set; }
+            public long? TotalBytes { get; internal set; }
         }
     }
 }

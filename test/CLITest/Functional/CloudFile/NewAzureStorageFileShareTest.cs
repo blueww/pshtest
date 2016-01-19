@@ -19,7 +19,6 @@
         [ClassInitialize]
         public static void NewAzureStorageFileShareTestInitialize(TestContext context)
         {
-            StorageAccount = Utility.ConstructStorageAccountFromConnectionString();
             TestBase.TestClassInitialize(context);
         }
 
@@ -355,24 +354,6 @@
                     this.agent.AssertErrors(err => err.AssertError(AssertUtil.ShareBeingDeletedFullQualifiedErrorId));
                 },
                 false);
-        }
-
-        /// <summary>
-        /// Negative functional test case 5.2.7
-        /// </summary>
-        [TestMethod]
-        [TestCategory(PsTag.File)]
-        [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        public void CreateShareOnOldTestAcountWhichDoesNotSupportFileService()
-        {
-            string shareName = CloudFileUtil.GenerateUniqueFileShareName();
-            object contextObject = this.agent.CreateStorageContextObject(Test.Data.Get("Pre42StorageConnectionString"));
-            this.agent.NewFileShare(shareName, contextObject);
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(
-                AssertUtil.NameResolutionFailureFullQualifiedErrorId,
-                AssertUtil.ProtocolErrorFullQualifiedErrorId));
         }
 
         private void CreateShareInternal(Func<string> shareNameProvider, Action<IExecutionResult, string> assertAction, bool validateNotExists = true)

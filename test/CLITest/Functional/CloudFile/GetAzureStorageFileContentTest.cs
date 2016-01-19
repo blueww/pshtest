@@ -22,7 +22,6 @@
         [ClassInitialize]
         public static void NewAzureStorageFileShareTestInitialize(TestContext context)
         {
-            StorageAccount = Utility.ConstructStorageAccountFromConnectionString();
             TestBase.TestClassInitialize(context);
         }
 
@@ -133,7 +132,7 @@
 
             DirectoryInfo localDir = new DirectoryInfo(Test.Data.Get("TempDir"));
 
-            this.agent.ListFiles(this.fileShare);
+            this.agent.GetFile(this.fileShare);
             ((PowerShellAgent)this.agent).PowerShellSession.AddCommand("Get-AzureStorageFileContent");
             ((PowerShellAgent)this.agent).PowerShellSession.AddParameter("Destination", localDir.FullName);
             this.agent.Invoke();
@@ -530,7 +529,14 @@
                 if (assertNoError)
                 {
                     agent.AssertNoError();
-                    result.AssertNoResult();
+                    if (lang == Language.NodeJS)
+                    {
+                        result.AssertObjectCollection(obj => result.AssertCloudFile(obj, CloudFileUtil.GetFullPath(sourceFile)));
+                    }
+                    else
+                    {
+                        result.AssertNoResult();
+                    }
 
                     if (File.Exists(destination))
                     {

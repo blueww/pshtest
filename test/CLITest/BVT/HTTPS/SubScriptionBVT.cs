@@ -14,8 +14,15 @@
 
 namespace Management.Storage.ScenarioTest.BVT.HTTPS
 {
+    using System.Collections.Generic;
+    using System.Security.Cryptography.X509Certificates;
     using Management.Storage.ScenarioTest.Common;
+    using Management.Storage.ScenarioTest.Util;
+    using Microsoft.Azure.Management.Resources;
+    using Microsoft.Azure.Management.Storage;
+    using Microsoft.Azure.Management.Storage.Models;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.WindowsAzure;
     using MS.Test.Common.MsTestLib;
     using StorageTestLib;
 
@@ -42,11 +49,23 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
         /// </summary>
         private static void SetupSubscription()
         {
-            string subscriptionFile = Test.Data.Get("AzureSubscriptionPath");
-            string subscriptionName = Test.Data.Get("AzureSubscriptionName");
-            //TODO add tests about invalid storage account name
-            string storageAccountName = Test.Data.Get("StorageAccountName");
-            PowerShellAgent.ImportAzureSubscriptionAndSetStorageAccount(subscriptionFile, subscriptionName, storageAccountName);
+            if (!isResourceMode) //Service Mode
+            {
+                string subscriptionFile = Test.Data.Get("AzureSubscriptionPath");
+                string subscriptionName = Test.Data.Get("AzureSubscriptionName");
+                //TODO add tests about invalid storage account name
+                string storageAccountName = Test.Data.Get("StorageAccountName");
+                PowerShellAgent.ImportAzureSubscriptionAndSetStorageAccount(subscriptionFile, subscriptionName, storageAccountName);
+            }
+            else
+            {
+                PowerShellAgent ps = new PowerShellAgent();
+                ps.Logout();
+                ps.Login();
+                string storageAccountName = Test.Data.Get("StorageAccountName");
+                string resourceGroupName = Test.Data.Get("StorageAccountResourceGroup");
+                ps.SetRmCurrentStorageAccount(storageAccountName, resourceGroupName);
+            }
         }
 
         [ClassCleanup()]

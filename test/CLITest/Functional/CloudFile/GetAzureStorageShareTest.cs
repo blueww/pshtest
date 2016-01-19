@@ -11,14 +11,13 @@
     using StorageTestLib;
 
     [TestClass]
-    internal class GetAzureStorageShareTest : TestBase
+    public class GetAzureStorageShareTest : TestBase
     {
         private Random randomProvider = new Random();
 
         [ClassInitialize]
         public static void GetAzureStorageShareTestInitialize(TestContext context)
         {
-            StorageAccount = Utility.ConstructStorageAccountFromConnectionString();
             TestBase.TestClassInitialize(context);
         }
 
@@ -84,6 +83,42 @@
         }
 
         /// <summary>
+        /// Positive functional test case 5.3.3
+        /// </summary>
+        [TestMethod]
+        [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        public void GetFileShareUsageTest()
+        {
+            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
+            string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
+            var fileShare = fileUtil.EnsureFileShareExists(fileShareName);
+
+            try
+            {
+                agent.GetFileShareByName(fileShareName);
+
+                var result = agent.Invoke();
+
+                agent.AssertNoError();
+                result.AssertObjectCollection(obj => result.AssertCloudFileContainer(obj, fileShareName), 1);
+
+                fileUtil.CreateFile(fileShare.GetRootDirectoryReference(), cloudFileName);
+
+                agent.GetFileShareByName(fileShareName);
+
+                result = agent.Invoke();
+                agent.AssertNoError();
+                result.AssertObjectCollection(obj => result.AssertCloudFileContainer(obj, fileShareName, 1), 1);
+            }
+            finally
+            {
+                agent.Dispose();
+                fileUtil.DeleteFileShareIfExists(fileShareName);
+            }
+        }
+
+        /// <summary>
         /// Positive functional test case 5.3.4
         /// </summary>
         [TestMethod]
@@ -143,9 +178,9 @@
             this.agent.GetFileShareByName(shareName);
             this.agent.Invoke();
             this.agent.AssertErrors(err => err.AssertError(
-                AssertUtil.ShareBeingDeletedFullQualifiedErrorId,
+                AssertUtil.ResourceNotFoundFullQualifiedErrorId,
                 AssertUtil.ShareNotFoundFullQualifiedErrorId,
-                AssertUtil.ProtocolErrorFullQualifiedErrorId));
+                AssertUtil.ShareBeingDeletedFullQualifiedErrorId));
         }
 
         /// <summary>

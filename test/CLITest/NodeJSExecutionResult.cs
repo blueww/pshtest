@@ -89,11 +89,14 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(directoryList.Count == 0, "{0} leftover items in directory list.", directoryList.Count);
         }
 
-        public void AssertCloudFileContainer(object containerObj, string fileShareName)
+        public void AssertCloudFileContainer(object containerObj, string fileShareName, int expectedUsage = 0)
         {
             var containerObject = containerObj as Dictionary<string, object>;
             Test.Assert(containerObject != null, "Output object should be an instance of Dictionary<string, object> class.");
             Test.Assert(containerObject["name"].ToString().Equals(fileShareName, StringComparison.OrdinalIgnoreCase), "Name of the container object should match the given parameter. Expected: {0}, Actual: {1}", fileShareName, containerObject["name"]);
+
+            int usage = containerObject.ContainsKey("shareUsage") ? int.Parse(containerObject["shareUsage"] as string) : -1;
+            Test.Assert(usage == expectedUsage, "Should contains share usage information. Expected: {0}, Actual: {1}", expectedUsage, usage);
         }
 
         public void AssertCloudFileContainer(object containerObj, List<string> fileShareNames, bool failIfNotInGivenList = true)
@@ -125,25 +128,32 @@ namespace Management.Storage.ScenarioTest
         }
 
         public void AssertCloudFile(object fileObj, string fileName, string path = null)
-        {
-            var fileObject = fileObj as Dictionary<string, object>;
-            Test.Assert(fileObject != null, "Output object should be an instance of Dictionary<string, object> class.");
-
-            string fileObjectName = (string)fileObject["name"];
+        {  
+            string fileObjectName = parseFileNameFromOutputObject(fileObj);
 
             Test.Assert(fileObjectName.Equals(fileName, StringComparison.OrdinalIgnoreCase), "Name of the file object should match the given parameter. Expected: {0}, Actual: {1}", fileName, fileObjectName);
         }
 
         public void AssertCloudFile(object fileObj, List<CloudFile> files)
         {
+            string fileObjectName = parseFileNameFromOutputObject(fileObj);
+
+            CloudFile matchingFile = files.FirstOrDefault(file => file.Name.Equals(fileObjectName, StringComparison.OrdinalIgnoreCase));
+            Test.Assert(matchingFile != null, "Output CloudFile object {0} was not found in the expecting list.", fileObjectName);
+            files.Remove(matchingFile);
+        }
+
+        private string parseFileNameFromOutputObject(object fileObj)
+        {
             var fileObject = fileObj as Dictionary<string, object>;
             Test.Assert(fileObject != null, "Output object should be an instance of Dictionary<string, object> class.");
 
-            string fileObjectBaseName = (string)fileObject["name"];
+            string directory = fileObject.ContainsKey("directory") ? fileObject["directory"] as string : string.Empty;
+            directory += "/";
 
-            CloudFile matchingFile = files.FirstOrDefault(file => file.Name.Equals(fileObjectBaseName, StringComparison.OrdinalIgnoreCase));
-            Test.Assert(matchingFile != null, "Output CloudFile object {0} was not found in the expecting list.", fileObjectBaseName);
-            files.Remove(matchingFile);
+            string name = fileObject.ContainsKey("name") ? fileObject["name"] as string : string.Empty;
+
+            return directory.Replace('\\', '/') + name;
         }
 
         /// <summary>
