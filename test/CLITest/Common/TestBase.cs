@@ -13,11 +13,17 @@
 // ----------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
 using Management.Storage.ScenarioTest.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.WindowsAzure.Commands.Storage.Model.ResourceModel;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using MS.Test.Common.MsTestLib;
+using Newtonsoft.Json.Linq;
 
 namespace Management.Storage.ScenarioTest.Common
 {
@@ -41,6 +47,10 @@ namespace Management.Storage.ScenarioTest.Common
 
         protected Agent agent;
         protected static Language lang;
+        protected static bool isResourceMode = false;
+        protected static bool isMooncake = false;
+        private bool isLogin = false;
+        private bool accountImported = false;
 
         private TestContext testContextInstance;
 
@@ -120,13 +130,44 @@ namespace Management.Storage.ScenarioTest.Common
         {
             //add the language specific initialization
             lang = AgentFactory.GetLanguage(testContext.Properties);
+
+            isMooncake = Utility.GetTargetEnvironment().Name == "AzureChinaCloud";
+
+            string mode = Test.Data.Get("IsResourceMode");
+
+            if (!string.IsNullOrEmpty(mode))
+            {
+                isResourceMode = bool.Parse(mode);
+            }
+
             if (lang == Language.PowerShell)
             {
-                // import module
-                string moduleFilePath = Test.Data.Get("ModuleFilePath");
-                if (!string.IsNullOrWhiteSpace(moduleFilePath))
+                if (!bool.Parse(Test.Data.Get("IsPowerShellGet")))
                 {
-                    PowerShellAgent.ImportModule(moduleFilePath);
+                    string moduleFileFolder = Test.Data.Get("ModuleFileFolder");
+
+                    if (!string.IsNullOrWhiteSpace(moduleFileFolder))
+                    {
+                        PowerShellAgent.ImportModule(Path.Combine(moduleFileFolder, Constants.ServiceModulePath));
+
+                        if (isResourceMode)
+                        {
+                            PowerShellAgent.RemoveModule("Azure");
+                            PowerShellAgent.ImportModule(Path.Combine(moduleFileFolder, Constants.ResourceModulePath));
+                        }
+                    }
+                }
+                else
+                {
+                    if (isResourceMode)
+                    {
+                        PowerShellAgent.ImportModule("AzureRm.Storage");
+                        PowerShellAgent.ImportModule("Azure.Storage");
+                    }
+                    else
+                    {
+                        PowerShellAgent.ImportModule("Azure");
+                    }
                 }
 
                 string snapInName = Test.Data.Get("PSSnapInName");
@@ -147,6 +188,19 @@ namespace Management.Storage.ScenarioTest.Common
 
                 FileUtil.GetOSConfig(Test.Data);
             }
+            else if (lang == Language.CLU)
+            {
+                CLUAgent.GetOSConfig(Test.Data);
+                FileUtil.GetOSConfig(Test.Data);
+            }
+        }
+
+        protected static string GetModulePath()
+        {
+            string moduleFileFolder = Test.Data.Get("ModuleFileFolder");
+            string relativePath = isResourceMode ? Constants.ResourceModulePath : Constants.ServiceModulePath;
+
+            return Path.Combine(moduleFileFolder, relativePath);
         }
 
         //
@@ -207,6 +261,59 @@ namespace Management.Storage.ScenarioTest.Common
         /// </summary>
         public virtual void OnTestSetup()
         {
+            if (isResourceMode)
+            {
+                if (!isLogin)
+                {
+                    if (Utility.GetAutoLogin())
+                    {
+                        int retry = 0;
+                        do
+                        {
+                            if (agent.HadErrors)
+                            {
+                                Thread.Sleep(5000);
+                                Test.Info(string.Format("Retry login... Count:{0}", retry));
+                            }
+                            if (!TestContext.FullyQualifiedTestClassName.Contains("SubScriptionBVT")) //For SubScriptionBVT, we already login and set current account, don't need re-login
+                            {
+                                agent.Logout();
+                                agent.Login();
+                            }
+                        }
+                        while (agent.HadErrors && retry++ < 5);
+                    }
+
+                    if (lang == Language.NodeJS)
+                    {
+                        SetActiveSubscription();
+                        agent.ChangeCLIMode(Constants.Mode.arm);
+                    }
+
+                    isLogin = true;
+                }
+            }
+            else
+            {
+                if (!accountImported)
+                {
+                    if (lang == Language.NodeJS)
+                    {
+                        NodeJSAgent nodeAgent = (NodeJSAgent)agent;
+                        nodeAgent.Logout();
+                        nodeAgent.ChangeCLIMode(Constants.Mode.asm);
+                    }
+
+                    string settingFile = Test.Data.Get("AzureSubscriptionPath");
+                    string subscriptionId = Test.Data.Get("AzureSubscriptionID");
+                    agent.ImportAzureSubscription(settingFile);
+
+                    string subscriptionID = Test.Data.Get("AzureSubscriptionID");
+                    agent.SetActiveSubscription(subscriptionID);
+
+                    accountImported = true;
+                }
+            }
         }
 
         /// <summary>
@@ -233,6 +340,10 @@ namespace Management.Storage.ScenarioTest.Common
         public virtual void InitAgent()
         {
             agent = AgentFactory.CreateAgent(TestContext.Properties);
+            if (Agent.Context == null)
+            {
+                Agent.Context = StorageAccount;
+            }
             Test.Start(TestContext.FullyQualifiedTestClassName, TestContext.TestName);
             OnTestSetup();
         }
@@ -251,6 +362,16 @@ namespace Management.Storage.ScenarioTest.Common
         #endregion
 
         public delegate void Validator(string s);
+
+        public void ExpectedNotFoundErrorMessage()
+        {
+            ExpectedContainErrorMessage("Resource not found");
+        }
+
+        public void ExpectedAccoutNotFoundErrorMessage(string groupName, string accountName)
+        {
+            ExpectedContainErrorMessage(string.Format("The Resource 'Microsoft.Storage/storageAccounts/{0}' under resource group '{1}' was not found", accountName, groupName));
+        }
 
         /// <summary>
         /// Expect returned error message is the specified error message
@@ -325,6 +446,70 @@ namespace Management.Storage.ScenarioTest.Common
             Test.Assert(expected, String.Format("Current error msg '{0}' should be in the expected msg list.", agent.ErrorMessages[0]));
         }
 
+        protected PSCorsRule[] GetCORSRulesFromOutput()
+        {
+            if (lang == Language.PowerShell)
+            {
+                return agent.Output[0][PowerShellAgent.BaseObject] as PSCorsRule[];
+            }
+            else
+            {
+                List<PSCorsRule> rules = new List<PSCorsRule>();
+                for (int i = 0; i < agent.Output.Count; i++)
+                {
+                    PSCorsRule rule = new PSCorsRule();
+
+                    bool hasValue = false;
+                    JArray categories;
+                    string key = "AllowedMethods";
+                    if (agent.Output[i].ContainsKey(key))
+                    {
+                        categories = (JArray)agent.Output[i][key];
+                        rule.AllowedMethods = categories.Select(c => (string)c).ToArray();
+                        hasValue = true;
+                    }
+
+                    key = "AllowedOrigins";
+                    if (agent.Output[i].ContainsKey(key))
+                    {
+                        categories = (JArray)agent.Output[i][key];
+                        rule.AllowedOrigins = categories.Select(c => (string)c).ToArray();
+                        hasValue = true;
+                    }
+
+                    key = "AllowedHeaders";
+                    if (agent.Output[i].ContainsKey(key))
+                    {
+                        categories = (JArray)agent.Output[i][key];
+                        rule.AllowedHeaders = categories.Select(c => (string)c).ToArray();
+                        hasValue = true;
+                    }
+
+                    key = "ExposedHeaders";
+                    if (agent.Output[i].ContainsKey(key))
+                    {
+                        categories = (JArray)agent.Output[i][key];
+                        rule.ExposedHeaders = categories.Select(c => (string)c).ToArray();
+                        hasValue = true;
+                    }
+
+                    key = "MaxAgeInSeconds";
+                    if (agent.Output[i].ContainsKey(key))
+                    {
+                        rule.MaxAgeInSeconds = (int)(agent.Output[i][key] as long?);
+                        hasValue = true;
+                    }
+
+                    if (hasValue)
+                    {
+                        rules.Add(rule);
+                    }
+                }
+
+                return rules.ToArray();
+            }
+        }
+
         /// <summary>
         /// Expect two string are equal
         /// </summary>
@@ -374,6 +559,24 @@ namespace Management.Storage.ScenarioTest.Common
         {
             StorageCredentials credentials = new StorageCredentials(sastoken);
             return Utility.GetStorageAccountWithEndPoint(credentials, useHttps, endpoint, accountName);
+        }
+
+        protected void SetActiveSubscription()
+        {
+            NodeJSAgent nodeAgent = (NodeJSAgent)agent;
+            string subscriptionID = Test.Data.Get("AzureSubscriptionID");
+            if (!string.IsNullOrEmpty(subscriptionID))
+            {
+                nodeAgent.SetActiveSubscription(subscriptionID);
+            }
+            else
+            {
+                string subscriptionName = Test.Data.Get("AzureSubscriptionName");
+                if (!string.IsNullOrEmpty(subscriptionName))
+                {
+                    nodeAgent.SetActiveSubscription(subscriptionName);
+                }
+            }
         }
     }
 }

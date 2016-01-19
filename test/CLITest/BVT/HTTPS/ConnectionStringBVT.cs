@@ -69,13 +69,17 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             //first set the storage account
             //second init common bvt
             //third set storage context in powershell
-            SetUpStorageAccount = CloudStorageAccount.Parse(Test.Data.Get("StorageConnectionString"));
+            string storageAccountName = Test.Data.Get("StorageAccountName");
+            string storageAccountKey = Test.Data.Get("StorageAccountKey");
+            string storageEndPoint = Test.Data.Get("StorageEndPoint");
+            string connectionString = Utility.GenConnectionString(storageAccountName, storageAccountKey, useHttps, storageEndPoint);
+            SetUpStorageAccount = CloudStorageAccount.Parse(connectionString);
 
             CLICommonBVT.CLICommonBVTInitialize(testContext);
 
             if (lang == Language.PowerShell)
             {
-                PowerShellAgent.SetStorageContext(Test.Data.Get("StorageConnectionString"));
+                PowerShellAgent.SetStorageContext(connectionString);
             }
         }
     }

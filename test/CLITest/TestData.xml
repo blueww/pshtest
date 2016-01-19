@@ -3,32 +3,69 @@
   <wttlogger>true</wttlogger>
   <consolelogger>true</consolelogger>
   <filelogger>true</filelogger>
-  <logfilename>__Powershell__Functional__</logfilename>
+  <logfilename>__CLI__Test__</logfilename>
   <loginfo>true</loginfo>
   <logverbose>true</logverbose>
   <logwarning>true</logwarning>
   <logerror>true</logerror>
+  
+  <!-- These settings are for both resource mode and service mode for the subscription information -->
+  <IsPowerShellGet></IsPowerShellGet>
+  <IsResourceMode></IsResourceMode>
+  <AzureSubscriptionName></AzureSubscriptionName>
+  <AzureSubscriptionID></AzureSubscriptionID>
 
+  <!-- These settings are only for resource mode which requires AAD authentication -->
+  <AADRealm>72f988bf-86f1-41af-91ab-2d7cd011db47</AADRealm>
+  <AADClient>e3f21156-febf-4587-9449-68fb6a757747</AADClient>
+  <AADPassword>oKLElUo6PpfmA/Dz+EA6TZne2OadLkYiUyG/G/Js204=</AADPassword>
+  <AutoLogin>true</AutoLogin>
+
+  <!-- These settings are only for service mode which accepts certificate authentication -->
   <ManagementCert></ManagementCert>
   <CertPassword></CertPassword>
   <AzureSubscriptionPath></AzureSubscriptionPath>
-  <AzureSubscriptionName></AzureSubscriptionName>
-  <AzureSubscriptionID></AzureSubscriptionID>
-  <SubscriptionStorageAccountName></SubscriptionStorageAccountName>
+
+  <!-- These settings are for Powershell only -->
+  <PSSnapInName></PSSnapInName>
+  <ModuleFileFolder>C:\Program Files (x86)\Microsoft SDKs\Azure\PowerShell\</ModuleFileFolder>
+
+  <!-- These settings are for platform specific -->
+  <PLinkPath></PLinkPath>
+  <UserName></UserName>
+  <HostName></HostName>
+  <Port>22</Port>
+  <PrivateKeyPath></PrivateKeyPath>
+  <AgentOS>Windows</AgentOS>
+
+  <!-- The following settings are for storage data tests -->
   <StorageAccountName>testaccount1</StorageAccountName>
   <StorageAccountKey>FjUfNl1KiJttbXlsdkMzBTC7WagvrRM9/g6UPBuy0ypCpAbYTL6/KA+dI/7gyoWvLFYmah3IviUP1jykOHHOlA==</StorageAccountKey>
   <StorageConnectionString>DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/testaccount1;QueueEndpoint=http://127.0.0.1:10001/testaccount1;TableEndpoint=http://127.0.0.1:10002/testaccount1;FileEndpoint=http://127.0.0.1:10004/testaccount1;AccountName=testaccount1;AccountKey=FjUfNl1KiJttbXlsdkMzBTC7WagvrRM9/g6UPBuy0ypCpAbYTL6/KA+dI/7gyoWvLFYmah3IviUP1jykOHHOlA==</StorageConnectionString>
+  <StorageAccountResourceGroup>Default-Storage-EastAsia</StorageAccountResourceGroup>
   <StorageConnectionString2></StorageConnectionString2>
   <Pre42StorageConnectionString></Pre42StorageConnectionString>
-  <ModuleFilePath></ModuleFilePath>
   <StorageEndPoint>core.windows.net</StorageEndPoint>
   <SecondaryStorageAccountName></SecondaryStorageAccountName>
   <SecondaryStorageAccountKey></SecondaryStorageAccountKey>
   <SecondaryStorageEndPoint>core.windows.net</SecondaryStorageEndPoint>
+  <StorageAccountNameInOtherSubscription>xtestragrsxsmb1</StorageAccountNameInOtherSubscription>
+    
+  <!-- Following setting are for custom domain setting test cases-->
+  <CustomDomainAccountResourceGroup></CustomDomainAccountResourceGroup>
+  <CustomDomainAccountName></CustomDomainAccountName>
+  <CustomDomainAccountKey></CustomDomainAccountKey>
+  <CustomDomain></CustomDomain>
+    
+  <!-- Mooncake subscription -->
+  <MooncakeSubscriptionName>Azure Storage DM</MooncakeSubscriptionName>
+  <MooncakeSubscriptionPath>D:\powershell\Azure Storage DM-7-16-2015-credentials.publishsettings</MooncakeSubscriptionPath>
+  <MooncakeStorageAccountName>testaccount1</MooncakeStorageAccountName>
+  <MooncakeStorageAccountKey>FjUfNl1KiJttbXlsdkMzBTC7WagvrRM9/g6UPBuy0ypCpAbYTL6/KA+dI/7gyoWvLFYmah3IviUP1jykOHHOlA==</MooncakeStorageAccountKey>
 
-  <PSSnapInName></PSSnapInName>
   <NodeWorkingDirectory>.</NodeWorkingDirectory>
-  <BigFileUri>http://xdmtest.blob.core.windows.net/public/Fedora-18-x86_64-Live-Desktop.iso</BigFileUri>
+  <BigBlobUri>http://xdmtestsea.blob.core.windows.net/public/Fedora-18-x86_64-Live-Desktop.iso?sv=2014-02-14&amp;sr=b&amp;sig=v%2FHPZro9IzqzE%2FFABhrRJL25QFp6VBPu66tDRSasEAw%3D&amp;se=2016-12-30T16%3A00%3A00Z&amp;sp=r</BigBlobUri>
+  <BigAzureFileUri>https://xdmtestsea.file.core.windows.net/public/Fedora-18-x86_64-Live-Desktop.iso?sv=2015-02-21&amp;sr=f&amp;sig=El2LMeUMH9Nle6sn9pvq%2BYyjMY9jIEsU4jlCrMAsmko%3D&amp;se=2016-12-30T16%3A00%3A00Z&amp;sp=rl</BigAzureFileUri>
   <HttpsCopyHosts>core.windows.net</HttpsCopyHosts>
   <DownloadDir>.\Data\download\</DownloadDir>
   <UploadDir>.\Data\upload\</UploadDir>
@@ -60,10 +97,4 @@
   <UploadPerfContainerPrefix>cliperftestupload</UploadPerfContainerPrefix>
   <DownloadPerfContainerPrefix>cliperftest</DownloadPerfContainerPrefix> <!--make sure containers with this prefix has expected data for download. Otherwise specify GenerateDataBeforeDownload to True -->
   <GenerateDataBeforeDownload>true</GenerateDataBeforeDownload>
-  <PLinkPath></PLinkPath>
-  <UserName></UserName>
-  <HostName></HostName>
-  <Port>22</Port>
-  <PrivateKeyPath></PrivateKeyPath>
-  <AgentOS>windows</AgentOS>
 </TestConfig>

@@ -19,9 +19,11 @@ namespace Management.Storage.ScenarioTest.BVT
     using System.Collections.ObjectModel;
     using System.Diagnostics;
     using System.IO;
+    using System.Threading;
     using Management.Storage.ScenarioTest.Common;
     using Management.Storage.ScenarioTest.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.WindowsAzure.Commands.Storage.Model.ResourceModel;
     using Microsoft.WindowsAzure.Storage.Blob;
     using Microsoft.WindowsAzure.Storage.Queue;
     using Microsoft.WindowsAzure.Storage.Shared.Protocol;
@@ -41,6 +43,7 @@ namespace Management.Storage.ScenarioTest.BVT
         private static CloudStorageAccount CommonStorageAccount;
         private static string CommonBlockFilePath;
         private static string CommonPageFilePath;
+        private static string CommonAppendFilePath;
         private static string CommonSmallFilePath;
         private static string CommonMediumFilePath;
         private static string SmallFileMD5;
@@ -101,6 +104,7 @@ namespace Management.Storage.ScenarioTest.BVT
             GenerateBvtTempFiles();
 
             // initialize file utility
+            blobUtil = new CloudBlobUtil(CommonStorageAccount);
             fileUtil = new CloudFileUtil(CommonStorageAccount);
         }
 
@@ -111,7 +115,7 @@ namespace Management.Storage.ScenarioTest.BVT
         public static void SaveAndCleanSubScriptionAndEnvConnectionString()
         {
             Test.Info("Clean Azure Subscription and save env connection string");
-            //can't restore the azure subscription files
+
             PowerShellAgent.RemoveAzureSubscriptionIfExists();
 
             //set env connection string
@@ -146,11 +150,13 @@ namespace Management.Storage.ScenarioTest.BVT
 
             CommonBlockFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
             CommonPageFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
+            CommonAppendFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
             CommonSmallFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
             CommonMediumFilePath = Path.Combine(Test.Data.Get("TempDir"), FileUtil.GetSpecialFileName());
 
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonBlockFilePath), AlwaysOperateOnWindows);
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonPageFilePath), AlwaysOperateOnWindows);
+            FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonAppendFilePath), AlwaysOperateOnWindows);
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonSmallFilePath), AlwaysOperateOnWindows);
             FileUtil.CreateDirIfNotExits(Path.GetDirectoryName(CommonMediumFilePath), AlwaysOperateOnWindows);
 
@@ -160,6 +166,7 @@ namespace Management.Storage.ScenarioTest.BVT
             // Generate block file and page file which are used for uploading
             FileUtil.GenerateMediumFile(CommonBlockFilePath, Utility.GetRandomTestCount(1, 5), AlwaysOperateOnWindows);
             FileUtil.GenerateMediumFile(CommonPageFilePath, Utility.GetRandomTestCount(1, 5), AlwaysOperateOnWindows);
+            FileUtil.GenerateMediumFile(CommonAppendFilePath, Utility.GetRandomTestCount(1, 5), AlwaysOperateOnWindows);
             FileUtil.GenerateMediumFile(CommonMediumFilePath, Utility.GetRandomTestCount(5, 10), AlwaysOperateOnWindows);
             FileUtil.GenerateSmallFile(CommonSmallFilePath, Utility.GetRandomTestCount(1, 10), AlwaysOperateOnWindows);
             MediumFileMD5 = FileUtil.GetFileContentMD5(CommonMediumFilePath);
@@ -330,6 +337,7 @@ namespace Management.Storage.ScenarioTest.BVT
         {
             UploadBlobTest(agent, CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             UploadBlobTest(agent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            UploadBlobTest(agent, CommonAppendFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -342,6 +350,7 @@ namespace Management.Storage.ScenarioTest.BVT
         {
             GetBlobTest(agent, CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             GetBlobTest(agent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            GetBlobTest(agent, CommonAppendFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -355,6 +364,7 @@ namespace Management.Storage.ScenarioTest.BVT
             string downloadDirPath = Test.Data.Get("DownloadDir");
             DownloadBlobTest(agent, CommonBlockFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             DownloadBlobTest(agent, CommonPageFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            DownloadBlobTest(agent, CommonAppendFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -367,6 +377,7 @@ namespace Management.Storage.ScenarioTest.BVT
         {
             RemoveBlobTest(agent, CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             RemoveBlobTest(agent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            RemoveBlobTest(agent, CommonAppendFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -408,6 +419,11 @@ namespace Management.Storage.ScenarioTest.BVT
 
             foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
             {
+                if (serviceType == Constants.ServiceType.File || serviceType == Constants.ServiceType.InvalidService)
+                {
+                    continue;
+                }
+
                 int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
                 string loggingOperations = Utility.GenRandomLoggingOperations();
 
@@ -442,16 +458,29 @@ namespace Management.Storage.ScenarioTest.BVT
             foreach (Constants.MetricsType metricsType in Enum.GetValues(typeof(Constants.MetricsType)))
             {
                 foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
-                {             
-                    ServiceProperties propertiesBeforeSet = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
+                {
+                    if ((serviceType == Constants.ServiceType.InvalidService)
+                        || (serviceType == Constants.ServiceType.File && Language.NodeJS == lang))
+                    {
+                        continue;
+                    }
+
+                    ServiceProperties propertiesBeforeSet = null;
+                    if (serviceType != Constants.ServiceType.File)
+                    {
+                        propertiesBeforeSet = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
+                    }
                     int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
                     string metricsLevel = Utility.GenRandomMetricsLevel();
                     // set ServiceProperties(metrics)
                     Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, metricsType, metricsLevel, retentionDays.ToString()),
                         Utility.GenComparisonData("SetAzureStorageServiceHourMetrics", true));
 
-                    Utility.ValidateLoggingProperties(CommonStorageAccount, serviceType, propertiesBeforeSet.Logging.RetentionDays,
-                        propertiesBeforeSet.Logging.LoggingOperations.ToString());
+                    if (serviceType != Constants.ServiceType.File)
+                    {
+                        Utility.ValidateLoggingProperties(CommonStorageAccount, serviceType, propertiesBeforeSet.Logging.RetentionDays,
+                            propertiesBeforeSet.Logging.LoggingOperations.ToString());
+                    }
 
                     Utility.ValidateMetricsProperties(CommonStorageAccount, serviceType, metricsType, retentionDays, metricsLevel);
                 }
@@ -475,6 +504,11 @@ namespace Management.Storage.ScenarioTest.BVT
 
             foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
             {
+                if (serviceType == Constants.ServiceType.File || serviceType == Constants.ServiceType.InvalidService)
+                {
+                    continue;
+                }
+
                 Test.Assert(agent.GetAzureStorageServiceLogging(serviceType), Utility.GenComparisonData("GetAzureStorageServiceLogging", true));
                 ServiceProperties properties = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
                 agent.OutputValidation(properties, "logging");
@@ -498,6 +532,12 @@ namespace Management.Storage.ScenarioTest.BVT
 
             foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
             {
+                if ((serviceType == Constants.ServiceType.InvalidService)
+                    || (serviceType == Constants.ServiceType.File && Language.NodeJS == lang))
+                {
+                    continue;
+                }
+
                 Test.Assert(agent.GetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour), Utility.GenComparisonData("GetAzureStorageServiceHourMetrics", true));
                 ServiceProperties properties = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
                 agent.OutputValidation(properties, "HourMetrics");
@@ -525,7 +565,7 @@ namespace Management.Storage.ScenarioTest.BVT
             {
                 blobUtil.SetupTestContainerAndBlob(blobNamePrefix: "blob");
             }
-            ICloudBlob destBlob = CopyBlobAndWaitForComplete(blobUtil);
+            CloudBlob destBlob = CopyBlobAndWaitForComplete(blobUtil);
 
             try
             {
@@ -557,8 +597,8 @@ namespace Management.Storage.ScenarioTest.BVT
 
                 Test.Assert(!agent.GetAzureStorageBlobCopyState(blobUtil.ContainerName, blobUtil.BlobName, false), "Get copy state should be fail since the specified blob don't have any copy operation");
                 Test.Assert(agent.ErrorMessages.Count > 0, "Should return error message");
-                string errorMessage = "Can not find copy task on specified blob";
-                Test.Assert(agent.ErrorMessages[0].StartsWith(errorMessage), String.Format("Error message should start with {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
+                string errorMessage = "Can not find copy task on the specified blob";
+                Test.Assert(agent.ErrorMessages[0].Contains(errorMessage), String.Format("Error message should contain {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
             }
             finally
             {
@@ -583,7 +623,7 @@ namespace Management.Storage.ScenarioTest.BVT
             {
                 blobUtil.SetupTestContainerAndBlob(blobNamePrefix: "blob");
             }
-            ICloudBlob destBlob = CopyBlobAndWaitForComplete(blobUtil);
+            CloudBlob destBlob = CopyBlobAndWaitForComplete(blobUtil);
 
             try
             {
@@ -594,7 +634,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 string errorMessage;
                 if (lang == Language.PowerShell)
                 {
-                    errorMessage = String.Format("Can not find copy task on specified blob '{0}' in container '{1}'", blobUtil.BlobName, blobUtil.ContainerName);
+                    errorMessage = String.Format("Can not find copy task on the specified blob '{0}' in container '{1}'", blobUtil.BlobName, blobUtil.ContainerName);
                     Test.Assert(agent.ErrorMessages[0].IndexOf(errorMessage) != -1, String.Format("Error message should contain {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
                 }
                 else
@@ -659,8 +699,8 @@ namespace Management.Storage.ScenarioTest.BVT
         {
             ShowBlobTest(CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
             ShowBlobTest(CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            ShowBlobTest(CommonAppendFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
-
 
         internal void ShowBlobTest(string UploadFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType Type)
         {
@@ -690,6 +730,10 @@ namespace Management.Storage.ScenarioTest.BVT
                 {
                     bSuccess = CommonBlobHelper.UploadFileToPageBlob(NewContainerName, BlobName, UploadFilePath);
                 }
+                else if (Type == Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob)
+                {
+                    bSuccess = CommonBlobHelper.UploadFileToAppendBlob(NewContainerName, BlobName, UploadFilePath);
+                }
                 Test.Assert(bSuccess, "upload file {0} to container {1} should succeed", UploadFilePath, NewContainerName);
 
                 //--------------Show operation--------------
@@ -697,7 +741,7 @@ namespace Management.Storage.ScenarioTest.BVT
 
                 // Verification for returned values
                 // get blob object using XSCL 
-                ICloudBlob blob = CommonBlobHelper.QueryBlob(NewContainerName, BlobName);
+                CloudBlob blob = CommonBlobHelper.QueryBlob(NewContainerName, BlobName);
                 blob.FetchAttributes();
                 CloudBlobUtil.PackBlobCompareData(blob, dic);
                 dic.Add("ShowBlob", blob);
@@ -711,25 +755,33 @@ namespace Management.Storage.ScenarioTest.BVT
             }
         }
 
-        internal ICloudBlob CopyBlobAndWaitForComplete(CloudBlobUtil blobUtil)
+        internal CloudBlob CopyBlobAndWaitForComplete(CloudBlobUtil blobUtil)
         {
             string destBlobName = Utility.GenNameString("copystate");
 
-            ICloudBlob destBlob = default(ICloudBlob);
+            CloudBlob destBlob = null;
 
             Test.Info("Copy Blob using storage client");
 
-            if (blobUtil.Blob.BlobType == StorageBlob.BlobType.BlockBlob)
+            switch (blobUtil.Blob.BlobType)
             {
-                CloudBlockBlob blockBlob = blobUtil.Container.GetBlockBlobReference(destBlobName);
-                blockBlob.StartCopyFromBlob((CloudBlockBlob)blobUtil.Blob);
-                destBlob = blockBlob;
-            }
-            else
-            {
-                CloudPageBlob pageBlob = blobUtil.Container.GetPageBlobReference(destBlobName);
-                pageBlob.StartCopyFromBlob((CloudPageBlob)blobUtil.Blob);
-                destBlob = pageBlob;
+                case StorageBlob.BlobType.BlockBlob:
+                    CloudBlockBlob blockBlob = blobUtil.Container.GetBlockBlobReference(destBlobName);
+                    blockBlob.StartCopy((CloudBlockBlob)blobUtil.Blob);
+                    destBlob = blockBlob;
+                    break;
+                case StorageBlob.BlobType.PageBlob:
+                    CloudPageBlob pageBlob = blobUtil.Container.GetPageBlobReference(destBlobName);
+                    pageBlob.StartCopy((CloudPageBlob)blobUtil.Blob);
+                    destBlob = pageBlob;
+                    break;
+                case StorageBlob.BlobType.AppendBlob:
+                    CloudAppendBlob appendBlob = blobUtil.Container.GetAppendBlobReference(destBlobName);
+                    appendBlob.StartCopy((CloudAppendBlob)blobUtil.Blob);
+                    destBlob = appendBlob;
+                    break;
+                default:
+                    throw new InvalidOperationException(string.Format("Invalid blob type: {0}", blobUtil.Blob.BlobType));
             }
 
             CloudBlobUtil.WaitForCopyOperationComplete(destBlob);
@@ -772,7 +824,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 }
 
                 Test.Info("Get destination blob in copy task");
-                ICloudBlob blob = blobUtil.Container.GetBlobReferenceFromServer(copiedName);
+                CloudBlob blob = StorageExtensions.GetBlobReferenceFromServer(blobUtil.Container, copiedName);
                 Test.Assert(blob != null, "Destination blob should exist after start copy. If not, please check it's a test issue or dev issue.");
 
                 string sourceUri = CloudBlobUtil.ConvertCopySourceUri(blobUtil.Blob.Uri.ToString());
@@ -1056,8 +1108,8 @@ namespace Management.Storage.ScenarioTest.BVT
 
         /// <summary>
         /// Parameters:
-        ///     Block:
-        ///         True for BlockBlob, false for PageBlob
+        ///     Type:
+        ///         Blob Type: BlockBlob, PageBlob, AppendBlob
         /// </summary>
         internal void UploadBlobTest(Agent agent, string UploadFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType Type)
         {
@@ -1079,7 +1131,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 //--------------Upload operation--------------
                 Test.Assert(agent.SetAzureStorageBlobContent(UploadFilePath, NEW_CONTAINER_NAME, Type), Utility.GenComparisonData("SendAzureStorageBlob", true));
 
-                ICloudBlob blob = CommonBlobHelper.QueryBlob(NEW_CONTAINER_NAME, blobName);
+                CloudBlob blob = CommonBlobHelper.QueryBlob(NEW_CONTAINER_NAME, blobName);
                 CloudBlobUtil.PackBlobCompareData(blob, dic);
                 // Verification for returned values
                 agent.OutputValidation(comp);
@@ -1093,9 +1145,9 @@ namespace Management.Storage.ScenarioTest.BVT
         }
 
         /// <summary>
-        /// Parameters:
-        ///     Block:
-        ///         True for BlockBlob, false for PageBlob
+        /// Parameters:             
+        ///     Type:
+        ///         Blob Type: BlockBlob, PageBlob, AppendBlob
         /// </summary>
         internal void GetBlobTest(Agent agent, string UploadFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType Type)
         {
@@ -1120,6 +1172,9 @@ namespace Management.Storage.ScenarioTest.BVT
                     bSuccess = CommonBlobHelper.UploadFileToBlockBlob(NEW_CONTAINER_NAME, blobName, UploadFilePath);
                 else if (Type == Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob)
                     bSuccess = CommonBlobHelper.UploadFileToPageBlob(NEW_CONTAINER_NAME, blobName, UploadFilePath);
+                else if (Type == Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob)
+                    bSuccess = CommonBlobHelper.UploadFileToAppendBlob(NEW_CONTAINER_NAME, blobName, UploadFilePath);
+
                 Test.Assert(bSuccess, "upload file {0} to container {1} should succeed", UploadFilePath, NEW_CONTAINER_NAME);
 
                 //--------------Get operation--------------
@@ -1127,7 +1182,7 @@ namespace Management.Storage.ScenarioTest.BVT
 
                 // Verification for returned values
                 // get blob object using XSCL 
-                ICloudBlob blob = CommonBlobHelper.QueryBlob(NEW_CONTAINER_NAME, blobName);
+                CloudBlob blob = CommonBlobHelper.QueryBlob(NEW_CONTAINER_NAME, blobName);
                 blob.FetchAttributes();
                 CloudBlobUtil.PackBlobCompareData(blob, dic);
                 dic.Add("ICloudBlob", blob);
@@ -1143,8 +1198,8 @@ namespace Management.Storage.ScenarioTest.BVT
 
         /// <summary>
         /// Parameters:
-        ///     Block:
-        ///         True for BlockBlob, false for PageBlob
+        ///     Type:
+        ///         Blob Type: BlockBlob, PageBlob, AppendBlob
         /// </summary>
         internal void DownloadBlobTest(Agent agent, string UploadFilePath, string DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType Type)
         {
@@ -1171,7 +1226,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 string downloadFilePath = Path.Combine(DownloadDirPath, blobName);
                 Test.Assert(agent.GetAzureStorageBlobContent(blobName, downloadFilePath, ContainerName),
                     Utility.GenComparisonData("GetAzureStorageBlobContent", true));
-                ICloudBlob blob = CommonBlobHelper.QueryBlob(ContainerName, blobName);
+                CloudBlob blob = CommonBlobHelper.QueryBlob(ContainerName, blobName);
                 CloudBlobUtil.PackBlobCompareData(blob, dic);
                 // Verification for returned values
                 agent.OutputValidation(comp);
@@ -1188,8 +1243,8 @@ namespace Management.Storage.ScenarioTest.BVT
 
         /// <summary>
         /// Parameters:
-        ///     Block:
-        ///         True for BlockBlob, false for PageBlob
+        ///     Type:
+        ///         Blob Type: BlockBlob, PageBlob, AppendBlob
         /// </summary>
         internal void RemoveBlobTest(Agent agent, string UploadFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType Type)
         {
@@ -1214,11 +1269,13 @@ namespace Management.Storage.ScenarioTest.BVT
                     bSuccess = CommonBlobHelper.UploadFileToBlockBlob(NEW_CONTAINER_NAME, blobName, UploadFilePath);
                 else if (Type == Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob)
                     bSuccess = CommonBlobHelper.UploadFileToPageBlob(NEW_CONTAINER_NAME, blobName, UploadFilePath);
+                else if (Type == Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob)
+                    bSuccess = CommonBlobHelper.UploadFileToAppendBlob(NEW_CONTAINER_NAME, blobName, UploadFilePath);
                 Test.Assert(bSuccess, "upload file {0} to container {1} should succeed", UploadFilePath, NEW_CONTAINER_NAME);
 
                 //--------------Remove operation--------------
                 Test.Assert(agent.RemoveAzureStorageBlob(blobName, NEW_CONTAINER_NAME), Utility.GenComparisonData("RemoveAzureStorageBlob", true));
-                ICloudBlob blob = CommonBlobHelper.QueryBlob(NEW_CONTAINER_NAME, blobName);
+                CloudBlob blob = CommonBlobHelper.QueryBlob(NEW_CONTAINER_NAME, blobName);
                 Test.Assert(blob == null, "blob {0} should not exist!", blobName);
             }
             finally
@@ -1255,7 +1312,7 @@ namespace Management.Storage.ScenarioTest.BVT
 
         [TestMethod]
         [TestCategory(Tag.BVT)]
-        [TestCategory(PsTag.NewContainerSas)] 
+        [TestCategory(PsTag.NewContainerSas)]
         [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NewContainerSas)]
         public void NewContainerSasTest()
@@ -1403,7 +1460,7 @@ namespace Management.Storage.ScenarioTest.BVT
             Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessTablePolicy>(lang == Language.NodeJS)[0];
 
             try
-            {                
+            {
                 Test.Assert(agent.NewAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                     "Create stored access policy in table should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
@@ -1411,7 +1468,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 SharedAccessTablePolicies expectedPolicies = new SharedAccessTablePolicies();
                 expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessTablePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission));
 
-                Utility.WaitForPolicyBecomeValid<CloudTable>(table, samplePolicy); 
+                Utility.WaitForPolicyBecomeValid<CloudTable>(table, samplePolicy);
 
                 Utility.ValidateStoredAccessPolicies<SharedAccessTablePolicy>(table.GetPermissions().SharedAccessPolicies, expectedPolicies);
             }
@@ -1542,7 +1599,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 "Set stored access policy in table should succeed");
                 Test.Info("Set stored access policy:{0}", samplePolicy2.PolicyName);
 
-                Utility.WaitForPolicyBecomeValid<CloudTable>(table, samplePolicy2); 
+                Utility.WaitForPolicyBecomeValid<CloudTable>(table, samplePolicy2);
 
                 //get the policy and validate
                 SharedAccessTablePolicies expectedPolicies = new SharedAccessTablePolicies();
@@ -1591,7 +1648,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 SharedAccessQueuePolicies expectedPolicies = new SharedAccessQueuePolicies();
                 expectedPolicies.Add(samplePolicy.PolicyName, Utility.SetupSharedAccessPolicy<SharedAccessQueuePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission));
 
-                Utility.WaitForPolicyBecomeValid<CloudQueue>(queue, samplePolicy); 
+                Utility.WaitForPolicyBecomeValid<CloudQueue>(queue, samplePolicy);
 
                 Utility.ValidateStoredAccessPolicies<SharedAccessQueuePolicy>(queue.GetPermissions().SharedAccessPolicies, expectedPolicies);
             }
@@ -1723,7 +1780,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 "Set stored access policy in queue should succeed");
                 Test.Info("Set stored access policy:{0}", samplePolicy2.PolicyName);
 
-                Utility.WaitForPolicyBecomeValid<CloudQueue>(queue, samplePolicy2); 
+                Utility.WaitForPolicyBecomeValid<CloudQueue>(queue, samplePolicy2);
 
                 //get the policy and validate
                 SharedAccessQueuePolicies expectedPolicies = new SharedAccessQueuePolicies();
@@ -1905,7 +1962,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 "Set stored access policy in container should succeed");
                 Test.Info("Set stored access policy:{0}", samplePolicy2.PolicyName);
 
-                Utility.WaitForPolicyBecomeValid<CloudBlobContainer>(container, samplePolicy2); 
+                Utility.WaitForPolicyBecomeValid<CloudBlobContainer>(container, samplePolicy2);
 
                 //get the policy and validate
                 SharedAccessBlobPolicies expectedPolicies = new SharedAccessBlobPolicies();
@@ -1924,5 +1981,65 @@ namespace Management.Storage.ScenarioTest.BVT
             }
         }
 
+        /// <summary>
+        /// Test plan, BVT 8.30
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.ServiceCORS)]
+        public void CORSRuleManagementTest()
+        {
+            this.CORSRulesTest(Constants.ServiceType.Blob, 5);
+            this.CORSRulesTest(Constants.ServiceType.Table, 3);
+            this.CORSRulesTest(Constants.ServiceType.Queue, 1);
+        }
+
+        private void CORSRulesTest (Constants.ServiceType serviceType, int corsRuleCount)
+        {
+            try
+            {
+                PSCorsRule[] corsRules = CORSRuleUtil.GetRandomValidCORSRules(corsRuleCount);
+
+                Test.Assert(agent.SetAzureStorageCORSRules(serviceType, corsRules),
+                    "Set 5 Cors rules to {0} service should succeed.", serviceType);
+
+                Test.Assert(agent.GetAzureStorageCORSRules(serviceType),
+                    "Get CORS rules from {0} service should succeed.", serviceType);
+
+                PSCorsRule[] acturalRules = this.GetCORSRulesFromOutput();
+
+                CORSRuleUtil.ValidateCORSRules(corsRules, acturalRules);
+
+                Test.Assert(agent.RemoveAzureStorageCORSRules(serviceType),
+                    "Remove CORS rules of {0} service should succeed.", serviceType);
+
+                Test.Assert(agent.GetAzureStorageCORSRules(serviceType),
+                    "Get CORS rules from {0} service should succeed.", serviceType);
+
+                acturalRules = this.GetCORSRulesFromOutput();
+                Test.Assert(acturalRules.Length == 0, "CORS rule count of {1} service should be 0, actually it's {0}", acturalRules.Length, serviceType);
+            }
+            finally
+            {
+                ServiceProperties sp = new ServiceProperties();
+                sp.Clean();
+                sp.Cors = new CorsProperties();
+                sp.Cors.CorsRules.Clear();
+
+                switch (serviceType)
+                {
+                    case Constants.ServiceType.Blob:
+                        CommonStorageAccount.CreateCloudBlobClient().SetServiceProperties(sp);
+                        break;
+                    case Constants.ServiceType.Queue:
+                        CommonStorageAccount.CreateCloudQueueClient().SetServiceProperties(sp);
+                        break;
+                    case Constants.ServiceType.Table:
+                        CommonStorageAccount.CreateCloudTableClient().SetServiceProperties(sp);
+                        break;
+                }
+            }
+        }
     }
 }

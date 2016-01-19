@@ -17,7 +17,7 @@
     using StorageTestLib;
 
     [TestClass]
-    internal class RemoveAzureStorageFileDirectoryTest : TestBase
+    public class RemoveAzureStorageFileDirectoryTest : TestBase
     {
         private Random randomProvider = new Random();
 
@@ -26,7 +26,6 @@
         [ClassInitialize]
         public static void NewAzureStorageFileShareTestInitialize(TestContext context)
         {
-            StorageAccount = Utility.ConstructStorageAccountFromConnectionString();
             TestBase.TestClassInitialize(context);
         }
 

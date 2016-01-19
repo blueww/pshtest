@@ -38,7 +38,7 @@
         [ClassInitialize]
         public static void MountTestInitialize(TestContext context)
         {
-            StorageAccount = Utility.ConstructStorageAccountFromConnectionString();
+            StorageAccount = GetCloudStorageAccountFromConfig();
             accountName = StorageAccount.Credentials.AccountName;
             accountKey = StorageAccount.Credentials.ExportBase64EncodedKey();
             fileEndpoint = StorageAccount.FileEndpoint.DnsSafeHost;
@@ -109,7 +109,7 @@
         {
             string directoryName = CloudFileUtil.GenerateUniqueDirectoryName();
             this.mountedShareRoot.CreateSubdirectory(directoryName);
-            this.agent.ListFiles(this.fileShare);
+            this.agent.GetFile(this.fileShare);
             var result = this.agent.Invoke();
             this.agent.AssertNoError();
             result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory(directoryName));
@@ -153,7 +153,7 @@
                 stream.Write(randomContent, 0, randomContent.Length);
             }
 
-            this.agent.ListFiles(this.fileShare);
+            this.agent.GetFile(this.fileShare);
             var result = this.agent.Invoke();
             this.agent.AssertNoError();
             result.AssertObjectCollection(obj => obj.AssertCloudFile(fileName));

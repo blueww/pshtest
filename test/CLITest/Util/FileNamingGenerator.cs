@@ -33,10 +33,17 @@
 
         private static readonly char[] InvalidFileNameCharacters = new char[] { '\\', '/', ':', '|', '<', '>', '*', '?', '"' };
 
-        private static readonly char[] BashControllers = (AgentFactory.GetOSType() != OSType.Windows) ? new char[] { '(', ')', '$', '\''} : new char[] {};
+        private static readonly char[] InvalidTagNameCharacters = new char[] { '<', '>', '%', '&', '\\', '?', '/' };
+
+        private static readonly char[] BashControllers = (AgentFactory.GetOSType() != OSType.Windows) ? new char[] { '(', ')', '$', '\'', '!', '`' } : new char[] {};
 
         private static readonly char[] ValidShareNameCharactersExceptDash =
             Enumerable.Range(0, 26).Select(x => (char)('a' + x)).Concat(
+            Enumerable.Range(0, 10).Select(x => (char)('0' + x))).ToArray();
+
+        private static readonly char[] InvalidAccountNameChars =
+            Enumerable.Range(0x0020, 0x07E).Select(x => (char)(x)).Except(
+            Enumerable.Range(0, 26).Select(x => (char)('a' + x))).Except(
             Enumerable.Range(0, 10).Select(x => (char)('0' + x))).ToArray();
 
         private static readonly UnicodeGenerator[] UnicodeGenerators =
@@ -45,14 +52,32 @@
                       !x.IsAbstract)
             .Select(x => Activator.CreateInstance(x, InvalidFileNameCharacters)).Cast<UnicodeGenerator>().ToArray();
 
+        private static readonly UnicodeGenerator[] TagUnicodeGenerators =
+            Assembly.GetAssembly(typeof(UnicodeGenerator)).GetTypes()
+            .Where(x => x.IsSubclassOf(typeof(UnicodeGenerator)) &&
+            !x.IsAbstract)
+            .Select(x => Activator.CreateInstance(x, InvalidFileNameCharacters)).Cast<UnicodeGenerator>().ToArray();
+
+        private static Random RandomGen = new Random();
+
         public static IEnumerable<string> GenerateValidateUnicodeName(int length)
+        {
+            return GenerateValidateUnicodeName(UnicodeGenerators, length);
+        }
+
+        public static IEnumerable<string> GenerateTagValidateUnicodeName(int length)
+        {
+            return GenerateValidateUnicodeName(TagUnicodeGenerators, length);
+        }
+
+        public static IEnumerable<string> GenerateValidateUnicodeName(UnicodeGenerator[] generators, int length)
         {
             if (AgentFactory.GetOSType() != OSType.Windows)
             {
                 yield break;
             }
 
-            foreach (var generator in UnicodeGenerators)
+            foreach (var generator in generators)
             {
                 string str = generator.GenerateRandomString(length);
 
@@ -67,6 +92,11 @@
 
                 yield return str;
             }
+        }
+
+        public static string GenerateInvalidAccountName()
+        {
+            return GenerateASCIINameWithInvalidCharacters(RandomGen.Next(10, 25), InvalidAccountNameChars);
         }
 
         public static string GenerateValidateASCIIName(int length)
@@ -110,10 +140,14 @@
             return GenerateShareNameInternal(length, ensureUpperCase: true);
         }
 
-        public static string GenerateASCIINameWithInvalidCharacters(int length)
+        public static string GenerateASCIINameWithInvalidCharacters(int length, char[] InvalidChars= null)
         {
-            Random r = new Random();
-            int numberOfInavlidCharacters = r.Next(1, length);
+            if (null == InvalidChars)
+            {
+                InvalidChars = InvalidFileNameCharacters;
+            }
+
+            int numberOfInavlidCharacters = RandomGen.Next(1, length);
             int numberOfValidCharacters = length - numberOfInavlidCharacters;
             StringBuilder sb = new StringBuilder(GenerateNameFromRange(numberOfValidCharacters, ValidASCIIRange));
             var invalidCharList = new List<char>(InvalidFileNameCharacters);
@@ -132,8 +166,8 @@
 
             for (int i = 0; i < numberOfInavlidCharacters; i++)
             {
-                int position = r.Next(sb.Length);
-                char invalidCharacter = invalidCharList[r.Next(invalidCharList.Count)];
+                int position = RandomGen.Next(sb.Length);
+                char invalidCharacter = invalidCharList[RandomGen.Next(invalidCharList.Count)];
                 sb.Insert(position, invalidCharacter);
             }
 
@@ -154,8 +188,8 @@
                 while (
                     InvalidFileNameCharacters.Contains(ch) ||
                     BashControllers.Contains(ch) ||
-                    (i == length - 1 && ch == '.') ||
-                    (i == 0 && ch == '-'));
+                    (i == length - 1 && ch == '.') || // to avoid ending with dot
+                    (i == 0 && (ch == '-' || ch == ' '))); // to avoid miss-matching to a xplat option or leading with space (it may cause the starting " being replaced to "')
 
                 sb.Append(ch);
             }

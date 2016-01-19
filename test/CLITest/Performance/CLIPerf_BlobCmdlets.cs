@@ -56,7 +56,7 @@ namespace Management.Storage.ScenarioTest
             Helper.DeletePattern(FolderName + "_*");
 
             // import module
-            string moduleFilePath = Test.Data.Get("ModuleFilePath");
+            string moduleFilePath = Path.Combine(Test.Data.Get("ModuleFileFolder"), Constants.ServiceModulePath);
             PowerShellAgent.ImportModule(moduleFilePath);
 
             //set the default storage context
@@ -224,7 +224,7 @@ namespace Management.Storage.ScenarioTest
                     case GetBlobs:                   
                         Test.Assert(agent.Output.Count == fileNum, "{0} row returned : {1}", fileNum, agent.Output.Count);
                         // compare the blob entities    
-                        List<ICloudBlob> blobList = new List<ICloudBlob>();
+                        List<CloudBlob> blobList = new List<CloudBlob>();
                         srcBlobHelper.ListBlobs(srcContainer, out blobList);
                         agent.OutputValidation(blobList);
                         break;

@@ -169,8 +169,9 @@
                     ExpectedContainErrorMessage("A maximum of 5 access policies may be set");
                 }
 
-                queueUtil.RemoveQueue(queue);
-                Test.Assert(!agent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, Utility.GenNameString("p", 5), null, null, null), "Create stored access policy against non-existing container should fail");
+                string queueName = Utility.GenNameString("queue");
+                queueUtil.RemoveQueue(queueName);
+                Test.Assert(!agent.NewAzureStorageQueueStoredAccessPolicy(queueName, Utility.GenNameString("p", 5), null, null, null), "Create stored access policy against non-existing container should fail");
                 if (lang == Language.PowerShell)
                 {
                     ExpectedContainErrorMessage("does not exist");
@@ -278,8 +279,9 @@
                     ExpectedContainErrorMessage("Queue name format is incorrect");
                 }
 
-                queueUtil.RemoveQueue(queue);
-                Test.Assert(!agent.GetAzureStorageQueueStoredAccessPolicy(queue.Name, policyName),
+                string queueName = Utility.GenNameString("queue");
+                queueUtil.RemoveQueue(queueName);
+                Test.Assert(!agent.GetAzureStorageQueueStoredAccessPolicy(queueName, policyName),
                     "Get stored access policy from invalid queue name should fail");
                 if (lang == Language.PowerShell)
                 {
@@ -332,10 +334,6 @@
                 }
                 else
                 {
-                    if (AgentFactory.GetOSType() != OSType.Windows)
-                    {
-                        invalidName = Utility.SqueezeSpaces(invalidName);
-                    }
                     ExpectedContainErrorMessage(string.Format("The policy {0} doesn't exist", invalidName));
                 }
 
@@ -350,8 +348,9 @@
                     ExpectedContainErrorMessage("Queue name format is incorrect");
                 }
 
-                queueUtil.RemoveQueue(queue);
-                Test.Assert(!agent.RemoveAzureStorageQueueStoredAccessPolicy(queue.Name, policyName),
+                string queueName = Utility.GenNameString("queue");
+                queueUtil.RemoveQueue(queueName);
+                Test.Assert(!agent.RemoveAzureStorageQueueStoredAccessPolicy(queueName, policyName),
                     "Remove stored access policy from invalid table name should fail");
                 ExpectedContainErrorMessage("The specified queue does not exist");
             }
@@ -612,7 +611,7 @@
                 catch (StorageException e)
                 {
                     Test.Info(e.Message);
-                    ExpectEqual(e.RequestInformation.HttpStatusCode, 404, "(404) Not Found");
+                    ExpectEqual(403, e.RequestInformation.HttpStatusCode, "(403) Forbidden");
                 }
 
                 //add back the Add permission

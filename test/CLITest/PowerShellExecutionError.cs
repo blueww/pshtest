@@ -18,6 +18,7 @@ namespace Management.Storage.ScenarioTest
     using System.Collections.Generic;
     using System.Linq;
     using System.Management.Automation;
+    using System.Net;
     using System.Text;
     using Management.Storage.ScenarioTest.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -41,20 +42,27 @@ namespace Management.Storage.ScenarioTest
         {
             var record = this.ErrorRecord;
             string errorCode = record.FullyQualifiedErrorId;
-            if (record.FullyQualifiedErrorId.StartsWith("StorageException"))
+            if (record.FullyQualifiedErrorId.Contains("StorageException"))
             {
                 var exception = (StorageException)record.Exception;
-                if (exception.RequestInformation != null && exception.RequestInformation.ExtendedErrorInformation != null)
+                if (exception.RequestInformation != null)
                 {
-                    errorCode = exception.RequestInformation.ExtendedErrorInformation.ErrorCode;
+                    if (exception.RequestInformation.ExtendedErrorInformation != null)
+                    {
+                        errorCode = exception.RequestInformation.ExtendedErrorInformation.ErrorCode;
+                    }
+                    else if (exception.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
+                    {
+                        errorCode = AssertUtil.ResourceNotFoundFullQualifiedErrorId;
+                    }
                 }
             }
-            else if (record.FullyQualifiedErrorId.StartsWith("DirectoryNotFoundException") ||
-                     record.FullyQualifiedErrorId.StartsWith("FileNotFoundException"))
+            else if (record.FullyQualifiedErrorId.Contains("DirectoryNotFoundException") ||
+                     record.FullyQualifiedErrorId.Contains("FileNotFoundException"))
             {
                 errorCode = AssertUtil.PathNotFoundFullQualifiedErrorId;
             }
-            else if (record.FullyQualifiedErrorId.StartsWith("ArgumentException"))
+            else if (record.FullyQualifiedErrorId.Contains("ArgumentException"))
             {
                 errorCode = AssertUtil.InvalidArgumentFullQualifiedErrorId;
             }

@@ -168,7 +168,7 @@
         {
             int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
             Test.Assert(!agent.SetAzureStorageServiceLogging(serviceType, operations, retentionDays.ToString(), string.Empty), "Set invalid logging operation should fail");
-            ExpectedStartsWithErrorMessage("None or All operation can't be used with other operations");
+            ExpectedContainErrorMessage("None or All operation can't be used with other operations");
         }
 
         internal void ExpectInvalidLoggingOperation(Constants.ServiceType serviceType, string operations,
@@ -176,7 +176,7 @@
         {
             int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
             Test.Assert(!agent.SetAzureStorageServiceLogging(serviceType, operations, retentionDays.ToString(), string.Empty), "Set invalid logging operation should fail");
-            ExpectedStartsWithErrorMessage(expectedMessage);
+            ExpectedContainErrorMessage(expectedMessage);
         }
 
         [TestMethod]
@@ -218,15 +218,15 @@
                 // invalid values for RetentionDay
                 retentionDays = 0;
                 Test.Assert(!agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Set service logging retention days for invalid retention days should fail");
-                ExpectedStartsWithErrorMessage("The minimum value of retention days is 1, the largest value is 365 (one year).");
+                ExpectedContainErrorMessage("The minimum value of retention days is 1, the largest value is 365 (one year).");
 
                 retentionDays = -1 * Utility.GetRandomTestCount(2, 365 + 1);
                 Test.Assert(!agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Set service logging retention days for invalid retention days should fail");
-                ExpectedStartsWithErrorMessage("Cannot validate argument on parameter 'RetentionDays'");
+                ExpectedContainErrorMessage("Cannot validate argument on parameter 'RetentionDays'");
 
                 retentionDays = Utility.GetRandomTestCount(366, 365 + 100);
                 Test.Assert(!agent.SetAzureStorageServiceLogging(serviceType, string.Empty, retentionDays.ToString(), string.Empty), "Set service logging retention days for invalid retention days should fail");
-                ExpectedStartsWithErrorMessage("Cannot validate argument on parameter 'RetentionDays'");
+                ExpectedContainErrorMessage("Cannot validate argument on parameter 'RetentionDays'");
             }
             else
             {
@@ -270,14 +270,14 @@
 
             double invalidVersion = -1 * Utility.GetRandomTestCount();
             Test.Assert(!agent.SetAzureStorageServiceLogging(serviceType, string.Empty, string.Empty, invalidVersion.ToString()), "Set invalid service logging version should fail");
-            ExpectedStartsWithErrorMessage("The remote server returned an error");
+            ExpectedContainErrorMessage("The remote server returned an error");
             retrievedProperties = getServiceProperties();
             ExpectEqual(version, Convert.ToDouble(retrievedProperties.Logging.Version), "Logging version");
 
             //Make sure the invalid verion less than 1, otherwise we don't know whether the version is valid in the future.
             invalidVersion = 0.1 * Utility.GetRandomTestCount();
             Test.Assert(!agent.SetAzureStorageServiceLogging(serviceType, string.Empty, string.Empty, invalidVersion.ToString()), "Set invalid service logging version should fail");
-            ExpectedStartsWithErrorMessage("The remote server returned an error");
+            ExpectedContainErrorMessage("The remote server returned an error");
             retrievedProperties = getServiceProperties();
             ExpectEqual(version, Convert.ToDouble(retrievedProperties.Logging.Version), "Logging version");
         }

@@ -14,7 +14,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
 using System.Management.Automation;
+using System.Reflection;
 using System.Text;
 using Management.Storage.ScenarioTest.BVT;
 using Management.Storage.ScenarioTest.Common;
@@ -24,7 +27,6 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using MS.Test.Common.MsTestLib;
 using StorageTestLib;
-using System.Collections.ObjectModel;
 
 namespace Management.Storage.ScenarioTest.Functional
 {
@@ -121,12 +123,11 @@ namespace Management.Storage.ScenarioTest.Functional
                 psAgent.AddPipelineScript(cmd);
 
                 Test.Assert(!agent.GetAzureStorageContainer(containerName), Utility.GenComparisonData("Get-AzureStorageContainer using valid and invalid storage contexts", false));
-                Test.Assert(agent.Output.Count == 1, "valid storage context should return 1 container");
                 Test.Assert(agent.ErrorMessages.Count == 1, "invalid storage context should return error");
 
                 //the same error may output different error messages in different environments
-                bool expectedError = agent.ErrorMessages[0].StartsWith("The remote server returned an error: (502) Bad Gateway") ||
-                    agent.ErrorMessages[0].StartsWith("The remote name could not be resolved") || agent.ErrorMessages[0].StartsWith("The operation has timed out");
+                bool expectedError = agent.ErrorMessages[0].Contains("The remote server returned an error: (502) Bad Gateway") ||
+                    agent.ErrorMessages[0].Contains("The remote name could not be resolved") || agent.ErrorMessages[0].Contains("The operation has timed out");
                 Test.Assert(expectedError, "use invalid storage account should return 502 or could not be resolved exception or The operation has timed out, actually {0}", agent.ErrorMessages[0]);
             }
             finally
@@ -261,6 +262,115 @@ namespace Management.Storage.ScenarioTest.Functional
                 {"TableEndPoint", endPoints[2]}
             });
             return comp;
+        }
+        
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.StorageContext)]
+        public void GetMooncakeStorageContext()
+        {
+            CLICommonBVT.SaveAndCleanSubScriptionAndEnvConnectionString();
+
+            PowerShellAgent.ImportAzureSubscriptionAndSetStorageAccount(
+                Test.Data.Get("MooncakeSubscriptionPath"),
+                Test.Data.Get("MooncakeSubscriptionName"),
+                null);
+
+            ValidateStorageContext(Test.Data.Get("MooncakeStorageAccountName"), Test.Data.Get("MooncakeStorageAccountKey"), "core.chinacloudapi.cn");
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.StorageContext)]
+        public void GetStorageContextWithoutSubscription()
+        {
+            CLICommonBVT.SaveAndCleanSubScriptionAndEnvConnectionString();
+            
+            ValidateStorageContext(Test.Data.Get("StorageAccountName"), Test.Data.Get("StorageAccountKey"), "core.windows.net");
+        }
+
+        private void ValidateStorageContext(string accountName, string accountKey, string endpointSuffix)
+        {
+            object context = PowerShellAgent.GetStorageContext(accountName, accountKey);
+
+            CloudStorageAccount storageAccount = null;
+
+            Type myType = context.GetType();
+            IList<PropertyInfo> props = new List<PropertyInfo>(myType.GetProperties());
+
+            foreach (PropertyInfo prop in props)
+            {
+                if (string.Equals(prop.Name, "BlobEndPoint"))
+                {
+                    string blobEndPoint = prop.GetValue(context, null) as string;
+
+                    Test.Assert(blobEndPoint.Contains(string.Format("{0}.blob.{1}", accountName, endpointSuffix)), "BlobEndPoint should be correct.");
+                }
+                else if (string.Equals(prop.Name, "TableEndPoint"))
+                {
+                    string tableEndpoint = prop.GetValue(context, null) as string;
+
+                    Test.Assert(tableEndpoint.Contains(string.Format("{0}.table.{1}", accountName, endpointSuffix)), "TableEndPoint should be correct.");
+                }
+                else if (string.Equals(prop.Name, "QueueEndPoint"))
+                {
+                    string queueEndPoint = prop.GetValue(context, null) as string;
+
+                    Test.Assert(queueEndPoint.Contains(string.Format("{0}.queue.{1}", accountName, endpointSuffix)), "QueueEndPoint should be correct.");
+                }
+                else if (string.Equals(prop.Name, "EndPointSuffix"))
+                {
+                    string contextEndPointSuffix = prop.GetValue(context, null) as string;
+
+                    Test.Assert(contextEndPointSuffix.Contains(endpointSuffix), "EndPointSuffix should be correct.");
+                }
+                else if (string.Equals(prop.Name, "StorageAccountName"))
+                {
+                    string storageAccountName = prop.GetValue(context, null) as string;
+
+                    Test.Assert(string.Equals(storageAccountName, accountName), "StorageAccountName should be correct.");
+                }
+                else if (string.Equals(prop.Name, "StorageAccount"))
+                {
+                    storageAccount = prop.GetValue(context, null) as CloudStorageAccount;
+                    Test.Assert(string.Equals(storageAccount.Credentials.AccountName, accountName), "StorageAccount name should be correct.");
+                }
+            }
+            
+            PowerShellAgent.SetStorageContext(accountName, accountKey);
+
+            UploadBlobWithAccount(storageAccount);
+        }
+
+        private void UploadBlobWithAccount(CloudStorageAccount storageAccount)
+        {
+            string uploadDirRoot = Test.Data.Get("UploadDir");
+            Test.Verbose("Create Upload dir {0}", uploadDirRoot);
+            FileUtil.CreateDirIfNotExits(uploadDirRoot);
+            FileUtil.CleanDirectory(uploadDirRoot);
+            CloudBlobUtil blobUtil = new CloudBlobUtil(storageAccount);
+            CloudBlobContainer container = blobUtil.CreateContainer(Utility.GenNameString("container"));
+
+            try
+            {
+                string filePath = Path.Combine(uploadDirRoot, Utility.GenNameString("fileName"));
+
+                FileUtil.GenerateSmallFile(filePath, 1024);
+
+                string blobName = Utility.GenNameString("BlobName");
+
+                Test.Assert(agent.SetAzureStorageBlobContent(filePath, container.Name, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob, blobName), "Upload blob should succeed.");
+
+                ICloudBlob blob = container.GetBlobReferenceFromServer(blobName);
+                string localMd5 = FileUtil.GetFileContentMD5(filePath);
+
+                Test.Assert(localMd5 == blob.Properties.ContentMD5, string.Format("blob content md5 should be {0}, and actually it's {1}", localMd5, blob.Properties.ContentMD5));
+            }
+            finally
+            {
+                FileUtil.CleanDirectory(uploadDirRoot);
+                blobUtil.RemoveContainer(container);
+            }
         }
     }
 }

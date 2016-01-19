@@ -124,11 +124,11 @@ namespace Management.Storage.ScenarioTest
                 {
                     if (multiOutput)
                     {
-                        Test.Assert(agent.ErrorMessages[i].Equals(String.Format("Table '{0}' already exists.", name)), agent.ErrorMessages[i]);
+                        Test.Assert(agent.ErrorMessages[i].Contains(String.Format("Table '{0}' already exists.", name)), agent.ErrorMessages[i]);
                     }
                     else
                     {
-                        Test.Assert(agent.ErrorMessages[0].StartsWith("The table specified already exists"), agent.ErrorMessages[0]);
+                        Test.Assert(agent.ErrorMessages[0].Contains("The table specified already exists"), agent.ErrorMessages[0]);
                     }
                     ++i;
                 }
@@ -164,7 +164,7 @@ namespace Management.Storage.ScenarioTest
             finally
             {
                 //--------------5. Remove operation--------------
-                Test.Assert(agent.RemoveAzureStorageTable(MERGED_NAMES), Utility.GenComparisonData("RemoveAzureStorageTable", true));
+                Test.Assert(agent.RemoveAzureStorageTable(TABLE_NAMES), Utility.GenComparisonData("RemoveAzureStorageTable", true));
                 // Check if all the above tables have been removed
                 foreach (string name in TABLE_NAMES)
                 {
@@ -312,7 +312,7 @@ namespace Management.Storage.ScenarioTest
                 Test.Assert(!agent.RemoveAzureStorageTable(TABLE_NAME, false), Utility.GenComparisonData("RemoveAzureStorageTable", false));
                 // Verification for returned values
                 Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-                Test.Assert(agent.ErrorMessages[0].StartsWith("A command that prompts the user failed because"), agent.ErrorMessages[0]);
+                Test.Assert(agent.ErrorMessages[0].Contains("A command that prompts the user failed because"), agent.ErrorMessages[0]);
             }
             finally
             {

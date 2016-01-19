@@ -20,7 +20,7 @@
                 new Tuple<byte,byte>(0x90,0x97),
                 new Tuple<byte,byte>(0x9B,0x9E),
                 new Tuple<byte,byte>(0xA0,0xBF),
-                new Tuple<byte,byte>(0xC1,0xFE),
+                new Tuple<byte,byte>(0xC1,0xFC), // FD = U+200E (LEFT-TO-RIGHT MARK) and FE = U+200F (RIGHT-TO-LEFT MARK) are not valid in location 
             };
         }
     }

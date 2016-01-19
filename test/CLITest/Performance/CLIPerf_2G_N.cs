@@ -41,7 +41,7 @@ namespace Management.Storage.ScenarioTest
             FolderName = Test.Data.Get("FolderName");
 
             // import module
-            string moduleFilePath = Test.Data.Get("ModuleFilePath");
+            string moduleFilePath = Path.Combine(Test.Data.Get("ModuleFileFolder"), Constants.ServiceModulePath);
             PowerShellAgent.ImportModule(moduleFilePath);
 
             //set the ConcurrentTaskCount field
@@ -133,6 +133,28 @@ namespace Management.Storage.ScenarioTest
             var ro = new FileUploadOperation(new PowerShellAgent(), FileHelper);
             Run(o, ro);
         }
+
+        #region append blob
+        [TestMethod]
+        [TestCategory(PsTag.Perf)]
+        [Timeout(7200000)]
+        public void UploadHttpAppend()
+        {
+            var o = new AppendBlobUploadOperation(new PowerShellAgent(), BlobHelper);
+            Run(o);
+        }
+
+        [TestMethod]
+        [TestCategory(PsTag.Perf)]
+        public void DownloadHttpAppend()
+        {
+            var o = new AppendBlobDownloadOperation(new PowerShellAgent(), BlobHelper);
+            var ro = new AppendBlobUploadOperation(new PowerShellAgent(), BlobHelper);
+            Run(o, ro);
+
+        }
+
+        #endregion
 
         public void Run(ICLIOperation operation, ICLIOperation reverseOperation = null)
         {

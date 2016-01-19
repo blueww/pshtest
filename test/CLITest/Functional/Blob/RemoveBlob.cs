@@ -68,7 +68,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                     blobNames.Add(Utility.GenNameString("blob"));
                 }
 
-                List<ICloudBlob> blobs = blobUtil.CreateRandomBlob(container, blobNames);
+                List<CloudBlob> blobs = blobUtil.CreateRandomBlob(container, blobNames);
 
                 string cmd = String.Format("{0} {1}", "Get-AzureStorageContainer", containerName);
                 ((PowerShellAgent)agent).AddPipelineScript(cmd);
@@ -115,8 +115,8 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                List<ICloudBlob> blobs = blobUtil.CreateRandomBlob(container, blobNames);
-                ICloudBlob subBlob = blobUtil.CreatePageBlob(container, subBlobName);
+                List<CloudBlob> blobs = blobUtil.CreateRandomBlob(container, blobNames);
+                CloudBlob subBlob = blobUtil.CreateRandomBlob(container, subBlobName);
 
                 List<IListBlobItem> blobLists = container.ListBlobs(string.Empty, true).ToList();
                 Test.Assert(blobLists.Count == 3, string.Format("container {0} should contain {1} blobs", containerName, 3));
@@ -125,7 +125,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 blobLists = container.ListBlobs(string.Empty, true).ToList();
                 Test.Assert(blobLists.Count == 2, string.Format("container {0} should contain {1} blobs", containerName, 2));
                 bool blobFound = false, subsubBlobFound = false;
-                foreach (ICloudBlob blob in blobLists)
+                foreach (CloudBlob blob in blobLists)
                 {
                     if (blob.Name == blobName)
                     {
@@ -163,14 +163,14 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                ICloudBlob blob = blobUtil.CreatePageBlob(container, blobName);
-                List<ICloudBlob> blobs = new List<ICloudBlob>();
+                CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
+                List<CloudBlob> blobs = new List<CloudBlob>();
                 blob.FetchAttributes();
 
                 int count = random.Next(1, 5);
                 for (int i = 0; i < count; i++)
                 {
-                    CloudPageBlob snapshot = ((CloudPageBlob)blob).CreateSnapshot();
+                    CloudBlob snapshot = blob.Snapshot();
                     snapshot.FetchAttributes();
                     blobs.Add(snapshot);
                 }
@@ -206,14 +206,14 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                ICloudBlob blob = blobUtil.CreatePageBlob(container, blobName);
-                List<ICloudBlob> blobs = new List<ICloudBlob>();
+                CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
+                List<CloudBlob> blobs = new List<CloudBlob>();
                 blob.FetchAttributes();
 
                 int count = random.Next(1, 5);
                 for (int i = 0; i < count; i++)
                 {
-                    CloudPageBlob snapshot = ((CloudPageBlob)blob).CreateSnapshot();
+                    CloudBlob snapshot = blob.Snapshot();
                     snapshot.FetchAttributes();
                     blobs.Add(snapshot);
                 }
@@ -224,7 +224,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 Test.Assert(agent.RemoveAzureStorageBlob(blobName, containerName, true), Utility.GenComparisonData("Remove-AzureStorageBlob and snapshot", true));
                 blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
                 Test.Assert(blobLists.Count == 1, string.Format("container {0} should contain {1} blobs", containerName, 1));
-                ICloudBlob remainBlob = blobLists[0] as ICloudBlob;
+                CloudBlob remainBlob = blobLists[0] as CloudBlob;
                 Test.Assert(blob.Name == remainBlob.Name, string.Format("Blob name should be {0}, and actually it's {1}", blob.Name, remainBlob.Name));
                 Test.Assert(null == remainBlob.SnapshotTime, "snapshot time should be null");
             }
@@ -252,7 +252,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                ICloudBlob blob = blobUtil.CreatePageBlob(container, blobName);
+                CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
                 blob.AcquireLease(null, string.Empty);
 
                 List<IListBlobItem> blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
@@ -263,7 +263,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 
                 blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
                 Test.Assert(blobLists.Count == 1, string.Format("container {0} should contain {1} blobs, and actually it contain {2} blobs", containerName, 1, blobLists.Count));
-                ICloudBlob remainBlob = blobLists[0] as ICloudBlob;
+                CloudBlob remainBlob = blobLists[0] as CloudBlob;
                 Test.Assert(blob.Name == remainBlob.Name, string.Format("Blob name should be {0}, and actually it's {1}", blob.Name, remainBlob.Name));
                 Test.Assert(remainBlob.Properties.LeaseStatus == LeaseStatus.Locked, "blob should be locked by lease");
             }
@@ -286,13 +286,14 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             RemoveBlobWithSpeicialChars(BlobType.BlockBlob);
             RemoveBlobWithSpeicialChars(BlobType.PageBlob);
+            RemoveBlobWithSpeicialChars(BlobType.AppendBlob);
         }
 
         public void RemoveBlobWithSpeicialChars(BlobType blobType)
         {
             CloudBlobContainer container = blobUtil.CreateContainer();
             string blobName = SpecialChars;
-            ICloudBlob blob = blobUtil.CreateBlob(container, blobName, blobType);
+            CloudBlob blob = blobUtil.CreateBlob(container, blobName, blobType);
 
             try
             {
@@ -318,12 +319,12 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             CloudBlobContainer container = blobUtil.CreateContainer();
             string blobName = Utility.GenNameString("blob");
-            ICloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
-            ICloudBlob snapshot = blobUtil.SnapShot(blob);
+            CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
+            CloudBlob snapshot = blobUtil.SnapShot(blob);
 
             try
             {
-                Test.Assert(!agent.RemoveAzureStorageBlob(blobName, container.Name, false, false), "remove an blob with snapshout should throw an confirmation exception");
+                Test.Assert(!agent.RemoveAzureStorageBlob(blobName, container.Name, false, false), "remove a blob with snapshot should throw a confirmation exception");
                 ExpectedContainErrorMessage(ConfirmExceptionMessage);
                 Test.Assert(blob.Exists(), string.Format("the specified blob '{0}' should exist", blob.Name));
                 Test.Assert(snapshot.Exists(), "the snapshot should exist");

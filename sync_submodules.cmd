@@ -1,22 +1,24 @@
 git submodule init
+git submodule sync
 git submodule update
 
 echo "update submodule azcopy"
 cd azcopy
 git fetch
-git reset origin/cli_base_v4.1 --hard
+git reset origin/cli_base --hard
 cd ..
 echo "update submodule Powershell"
 cd PowerShell
 git fetch
-git reset origin/next --hard
+git reset origin/dev --hard
 cd ..
 echo "update submodule xplat"
 cd Xplat
 git fetch
-git reset origin/next --hard
+git reset origin/dev --hard
 cd ..
 
+if [%1] == [DEV] GOTO :END
 if [%1] == [JENKINS] GOTO :JENKINS
 
 :LOCAL
