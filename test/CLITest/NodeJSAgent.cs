@@ -78,6 +78,7 @@ namespace Management.Storage.ScenarioTest
                 {"GetNonExistingQueue", "Queue {0} doesn't exist"},
                 {"RemoveNonExistingQueue", "Can not find queue '{0}'"},
         };
+        private static readonly Regex ColorIndicatorRegex = new Regex("\x1b\\[[0-9]+m");
 
         public static string BinaryFileName { get; set; }
         public static int MaxWaitingTime { get; set; }
@@ -284,6 +285,8 @@ namespace Management.Storage.ScenarioTest
             error = errorBuffer.ToString();
             if (!string.IsNullOrEmpty(error))
             {
+                error = ColorIndicatorRegex.Replace(error, string.Empty);
+
                 if (error.StartsWith(UnlockKeyChainOutput))
                 {
                     error = error.Remove(0, UnlockKeyChainOutput.Length);
@@ -296,9 +299,13 @@ namespace Management.Storage.ScenarioTest
             }
 
             output = outputBuffer.ToString();
+            if (!string.IsNullOrEmpty(output))
+            {
+                output = ColorIndicatorRegex.Replace(output, string.Empty);
+            }
             Test.Verbose("Node Output:\n{0}", output);
         }
-
+        
         internal string parseOutput(string output)
         {
             // parse output data
@@ -306,6 +313,7 @@ namespace Management.Storage.ScenarioTest
             // WARNING: warning message
             // [{..........}]
             output = output.Trim();
+
             if (output.Length >= 2)
             {
                 int startIndex = output.IndexOf('[');
