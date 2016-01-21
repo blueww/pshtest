@@ -776,6 +776,9 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 startTime = DateTime.Today.AddDays(-2);
                 agent.SetAzureStorageContainerStoredAccessPolicy(blobUtil.Container.Name, policyName, null, startTime, null);
 
+                Test.Info("Sleep and wait for sas policy taking effect");
+                Thread.Sleep(TimeSpan.FromMinutes(lifeTime));
+
                 blobUtil.ValidateContainerReadableWithSasToken(blobUtil.Container, sasToken);
             }
             finally
