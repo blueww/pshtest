@@ -398,7 +398,7 @@
             var file = this.fileShare.GetRootDirectoryReference().GetDirectoryReference(cloudDirectoryName).GetFileReference(cloudFileName);
             this.agent.DownloadFile(file, Test.Data.Get("TempDir"), true);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.PathNotFoundFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.PathNotFoundFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
