@@ -1,11 +1,13 @@
-﻿using System;
-using System.Threading;
-using Management.Storage.ScenarioTest.Common;
+﻿using Management.Storage.ScenarioTest.Common;
 using Management.Storage.ScenarioTest.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.File;
+using Microsoft.WindowsAzure.Storage.Queue;
 using MS.Test.Common.MsTestLib;
 using StorageTestLib;
+using System;
 
 namespace Management.Storage.ScenarioTest.Functional.Service
 {
@@ -16,6 +18,8 @@ namespace Management.Storage.ScenarioTest.Functional.Service
         public static void AccountSASTestClassInit(TestContext testContext)
         {
             TestBase.TestClassInitialize(testContext);
+
+            blobUtil.SetupTestContainerAndBlob();
         }
 
         [ClassCleanup()]
@@ -31,10 +35,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             string sasToken = GenerateAndValidateAccountSAS(
                 SharedAccessAccountServices.Blob | SharedAccessAccountServices.File | SharedAccessAccountServices.Queue | SharedAccessAccountServices.Table,
                 SharedAccessAccountResourceTypes.Container | SharedAccessAccountResourceTypes.Object | SharedAccessAccountResourceTypes.Service,
-                "racwdlup", null, null, null, null);
-
-            CloudBlobUtil blobUtil = new CloudBlobUtil(StorageAccount);
-            blobUtil.SetupTestContainerAndBlob();
+                AccountSASUtils.fullPermission, null, null, null, null);
 
             blobUtil.ValidateBlobWriteableWithSasToken(blobUtil.Blob, sasToken);
         }
@@ -44,10 +45,10 @@ namespace Management.Storage.ScenarioTest.Functional.Service
         public void AccountSASWithRandomParameters()
         {
             SharedAccessAccountServices randomService = (SharedAccessAccountServices)TestBase.random.Next(0, 15);
-            SharedAccessAccountResourceTypes randomReourceType = (SharedAccessAccountResourceTypes)TestBase.random.Next(0, 7);
+            SharedAccessAccountResourceTypes randomResourceType = (SharedAccessAccountResourceTypes)TestBase.random.Next(0, 7);
             string randomPermission = string.Empty;
 
-            foreach (char p in "racwdlup")
+            foreach (char p in AccountSASUtils.fullPermission)
             {
                 if (TestBase.random.NextDouble() >= 0.5)
                     randomPermission += p;
@@ -79,13 +80,232 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
             string sasToken = GenerateAndValidateAccountSAS(
                 randomService,
-                randomReourceType,
+                randomResourceType,
                 randomPermission, 
                 randomProtocol, 
                 randomIPAddressOrRange, 
                 randomStartTime, 
                 randomExpiryTime);
         }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void AccountSAS_File_Container_w()
+        {
+            SharedAccessAccountServices service = SharedAccessAccountServices.File;
+            SharedAccessAccountResourceTypes resourceType = SharedAccessAccountResourceTypes.Container;
+            string permission = "w";           
+
+            string sasToken = GenerateAndValidateAccountSAS(
+                service,
+                resourceType,
+                permission, null, null, null, null);
+
+            string shareName = "sharetocreatewithsas";
+
+            fileUtil.ValidateShareCreatableWithSasToken(shareName, StorageAccount.Credentials.AccountName, sasToken);
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void AccountSAS_NoneService()
+        {
+            string sasToken = GenerateAndValidateAccountSAS(
+                SharedAccessAccountServices.None,
+                SharedAccessAccountResourceTypes.Container | SharedAccessAccountResourceTypes.Object | SharedAccessAccountResourceTypes.Service,
+                AccountSASUtils.fullPermission, null, null, null, null);
+
+            try
+            {
+                blobUtil.ValidateContainerWriteableWithSasToken(blobUtil.Container, sasToken);
+                Test.Error(string.Format("Write container should fail since the SharedAccessAccountServices is none"));
+            }
+            catch (StorageException e)
+            {
+                Test.Info(e.Message);
+                ExpectEqual(e.RequestInformation.HttpStatusCode, 403, "(403) Forbidden");
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void AccountSAS_HttpsOnly()
+        {
+            string sasToken = GenerateAndValidateAccountSAS(
+                SharedAccessAccountServices.Table,
+                SharedAccessAccountResourceTypes.Container | SharedAccessAccountResourceTypes.Object | SharedAccessAccountResourceTypes.Service,
+                AccountSASUtils.fullPermission, 
+                SharedAccessProtocol.HttpsOnly, null, null, null);
+
+            tableUtil.ValidateTableAddableWithSasToken(tableUtil.CreateTable(), sasToken, useHttps: true);
+
+            try
+            {
+                tableUtil.ValidateTableListWithSasToken(sasToken, useHttps: false);
+                Test.Error(string.Format("List Table with http should fail since the sas is HttpsOnly."));
+            }
+            catch (StorageException e)
+            {
+                Test.Info(e.Message);
+                ExpectEqual(306, e.RequestInformation.HttpStatusCode, "Protocal not match error: ");
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void AccountSAS_NotCurrentIP()
+        {
+            string sasToken = GenerateAndValidateAccountSAS(
+                SharedAccessAccountServices.Blob | SharedAccessAccountServices.File,
+                SharedAccessAccountResourceTypes.Container | SharedAccessAccountResourceTypes.Object | SharedAccessAccountResourceTypes.Service,
+                AccountSASUtils.fullPermission, 
+                SharedAccessProtocol.HttpsOnly, 
+                "1.2.3.4", null, null);
+
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+            try
+            {
+                //validate can't write Share
+                fileUtil.ValidateShareWriteableWithSasToken(share, sasToken);
+                Test.Error(string.Format("Write Share should fail since the ipAcl is not current IP."));
+            }
+            catch (StorageException e)
+            {
+                share.Delete();
+                Test.Info(e.Message);
+                ExpectEqual(e.RequestInformation.HttpStatusCode, 403, "(403) Forbidden");
+            }
+
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void AccountSAS_IncludeIPRange()
+        {
+            string sasToken = GenerateAndValidateAccountSAS(
+                SharedAccessAccountServices.Blob | SharedAccessAccountServices.Queue,
+                SharedAccessAccountResourceTypes.Object | SharedAccessAccountResourceTypes.Service,
+                AccountSASUtils.fullPermission,
+                SharedAccessProtocol.HttpsOnly,
+                "0.0.0.0-255.255.255.255", null, null);
+            
+            //validate can delete blob
+            CloudBlob blob = blobUtil.CreateAppendBlob(blobUtil.Container, "tesblob");
+            blobUtil.ValidateBlobDeleteableWithSasToken(blob, sasToken);
+
+            //validate can add queue
+            CloudQueue queue = queueUtil.CreateQueue();
+            queueUtil.ValidateQueueAddableWithSasToken(queue, sasToken);
+            queueUtil.RemoveQueue(queue);
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void AccountSAS_ExcludeIPRange()
+        {
+            string sasToken = GenerateAndValidateAccountSAS(
+                SharedAccessAccountServices.Queue,
+                SharedAccessAccountResourceTypes.Container | SharedAccessAccountResourceTypes.Service,
+                AccountSASUtils.fullPermission,
+                SharedAccessProtocol.HttpsOnly,
+                "0.0.0.0-1.1.1.1", null, null);
+            
+            CloudQueue queue = queueUtil.CreateQueue();
+            try
+            {
+                //validate can't delete queue
+                queueUtil.ValidateQueueRemoveableWithSasToken(queue, sasToken);
+                Test.Error(string.Format("Delete queue should fail since the ip range not include current IP."));
+            }
+            catch (StorageException e)
+            {
+                queueUtil.RemoveQueue(queue);
+                Test.Info(e.Message);
+                ExpectEqual(e.RequestInformation.HttpStatusCode, 403, "(403) Forbidden");
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void AccountSAS_File_Container_LimitTime()
+        {
+            string sasToken = GenerateAndValidateAccountSAS(
+                SharedAccessAccountServices.File,
+                SharedAccessAccountResourceTypes.Object,
+                AccountSASUtils.fullPermission,
+                null, null, DateTime.Now.AddMinutes(-5), DateTime.Now.AddMinutes(15));
+
+            fileUtil.ValidateShareDeleteableWithSasToken(fileUtil.EnsureFileShareExists(Utility.GenNameString("share")), sasToken);
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void AccountSAS_InvalidParameter()
+        {
+            SharedAccessAccountServices service = SharedAccessAccountServices.Blob | SharedAccessAccountServices.File | SharedAccessAccountServices.Queue | SharedAccessAccountServices.Table;
+            SharedAccessAccountResourceTypes resourceType = SharedAccessAccountResourceTypes.Container | SharedAccessAccountResourceTypes.Object | SharedAccessAccountResourceTypes.Service;
+            string permission = AccountSASUtils.fullPermission;
+            SharedAccessProtocol sasProtocal = SharedAccessProtocol.HttpsOrHttp;
+            string iPAddressOrRange = "0.0.0.0-255.255.255.255";
+            DateTime startTime = DateTime.Now.AddMinutes(-5);
+            DateTime expiryTime = DateTime.Now.AddMinutes(60);
+
+            //invalid permission
+            Test.Assert(!agent.NewAzureStorageAccountSAS(
+                service, resourceType, "racwx", sasProtocal, iPAddressOrRange, startTime, expiryTime), "Set stored access policy with invalid permission should fail");
+            if (lang == Language.PowerShell)
+            {
+                ExpectedContainErrorMessage("Invalid access permission");
+            }
+            else
+            {
+                ExpectedContainErrorMessage("Invalid value: x.");
+            }
+
+            //repeated permission - success
+            GenerateAndValidateAccountSAS(
+                service, resourceType, "rracw", sasProtocal, iPAddressOrRange, startTime, expiryTime);
+
+            //invalid IP/IP range
+            Test.Assert(!agent.NewAzureStorageAccountSAS(
+                service, resourceType, permission, null, "123.3.4a", null, null), "Set stored access policy with invalid iPAddressOrRange should fail");
+            if (lang == Language.PowerShell)
+            {
+                ExpectedContainErrorMessage("Error when parsing IP address: IP address is invalid.");
+            }
+            else
+            {
+                ExpectedContainErrorMessage("Invalid iPAddressOrRange");
+            }
+            Test.Assert(!agent.NewAzureStorageAccountSAS(
+                service, resourceType, permission, sasProtocal, "123.4.5.6_125.6.7.8", null, null), "Set stored access policy with invalid iPAddressOrRange should fail");
+            if (lang == Language.PowerShell)
+            {
+                ExpectedContainErrorMessage("Error when parsing IP address: IP address is invalid.");
+            }
+            else
+            {
+                ExpectedContainErrorMessage("Invalid iPAddressOrRange");
+            }
+
+            //success: start IP > end IP
+            GenerateAndValidateAccountSAS(
+                service, resourceType, permission, sasProtocal, "22.22.22.22-11.111.11.11", startTime, expiryTime);
+
+            //Start time > expire Time
+            Test.Assert(!agent.NewAzureStorageAccountSAS(
+                service, resourceType, permission, sasProtocal, iPAddressOrRange, DateTime.Now.AddMinutes(5), DateTime.Now.AddMinutes(-5)), "Set stored access policy with invalid Start Time should fail");
+            if (lang == Language.PowerShell)
+            {
+                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time.");
+            }
+            else
+            {
+                ExpectedContainErrorMessage("Invalid Time");
+            }
+        }
+
 
         private string GenerateAndValidateAccountSAS(
             SharedAccessAccountServices service,
