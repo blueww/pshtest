@@ -255,16 +255,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                if (lang == Language.PowerShell)
-                {
-                    Test.Assert(!agent.StartAzureStorageBlobCopy(srcBlob.Container.Name, srcBlob.Name, srcContainer.Name, string.Empty, PowerShellAgent.Context), "blob copy should failed when copy itself");
-                    string errorMessage = "Source and destination cannot be the same.";
-                    Test.Assert(agent.ErrorMessages[0].Contains(errorMessage), String.Format("Expected error message: {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
-                }
-                else
-                {
-                    Test.Assert(agent.StartAzureStorageBlobCopy(srcBlob.Container.Name, srcBlob.Name, srcContainer.Name, string.Empty, PowerShellAgent.Context), "blob copy should succeed when copy itself");
-                }
+                Test.Assert(agent.StartAzureStorageBlobCopy(srcBlob.Container.Name, srcBlob.Name, srcContainer.Name, string.Empty, PowerShellAgent.Context), "blob copy should succeed when copy itself");
             }
             finally
             {
@@ -372,11 +363,11 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 Test.Assert(!agent.StartAzureStorageBlobCopy(srcContainerName, blobName, destContainerName, string.Empty), "Start copy should failed with not existing blob");
                 if (lang == Language.NodeJS)
                 {
-                    blobUtil.RemoveContainer(destContainerName);
                     errorMessage = "The specified blob does not exist";
                 }
                 validator(errorMessage);
-                
+
+                blobUtil.RemoveContainer(destContainerName);
                 blobUtil.CreateRandomBlob(srcContainer, blobName);
                 Test.Assert(!agent.StartAzureStorageBlobCopy(srcContainerName, blobName, destContainerName, string.Empty), "Start copy should failed with not existing dest container");
                 if (lang == Language.PowerShell)
