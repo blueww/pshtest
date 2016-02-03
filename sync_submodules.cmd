@@ -5,7 +5,7 @@ git submodule update
 echo "update submodule azcopy"
 cd azcopy
 git fetch
-git reset origin/cli_base --hard
+git reset origin/appendblob --hard
 cd ..
 echo "update submodule Powershell"
 cd PowerShell
