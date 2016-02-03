@@ -12,6 +12,7 @@
     {
         static readonly string[] sasOptions = { "ss", "srt", "sp", "st", "se", "sip", "spr", "sig", "sv"};
         static readonly string[] sasRequiredOptions = { "ss", "srt", "sp", "se", "sig", "sv"};
+        public static readonly string fullPermission = "racwdlup";
 
         public static void ValidateAccountSAS(
             SharedAccessAccountServices service, 
@@ -28,6 +29,11 @@
 
             var sasRequiredOptionList = sasRequiredOptions.ToList();
             var sasOptionList = sasOptions.ToList();
+
+            if (service == SharedAccessAccountServices.None)
+                sasRequiredOptionList.Remove("ss");
+            if (resourceType == SharedAccessAccountResourceTypes.None)
+                sasRequiredOptionList.Remove("srt");
 
             foreach (string sasSegment in sasSegs)
             {
@@ -64,6 +70,8 @@
             }
 
             Test.Assert(0 == sasRequiredOptionList.Count, "All required options should exist.");
+            if (0 != sasRequiredOptionList.Count)
+                Test.Info("Not exist required options: " + sasRequiredOptionList.First());
 
             if (string.IsNullOrEmpty(iPAddressOrRange))
             { 
@@ -101,6 +109,10 @@
             foreach (var perChar in perChars)
             {
                 Test.Assert(expectedPerChars.Remove(perChar), "Permissions {0} should be expected.", perChar);
+
+                //Remove the dup permission in inout parameter
+                while (expectedPerChars.Contains(perChar)) 
+                    expectedPerChars.Remove(perChar);
             }
 
             Test.Assert(0 == expectedPerChars.Count, "All expected permissions should exist.");
@@ -124,9 +136,9 @@
             string protocol)
         {
             string protocolString = "https,http";
-            if (null != expectedProtocol)
+            if (null != expectedProtocol && SharedAccessProtocol.HttpsOrHttp != expectedProtocol)
             {
-                protocolString = expectedProtocol.Value.ToString().ToLower();
+                protocolString = "https";
             }
 
             Test.Assert(string.Equals(protocol.Replace("%2C", ","), protocolString), "Protocol: {0} == {1}", protocolString, protocol);
@@ -145,7 +157,7 @@
             DateTime dateTime;
             Test.Assert(DateTime.TryParse(startTime.Replace("%3A", ":"), out dateTime), "The start time option should be an available time.");
 
-            Test.Assert(dateTime == expectedStartTime.Value, "Start time value should be expected.");
+            Test.Assert((expectedStartTime - dateTime < new TimeSpan(0, 0, 1)) && (dateTime - expectedStartTime < new TimeSpan(0, 0, 1)), "Start time value should be expected.");
         }
 
         private static void ValidateExpiryTime(
@@ -153,16 +165,17 @@
             string expiryTime)
         {
             DateTime dateTime;
-            Test.Assert(DateTime.TryParse(expiryTime.Replace("%3A", ":"), null, System.Globalization.DateTimeStyles.AdjustToUniversal, out dateTime), "The expiry time option should be an available time.");
+            Test.Assert(DateTime.TryParse(expiryTime.Replace("%3A", ":"), out dateTime), "The expiry time option should be an available time.");
 
             if (null == expectedExpiryTime)
             {
-                expectedExpiryTime = DateTime.UtcNow.AddHours(1);
+                expectedExpiryTime = DateTime.Now.AddHours(1);
                 Test.Assert(dateTime < expectedExpiryTime && dateTime.AddSeconds(10) >= expectedExpiryTime, "Expiry time value should be expected.");
                 return;
             }
 
-            Test.Assert(dateTime == expectedExpiryTime, "Expiry time value should be expected.");
+            Test.Assert((expectedExpiryTime - dateTime < new TimeSpan(0, 0, 1)) && (dateTime - expectedExpiryTime < new TimeSpan(0, 0, 1)), "Expiry time value should be expected.");
+        
         }
     }
 }

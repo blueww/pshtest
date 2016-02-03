@@ -135,7 +135,7 @@ namespace Management.Storage.ScenarioTest.Util
         /// <summary>
         /// Validate the query permission in sastoken for the specified table
         /// </summary>
-        internal void ValidateTableQueryableWithSasToken(CloudTable table, string sasToken)
+        internal void ValidateTableQueryableWithSasToken(CloudTable table, string sasToken, bool useHttps = true)
         {
             Test.Info("Verify table query permission");
             DynamicTableEntity entity = new DynamicTableEntity();
@@ -148,7 +148,7 @@ namespace Management.Storage.ScenarioTest.Util
             entity.Properties.Add(key, new EntityProperty(value));
             TableOperation insertOp = TableOperation.Insert(entity);
             table.Execute(insertOp);
-            CloudTable sasTable = GetTableBySasToken(table, sasToken);
+            CloudTable sasTable = GetTableBySasToken(table, sasToken, useHttps);
             TableQuery<DynamicTableEntity> query = new TableQuery<DynamicTableEntity>().Where(
                 TableQuery.CombineFilters(
                     TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, pk),
@@ -162,7 +162,7 @@ namespace Management.Storage.ScenarioTest.Util
         /// <summary>
         /// Validate the add permission in sastoken for the specified table
         /// </summary>
-        internal void ValidateTableAddableWithSasToken(CloudTable table, string sasToken)
+        internal void ValidateTableAddableWithSasToken(CloudTable table, string sasToken, bool useHttps = true)
         {
             Test.Info("Verify table add permission");
             DynamicTableEntity entity = new DynamicTableEntity();
@@ -174,7 +174,7 @@ namespace Management.Storage.ScenarioTest.Util
             entity.RowKey = rk;
             entity.Properties.Add(key, new EntityProperty(value));
             TableOperation insertOp = TableOperation.Insert(entity);
-            CloudTable sasTable = GetTableBySasToken(table, sasToken);
+            CloudTable sasTable = GetTableBySasToken(table, sasToken, useHttps);
             sasTable.Execute(insertOp);
             TableQuery<DynamicTableEntity> query = new TableQuery<DynamicTableEntity>().Where(
                 TableQuery.CombineFilters(
@@ -189,7 +189,7 @@ namespace Management.Storage.ScenarioTest.Util
         /// <summary>
         /// Validate the update permission in sastoken for the specified table
         /// </summary>
-        internal void ValidateTableUpdateableWithSasToken(CloudTable table, string sasToken)
+        internal void ValidateTableUpdateableWithSasToken(CloudTable table, string sasToken, bool useHttps = true)
         {
             Test.Info("Verify table update permission");
             DynamicTableEntity entity = new DynamicTableEntity();
@@ -202,7 +202,7 @@ namespace Management.Storage.ScenarioTest.Util
             entity.Properties.Add(key, new EntityProperty(value));
             TableOperation insertOp = TableOperation.Insert(entity);
             table.Execute(insertOp);
-            CloudTable sasTable = GetTableBySasToken(table, sasToken);
+            CloudTable sasTable = GetTableBySasToken(table, sasToken, useHttps);
             string newValue = Utility.GenNameString("new value");
             entity.Properties[key].StringValue = newValue;
             TableOperation updateOp = TableOperation.Replace(entity);
@@ -220,7 +220,7 @@ namespace Management.Storage.ScenarioTest.Util
         /// <summary>
         /// Validate the delete permission in sastoken for the specified table
         /// </summary>
-        internal void ValidateTableDeleteableWithSasToken(CloudTable table, string sasToken)
+        internal void ValidateTableDeleteableWithSasToken(CloudTable table, string sasToken, bool useHttps = true)
         {
             Test.Info("Verify table delete permission");
             DynamicTableEntity entity = new DynamicTableEntity();
@@ -233,9 +233,20 @@ namespace Management.Storage.ScenarioTest.Util
             entity.Properties.Add(key, new EntityProperty(value));
             TableOperation insertOp = TableOperation.Insert(entity);
             table.Execute(insertOp);
-            CloudTable sasTable = GetTableBySasToken(table, sasToken);
+            CloudTable sasTable = GetTableBySasToken(table, sasToken, useHttps);
             TableOperation del = TableOperation.Delete(entity);
             sasTable.Execute(del);
+        }
+
+        /// <summary>
+        /// Validate the list permission in sastoken for the specified table service
+        /// </summary>
+        internal void ValidateTableListWithSasToken(string sasToken, bool useHttps = true)
+        {
+            Test.Info("Verify table list permission");
+            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(account.Credentials.AccountName, sasToken, useHttps);
+            CloudTableClient sasClient = sasAccount.CreateCloudTableClient();
+            sasClient.ListTables().Count();
         }
 
         /// <summary>
@@ -244,9 +255,9 @@ namespace Management.Storage.ScenarioTest.Util
         /// <param name="table">CloudTable object</param>
         /// <param name="sasToken">string sas token</param>
         /// <returns>CloudTable object</returns>
-        public CloudTable GetTableBySasToken(CloudTable table, string sasToken)
+        public CloudTable GetTableBySasToken(CloudTable table, string sasToken, bool useHttps = true)
         {
-            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(table.ServiceClient.Credentials.AccountName, sasToken);
+            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(table.ServiceClient.Credentials.AccountName, sasToken, useHttps);
             CloudTableClient sasClient = sasAccount.CreateCloudTableClient();
             CloudTable sasTable = sasClient.GetTableReference(table.Name);
             return sasTable;
