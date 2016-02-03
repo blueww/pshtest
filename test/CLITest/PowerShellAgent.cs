@@ -1326,6 +1326,23 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps, parseFunc: ParseSASCollection);
         }
 
+        public override bool NewAzureStorageAccountSAS(SharedAccessAccountServices service, SharedAccessAccountResourceTypes resourceType, string permission, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null,
+            DateTime? startTime = null, DateTime? expiryTime = null)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("New-AzureStorageAccountSASToken");
+            ps.BindParameter("Service", service);
+            ps.BindParameter("ResourceType", resourceType);
+            ps.BindParameter("Permission", permission);
+            ps.BindParameter("Protocol", protocol);
+            ps.BindParameter("IPAddressOrRange", iPAddressOrRange);
+            ps.BindParameter("StartTime", startTime);
+            ps.BindParameter("ExpiryTime", expiryTime);
+
+            return InvokeStoragePowerShell(ps, parseFunc: ParseSASCollection);
+        }
+
         ///-------------------------------------
         /// Stored Access Policy APIs
         ///-------------------------------------     
@@ -2206,6 +2223,27 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(NewAzureStorageTableSAS(tableName, policy, permission, startTime, expiryTime, fulluri,
                 startpk, startrk, endpk, endrk),
                     "Generate table sas token should succeed");
+            if (Output.Count != 0)
+            {
+                string sasToken = Output[0][Constants.SASTokenKey].ToString();
+                Test.Info("Generated sas token: {0}", sasToken);
+                return sasToken;
+            }
+            else
+            {
+                throw new ArgumentException("Fail to generate sas token.");
+            }
+        }
+
+        /// <summary>
+        /// Get account sas token from powershell cmdlet
+        /// </summary>
+        /// <returns></returns>
+        public override string GetAccountSasFromCmd(SharedAccessAccountServices service, SharedAccessAccountResourceTypes resourceType, string permission, SharedAccessProtocol? protocol, string iPAddressOrRange,
+            DateTime? startTime = null, DateTime? expiryTime = null)
+        {
+            Test.Assert(NewAzureStorageAccountSAS(service, resourceType, permission, protocol, iPAddressOrRange, startTime, expiryTime),
+                    "Generate account sas token should succeed");
             if (Output.Count != 0)
             {
                 string sasToken = Output[0][Constants.SASTokenKey].ToString();

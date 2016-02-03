@@ -795,6 +795,7 @@ namespace Management.Storage.ScenarioTest.Util
             Test.Info("Verify blob write permission");
             CloudBlob sasBlob = GetCloudBlobBySasToken(cloudBlob, sasToken);
             DateTimeOffset? lastModifiedTime = cloudBlob.Properties.LastModified;
+            Thread.Sleep(1000); // to make sure the LMT of the blob will change
             long buffSize = 1024 * 1024;
             byte[] buffer = new byte[buffSize];
             random.NextBytes(buffer);

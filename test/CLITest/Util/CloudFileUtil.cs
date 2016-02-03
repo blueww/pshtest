@@ -672,6 +672,28 @@
             TestBase.ExpectEqual(fileSize, retrievedFile.Properties.Length, "blob size");
         }
 
+        public void ValidateShareCreatableWithSasToken(string shareName, string accountName, string sastoken)
+        {
+            Test.Info("Verify share create permission");
+            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(accountName, sastoken);
+
+            //make sure the share not exist before create
+            CloudFileShare sasShareReference = client.GetShareReference(shareName);
+            if (sasShareReference.Exists())
+            {
+                sasShareReference.Delete();
+                Thread.Sleep(2 * 60 * 1000); // Sleep 2 minutes to make sure the share can be created successfully
+            }
+
+            //Create Share with SAS
+            CloudFileShare sasShare = sasAccount.CreateCloudFileClient().GetShareReference(shareName);
+            sasShare.Create();
+
+            //Verify and delete share
+            Test.Assert(sasShareReference.Exists(), "The Share {0} should exist.", shareName);
+            sasShareReference.Delete();
+        }
+
         public void ValidateShareDeleteableWithSasToken(CloudFileShare share, string sastoken)
         {
             Test.Info("Verify share delete permission");
