@@ -269,6 +269,9 @@ namespace Management.Storage.ScenarioTest
         public virtual bool NewAzureStorageQueueSAS(string name, string policy, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false) { return false; }
 
+        public virtual bool NewAzureStorageAccountSAS(SharedAccessAccountServices service, SharedAccessAccountResourceTypes resourceType, string permission, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null,
+            DateTime? startTime = null, DateTime? expiryTime = null) { return false; }
+
         public virtual string GetBlobSasFromCmd(string containerName, string blobName, string policy, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
         public virtual string GetBlobSasFromCmd(CloudBlob blob, string policy, string permission,
@@ -283,6 +286,9 @@ namespace Management.Storage.ScenarioTest
         public virtual string GetTableSasFromCmd(string tableName, string policy, string permission,
                     DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false,
                     string startpk = "", string startrk = "", string endpk = "", string endrk = "") { return string.Empty; }
+
+        public virtual string GetAccountSasFromCmd(SharedAccessAccountServices service, SharedAccessAccountResourceTypes resourceType, string permission, SharedAccessProtocol? protocol, string iPAddressOrRange,
+            DateTime? startTime = null, DateTime? expiryTime = null) { return string.Empty; }
 
         public abstract string SetContextWithSASToken(string accountName, CloudBlobUtil blobUtil, StorageObjectType objectType,
             string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null);

@@ -162,6 +162,16 @@ namespace Management.Storage.ScenarioTest.Util
         }
 
         /// <summary>
+        /// Validate the delete permission in sastoken for the specified queue
+        /// </summary>
+        internal void ValidateQueueRemoveableWithSasToken(CloudQueue queue, string sasToken)
+        {
+            Test.Info("Verify queue remove permission");
+            CloudQueue sasQueue = GetQueueBySasToken(queue, sasToken);
+            sasQueue.Delete();
+        }
+
+        /// <summary>
         /// Validate the update permission in sastoken for the specified queue
         /// </summary>
         internal void ValidateQueueUpdateableWithSasToken(CloudQueue queue, string sasToken)

@@ -24,6 +24,7 @@ namespace Management.Storage.ScenarioTest.BVT
     using Management.Storage.ScenarioTest.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Microsoft.WindowsAzure.Commands.Storage.Model.ResourceModel;
+    using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Blob;
     using Microsoft.WindowsAzure.Storage.Queue;
     using Microsoft.WindowsAzure.Storage.Shared.Protocol;
@@ -1435,6 +1436,41 @@ namespace Management.Storage.ScenarioTest.BVT
             finally
             {
                 tableUtil.RemoveTable(table);
+            }
+        }
+
+
+        [TestMethod]
+        [TestCategory(Tag.BVT)]
+        [TestCategory(PsTag.NewAccountSas)]
+        public void NewAccountSasTest()
+        {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
+            {
+                Test.Info("skip NewAccountSas as Azure emulator does not support sas token");
+                return;
+            }
+
+            CloudBlobUtil blobUtil = new CloudBlobUtil(CommonStorageAccount);
+            blobUtil.SetupTestContainerAndBlob();
+
+            try
+            {
+                string key = lang == Language.PowerShell ? Constants.SASTokenKey : Constants.SASTokenKeyNode;
+                SharedAccessAccountServices service = SharedAccessAccountServices.Blob | SharedAccessAccountServices.File | SharedAccessAccountServices.Table | SharedAccessAccountServices.Queue;
+                SharedAccessAccountResourceTypes resourceType = SharedAccessAccountResourceTypes.Service | SharedAccessAccountResourceTypes.Container | SharedAccessAccountResourceTypes.Object;
+                string permission = "rwdlacup";
+                SharedAccessProtocol protocal = SharedAccessProtocol.HttpsOrHttp;
+                string iPAddressOrRange = "0.0.0.0-255.255.255.255";
+                Test.Assert(agent.NewAzureStorageAccountSAS(service, resourceType, permission, protocal, iPAddressOrRange),
+                    "Generate account sas token should succeed");
+                string sastoken = agent.Output[0][key].ToString();
+                Test.Info("Generated sas token:{0}", sastoken);
+                blobUtil.ValidateBlobWriteableWithSasToken(blobUtil.Blob, sastoken);
+            }
+            finally
+            {
+                blobUtil.CleanupTestContainerAndBlob();
             }
         }
 
