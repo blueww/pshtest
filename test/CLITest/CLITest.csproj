@@ -220,7 +220,6 @@
     <Compile Include="CLIQueueFunc.cs" />
     <Compile Include="CLITableFunc.cs" />
     <Compile Include="CLIBlobFunc.cs" />
-    <Compile Include="CLUAgent.cs" />
     <Compile Include="Common\TestBase.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Functional\Blob\ContainerStoredAccessPolicy.cs" />
