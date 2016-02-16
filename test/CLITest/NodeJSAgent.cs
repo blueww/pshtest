@@ -2356,7 +2356,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override bool NewAzureStorageContainerSAS(string container, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false)
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             string command = string.Format("container sas create {0}", container);
 
@@ -2366,7 +2366,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override bool NewAzureStorageBlobSAS(string container, string blob, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false)
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             string command = string.Format("blob sas create {0} \"{1}\"", container, blob);
 
@@ -2376,7 +2376,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override bool NewAzureStorageShareSAS(string shareName, string policyName, string permissions = null,
-           DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+           DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             string command = string.Format("share sas create {0}", shareName);
 
@@ -2386,7 +2386,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override bool NewAzureStorageFileSAS(string shareName, string filePath, string policyName = null, string permissions = null,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             string command = string.Format("file sas create {0} {1}", shareName, filePath);
 
@@ -2396,13 +2396,13 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override bool NewAzureStorageFileSAS(CloudFile file, string policyName = null, string permissions = null,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             return NewAzureStorageFileSAS(file.Share.Name, CloudFileUtil.GetFullPath(file), policyName, permissions, startTime, expiryTime, fulluri);
         }
 
         public override bool NewAzureStorageTableSAS(string name, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, string startpk = "", string startrk = "", string endpk = "", string endrk = "")
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, string startpk = "", string startrk = "", string endpk = "", string endrk = "", SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             string command = string.Format("table sas create {0}", name);
 
@@ -2430,7 +2430,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override bool NewAzureStorageQueueSAS(string name, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false)
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             string command = string.Format("queue sas create {0}", name);
 
@@ -2446,9 +2446,9 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override string GetBlobSasFromCmd(string containerName, string blobName, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
-            Test.Assert(NewAzureStorageBlobSAS(containerName, blobName, policy, permission, startTime, expiryTime, fulluri),
+            Test.Assert(NewAzureStorageBlobSAS(containerName, blobName, policy, permission, startTime, expiryTime, fulluri, protocol, iPAddressOrRange),
                     "Generate blob sas token should succeed");
             if (Output.Count != 0)
             {
@@ -2470,15 +2470,15 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override string GetBlobSasFromCmd(CloudBlob blob, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
-            return GetBlobSasFromCmd(blob.Container.Name, blob.Name, policy, permission, startTime, expiryTime, fulluri);
+            return GetBlobSasFromCmd(blob.Container.Name, blob.Name, policy, permission, startTime, expiryTime, fulluri, protocol, iPAddressOrRange);
         }
 
         public override string GetContainerSasFromCmd(string containerName, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
-            Test.Assert(NewAzureStorageContainerSAS(containerName, policy, permission, startTime, expiryTime, fulluri),
+            Test.Assert(NewAzureStorageContainerSAS(containerName, policy, permission, startTime, expiryTime, fulluri, protocol, iPAddressOrRange),
                     "Generate container sas token should succeed");
             if (Output.Count != 0)
             {
@@ -2493,9 +2493,9 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override string GetAzureStorageShareSasFromCmd(string shareName, string policy, string permission = null,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
-            NewAzureStorageShareSAS(shareName, policy, permission, startTime, expiryTime, fulluri);
+            NewAzureStorageShareSAS(shareName, policy, permission, startTime, expiryTime, fulluri, protocol, iPAddressOrRange);
             if (Output.Count != 0)
             {
                 string sasToken = Output[0][Constants.SASTokenKeyNode].ToString();
@@ -2510,9 +2510,9 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override string GetAzureStorageFileSasFromCmd(string shareName, string filePath, string policy, string permission = null,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
-            NewAzureStorageFileSAS(shareName, filePath, policy, permission, startTime, expiryTime, fulluri);
+            NewAzureStorageFileSAS(shareName, filePath, policy, permission, startTime, expiryTime, fulluri, protocol, iPAddressOrRange);
             if (Output.Count != 0)
             {
                 string sasToken = Output[0][Constants.SASTokenKeyNode].ToString();
@@ -2534,9 +2534,9 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override string GetQueueSasFromCmd(string queueName, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
-            Test.Assert(NewAzureStorageQueueSAS(queueName, policy, permission, startTime, expiryTime, fulluri),
+            Test.Assert(NewAzureStorageQueueSAS(queueName, policy, permission, startTime, expiryTime, fulluri, protocol, iPAddressOrRange),
                     "Generate queue sas token should succeed");
             if (Output.Count != 0)
             {
@@ -2552,10 +2552,10 @@ namespace Management.Storage.ScenarioTest
 
         public override string GetTableSasFromCmd(string tableName, string policy, string permission,
             DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false,
-            string startpk = "", string startrk = "", string endpk = "", string endrk = "")
+            string startpk = "", string startrk = "", string endpk = "", string endrk = "", SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             Test.Assert(NewAzureStorageTableSAS(tableName, policy, permission, startTime, expiryTime, fulluri,
-                startpk, startrk, endpk, endrk),
+                startpk, startrk, endpk, endrk, protocol, iPAddressOrRange),
                     "Generate table sas token should succeed");
             if (Output.Count != 0)
             {

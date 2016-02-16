@@ -469,6 +469,89 @@
         }
 
         /// <summary>
+        /// 1.	Generate SAS of protocal: HttpsOrHttp, and all available value of permission.
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.NewTableSas)]
+        public void NewTableSas_HttpsOrHttp()
+        {
+            CloudTable table = tableUtil.CreateTable();
+            try
+            {
+                string sastoken = agent.GetTableSasFromCmd(table.Name, string.Empty, "ruda", protocol: SharedAccessProtocol.HttpsOrHttp);
+
+                tableUtil.ValidateTableQueryableWithSasToken(table, sastoken, useHttps: false);
+                tableUtil.ValidateTableQueryableWithSasToken(table, sastoken, useHttps: true);
+            }
+            finally
+            {
+                tableUtil.RemoveTable(table);
+            }
+        }
+
+        /// <summary>
+        /// 1. Generate SAS of IPAddressOrRange: [Not Current IP], and all available value of permission, protocal.
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.NewTableSas)]
+        public void NewTableSas_NotCurrentIP()
+        {
+            CloudTable table = tableUtil.CreateTable();
+            try
+            {
+                string sastoken = agent.GetTableSasFromCmd(table.Name, string.Empty, "ruda", iPAddressOrRange: "10.10.10.10");
+                try
+                {
+                    tableUtil.ValidateTableUpdateableWithSasToken(table, sastoken);
+                    Test.Error(string.Format("Update Table should fail since the ipAcl not current IP."));
+                }
+                catch (StorageException e)
+                {
+                    Test.Info(e.Message);
+                    ExpectEqual(e.RequestInformation.HttpStatusCode, 403, "(403) Forbidden");
+                }
+            }
+            finally
+            {
+                tableUtil.RemoveTable(table);
+            }
+        }
+
+        /// <summary>
+        /// 1. Generate SAS of IPAddressOrRange: [Range exclude Current IP], and all available value of permission.
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.NewTableSas)]
+        public void NewTableSas_ExcludeIPRange()
+        {
+            CloudTable table = tableUtil.CreateTable();
+            try
+            {
+                string sastoken = agent.GetTableSasFromCmd(table.Name, string.Empty, "ruda", iPAddressOrRange: "10.10.10.10-10.10.10.11");
+                try
+                {
+                    tableUtil.ValidateTableUpdateableWithSasToken(table, sastoken);
+                    Test.Error(string.Format("Update Table should fail since the ip range not include current IP."));
+                }
+                catch (StorageException e)
+                {
+                    Test.Info(e.Message);
+                    ExpectEqual(e.RequestInformation.HttpStatusCode, 403, "(403) Forbidden");
+                }
+            }
+            finally
+            {
+                tableUtil.RemoveTable(table);
+            }
+        }
+
+        /// <summary>
         /// Expect the table with sas token can't access the specified entity
         /// </summary>
         internal void ExpectPermissionException(CloudTable sasTable, string pk, string rk, string message)

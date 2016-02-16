@@ -144,10 +144,10 @@ namespace Management.Storage.ScenarioTest.Util
         /// <summary>
         /// Validate the add permission in sastoken for the specified queue
         /// </summary>
-        internal void ValidateQueueAddableWithSasToken(CloudQueue queue, string sasToken)
+        internal void ValidateQueueAddableWithSasToken(CloudQueue queue, string sasToken, bool useHttps = true)
         {
             Test.Info("Verify queue add permission");
-            CloudQueue sasQueue = GetQueueBySasToken(queue, sasToken);
+            CloudQueue sasQueue = GetQueueBySasToken(queue, sasToken, useHttps);
             queue.FetchAttributes();
             int oldMessageCount = queue.ApproximateMessageCount.Value;
             string content = Utility.GenNameString("message content");
@@ -216,9 +216,9 @@ namespace Management.Storage.ScenarioTest.Util
         /// <param name="queue">CloudQueue object with full permission</param>
         /// <param name="sasToken">Sas token</param>
         /// <returns>CloudQueue object with the permission specified by sas token</returns>
-        private CloudQueue GetQueueBySasToken(CloudQueue queue, string sasToken)
+        private CloudQueue GetQueueBySasToken(CloudQueue queue, string sasToken, bool useHttps = true)
         {
-            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(queue.ServiceClient.Credentials.AccountName, sasToken);
+            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(queue.ServiceClient.Credentials.AccountName, sasToken, useHttps);
             CloudQueueClient sasClient = sasAccount.CreateCloudQueueClient();
             CloudQueue sasQueue = sasClient.GetQueueReference(queue.Name);
             return sasQueue;
