@@ -291,6 +291,96 @@
         }
 
         /// <summary>
+        /// 1.	Generate SAS of protocal: HttpsOnly, and all available value of permission. 
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.NewContainerSas)]
+        public void NewContainerSas_Httpsonly()
+        {
+            blobUtil.SetupTestContainerAndBlob();
+            try
+            {
+                string containerPermission = "rwdl";
+                string sastoken = agent.GetContainerSasFromCmd(blobUtil.Container.Name, string.Empty, containerPermission, null, null, false, SharedAccessProtocol.HttpsOnly);
+
+                blobUtil.ValidateBlobWriteableWithSasToken(blobUtil.Blob, sastoken);
+
+                try
+                {
+                    blobUtil.ValidateBlobWriteableWithSasToken(blobUtil.Blob, sastoken, useHttps: false);
+                    Test.Error(string.Format("Write blob with http should fail since the sas is HttpsOnly."));
+                }
+                catch (StorageException e)
+                {
+                    Test.Info(e.Message);
+                    ExpectEqual(306, e.RequestInformation.HttpStatusCode, "Protocal not match error: ");
+                }              
+            }
+            finally
+            {
+                blobUtil.CleanupTestContainerAndBlob();
+            }
+        }
+
+        /// <summary>
+        /// 1.	Generate SAS of IPAddressOrRange: [Not Current IP], and all available value of permission, protocal. 
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.NewContainerSas)]
+        public void NewContainerSas_NotCurrentIP()
+        {
+            blobUtil.SetupTestContainerAndBlob();
+            try
+            {
+                string containerPermission = "rwdl";
+                string sastoken = agent.GetContainerSasFromCmd(blobUtil.Container.Name, string.Empty, containerPermission, null, null, false, null, "1.1.1.1");
+
+                try
+                {
+                    blobUtil.ValidateBlobWriteableWithSasToken(blobUtil.Blob, sastoken);
+                    Test.Error(string.Format("Write blob with should fail since the ipAcl is not current IP."));
+                }
+                catch (StorageException e)
+                {
+                    Test.Info(e.Message);
+                    ExpectEqual(e.RequestInformation.HttpStatusCode, 403, "(403) Forbidden");
+                }
+            }
+            finally
+            {
+                blobUtil.CleanupTestContainerAndBlob();
+            }
+        }
+
+        /// <summary>
+        /// 1.	Generate SAS of IPAddressOrRange: [Range include Current IP], and all available value of permission. 
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.NewContainerSas)]
+        public void NewContainerSas_CurrentIPRange()
+        {
+            blobUtil.SetupTestContainerAndBlob();
+            try
+            {
+                string containerPermission = "rwdl";
+                string fullUri = agent.GetContainerSasFromCmd(blobUtil.Container.Name, string.Empty, containerPermission, null, null, true, null, "0.0.0.0-255.255.255.255");
+                string sastoken = (lang == Language.PowerShell ? fullUri.Substring(fullUri.IndexOf("?")) : fullUri);
+
+                blobUtil.ValidateBlobWriteableWithSasToken(blobUtil.Blob, sastoken);
+            }
+            finally
+            {
+                blobUtil.CleanupTestContainerAndBlob();
+            }
+        }
+
+        /// <summary>
         /// Generate a sas token and validate it.
         /// </summary>
         /// <param name="containerPermission">Container permission</param>

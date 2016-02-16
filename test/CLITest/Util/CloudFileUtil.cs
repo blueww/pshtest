@@ -741,10 +741,19 @@
         /// <summary>
         /// Validate the write permission in the sas token for the the specified file
         /// </summary>
-        internal void ValidateFileWriteableWithSasToken(CloudFile file, string sasToken)
+        internal void ValidateFileWriteableWithSasToken(CloudFile file, string sasToken, bool useHttps = true)
         {
             Test.Info("Verify file write permission");
-            CloudFile sasFile = new CloudFile(file.Uri, new StorageCredentials(sasToken));
+            Uri fileUri = file.Uri;
+            if (useHttps)
+            {
+                fileUri = new Uri(fileUri.AbsoluteUri.Replace("http://","https://"));
+            }
+            else
+            {
+                fileUri = new Uri(fileUri.AbsoluteUri.Replace("https://", "http://"));
+            }
+            CloudFile sasFile = new CloudFile(fileUri, new StorageCredentials(sasToken));
             DateTimeOffset? lastModifiedTime = sasFile.Properties.LastModified;
             long buffSize = 1024 * 1024;
             byte[] buffer = new byte[buffSize];
