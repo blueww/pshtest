@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Management.Storage.ScenarioTest.Util;
 using MS.Test.Common.MsTestLib;
 using Newtonsoft.Json;
+using Microsoft.WindowsAzure.Storage;
 
 namespace Management.Storage.ScenarioTest
 {
@@ -537,17 +538,17 @@ namespace Management.Storage.ScenarioTest
             return base.GetAzureStorageContainerStoredAccessPolicy(containerName, policyName);
         }
 
-        public override string GetContainerSasFromCmd(string containerName, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        public override string GetContainerSasFromCmd(string containerName, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             return base.GetContainerSasFromCmd(containerName, policy, permission, startTime, expiryTime, fulluri);
         }
 
-        public override string GetBlobSasFromCmd(Microsoft.WindowsAzure.Storage.Blob.CloudBlob blob, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        public override string GetBlobSasFromCmd(Microsoft.WindowsAzure.Storage.Blob.CloudBlob blob, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             return base.GetBlobSasFromCmd(blob, policy, permission, startTime, expiryTime, fulluri);
         }
 
-        public override string GetBlobSasFromCmd(string containerName, string blobName, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        public override string GetBlobSasFromCmd(string containerName, string blobName, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             return base.GetBlobSasFromCmd(containerName, blobName, policy, permission, startTime, expiryTime, fulluri);
         }
@@ -557,12 +558,12 @@ namespace Management.Storage.ScenarioTest
             return base.NewAzureStorageContainerStoredAccessPolicy(containerName, policyName, permission, startTime, expiryTime);
         }
 
-        public override bool NewAzureStorageContainerSAS(string container, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false)
+        public override bool NewAzureStorageContainerSAS(string container, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             return base.NewAzureStorageContainerSAS(container, policy, permission, startTime, expiryTime, fullUri);
         }
 
-        public override bool NewAzureStorageBlobSAS(string container, string blob, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false)
+        public override bool NewAzureStorageBlobSAS(string container, string blob, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             return base.NewAzureStorageBlobSAS(container, blob, policy, permission, startTime, expiryTime, fullUri);
         }
@@ -711,7 +712,7 @@ namespace Management.Storage.ScenarioTest
             throw new NotImplementedException();
         }
 
-        public override bool NewAzureStorageShareSAS(string shareName, string policyName = null, string permissions = null, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        public override bool NewAzureStorageShareSAS(string shareName, string policyName = null, string permissions = null, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             throw new NotImplementedException();
         }
@@ -796,22 +797,22 @@ namespace Management.Storage.ScenarioTest
             throw new NotImplementedException();
         }
 
-        public override string GetAzureStorageShareSasFromCmd(string shareName, string policy, string permission = null, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        public override string GetAzureStorageShareSasFromCmd(string shareName, string policy, string permission = null, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             throw new NotImplementedException();
         }
 
-        public override string GetAzureStorageFileSasFromCmd(string shareName, string filePath, string policy, string permission = null, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        public override string GetAzureStorageFileSasFromCmd(string shareName, string filePath, string policy, string permission = null, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             throw new NotImplementedException();
         }
 
-        public override bool NewAzureStorageFileSAS(Microsoft.WindowsAzure.Storage.File.CloudFile file, string policyName = null, string permissions = null, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        public override bool NewAzureStorageFileSAS(Microsoft.WindowsAzure.Storage.File.CloudFile file, string policyName = null, string permissions = null, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             throw new NotImplementedException();
         }
 
-        public override bool NewAzureStorageFileSAS(string shareName, string filePath, string policyName = null, string permissions = null, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        public override bool NewAzureStorageFileSAS(string shareName, string filePath, string policyName = null, string permissions = null, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             throw new NotImplementedException();
         }
@@ -1015,7 +1016,7 @@ namespace Management.Storage.ScenarioTest
             return base.GetAzureStorageQueueStoredAccessPolicy(queueName, policyName);
         }
 
-        public override string GetQueueSasFromCmd(string queueName, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false)
+        public override string GetQueueSasFromCmd(string queueName, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             return base.GetQueueSasFromCmd(queueName, policy, permission, startTime, expiryTime, fulluri);
         }
@@ -1025,7 +1026,7 @@ namespace Management.Storage.ScenarioTest
             return base.NewAzureStorageQueueStoredAccessPolicy(queueName, policyName, permission, startTime, expiryTime);
         }
 
-        public override bool NewAzureStorageQueueSAS(string name, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false)
+        public override bool NewAzureStorageQueueSAS(string name, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             return base.NewAzureStorageQueueSAS(name, policy, permission, startTime, expiryTime, fullUri);
         }
@@ -1084,7 +1085,7 @@ namespace Management.Storage.ScenarioTest
             return base.SetAzureStorageTableStoredAccessPolicy(tableName, policyName, permission, startTime, expiryTime, NoStartTime, NoExpiryTime);
         }
 
-        public override bool NewAzureStorageTableSAS(string name, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, string startpk = "", string startrk = "", string endpk = "", string endrk = "")
+        public override bool NewAzureStorageTableSAS(string name, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, string startpk = "", string startrk = "", string endpk = "", string endrk = "", SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             return base.NewAzureStorageTableSAS(name, policy, permission, startTime, expiryTime, fullUri, startpk, startrk, endpk, endrk);
         }
@@ -1094,7 +1095,7 @@ namespace Management.Storage.ScenarioTest
             return base.GetAzureStorageTableStoredAccessPolicy(tableName, policyName);
         }
 
-        public override string GetTableSasFromCmd(string tableName, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, string startpk = "", string startrk = "", string endpk = "", string endrk = "")
+        public override string GetTableSasFromCmd(string tableName, string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, string startpk = "", string startrk = "", string endpk = "", string endrk = "", SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             return base.GetTableSasFromCmd(tableName, policy, permission, startTime, expiryTime, fulluri, startpk, startrk, endpk, endrk);
         }
