@@ -5,7 +5,7 @@ $PACKAGEPATH=[System.Environment]::GetEnvironmentVariable("PACKAGEPATH")
 
 mkdir $PACKAGEPATH\package
 
-copy $PACKAGEPATH\..\..\0package0 $PACKAGEPATH
+copy -r $PACKAGEPATH\..\..\0package0 $PACKAGEPATH
 
 $repoName = [System.Guid]::NewGuid().ToString()
 
