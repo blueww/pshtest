@@ -147,7 +147,17 @@ namespace Management.Storage.ScenarioTest
             }
 
             Test.Info("Import-Module {0}", ModuleFilePath);
-            _InitState.ImportPSModule(new string[] { ModuleFilePath });
+
+            PowerShell ps = PowerShell.Create(_InitState);
+            ps.AddCommand("Import-Module");
+            ps.BindParameter("Name", ModuleFilePath);
+            ps.Invoke();
+
+            if (ps.Streams.Error.Count > 0)
+            {
+                Test.Error("Failed to import module: {0} due to error {1}", ModuleFilePath, ps.Streams.Error[0].Exception.Message);
+                return;
+            }
         }
 
         public static void InstallAzureModule()
@@ -670,7 +680,15 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
-            ps.AddCommand("Get-AzureStorageContainer");
+            if (Utility.GetRandomBool())
+            {
+                ps.AddCommand("Get-AzureStorageContainer");
+            }
+            else
+            {
+                ps.AddCommand("Get-AzureStorageContainerACL");
+            }
+
             ps.BindParameter("Name", ContainerName);
 
             return InvokeStoragePowerShell(ps, null, ParseContainerCollection);
