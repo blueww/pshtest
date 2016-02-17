@@ -686,7 +686,7 @@ namespace Management.Storage.ScenarioTest
             }
             else
             {
-                ps.AddCommand("Get-AzureStorageContainerACL");
+                ps.AddCommand("Get-AzureStorageContainerAcl");
             }
 
             ps.BindParameter("Name", ContainerName);
