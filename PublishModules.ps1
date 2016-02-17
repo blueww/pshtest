@@ -3,9 +3,9 @@ $scriptFolder = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 
 $PACKAGEPATH=[System.Environment]::GetEnvironmentVariable("PACKAGEPATH")
 
-copy $PACKAGEPATH\..\..\0package0 $PACKAGEPATH
-
 mkdir $PACKAGEPATH\package
+
+copy $PACKAGEPATH\..\..\0package0 $PACKAGEPATH
 
 $repoName = [System.Guid]::NewGuid().ToString()
 
