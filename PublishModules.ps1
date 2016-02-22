@@ -5,6 +5,8 @@ $PACKAGEPATH=[System.Environment]::GetEnvironmentVariable("PACKAGEPATH")
 
 mkdir $PACKAGEPATH\package
 
+copy -r $PACKAGEPATH\..\..\0package0 $PACKAGEPATH
+
 $repoName = [System.Guid]::NewGuid().ToString()
 
 Register-PSRepository -Name $repoName -SourceLocation $PACKAGEPATH -PublishLocation $PACKAGEPATH/package -InstallationPolicy Trusted
