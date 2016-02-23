@@ -906,6 +906,10 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("Blob", Blob);
             ps.BindParameter("Destination", Destination);
             ps.BindParameter("Container", ContainerName);
+            if (Force)
+            {
+                ps.AddParameter("Force");
+            }
 
             if (ConcurrentCount != -1)
             {
