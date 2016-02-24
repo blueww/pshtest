@@ -321,6 +321,52 @@
         }
 
         /// <summary>
+        /// 1.	Generate SAS of protocal: HttpsorHttp, and all available value of permission. 
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.NewBlobSas)]
+        public void NewBlobSas_HttpsOrHttp()
+        {
+            blobUtil.SetupTestContainerAndBlob();
+            try
+            {
+                string fullUri = agent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, "rwd", null, null, true, SharedAccessProtocol.HttpsOrHttp);
+                string sasToken = (lang == Language.PowerShell ? fullUri.Substring(fullUri.IndexOf("?")) : fullUri);
+
+                blobUtil.ValidateBlobReadableWithSasToken(blobUtil.Blob, sasToken, useHttps: false); 
+            }
+            finally
+            {
+                blobUtil.CleanupTestContainerAndBlob();
+            }
+        }
+
+        /// <summary>
+        /// 1.	Generate SAS of IPAddressOrRange: [Range include Current IP], and all available value of permission, protocal (sas URL).
+        /// Try to download Copy a blob with the SAS  
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.NewBlobSas)]
+        public void NewBlobSas_IncludeIPRange()
+        {
+            blobUtil.SetupTestContainerAndBlob();
+            try
+            {
+                string sastoken = agent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, "rwd", null, null, false, null, "0.0.0.0-255.255.255.255");
+
+                blobUtil.ValidateBlobWriteableWithSasToken(blobUtil.Blob, sastoken);
+            }
+            finally
+            {
+                blobUtil.CleanupTestContainerAndBlob();
+            }
+        }
+
+        /// <summary>
         /// Generate a sas token and validate it.
         /// </summary>
         /// <param name="blobPermission">Blob permission</param>

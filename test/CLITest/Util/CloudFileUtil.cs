@@ -672,6 +672,28 @@
             TestBase.ExpectEqual(fileSize, retrievedFile.Properties.Length, "blob size");
         }
 
+        public void ValidateShareCreatableWithSasToken(string shareName, string accountName, string sastoken)
+        {
+            Test.Info("Verify share create permission");
+            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(accountName, sastoken);
+
+            //make sure the share not exist before create
+            CloudFileShare sasShareReference = client.GetShareReference(shareName);
+            if (sasShareReference.Exists())
+            {
+                sasShareReference.Delete();
+                Thread.Sleep(2 * 60 * 1000); // Sleep 2 minutes to make sure the share can be created successfully
+            }
+
+            //Create Share with SAS
+            CloudFileShare sasShare = sasAccount.CreateCloudFileClient().GetShareReference(shareName);
+            sasShare.Create();
+
+            //Verify and delete share
+            Test.Assert(sasShareReference.Exists(), "The Share {0} should exist.", shareName);
+            sasShareReference.Delete();
+        }
+
         public void ValidateShareDeleteableWithSasToken(CloudFileShare share, string sastoken)
         {
             Test.Info("Verify share delete permission");
@@ -719,10 +741,19 @@
         /// <summary>
         /// Validate the write permission in the sas token for the the specified file
         /// </summary>
-        internal void ValidateFileWriteableWithSasToken(CloudFile file, string sasToken)
+        internal void ValidateFileWriteableWithSasToken(CloudFile file, string sasToken, bool useHttps = true)
         {
             Test.Info("Verify file write permission");
-            CloudFile sasFile = new CloudFile(file.Uri, new StorageCredentials(sasToken));
+            Uri fileUri = file.Uri;
+            if (useHttps)
+            {
+                fileUri = new Uri(fileUri.AbsoluteUri.Replace("http://","https://"));
+            }
+            else
+            {
+                fileUri = new Uri(fileUri.AbsoluteUri.Replace("https://", "http://"));
+            }
+            CloudFile sasFile = new CloudFile(fileUri, new StorageCredentials(sasToken));
             DateTimeOffset? lastModifiedTime = sasFile.Properties.LastModified;
             long buffSize = 1024 * 1024;
             byte[] buffer = new byte[buffSize];

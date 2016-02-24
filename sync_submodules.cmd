@@ -5,12 +5,12 @@ git submodule update
 echo "update submodule azcopy"
 cd azcopy
 git fetch
-git reset origin/cli_base --hard
+git reset origin/appendblob --hard
 cd ..
 echo "update submodule Powershell"
 cd PowerShell
 git fetch
-git reset origin/dev --hard
+git reset origin/next --hard
 cd ..
 echo "update submodule xplat"
 cd Xplat

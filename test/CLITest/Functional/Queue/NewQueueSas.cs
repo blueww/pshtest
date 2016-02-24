@@ -301,6 +301,93 @@
         }
 
         /// <summary>
+        /// 1.	Generate SAS of protocal: HttpsOnly, and all available value of permission. 
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Queue)]
+        [TestCategory(PsTag.NewQueueSas)]
+        public void NewQueueSas_Httpsonly()
+        {
+            CloudQueue queue = queueUtil.CreateQueue();
+            try
+            {
+                string sastoken = agent.GetQueueSasFromCmd(queue.Name, string.Empty, "raup", null, null, false, SharedAccessProtocol.HttpsOnly);
+
+                queueUtil.ValidateQueueAddableWithSasToken(queue, sastoken);
+
+                try
+                {
+                    queueUtil.ValidateQueueAddableWithSasToken(queue, sastoken, useHttps: false);
+                    Test.Error(string.Format("Queue Add with http should fail since the sas is HttpsOnly."));
+                }
+                catch (StorageException e)
+                {
+                    Test.Info(e.Message);
+                    ExpectEqual(306, e.RequestInformation.HttpStatusCode, "Protocal not match error: ");
+                }
+            }
+            finally
+            {
+                queueUtil.RemoveQueue(queue);
+            }
+        }
+
+
+        /// <summary>
+        /// 1.	Generate SAS of IPAddressOrRange: [Not Current IP], and all available value of permission, protocal. 
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Queue)]
+        [TestCategory(PsTag.NewQueueSas)]
+        public void NewQueueSas_NotCurrentIP()
+        {
+            CloudQueue queue = queueUtil.CreateQueue();
+            try
+            {
+                string sastoken = agent.GetQueueSasFromCmd(queue.Name, string.Empty, "raup", null, null, false, null, "2.3.4.5");
+
+                try
+                {
+                    queueUtil.ValidateQueueReadableWithSasToken(queue, sastoken);
+                    Test.Error(string.Format("Queue read hould fail since the ipAcl is not current IP."));
+                }
+                catch (StorageException e)
+                {
+                    Test.Info(e.Message);
+                    ExpectEqual(e.RequestInformation.HttpStatusCode, 403, "(403) Forbidden");
+                }
+            }
+            finally
+            {
+                queueUtil.RemoveQueue(queue);
+            }
+        }
+
+
+        /// <summary>
+        /// 1.	Generate SAS of IPAddressOrRange: [Range include Current IP], and all available value of permission. 
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Queue)]
+        [TestCategory(PsTag.NewQueueSas)]
+        public void NewQueueSas_IncludeIPRange()
+        {
+            CloudQueue queue = queueUtil.CreateQueue();
+            try
+            {
+                string sastoken = agent.GetQueueSasFromCmd(queue.Name, string.Empty, "raup", null, null, false, null, "0.0.0.0-255.255.255.255");
+                queueUtil.ValidateQueueUpdateableWithSasToken(queue, sastoken);
+            }
+            finally
+            {
+                queueUtil.RemoveQueue(queue);
+            }
+        }
+
+        /// <summary>
         /// Generate a sas token and validate it.
         /// </summary>
         /// <param name="queuePermission">Queue permission</param>
