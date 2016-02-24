@@ -775,10 +775,10 @@ namespace Management.Storage.ScenarioTest.Util
         /// <summary>
         /// Validate the read permission in the sas token for the the specified blob
         /// </summary>
-        internal void ValidateBlobReadableWithSasToken(CloudBlob cloudBlob, string sasToken)
+        internal void ValidateBlobReadableWithSasToken(CloudBlob cloudBlob, string sasToken, bool useHttps = true)
         {
             Test.Info("Verify blob read permission");
-            CloudBlob sasBlob = GetCloudBlobBySasToken(cloudBlob, sasToken);
+            CloudBlob sasBlob = GetCloudBlobBySasToken(cloudBlob, sasToken, useHttps);
             long buffSize = cloudBlob.Properties.Length;
             byte[] buffer = new byte[buffSize];
             MemoryStream ms = new MemoryStream(buffer);
@@ -790,11 +790,12 @@ namespace Management.Storage.ScenarioTest.Util
         /// <summary>
         /// Validate the write permission in the sas token for the the specified blob
         /// </summary>
-        internal void ValidateBlobWriteableWithSasToken(CloudBlob cloudBlob, string sasToken)
+        internal void ValidateBlobWriteableWithSasToken(CloudBlob cloudBlob, string sasToken, bool useHttps = true)
         {
             Test.Info("Verify blob write permission");
-            CloudBlob sasBlob = GetCloudBlobBySasToken(cloudBlob, sasToken);
+            CloudBlob sasBlob = GetCloudBlobBySasToken(cloudBlob, sasToken, useHttps);
             DateTimeOffset? lastModifiedTime = cloudBlob.Properties.LastModified;
+            Thread.Sleep(1000); // to make sure the LMT of the blob will change
             long buffSize = 1024 * 1024;
             byte[] buffer = new byte[buffSize];
             random.NextBytes(buffer);
@@ -821,9 +822,9 @@ namespace Management.Storage.ScenarioTest.Util
         /// <summary>
         /// Get CloudBlob by sas token
         /// </summary>
-        internal CloudBlob GetCloudBlobBySasToken(CloudBlob blob, string sasToken)
+        internal CloudBlob GetCloudBlobBySasToken(CloudBlob blob, string sasToken, bool useHttps = true)
         {
-            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(blob.ServiceClient.Credentials.AccountName, sasToken);
+            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(blob.ServiceClient.Credentials.AccountName, sasToken, useHttps);
             CloudBlobClient sasBlobClient = sasAccount.CreateCloudBlobClient();
             CloudBlobContainer sasContainer = sasBlobClient.GetContainerReference(blob.Container.Name);
             CloudBlob sasBlob = null;

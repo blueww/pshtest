@@ -153,7 +153,11 @@ namespace Management.Storage.ScenarioTest.Common
                         if (isResourceMode)
                         {
                             PowerShellAgent.RemoveModule("Azure");
-                            PowerShellAgent.ImportModule(Path.Combine(moduleFileFolder, Constants.ResourceModulePath));
+
+                            foreach (var resourceModulePath in Constants.ResourceModulePaths)
+                            {
+                                PowerShellAgent.ImportModule(Path.Combine(moduleFileFolder, resourceModulePath));
+                            }
                         }
                     }
                 }
@@ -188,19 +192,6 @@ namespace Management.Storage.ScenarioTest.Common
 
                 FileUtil.GetOSConfig(Test.Data);
             }
-            else if (lang == Language.CLU)
-            {
-                CLUAgent.GetOSConfig(Test.Data);
-                FileUtil.GetOSConfig(Test.Data);
-            }
-        }
-
-        protected static string GetModulePath()
-        {
-            string moduleFileFolder = Test.Data.Get("ModuleFileFolder");
-            string relativePath = isResourceMode ? Constants.ResourceModulePath : Constants.ServiceModulePath;
-
-            return Path.Combine(moduleFileFolder, relativePath);
         }
 
         //

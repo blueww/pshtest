@@ -317,7 +317,7 @@
             var file = fileUtil.DeleteFileIfExists(this.fileShare, cloudFileName);
             this.agent.DownloadFile(file, Test.Data.Get("TempDir"), true);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.PathNotFoundFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.PathNotFoundFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -379,7 +379,7 @@
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             this.agent.DownloadFile(fileShareName, cloudFileName, Test.Data.Get("TempDir"), true);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.PathNotFoundFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.PathNotFoundFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -398,7 +398,7 @@
             var file = this.fileShare.GetRootDirectoryReference().GetDirectoryReference(cloudDirectoryName).GetFileReference(cloudFileName);
             this.agent.DownloadFile(file, Test.Data.Get("TempDir"), true);
             var result = this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.PathNotFoundFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.PathNotFoundFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -475,7 +475,7 @@
                 () => Path.Combine(destinationFolder.FullName, CloudFileUtil.GenerateUniqueFileName()),
                 false);
 
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.TransferExceptionFullQualifiedErrorId));
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.TransferExceptionFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>

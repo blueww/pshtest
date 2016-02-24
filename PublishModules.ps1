@@ -5,11 +5,7 @@ $PACKAGEPATH=[System.Environment]::GetEnvironmentVariable("PACKAGEPATH")
 
 mkdir $PACKAGEPATH\package
 
-$repo = Get-PSRepository | where { $_.SourceLocation -eq $repositoryLocation }
-
-if ($repo -ne $null) {
-    UnRegister-PSRepository $repo.Name
-} 
+copy -r $PACKAGEPATH\..\..\0package0 $PACKAGEPATH
 
 $repoName = [System.Guid]::NewGuid().ToString()
 
@@ -18,3 +14,5 @@ Register-PSRepository -Name $repoName -SourceLocation $PACKAGEPATH -PublishLocat
 [System.Environment]::SetEnvironmentVariable("NuGetPublishingSource", $PACKAGEPATH, "Process")
 
 msbuild "$env:AzurePSRoot\build.proj" /t:Publish /p:NuGetKey=a253d1a5-21a2-45a5-ab83-d489611b5dc7
+
+UnRegister-PSRepository -Name $repoName

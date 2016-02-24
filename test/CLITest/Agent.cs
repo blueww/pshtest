@@ -258,31 +258,37 @@ namespace Management.Storage.ScenarioTest
         /// SAS token APIs
         ///-------------------------------------
         public virtual bool NewAzureStorageContainerSAS(string container, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false) { return false; }
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null) { return false; }
 
         public virtual bool NewAzureStorageBlobSAS(string container, string blob, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false) { return false; }
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null) { return false; }
 
         public virtual bool NewAzureStorageTableSAS(string name, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, string startpk = "", string startrk = "", string endpk = "", string endrk = "") { return false; }
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, string startpk = "", string startrk = "", string endpk = "", string endrk = "", SharedAccessProtocol? protocol = null, string iPAddressOrRange = null) { return false; }
 
         public virtual bool NewAzureStorageQueueSAS(string name, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false) { return false; }
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null) { return false; }
+
+        public virtual bool NewAzureStorageAccountSAS(SharedAccessAccountServices service, SharedAccessAccountResourceTypes resourceType, string permission, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null,
+            DateTime? startTime = null, DateTime? expiryTime = null) { return false; }
 
         public virtual string GetBlobSasFromCmd(string containerName, string blobName, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null) { return string.Empty; }
         public virtual string GetBlobSasFromCmd(CloudBlob blob, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null) { return string.Empty; }
 
         public virtual string GetContainerSasFromCmd(string containerName, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null) { return string.Empty; }
 
         public virtual string GetQueueSasFromCmd(string queueName, string policy, string permission,
-                    DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false) { return string.Empty; }
+                    DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null) { return string.Empty; }
 
         public virtual string GetTableSasFromCmd(string tableName, string policy, string permission,
                     DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false,
-                    string startpk = "", string startrk = "", string endpk = "", string endrk = "") { return string.Empty; }
+                    string startpk = "", string startrk = "", string endpk = "", string endrk = "", SharedAccessProtocol? protocol = null, string iPAddressOrRange = null) { return string.Empty; }
+
+        public virtual string GetAccountSasFromCmd(SharedAccessAccountServices service, SharedAccessAccountResourceTypes resourceType, string permission, SharedAccessProtocol? protocol, string iPAddressOrRange,
+            DateTime? startTime = null, DateTime? expiryTime = null) { return string.Empty; }
 
         public abstract string SetContextWithSASToken(string accountName, CloudBlobUtil blobUtil, StorageObjectType objectType,
             string policy, string permission, DateTime? startTime = null, DateTime? expiryTime = null);
@@ -438,19 +444,19 @@ namespace Management.Storage.ScenarioTest
             DateTime? startTime, DateTime? expiryTime, bool noStartTime = false, bool noExpiryTime = false);
 
         public abstract bool NewAzureStorageShareSAS(string shareName, string policyName = null, string permissions = null,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false);
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null);
 
         public abstract bool NewAzureStorageFileSAS(string shareName, string filePath, string policyName = null, string permissions = null,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false);
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null);
 
         public abstract bool NewAzureStorageFileSAS(CloudFile file, string policyName = null, string permissions = null,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false);
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null);
 
         public abstract string GetAzureStorageShareSasFromCmd(string shareName, string policy, string permission = null,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false);
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null);
 
         public abstract string GetAzureStorageFileSasFromCmd(string shareName, string filePath, string policy, string permission = null,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false);
+            DateTime? startTime = null, DateTime? expiryTime = null, bool fulluri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null);
 
         public abstract bool SetAzureStorageShareQuota(string shareName, int quota);
 

@@ -1492,6 +1492,164 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             }
         }
 
+        /// <summary>
+        /// 1.	Generate SAS of protocal: HttpsOnly, and all available value of permission. 
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        public void NewFileSas_Httpsonly()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("file");
+                var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
+
+                string sastoken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, "rwd", null, null, false, SharedAccessProtocol.HttpsOnly);
+
+                fileUtil.ValidateFileWriteableWithSasToken(file, sastoken, useHttps: true);
+
+                try
+                {
+                    fileUtil.ValidateFileWriteableWithSasToken(file, sastoken, useHttps: false);
+                    Test.Error(string.Format("Write File with http should fail since the sas is HttpsOnly."));
+                }
+                catch (StorageException e)
+                {
+                    Test.Info(e.Message);
+                    ExpectEqual(306, e.RequestInformation.HttpStatusCode, "Protocal not match error: ");
+                }
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        /// <summary>
+        /// 1.	Generate SAS of IPAddressOrRange: [not Current IP], and all available value of permission, protocal.
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        public void NewFileSas_NotCurrentIP()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("file");
+                var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
+
+                string sastoken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, "rwd", null, null, false, null, "3.4.5.6");
+
+                try
+                {
+                    fileUtil.ValidateFileReadableWithSasToken(file, sastoken);
+                    Test.Error(string.Format("Read File with http should fail since the ipAcl not current IP."));
+                }
+                catch (StorageException e)
+                {
+                    Test.Info(e.Message);
+                    ExpectEqual(e.RequestInformation.HttpStatusCode, 403, "(403) Forbidden");
+                }
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        /// <summary>
+        /// 1.	Generate SAS of IPAddressOrRange: [Range include Current IP], and all available value of permission.
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        public void NewFileSas_IncludeIPRange()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("file");
+                var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
+
+                string sastoken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, "rwd", null, null, false, null, "0.0.0.0-255.255.255.255");
+                fileUtil.ValidateFileDeleteableWithSasToken(file, sastoken);
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+
+
+        /// <summary>
+        /// 1.	Generate SAS of protocal: HttpsOrHttp, and all available value of permission.
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        public void NewShareSas_HttpsOrHttp()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                string fileName = Utility.GenNameString("file");
+                var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
+                string sastoken = agent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, "rwdl", null, null, false, SharedAccessProtocol.HttpsOrHttp);
+
+                fileUtil.ValidateFileWriteableWithSasToken(file, sastoken, useHttps: true);
+                fileUtil.ValidateFileWriteableWithSasToken(file, sastoken, useHttps: false);
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+        /// <summary>
+        /// 1.	7.	Generate SAS of IPAddressOrRange: [Range exclude Current IP], and all available value of permission.
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        public void NewShareSas_ExcludeIPRange()
+        {
+            string shareName = Utility.GenNameString("share");
+            CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+
+            try
+            {
+                string sastoken = agent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, "rwd", null, null, false, null, "0.0.0.0-0.0.0.1");
+                try
+                {
+                    fileUtil.ValidateShareWriteableWithSasToken(share, sastoken);
+                    Test.Error(string.Format("Write Share should fail since the ip range not include current IP."));
+                }
+                catch (StorageException e)
+                {
+                    Test.Info(e.Message);
+                    ExpectEqual(e.RequestInformation.HttpStatusCode, 403, "(403) Forbidden");
+                }
+
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(shareName);
+            }
+        }
+
+
         private void GenerateFileSasTokenAndValidate(string permission)
         {
             string shareName = Utility.GenNameString("share");

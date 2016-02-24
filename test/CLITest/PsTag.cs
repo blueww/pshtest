@@ -34,6 +34,7 @@ namespace Management.Storage.ScenarioTest
         public const string NewBlobSas = "newblobsas";
         public const string NewQueueSas = "newqueuesas";
         public const string NewTableSas = "newtablesas";
+        public const string NewAccountSas = "newaccountsas";
         public const string SASInterop = "sasinterop";
 
         public const string StoredAccessPolicy = "storedaccesspolicy";
