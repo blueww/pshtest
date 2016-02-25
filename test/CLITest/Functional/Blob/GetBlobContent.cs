@@ -373,14 +373,14 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.SetBlobContent)]
         [TestCategory(CLITag.NodeJSFT)]
-        public void DownloadBlobWithSpeicialChars()
+        public void DownloadBlobWithSpecialChars()
         {
-            DownloadBlobWithSpeicialChars(BlobType.BlockBlob);
-            DownloadBlobWithSpeicialChars(BlobType.PageBlob);
-            DownloadBlobWithSpeicialChars(BlobType.AppendBlob);
+            DownloadBlobWithSpecialChars(BlobType.BlockBlob);
+            DownloadBlobWithSpecialChars(BlobType.PageBlob);
+            DownloadBlobWithSpecialChars(BlobType.AppendBlob);
         }
 
-        public void DownloadBlobWithSpeicialChars(BlobType blobType)
+        public void DownloadBlobWithSpecialChars(BlobType blobType)
         {
             CloudBlobContainer container = blobUtil.CreateContainer();
             string blobName = SpecialChars;
@@ -475,6 +475,53 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 blobUtil.RemoveContainer(container.Name);
                 File.Delete(tmpFileName);
+                FileUtil.RemoveFile(downloadFileName);
+            }
+        }
+
+        /// <summary>
+        /// This is to validate CheckMd5 option in the cmdlet.
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.SetBlobContent)]
+        public void DownloadBlobCheckMD5()
+        {
+            CloudBlobContainer container = blobUtil.CreateContainer();
+            string blobName = Utility.GenNameString("blob");
+            string downloadFileName = Path.Combine(downloadDirRoot, Utility.GenNameString("download"));
+
+            try
+            {
+                CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
+                string previousMD5 = blob.Properties.ContentMD5;
+
+                // download blob and check MD5.
+                Test.Assert(agent.GetAzureStorageBlobContent(blobName, downloadFileName, container.Name, true, CheckMd5:true), "download blob with CheckMd5 should succeed.");
+
+                string downloadedMD5 = FileUtil.GetFileContentMD5(downloadFileName);
+                ExpectEqual(previousMD5, downloadedMD5, "content md5");
+
+                blob.Properties.ContentMD5 = "";
+                blob.SetProperties();
+
+                // Blob's ContentMD5 property is empty, download file and check MD5.
+                Test.Assert(!agent.GetAzureStorageBlobContent(blobName, downloadFileName, container.Name, true, CheckMd5: true), "It should fail to download blob whose Content-MD5 property is incorrect with CheckMd5");
+                ExpectedContainErrorMessage("The MD5 hash calculated from the downloaded data does not match the MD5 hash stored in the property of source");
+
+                downloadedMD5 = FileUtil.GetFileContentMD5(downloadFileName);
+                ExpectEqual(previousMD5, downloadedMD5, "content md5");
+
+                // Blob's ContentMD5 property is empty, download file without check MD5
+                Test.Assert(agent.GetAzureStorageBlobContent(blobName, downloadFileName, container.Name, true, CheckMd5: false), "It should suceed to download blob whose Content-MD5 property is incorrect without CheckMd5");
+
+                downloadedMD5 = FileUtil.GetFileContentMD5(downloadFileName);
+                ExpectEqual(previousMD5, downloadedMD5, "content md5");
+            }
+            finally
+            {
+                blobUtil.RemoveContainer(container.Name);
                 FileUtil.RemoveFile(downloadFileName);
             }
         }

@@ -186,7 +186,7 @@ namespace Management.Storage.ScenarioTest
         public abstract bool SetAzureStorageBlobContent(string FileName, string ContainerName, BlobType Type, string BlobName = "",
             bool Force = true, int ConcurrentCount = -1, Hashtable properties = null, Hashtable metadata = null);
         public abstract bool GetAzureStorageBlobContent(string Blob, string FileName, string ContainerName,
-            bool Force = true, int ConcurrentCount = -1);
+            bool Force = true, int ConcurrentCount = -1, bool CheckMd5 = false);
         public abstract bool GetAzureStorageBlob(string BlobName, string ContainerName);
         public abstract bool GetAzureStorageBlobByPrefix(string Prefix, string ContainerName);
 
@@ -424,7 +424,7 @@ namespace Management.Storage.ScenarioTest
 
         public abstract void DownloadFile(CloudFileShare fileShare, string path, string destination, bool overwrite = false);
 
-        public abstract void DownloadFile(string fileShareName, string path, string destination, bool overwrite = false, object contextObject = null);
+        public abstract void DownloadFile(string fileShareName, string path, string destination, bool overwrite = false, object contextObject = null, bool CheckMd5 = false);
 
         public abstract void DownloadFiles(string fileShareName, string path, string destination, bool overwrite = false);
 

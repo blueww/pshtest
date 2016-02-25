@@ -852,7 +852,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override bool GetAzureStorageBlobContent(string blobName, string fileName, string containerName,
-            bool force = true, int concurrentCount = -1)
+            bool force = true, int concurrentCount = -1, bool CheckMd5 = false)
         {
             //Trim the \ for the destination path
             fileName = fileName.TrimEnd('\\');
@@ -1853,7 +1853,7 @@ namespace Management.Storage.ScenarioTest
             this.DownloadFile(fileShare.Name, path, destination, overwrite);
         }
 
-        public override void DownloadFile(string fileShareName, string path, string destination, bool overwrite = false, object contextObject = null)
+        public override void DownloadFile(string fileShareName, string path, string destination, bool overwrite = false, object contextObject = null, bool CheckMd5 = false)
         {
             string dest = destination.TrimEnd(CloudFileUtil.PathSeparators);
             if (AgentOSType != OSType.Windows)

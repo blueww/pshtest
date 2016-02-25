@@ -516,6 +516,72 @@
                 destination => this.agent.DownloadFile(baseDir, relativeCloudPath, destination, true));
         }
 
+        /// <summary>
+        /// Positive functional test case 5.8.3
+        /// </summary>
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        [TestCategory(CLITag.File)]
+        public void DownloadFileCheckMD5()
+        {
+            string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
+            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
+
+            string previousMD5 = FileUtil.GetFileContentMD5(localFilePath);
+            var sourceFile = fileUtil.CreateFile(this.fileShare, cloudFileName, localFilePath);
+
+            if (sourceFile.Properties.ContentMD5 != previousMD5)
+            {
+                sourceFile.Properties.ContentMD5 = previousMD5;
+                sourceFile.SetProperties();
+            }
+
+            var destination = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            
+            // Download file and check its MD5
+            this.agent.DownloadFile(this.fileShare.Name, cloudFileName, destination, true, CheckMd5:true);
+            var result = this.agent.Invoke();
+            result.AssertNoResult();
+
+            string destinationMD5 = FileUtil.GetFileContentMD5(destination);
+            Test.Assert(
+                destinationMD5.Equals(previousMD5, StringComparison.Ordinal),
+                "MD5 checksum of the downloaded file mismatches. Expected: {0}, Actural: {1}.",
+                previousMD5,
+                destinationMD5);
+
+            sourceFile.Properties.ContentMD5 = "";
+            sourceFile.SetProperties();
+
+            // File's ContentMD5 property is empty, download file and check its MD5
+            this.agent.Clear(); 
+            this.agent.DownloadFile(this.fileShare.Name, cloudFileName, destination, true, CheckMd5: true);
+            result = this.agent.Invoke();
+            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId));
+
+            destinationMD5 = FileUtil.GetFileContentMD5(destination);
+            Test.Assert(
+                destinationMD5.Equals(previousMD5, StringComparison.Ordinal),
+                "MD5 checksum of the downloaded file mismatches. Expected: {0}, Actural: {1}.",
+                previousMD5,
+                destinationMD5);
+            
+            // File's ContentMD5 property is empty, download file without check MD5.
+            this.agent.Clear(); 
+            this.agent.DownloadFile(this.fileShare.Name, cloudFileName, destination, true, CheckMd5: false);
+            result = this.agent.Invoke();
+            result.AssertNoResult();
+
+            destinationMD5 = FileUtil.GetFileContentMD5(destination);
+            Test.Assert(
+                destinationMD5.Equals(previousMD5, StringComparison.Ordinal),
+                "MD5 checksum of the downloaded file mismatches. Expected: {0}, Actural: {1}.",
+                previousMD5,
+                destinationMD5);
+        }
+
         private void UploadAndDownloadFileInternal(CloudFile sourceFile, string md5Checksum, Action<string> getContentAction, Func<string> getDestination = null, bool assertNoError = true)
         {
             var destination = getDestination == null ? Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()) : getDestination();
