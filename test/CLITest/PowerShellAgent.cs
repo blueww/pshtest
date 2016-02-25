@@ -898,7 +898,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override bool GetAzureStorageBlobContent(string Blob, string Destination, string ContainerName,
-            bool Force = true, int ConcurrentCount = -1)
+            bool Force = true, int ConcurrentCount = -1, bool CheckMd5 = false)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
@@ -914,6 +914,11 @@ namespace Management.Storage.ScenarioTest
             if (ConcurrentCount != -1)
             {
                 ps.BindParameter("ConcurrentTaskCount", ConcurrentCount);
+            }
+
+            if (CheckMd5)
+            {
+                ps.AddParameter("CheckMd5");
             }
 
             return InvokeStoragePowerShell(ps, null, ParseBlobCollection);
@@ -3184,7 +3189,7 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        public override void DownloadFile(string fileShareName, string path, string destination, bool overwrite = false, object contextObject = null)
+        public override void DownloadFile(string fileShareName, string path, string destination, bool overwrite = false, object contextObject = null, bool CheckMd5 = false)
         {
             this.shell.AddCommand("Get-AzureStorageFileContent");
             this.shell.AddParameter("ShareName", fileShareName);
@@ -3194,6 +3199,11 @@ namespace Management.Storage.ScenarioTest
             if (overwrite)
             {
                 this.shell.AddParameter("Force");
+            }
+
+            if (CheckMd5)
+            {
+                this.shell.AddParameter("CheckMd5");
             }
 
             this.shell.AddParameter("Context", contextObject ?? PowerShellAgent.Context);
