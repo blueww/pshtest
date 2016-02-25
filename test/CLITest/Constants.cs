@@ -116,8 +116,9 @@ namespace Management.Storage.ScenarioTest
         public const string FILE_UNIT = "G_FILE";
 
         public readonly static string[] ResourceModulePaths = {"ResourceManager\\AzureResourceManager\\AzureRM.Profile\\AzureRM.Profile.psd1",
-                                                    "ResourceManager\\AzureResourceManager\\AzureRM.Storage\\AzureRM.Storage.psd1",
-                                                    "ResourceManager\\AzureResourceManager\\Azure.Storage\\Azure.Storage.psd1"};
+                                                    "ResourceManager\\AzureResourceManager\\Azure.Storage\\Azure.Storage.psd1",
+                                                    "ResourceManager\\AzureResourceManager\\AzureRM.Storage\\AzureRM.Storage.psd1"};
+
         public const string ServiceModulePath = "ServiceManagement\\Azure\\Azure.psd1";
 
         public const int Iterations = 5; 

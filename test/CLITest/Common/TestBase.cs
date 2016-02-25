@@ -148,16 +148,16 @@ namespace Management.Storage.ScenarioTest.Common
 
                     if (!string.IsNullOrWhiteSpace(moduleFileFolder))
                     {
-                        PowerShellAgent.ImportModule(Path.Combine(moduleFileFolder, Constants.ServiceModulePath));
-
                         if (isResourceMode)
                         {
-                            PowerShellAgent.RemoveModule("Azure");
-
                             foreach (var resourceModulePath in Constants.ResourceModulePaths)
                             {
                                 PowerShellAgent.ImportModule(Path.Combine(moduleFileFolder, resourceModulePath));
                             }
+                        }
+                        else
+                        {
+                            PowerShellAgent.ImportModule(Path.Combine(moduleFileFolder, Constants.ServiceModulePath));
                         }
                     }
                 }
@@ -165,8 +165,9 @@ namespace Management.Storage.ScenarioTest.Common
                 {
                     if (isResourceMode)
                     {
-                        PowerShellAgent.ImportModule("AzureRm.Storage");
+                        PowerShellAgent.ImportModule("AzureRm.Profile");
                         PowerShellAgent.ImportModule("Azure.Storage");
+                        PowerShellAgent.ImportModule("AzureRm.Storage");
                     }
                     else
                     {
