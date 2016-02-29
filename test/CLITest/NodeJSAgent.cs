@@ -1743,13 +1743,13 @@ namespace Management.Storage.ScenarioTest
             this.RunNodeJSProcess(string.Format("share list \"{0}\"", prefix));
         }
 
-        public override void RemoveFileShareByName(string fileShareName, bool passThru = false, object contextObject = null)
+        public override void RemoveFileShareByName(string fileShareName, bool passThru = false, object contextObject = null, bool confirm = false)
         {
             string command = "share delete";
             command = appendStringOption(command, "", fileShareName);
             command = appendAccountOption(command, contextObject, false, isSource: true);
 
-            this.RunNodeJSProcess(command, true, needAccountParam: contextObject == null);
+            this.RunNodeJSProcess(command, !confirm, needAccountParam: contextObject == null);
         }
 
         public override void NewDirectory(CloudFileShare fileShare, string directoryName)
@@ -1772,49 +1772,49 @@ namespace Management.Storage.ScenarioTest
             this.RunNodeJSProcess(command, needAccountParam: contextObject == null);
         }
 
-        public override void RemoveDirectory(CloudFileShare fileShare, string directoryName)
+        public override void RemoveDirectory(CloudFileShare fileShare, string directoryName, bool confirm = false)
         {
-            this.RemoveDirectory(fileShare.Name, directoryName);
+            this.RemoveDirectory(fileShare.Name, directoryName, confirm);
         }
 
-        public override void RemoveDirectory(CloudFileDirectory directory, string path)
+        public override void RemoveDirectory(CloudFileDirectory directory, string path, bool confirm = false)
         {
-            this.RemoveDirectory(directory.Share.Name, CloudFileUtil.GetFullPath(directory) + "/" + path);
+            this.RemoveDirectory(directory.Share.Name, CloudFileUtil.GetFullPath(directory) + "/" + path, confirm);
         }
 
-        public override void RemoveDirectory(string fileShareName, string directoryName, object contextObject = null)
+        public override void RemoveDirectory(string fileShareName, string directoryName, object contextObject = null, bool confirm = false)
         {
             string command = "directory delete";
             command = appendStringOption(command, "", fileShareName, quoted: true);
             command = appendStringOption(command, "", directoryName, quoted: true);
             command = appendAccountOption(command, contextObject, false, isSource: true);
 
-            this.RunNodeJSProcess(command, true, needAccountParam: contextObject == null);
+            this.RunNodeJSProcess(command, !confirm, needAccountParam: contextObject == null);
         }
 
-        public override void RemoveFile(CloudFileShare fileShare, string fileName)
+        public override void RemoveFile(CloudFileShare fileShare, string fileName, bool confirm = false)
         {
-            this.RemoveFile(fileShare.Name, fileName);
+            this.RemoveFile(fileShare.Name, fileName, confirm);
         }
 
-        public override void RemoveFile(CloudFileDirectory directory, string fileName)
+        public override void RemoveFile(CloudFileDirectory directory, string fileName, bool confirm = false)
         {
-            this.RemoveFile(directory.Share.Name, CloudFileUtil.GetFullPath(directory) + "/" + fileName);
+            this.RemoveFile(directory.Share.Name, CloudFileUtil.GetFullPath(directory) + "/" + fileName, confirm);
         }
 
-        public override void RemoveFile(CloudFile file)
+        public override void RemoveFile(CloudFile file, bool confirm = false)
         {
-            this.RemoveFile(file.Share.Name, CloudFileUtil.GetFullPath(file));
+            this.RemoveFile(file.Share.Name, CloudFileUtil.GetFullPath(file), confirm);
         }
 
-        public override void RemoveFile(string fileShareName, string fileName, object contextObject = null)
+        public override void RemoveFile(string fileShareName, string fileName, object contextObject = null, bool confirm = false)
         {
             string command = "file delete";
             command = appendStringOption(command, "", fileShareName, quoted: true);
             command = appendStringOption(command, "", fileName, quoted: true);
             command = appendAccountOption(command, contextObject, false, isSource: true);
 
-            this.RunNodeJSProcess(command, true, needAccountParam: contextObject == null);
+            this.RunNodeJSProcess(command, !confirm, needAccountParam: contextObject == null);
         }
 
         public override void GetFile(string fileShareName, string path = null)
@@ -2712,9 +2712,9 @@ namespace Management.Storage.ScenarioTest
             return GetAzureStorageStoredAccessPolicy("share", shareName, policyName);
         }
 
-        public override bool RemoveAzureStorageShareStoredAccessPolicy(string shareName, string policyName)
+        public override bool RemoveAzureStorageShareStoredAccessPolicy(string shareName, string policyName, bool confirm = false)
         {
-            return RemoveAzureStorageStoredAccessPolicy("share", shareName, policyName, true);
+            return RemoveAzureStorageStoredAccessPolicy("share", shareName, policyName, !confirm);
         }
 
         public override bool SetAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions,

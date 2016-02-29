@@ -390,7 +390,7 @@ namespace Management.Storage.ScenarioTest
 
         public abstract void GetFileShareByPrefix(string prefix);
 
-        public abstract void RemoveFileShareByName(string fileShareName, bool passThru = false, object contextObject = null);
+        public abstract void RemoveFileShareByName(string fileShareName, bool passThru = false, object contextObject = null, bool confirm = false);
 
         public abstract void NewDirectory(CloudFileShare fileShare, string directoryName);
 
@@ -398,19 +398,19 @@ namespace Management.Storage.ScenarioTest
 
         public abstract void NewDirectory(string fileShareName, string directoryName, object contextObject = null);
 
-        public abstract void RemoveDirectory(CloudFileShare fileShare, string directoryName);
+        public abstract void RemoveDirectory(CloudFileShare fileShare, string directoryName, bool confirm = false);
 
-        public abstract void RemoveDirectory(CloudFileDirectory directory, string path);
+        public abstract void RemoveDirectory(CloudFileDirectory directory, string path, bool confirm = false);
 
-        public abstract void RemoveDirectory(string fileShareName, string directoryName, object contextObject = null);
+        public abstract void RemoveDirectory(string fileShareName, string directoryName, object contextObject = null, bool confirm = false);
 
-        public abstract void RemoveFile(CloudFileShare fileShare, string fileName);
+        public abstract void RemoveFile(CloudFileShare fileShare, string fileName, bool confirm = false);
 
-        public abstract void RemoveFile(CloudFileDirectory directory, string fileName);
+        public abstract void RemoveFile(CloudFileDirectory directory, string fileName, bool confirm = false);
 
-        public abstract void RemoveFile(CloudFile file);
+        public abstract void RemoveFile(CloudFile file, bool confirm = false);
 
-        public abstract void RemoveFile(string fileShareName, string fileName, object contextObject = null);
+        public abstract void RemoveFile(string fileShareName, string fileName, object contextObject = null, bool confirm = false);
 
         public abstract void GetFile(string fileShareName, string path = null);
 
@@ -438,7 +438,7 @@ namespace Management.Storage.ScenarioTest
 
         public abstract bool GetAzureStorageShareStoredAccessPolicy(string shareName, string policyName);
 
-        public abstract bool RemoveAzureStorageShareStoredAccessPolicy(string shareName, string policyName);
+        public abstract bool RemoveAzureStorageShareStoredAccessPolicy(string shareName, string policyName, bool confirm = false);
 
         public abstract bool SetAzureStorageShareStoredAccessPolicy(string shareName, string policyName, string permissions,
             DateTime? startTime, DateTime? expiryTime, bool noStartTime = false, bool noExpiryTime = false);

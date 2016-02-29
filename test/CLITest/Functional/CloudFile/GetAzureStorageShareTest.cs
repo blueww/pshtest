@@ -27,9 +27,14 @@
             TestBase.TestClassCleanup();
         }
 
+        public override void OnTestSetup()
+        {
+            this.agent.Clear();
+        }
+
         public override void OnTestCleanUp()
         {
-            this.agent.Dispose();
+            this.agent.Clear();
         }
 
         /// <summary>
