@@ -37,12 +37,13 @@
 
         public override void OnTestSetup()
         {
+            this.agent.Clear();
             this.fileShare = fileUtil.EnsureFileShareExists(CloudFileUtil.GenerateUniqueFileShareName());
         }
 
         public override void OnTestCleanUp()
         {
-            this.agent.Dispose();
+            this.agent.Clear();
             fileUtil.DeleteFileShareIfExists(this.fileShare.Name);
         }
 

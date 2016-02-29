@@ -95,32 +95,12 @@ namespace Management.Storage.ScenarioTest
         // add this member for importing module
         private static InitialSessionState _InitState = InitialSessionState.CreateDefault();
 
-        private static PowerShell PowerShellInstance = null;
         private static PSCommand InitCommand = null;
 
         private PowerShell GetPowerShellInstance()
         {
-            //assign the error message table for error validation
-            ExpectedErrorMsgTable = ExpectedErrorMsgTablePS;
-
-            if (PowerShellInstance != null)
-            {
-                PowerShellAgent.PowerShellInstance.Commands = PowerShellAgent.InitCommand;
-                PowerShellAgent.PowerShellInstance.Streams.Error.Clear();
-                PowerShellAgent.PowerShellInstance.AddScript("$ErrorActionPreference='Continue'");
-                PowerShellAgent.PowerShellInstance.AddStatement();
-                return PowerShellAgent.PowerShellInstance;
-            }
-            else
-            {
-                return PowerShell.Create(_InitState);
-            }
-        }
-
-        public static void SetPowerShellInstance(PowerShell instance)
-        {
-            PowerShellAgent.PowerShellInstance = instance;
-            PowerShellAgent.InitCommand = instance.Commands;
+            this.Clear();
+            return this.shell;
         }
 
         public static void RemoveModule(string moduleName)
@@ -344,7 +324,7 @@ namespace Management.Storage.ScenarioTest
 
         public override void SetStorageContextWithSASToken(string StorageAccountName, string sasToken, string endpoint, bool useHttps = true)
         {
-            PowerShell ps = PowerShell.Create(_InitState);
+            PowerShell ps = this.GetPowerShellInstance();
             ps.AddCommand("New-AzureStorageContext");
             ps.BindParameter("StorageAccountName", StorageAccountName);
             ps.BindParameter("SasToken", sasToken);
@@ -436,7 +416,7 @@ namespace Management.Storage.ScenarioTest
         public override object GetStorageContextWithSASToken(CloudStorageAccount account, string sasToken, string endpoint = null, bool useHttps = false)
         {
             string accountName = account.Credentials.AccountName;
-            PowerShell ps = PowerShell.Create(_InitState);
+            PowerShell ps = this.GetPowerShellInstance();
             ps.AddCommand("New-AzureStorageContext");
             ps.BindParameter("StorageAccountName", accountName);
             ps.BindParameter("SasToken", sasToken);
@@ -610,7 +590,7 @@ namespace Management.Storage.ScenarioTest
             var ps = GetPowerShellInstance();
             ps.Runspace.SessionStateProxy.SetVariable("context", PowerShellAgent.Context);
             ps.AddCommand("Foreach-Object");
-            ps.AddParameter("Process", ScriptBlock.Create("Remove-AzureStorageShare -Name $_ -Context $context -confirm:$false"));
+            ps.AddParameter("Process", ScriptBlock.Create("Remove-AzureStorageShare -Name $_ -Context $context -Confirm:$false"));
 
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
 
@@ -656,7 +636,7 @@ namespace Management.Storage.ScenarioTest
             ps.Runspace.SessionStateProxy.SetVariable("context", PowerShellAgent.Context);
             ps.Runspace.SessionStateProxy.SetVariable("shareName", fileShareName);
             ps.AddCommand("Foreach-Object");
-            ps.AddParameter("Process", ScriptBlock.Create("Remove-AzureStorageDirectory -ShareName $shareName -Path $_ -Context $context -confirm:$false"));
+            ps.AddParameter("Process", ScriptBlock.Create("Remove-AzureStorageDirectory -ShareName $shareName -Path $_ -Context $context -Confirm:$false"));
 
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
 
@@ -706,7 +686,7 @@ namespace Management.Storage.ScenarioTest
 
         public override bool SetAzureStorageContainerACL(string[] ContainerNames, BlobContainerPublicAccessType PublicAccess, bool PassThru = true)
         {
-            PowerShell ps = PowerShell.Create(_InitState);
+            PowerShell ps = this.GetPowerShellInstance();
             ps.AddScript(FormatNameList(ContainerNames));
             ps.AddCommand("Set-AzureStorageContainerACL");
             ps.AddParameter("PublicAccess", PublicAccess);
@@ -2886,16 +2866,14 @@ namespace Management.Storage.ScenarioTest
 
         public PowerShellAgent()
         {
+            //assign the error message table for error validation
+            ExpectedErrorMsgTable = ExpectedErrorMsgTablePS;
+
             var initSessionState = _InitState.Clone();
             initSessionState.LanguageMode = PSLanguageMode.FullLanguage;
-            initSessionState.Variables.Add(
-                new SessionStateVariableEntry("ConfirmPreference", "None", ""));
 
             this.shell = PowerShell.Create(initSessionState);
-            if (this.shell.HadErrors)
-            {
-                this.shell.Streams.Error.Clear();
-            }
+            this.Clear();
         }
 
         public override bool HadErrors
@@ -3005,21 +2983,21 @@ namespace Management.Storage.ScenarioTest
         {
             this.shell.Runspace.SessionStateProxy.SetVariable("context", PowerShellAgent.Context);
             this.shell.AddCommand("Foreach-Object");
-            this.shell.AddParameter("Process", ScriptBlock.Create("Remove-AzureStorageShare -Name $_ -Context $context"));
+            this.shell.AddParameter("Process", ScriptBlock.Create("Remove-AzureStorageShare -Name $_ -Context $context -Confirm:$false"));
         }
 
         public override void RemoveDirectoriesFromPipeline(string fileShareName)
         {
             this.shell.Runspace.SessionStateProxy.SetVariable("context", PowerShellAgent.Context);
             this.shell.AddCommand("Foreach-Object");
-            this.shell.AddParameter("Process", ScriptBlock.Create(string.Format(CultureInfo.InvariantCulture, "Remove-AzureStorageDirectory -ShareName {0} -Path $_ -Context $context", fileShareName)));
+            this.shell.AddParameter("Process", ScriptBlock.Create(string.Format(CultureInfo.InvariantCulture, "Remove-AzureStorageDirectory -ShareName {0} -Path $_ -Context $context -Confirm:$false", fileShareName)));
         }
 
         public override void RemoveFilesFromPipeline(string fileShareName)
         {
             this.shell.Runspace.SessionStateProxy.SetVariable("context", PowerShellAgent.Context);
             this.shell.AddCommand("Foreach-Object");
-            this.shell.AddParameter("Process", ScriptBlock.Create(string.Format(CultureInfo.InvariantCulture, "Remove-AzureStorageFile -ShareName {0} -Path $_ -Context $context", fileShareName)));
+            this.shell.AddParameter("Process", ScriptBlock.Create(string.Format(CultureInfo.InvariantCulture, "Remove-AzureStorageFile -ShareName {0} -Path $_ -Context $context -Confirm:$false", fileShareName)));
         }
 
         public override void GetFileShareByName(string fileShareName)
@@ -3036,11 +3014,17 @@ namespace Management.Storage.ScenarioTest
             this.shell.AddParameter("Context", PowerShellAgent.Context);
         }
 
-        public override void RemoveFileShareByName(string fileShareName, bool passThru = false, object contextObject = null)
+        public override void RemoveFileShareByName(string fileShareName, bool passThru = false, object contextObject = null, bool confirm = false)
         {
             this.shell.AddCommand("Remove-AzureStorageShare");
             this.shell.AddParameter("Name", fileShareName);
             this.shell.AddParameter("Context", contextObject ?? PowerShellAgent.Context);
+
+            if (!confirm)
+            {
+                this.shell.AddParameter("Confirm", false);
+            }
+
             if (passThru)
             {
                 this.shell.AddParameter("PassThru");
@@ -3069,54 +3053,89 @@ namespace Management.Storage.ScenarioTest
             this.shell.AddParameter("Context", contextObject ?? PowerShellAgent.Context);
         }
 
-        public override void RemoveDirectory(CloudFileShare fileShare, string directoryName)
+        public override void RemoveDirectory(CloudFileShare fileShare, string directoryName, bool confirm = false)
         {
             this.shell.AddCommand("Remove-AzureStorageDirectory");
             this.shell.AddParameter("Share", fileShare);
             this.shell.AddParameter("Path", directoryName);
+
+            if (!confirm)
+            {
+                this.shell.AddParameter("Confirm", false);
+            }
         }
 
-        public override void RemoveDirectory(CloudFileDirectory directory, string path)
+        public override void RemoveDirectory(CloudFileDirectory directory, string path, bool confirm = false)
         {
             this.shell.AddCommand("Remove-AzureStorageDirectory");
             this.shell.AddParameter("Directory", directory);
             this.shell.AddParameter("Path", path);
+
+            if (!confirm)
+            {
+                this.shell.AddParameter("Confirm", false);
+            }
         }
 
-        public override void RemoveDirectory(string fileShareName, string directoryName, object contextObject = null)
+        public override void RemoveDirectory(string fileShareName, string directoryName, object contextObject = null, bool confirm = false)
         {
             this.shell.AddCommand("Remove-AzureStorageDirectory");
             this.shell.AddParameter("ShareName", fileShareName);
             this.shell.AddParameter("Path", directoryName);
             this.shell.AddParameter("Context", contextObject ?? PowerShellAgent.Context);
+
+            if (!confirm)
+            {
+                this.shell.AddParameter("Confirm", false);
+            }
         }
 
-        public override void RemoveFile(CloudFileShare fileShare, string fileName)
+        public override void RemoveFile(CloudFileShare fileShare, string fileName, bool confirm = false)
         {
             this.shell.AddCommand("Remove-AzureStorageFile");
             this.shell.AddParameter("Share", fileShare);
             this.shell.AddParameter("Path", fileName);
+
+            if (!confirm)
+            {
+                this.shell.AddParameter("Confirm", false);
+            }
         }
 
-        public override void RemoveFile(CloudFileDirectory directory, string fileName)
+        public override void RemoveFile(CloudFileDirectory directory, string fileName, bool confirm = false)
         {
             this.shell.AddCommand("Remove-AzureStorageFile");
             this.shell.AddParameter("Directory", directory);
             this.shell.AddParameter("Path", fileName);
+
+            if (!confirm)
+            {
+                this.shell.AddParameter("Confirm", false);
+            }
         }
 
-        public override void RemoveFile(CloudFile file)
+        public override void RemoveFile(CloudFile file, bool confirm = false)
         {
             this.shell.AddCommand("Remove-AzureStorageFile");
             this.shell.AddParameter("File", file);
+
+            if (!confirm)
+            {
+                this.shell.AddParameter("Confirm", false);
+            }
         }
 
-        public override void RemoveFile(string fileShareName, string fileName, object contextObject = null)
+        public override void RemoveFile(string fileShareName, string fileName, object contextObject = null, bool confirm = false)
         {
             this.shell.AddCommand("Remove-AzureStorageFile");
             this.shell.AddParameter("ShareName", fileShareName);
             this.shell.AddParameter("Path", fileName);
             this.shell.AddParameter("Context", contextObject ?? PowerShellAgent.Context);
+
+            if (!confirm)
+            {
+                this.shell.AddParameter("Confirm", false);
+            }
         }
 
         public override void GetFile(string fileShareName, string path = null)
@@ -3309,13 +3328,18 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(this.shell);
         }
 
-        public override bool RemoveAzureStorageShareStoredAccessPolicy(string shareName, string policyName)
+        public override bool RemoveAzureStorageShareStoredAccessPolicy(string shareName, string policyName, bool confirm = false)
         {
             this.Clear();
 
             this.shell.AddCommand("Remove-AzureStorageShareStoredAccessPolicy");
             this.shell.BindParameter("ShareName", shareName);
             this.shell.BindParameter("Policy", policyName);
+
+            if (!confirm)
+            {
+                this.shell.AddParameter("Confirm", false);
+            }
 
             return InvokeStoragePowerShell(this.shell);
         }
@@ -3521,7 +3545,7 @@ namespace Management.Storage.ScenarioTest
 
         public override void Clear()
         {
-            this.shell.Streams.Error.Clear();
+            this.shell.Streams.ClearStreams();
             this.shell.Commands.Clear();
         }
 
