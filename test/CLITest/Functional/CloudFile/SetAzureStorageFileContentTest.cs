@@ -186,6 +186,30 @@
             Test.Assert(file.Exists(), "File shold exist after uploaded.");
         }
 
+        [TestMethod]
+        [TestCategory(PsTag.File)]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.File)]
+        [TestCategory(CLITag.NodeJSFT)]
+        public void UploadAndDownload0SizeFile()
+        {
+            string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
+            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            string localFilePath2 = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+            FileUtil.GenerateSmallFile(localFilePath, 0, true);
+            this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName, true);
+            var result = agent.Invoke();
+            this.agent.AssertNoError();
+            Test.Assert(fileShare.GetRootDirectoryReference().GetFileReference(cloudFileName).Exists(), "File should exist after uploaded.");
+
+            this.agent.Clear();
+            this.agent.DownloadFile(this.fileShare.GetRootDirectoryReference(), cloudFileName, localFilePath2, true);
+            result = agent.Invoke();
+            this.agent.AssertNoError();
+            Test.Assert(File.Exists(localFilePath2), "File should exist after uploaded.");
+            Test.Assert(FileUtil.GetFileContentMD5(localFilePath) == FileUtil.GetFileContentMD5(localFilePath2), "The download file MD5 {0} should match Uploaded File MD5 {1}.", FileUtil.GetFileContentMD5(localFilePath2), FileUtil.GetFileContentMD5(localFilePath));
+        }
+
         /// <summary>
         /// Negative functional test case 5.9.1
         /// </summary>
