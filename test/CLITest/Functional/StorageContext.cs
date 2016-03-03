@@ -61,7 +61,7 @@ namespace Management.Storage.ScenarioTest.Functional
         [TestCategory(PsTag.StorageContext)]
         public void GetContainerFromMultipleStorageContext()
         {
-            PowerShellAgent psAgent = (PowerShellAgent)agent;
+            PowerShellAgent psAgent = (PowerShellAgent)CommandAgent;
             CloudStorageAccount account1 = TestBase.GetCloudStorageAccountFromConfig();
             CloudStorageAccount account2 = TestBase.GetCloudStorageAccountFromConfig("Secondary");
             string connectionString1 = account1.ToString(true);
@@ -82,10 +82,10 @@ namespace Management.Storage.ScenarioTest.Functional
                 psAgent.UseContextParam = false;
                 psAgent.AddPipelineScript(cmd);
 
-                Test.Assert(agent.GetAzureStorageContainer(containerName), Utility.GenComparisonData("Get-AzureStorageContainer using multiple storage contexts", true));
-                Test.Assert(agent.Output.Count == containerCount, String.Format("Want to retrieve {0} page blob, but retrieved {1} page blobs", containerCount, agent.Output.Count));
+                Test.Assert(CommandAgent.GetAzureStorageContainer(containerName), Utility.GenComparisonData("Get-AzureStorageContainer using multiple storage contexts", true));
+                Test.Assert(CommandAgent.Output.Count == containerCount, String.Format("Want to retrieve {0} page blob, but retrieved {1} page blobs", containerCount, CommandAgent.Output.Count));
 
-                agent.OutputValidation(new List<CloudBlobContainer>() { container1, container2 });
+                CommandAgent.OutputValidation(new List<CloudBlobContainer>() { container1, container2 });
             }
             finally
             {
@@ -105,7 +105,7 @@ namespace Management.Storage.ScenarioTest.Functional
         [TestCategory(PsTag.StorageContext)]
         public void GetContainerFromValidAndInvalidStorageContext()
         {
-            PowerShellAgent psAgent = (PowerShellAgent)agent;
+            PowerShellAgent psAgent = (PowerShellAgent)CommandAgent;
             CloudStorageAccount account1 = TestBase.GetCloudStorageAccountFromConfig();
             string connectionString1 = account1.ToString(true);
             string randomAccountName = Utility.GenNameString("account");
@@ -122,13 +122,13 @@ namespace Management.Storage.ScenarioTest.Functional
                 psAgent.UseContextParam = false;
                 psAgent.AddPipelineScript(cmd);
 
-                Test.Assert(!agent.GetAzureStorageContainer(containerName), Utility.GenComparisonData("Get-AzureStorageContainer using valid and invalid storage contexts", false));
-                Test.Assert(agent.ErrorMessages.Count == 1, "invalid storage context should return error");
+                Test.Assert(!CommandAgent.GetAzureStorageContainer(containerName), Utility.GenComparisonData("Get-AzureStorageContainer using valid and invalid storage contexts", false));
+                Test.Assert(CommandAgent.ErrorMessages.Count == 1, "invalid storage context should return error");
 
                 //the same error may output different error messages in different environments
-                bool expectedError = agent.ErrorMessages[0].Contains("The remote server returned an error: (502) Bad Gateway") ||
-                    agent.ErrorMessages[0].Contains("The remote name could not be resolved") || agent.ErrorMessages[0].Contains("The operation has timed out");
-                Test.Assert(expectedError, "use invalid storage account should return 502 or could not be resolved exception or The operation has timed out, actually {0}", agent.ErrorMessages[0]);
+                bool expectedError = CommandAgent.ErrorMessages[0].Contains("The remote server returned an error: (502) Bad Gateway") ||
+                    CommandAgent.ErrorMessages[0].Contains("The remote name could not be resolved") || CommandAgent.ErrorMessages[0].Contains("The operation has timed out");
+                Test.Assert(expectedError, "use invalid storage account should return 502 or could not be resolved exception or The operation has timed out, actually {0}", CommandAgent.ErrorMessages[0]);
             }
             finally
             {
@@ -160,7 +160,7 @@ namespace Management.Storage.ScenarioTest.Functional
 
                 try
                 {
-                    agent.GetAzureStorageContainer(containerName);
+                    CommandAgent.GetAzureStorageContainer(containerName);
                 }
                 catch (CmdletInvocationException e)
                 {
@@ -192,7 +192,7 @@ namespace Management.Storage.ScenarioTest.Functional
         [TestCategory(PsTag.StorageContext)]
         public void GetStorageContextWithNameKeyEndPoint()
         {
-            PowerShellAgent psAgent = (PowerShellAgent)agent;
+            PowerShellAgent psAgent = (PowerShellAgent)CommandAgent;
             string accountName = Utility.GenNameString("account");
             string accountKey = Utility.GenBase64String("key");
             string endPoint = Utility.GenNameString("core.abc.def");
@@ -200,7 +200,7 @@ namespace Management.Storage.ScenarioTest.Functional
             Test.Assert(psAgent.NewAzureStorageContext(accountName, accountKey, endPoint), "New storage context with specified name/key/endpoint should succeed");
             // Verification for returned values
             Collection<Dictionary<string, object>> comp = GetContextCompareData(accountName, endPoint);
-            agent.OutputValidation(comp);
+            CommandAgent.OutputValidation(comp);
         }
 
         /// <summary>
@@ -211,7 +211,7 @@ namespace Management.Storage.ScenarioTest.Functional
         [TestCategory(PsTag.StorageContext)]
         public void GetAnonymousStorageContextEndPoint()
         {
-            PowerShellAgent psAgent = (PowerShellAgent)agent;
+            PowerShellAgent psAgent = (PowerShellAgent)CommandAgent;
             string accountName = Utility.GenNameString("account");
             string accountKey = string.Empty;
             string endPoint = Utility.GenNameString("core.abc.def");
@@ -220,7 +220,7 @@ namespace Management.Storage.ScenarioTest.Functional
             // Verification for returned values
             Collection<Dictionary<string, object>> comp = GetContextCompareData(accountName, endPoint);
             comp[0]["StorageAccountName"] = "[Anonymous]";
-            agent.OutputValidation(comp);
+            CommandAgent.OutputValidation(comp);
         }
 
         /// <summary>
@@ -231,7 +231,7 @@ namespace Management.Storage.ScenarioTest.Functional
         [TestCategory(PsTag.StorageContext)]
         public void GetContainerWithInvalidEndPoint()
         {
-            PowerShellAgent psAgent = (PowerShellAgent)agent;
+            PowerShellAgent psAgent = (PowerShellAgent)CommandAgent;
             string accountName = Utility.GenNameString("account");
             string accountKey = Utility.GenBase64String("key");
             string endPoint = Utility.GenNameString("core.abc.def");
@@ -240,7 +240,7 @@ namespace Management.Storage.ScenarioTest.Functional
                 "-StorageAccountKey {1} -Endpoint {2}", accountName, accountKey, endPoint);
             psAgent.AddPipelineScript(cmd);
             psAgent.UseContextParam = false;
-            Test.Assert(!agent.GetAzureStorageContainer(string.Empty),
+            Test.Assert(!CommandAgent.GetAzureStorageContainer(string.Empty),
                 "Get containers with invalid endpoint should fail");
             ExpectedContainErrorMessage(ExpectedErrorMsgs);
         }
@@ -359,7 +359,7 @@ namespace Management.Storage.ScenarioTest.Functional
 
                 string blobName = Utility.GenNameString("BlobName");
 
-                Test.Assert(agent.SetAzureStorageBlobContent(filePath, container.Name, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob, blobName), "Upload blob should succeed.");
+                Test.Assert(CommandAgent.SetAzureStorageBlobContent(filePath, container.Name, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob, blobName), "Upload blob should succeed.");
 
                 ICloudBlob blob = container.GetBlobReferenceFromServer(blobName);
                 string localMd5 = FileUtil.GetFileContentMD5(filePath);

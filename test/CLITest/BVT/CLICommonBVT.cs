@@ -184,25 +184,6 @@ namespace Management.Storage.ScenarioTest.BVT
             RestoreSubScriptionAndEnvConnectionString();
         }
 
-        /// <summary>
-        /// init test resources for one single unit test.
-        /// </summary>
-        [TestInitialize()]
-        public void UnitTestInitialize()
-        {
-            Trace.WriteLine("Unit Test Initialize");
-            agent = AgentFactory.CreateAgent(TestContext.Properties);
-        }
-
-        /// <summary>
-        /// clean up the test resources for one single unit test.
-        /// </summary>
-        [TestCleanup()]
-        public void UnitTestCleanup()
-        {
-            Trace.WriteLine("Unit Test Cleanup");
-        }
-
         #endregion
 
         /// <summary>
@@ -214,7 +195,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void NewContainerTest()
         {
-            NewContainerTest(agent);
+            NewContainerTest(CommandAgent);
         }
 
         /// <summary>
@@ -225,7 +206,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void GetContainerTest()
         {
-            GetContainerTest(agent);
+            GetContainerTest(CommandAgent);
         }
 
         /// <summary>
@@ -236,7 +217,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void RemoveContainerTest()
         {
-            RemoveContainerTest(agent);
+            RemoveContainerTest(CommandAgent);
         }
 
         /// <summary>
@@ -247,7 +228,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void SetContainerACLTest()
         {
-            SetContainerACLTest(agent);
+            SetContainerACLTest(CommandAgent);
         }
 
         /// <summary>
@@ -260,7 +241,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NewTable)]
         public void NewTableTest()
         {
-            NewTableTest(agent);
+            NewTableTest(CommandAgent);
         }
 
         /// <summary>
@@ -273,7 +254,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.GetTable)]
         public void GetTableTest()
         {
-            GetTableTest(agent);
+            GetTableTest(CommandAgent);
         }
 
         /// <summary>
@@ -286,7 +267,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.RemoveTable)]
         public void RemoveTableTest()
         {
-            RemoveTableTest(agent);
+            RemoveTableTest(CommandAgent);
         }
 
         /// <summary>
@@ -299,7 +280,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NewQueue)]
         public void NewQueueTest()
         {
-            NewQueueTest(agent);
+            NewQueueTest(CommandAgent);
         }
 
         /// <summary>
@@ -312,7 +293,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.GetQueue)]
         public void GetQueueTest()
         {
-            GetQueueTest(agent);
+            GetQueueTest(CommandAgent);
         }
 
         /// <summary>
@@ -325,7 +306,7 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.RemoveQueue)]
         public void RemoveQueueTest()
         {
-            RemoveQueueTest(agent);
+            RemoveQueueTest(CommandAgent);
         }
 
         /// <summary>
@@ -336,9 +317,9 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void UploadBlobTest()
         {
-            UploadBlobTest(agent, CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
-            UploadBlobTest(agent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
-            UploadBlobTest(agent, CommonAppendFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
+            UploadBlobTest(CommandAgent, CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
+            UploadBlobTest(CommandAgent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            UploadBlobTest(CommandAgent, CommonAppendFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -349,9 +330,9 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void GetBlobTest()
         {
-            GetBlobTest(agent, CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
-            GetBlobTest(agent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
-            GetBlobTest(agent, CommonAppendFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
+            GetBlobTest(CommandAgent, CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
+            GetBlobTest(CommandAgent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            GetBlobTest(CommandAgent, CommonAppendFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -363,9 +344,9 @@ namespace Management.Storage.ScenarioTest.BVT
         public void DownloadBlobTest()
         {
             string downloadDirPath = Test.Data.Get("DownloadDir");
-            DownloadBlobTest(agent, CommonBlockFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
-            DownloadBlobTest(agent, CommonPageFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
-            DownloadBlobTest(agent, CommonAppendFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
+            DownloadBlobTest(CommandAgent, CommonBlockFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
+            DownloadBlobTest(CommandAgent, CommonPageFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            DownloadBlobTest(CommandAgent, CommonAppendFilePath, downloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -376,9 +357,9 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void RemoveBlobTest()
         {
-            RemoveBlobTest(agent, CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
-            RemoveBlobTest(agent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
-            RemoveBlobTest(agent, CommonAppendFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
+            RemoveBlobTest(CommandAgent, CommonBlockFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
+            RemoveBlobTest(CommandAgent, CommonPageFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            RemoveBlobTest(CommandAgent, CommonAppendFilePath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         /// <summary>
@@ -431,7 +412,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 ServiceProperties propertiesBeforeSet = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
 
                 // set ServiceProperties(logging)
-                Test.Assert(agent.SetAzureStorageServiceLogging(serviceType, loggingOperations, retentionDays.ToString()),
+                Test.Assert(CommandAgent.SetAzureStorageServiceLogging(serviceType, loggingOperations, retentionDays.ToString()),
                     Utility.GenComparisonData("SetAzureStorageServiceLogging", true));
 
                 Utility.ValidateLoggingProperties(CommonStorageAccount, serviceType, retentionDays, loggingOperations);
@@ -474,7 +455,7 @@ namespace Management.Storage.ScenarioTest.BVT
                     int retentionDays = Utility.GetRandomTestCount(1, 365 + 1);
                     string metricsLevel = Utility.GenRandomMetricsLevel();
                     // set ServiceProperties(metrics)
-                    Test.Assert(agent.SetAzureStorageServiceMetrics(serviceType, metricsType, metricsLevel, retentionDays.ToString()),
+                    Test.Assert(CommandAgent.SetAzureStorageServiceMetrics(serviceType, metricsType, metricsLevel, retentionDays.ToString()),
                         Utility.GenComparisonData("SetAzureStorageServiceHourMetrics", true));
 
                     if (serviceType != Constants.ServiceType.File)
@@ -510,9 +491,9 @@ namespace Management.Storage.ScenarioTest.BVT
                     continue;
                 }
 
-                Test.Assert(agent.GetAzureStorageServiceLogging(serviceType), Utility.GenComparisonData("GetAzureStorageServiceLogging", true));
+                Test.Assert(CommandAgent.GetAzureStorageServiceLogging(serviceType), Utility.GenComparisonData("GetAzureStorageServiceLogging", true));
                 ServiceProperties properties = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
-                agent.OutputValidation(properties, "logging");
+                CommandAgent.OutputValidation(properties, "logging");
             }
         }
 
@@ -539,13 +520,13 @@ namespace Management.Storage.ScenarioTest.BVT
                     continue;
                 }
 
-                Test.Assert(agent.GetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour), Utility.GenComparisonData("GetAzureStorageServiceHourMetrics", true));
+                Test.Assert(CommandAgent.GetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Hour), Utility.GenComparisonData("GetAzureStorageServiceHourMetrics", true));
                 ServiceProperties properties = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
-                agent.OutputValidation(properties, "HourMetrics");
+                CommandAgent.OutputValidation(properties, "HourMetrics");
 
-                Test.Assert(agent.GetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute), Utility.GenComparisonData("GetAzureStorageServiceMinuteMetrics", true));
+                Test.Assert(CommandAgent.GetAzureStorageServiceMetrics(serviceType, Constants.MetricsType.Minute), Utility.GenComparisonData("GetAzureStorageServiceMinuteMetrics", true));
                 properties = Utility.GetServiceProperties(CommonStorageAccount, serviceType);
-                agent.OutputValidation(properties, "MinuteMetrics");
+                CommandAgent.OutputValidation(properties, "MinuteMetrics");
             }
         }
 
@@ -572,34 +553,34 @@ namespace Management.Storage.ScenarioTest.BVT
             {
                 Test.Assert(destBlob.CopyState.Status == CopyStatus.Success, String.Format("The blob copy using storage client should be success, actually it's {0}", destBlob.CopyState.Status));
 
-                Test.Assert(agent.GetAzureStorageBlobCopyState(blobUtil.ContainerName, destBlob.Name, false), "Get copy state should be success");
+                Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(blobUtil.ContainerName, destBlob.Name, false), "Get copy state should be success");
                 int expectedStateCount = 1;
-                Test.Assert(agent.Output.Count == expectedStateCount, String.Format("Expected to get {0} copy state, actually it's {1}", expectedStateCount, agent.Output.Count));
+                Test.Assert(CommandAgent.Output.Count == expectedStateCount, String.Format("Expected to get {0} copy state, actually it's {1}", expectedStateCount, CommandAgent.Output.Count));
 
                 if (lang == Language.PowerShell)
                 {
-                    CopyStatus copyStatus = (CopyStatus)agent.Output[0]["Status"];
+                    CopyStatus copyStatus = (CopyStatus)CommandAgent.Output[0]["Status"];
                     Test.Assert(copyStatus == CopyStatus.Success, String.Format("The blob copy should be success, actually it's {0}", copyStatus));
 
-                    Uri sourceUri = (Uri)agent.Output[0]["Source"];
+                    Uri sourceUri = (Uri)CommandAgent.Output[0]["Source"];
                     string expectedUri = CloudBlobUtil.ConvertCopySourceUri(blobUtil.Blob.Uri.ToString());
                     Test.Assert(sourceUri.ToString() == expectedUri, String.Format("Expected source uri is {0}, actually it's {1}", expectedUri, sourceUri.ToString()));
                 }
                 else
                 {
-                    string copyStatus = (string)agent.Output[0]["copyStatus"];
+                    string copyStatus = (string)CommandAgent.Output[0]["copyStatus"];
                     Test.Assert(copyStatus == "success", String.Format("The blob copy should be success, actually it's {0}", copyStatus));
 
-                    string container = (string)agent.Output[0]["container"];
-                    string blob = (string)agent.Output[0]["blob"];
+                    string container = (string)CommandAgent.Output[0]["container"];
+                    string blob = (string)CommandAgent.Output[0]["blob"];
                     Test.Assert(container == blobUtil.ContainerName, String.Format("Expected container is {0}, actually it's {1}", blobUtil.ContainerName, container));
                     Test.Assert(blob == destBlob.Name, String.Format("Expected blob is {0}, actually it's {1}", destBlob.Name, blob));
                 }
 
-                Test.Assert(!agent.GetAzureStorageBlobCopyState(blobUtil.ContainerName, blobUtil.BlobName, false), "Get copy state should be fail since the specified blob don't have any copy operation");
-                Test.Assert(agent.ErrorMessages.Count > 0, "Should return error message");
+                Test.Assert(!CommandAgent.GetAzureStorageBlobCopyState(blobUtil.ContainerName, blobUtil.BlobName, false), "Get copy state should be fail since the specified blob don't have any copy operation");
+                Test.Assert(CommandAgent.ErrorMessages.Count > 0, "Should return error message");
                 string errorMessage = "Can not find copy task on the specified blob";
-                Test.Assert(agent.ErrorMessages[0].Contains(errorMessage), String.Format("Error message should contain {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
+                Test.Assert(CommandAgent.ErrorMessages[0].Contains(errorMessage), String.Format("Error message should contain {0}, and actually it's {1}", errorMessage, CommandAgent.ErrorMessages[0]));
             }
             finally
             {
@@ -629,25 +610,25 @@ namespace Management.Storage.ScenarioTest.BVT
             try
             {
                 string copyId = Guid.NewGuid().ToString();
-                Test.Assert(!agent.StopAzureStorageBlobCopy(blobUtil.ContainerName, blobUtil.BlobName, copyId, true), "Stop copy operation should be fail since the specified blob don't have any copy operation");
-                Test.Assert(agent.ErrorMessages.Count > 0, "Should return error message");
+                Test.Assert(!CommandAgent.StopAzureStorageBlobCopy(blobUtil.ContainerName, blobUtil.BlobName, copyId, true), "Stop copy operation should be fail since the specified blob don't have any copy operation");
+                Test.Assert(CommandAgent.ErrorMessages.Count > 0, "Should return error message");
 
                 string errorMessage;
                 if (lang == Language.PowerShell)
                 {
                     errorMessage = String.Format("Can not find copy task on the specified blob '{0}' in container '{1}'", blobUtil.BlobName, blobUtil.ContainerName);
-                    Test.Assert(agent.ErrorMessages[0].IndexOf(errorMessage) != -1, String.Format("Error message should contain {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
+                    Test.Assert(CommandAgent.ErrorMessages[0].IndexOf(errorMessage) != -1, String.Format("Error message should contain {0}, and actually it's {1}", errorMessage, CommandAgent.ErrorMessages[0]));
                 }
                 else
                 {
                     errorMessage = "There is currently no pending copy operation.";
-                    Test.Assert(agent.ErrorMessages[0].IndexOf(errorMessage) != -1, String.Format("Error message should contain {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
+                    Test.Assert(CommandAgent.ErrorMessages[0].IndexOf(errorMessage) != -1, String.Format("Error message should contain {0}, and actually it's {1}", errorMessage, CommandAgent.ErrorMessages[0]));
                 }
 
                 errorMessage = "There is currently no pending copy operation.";
-                Test.Assert(!agent.StopAzureStorageBlobCopy(blobUtil.ContainerName, destBlob.Name, copyId, true), "Stop copy operation should be fail since the specified copy operation has finished");
-                Test.Assert(agent.ErrorMessages.Count > 0, "Should return error message");
-                Test.Assert(agent.ErrorMessages[0].IndexOf(errorMessage) != -1, String.Format("Error message should contain {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
+                Test.Assert(!CommandAgent.StopAzureStorageBlobCopy(blobUtil.ContainerName, destBlob.Name, copyId, true), "Stop copy operation should be fail since the specified copy operation has finished");
+                Test.Assert(CommandAgent.ErrorMessages.Count > 0, "Should return error message");
+                Test.Assert(CommandAgent.ErrorMessages[0].IndexOf(errorMessage) != -1, String.Format("Error message should contain {0}, and actually it's {1}", errorMessage, CommandAgent.ErrorMessages[0]));
             }
             finally
             {
@@ -817,11 +798,11 @@ namespace Management.Storage.ScenarioTest.BVT
             {
                 if (useUri)
                 {
-                    Test.Assert(agent.StartAzureStorageBlobCopy(blobUtil.Blob.Uri.ToString(), blobUtil.ContainerName, copiedName, PowerShellAgent.Context), Utility.GenComparisonData("Start copy blob using source uri", true));
+                    Test.Assert(CommandAgent.StartAzureStorageBlobCopy(blobUtil.Blob.Uri.ToString(), blobUtil.ContainerName, copiedName, PowerShellAgent.Context), Utility.GenComparisonData("Start copy blob using source uri", true));
                 }
                 else
                 {
-                    Test.Assert(agent.StartAzureStorageBlobCopy(blobUtil.ContainerName, blobUtil.BlobName, blobUtil.ContainerName, copiedName), Utility.GenComparisonData("Start copy blob using blob name", true));
+                    Test.Assert(CommandAgent.StartAzureStorageBlobCopy(blobUtil.ContainerName, blobUtil.BlobName, blobUtil.ContainerName, copiedName), Utility.GenComparisonData("Start copy blob using blob name", true));
                 }
 
                 Test.Info("Get destination blob in copy task");
@@ -1331,9 +1312,9 @@ namespace Management.Storage.ScenarioTest.BVT
             {
                 string key = lang == Language.PowerShell ? Constants.SASTokenKey : Constants.SASTokenKeyNode;
                 string fullContainerPermission = "rwdl";
-                Test.Assert(agent.NewAzureStorageContainerSAS(blobUtil.Container.Name, string.Empty, fullContainerPermission),
+                Test.Assert(CommandAgent.NewAzureStorageContainerSAS(blobUtil.Container.Name, string.Empty, fullContainerPermission),
                     "Generate container sas token should succeed");
-                string sastoken = agent.Output[0][key].ToString();
+                string sastoken = CommandAgent.Output[0][key].ToString();
                 Test.Info("Generated sas token:{0}", sastoken);
                 blobUtil.ValidateContainerListableWithSasToken(blobUtil.Container, sastoken);
             }
@@ -1363,9 +1344,9 @@ namespace Management.Storage.ScenarioTest.BVT
             {
                 string key = lang == Language.PowerShell ? Constants.SASTokenKey : Constants.SASTokenKeyNode;
                 string fullBlobPermission = "rwd";
-                Test.Assert(agent.NewAzureStorageBlobSAS(blobUtil.Container.Name, blobUtil.Blob.Name, string.Empty, fullBlobPermission),
+                Test.Assert(CommandAgent.NewAzureStorageBlobSAS(blobUtil.Container.Name, blobUtil.Blob.Name, string.Empty, fullBlobPermission),
                     "Generate container sas token should succeed");
-                string sastoken = agent.Output[0][key].ToString();
+                string sastoken = CommandAgent.Output[0][key].ToString();
                 Test.Info("Generated sas token:{0}", sastoken);
                 blobUtil.ValidateBlobReadableWithSasToken(blobUtil.Blob, sastoken);
             }
@@ -1395,9 +1376,9 @@ namespace Management.Storage.ScenarioTest.BVT
             {
                 string key = lang == Language.PowerShell ? Constants.SASTokenKey : Constants.SASTokenKeyNode;
                 string permission = "raup";
-                Test.Assert(agent.NewAzureStorageQueueSAS(queue.Name, string.Empty, permission),
+                Test.Assert(CommandAgent.NewAzureStorageQueueSAS(queue.Name, string.Empty, permission),
                     "Generate queue sas token should succeed");
-                string sastoken = agent.Output[0][key].ToString();
+                string sastoken = CommandAgent.Output[0][key].ToString();
                 Test.Info("Generated sas token:{0}", sastoken);
                 queueUtil.ValidateQueueAddableWithSasToken(queue, sastoken);
             }
@@ -1427,9 +1408,9 @@ namespace Management.Storage.ScenarioTest.BVT
             {
                 string key = lang == Language.PowerShell ? Constants.SASTokenKey : Constants.SASTokenKeyNode;
                 string permission = "raud";
-                Test.Assert(agent.NewAzureStorageTableSAS(table.Name, string.Empty, permission),
+                Test.Assert(CommandAgent.NewAzureStorageTableSAS(table.Name, string.Empty, permission),
                     "Generate table sas token should succeed");
-                string sastoken = agent.Output[0][key].ToString();
+                string sastoken = CommandAgent.Output[0][key].ToString();
                 Test.Info("Generated sas token:{0}", sastoken);
                 tableUtil.ValidateTableAddableWithSasToken(table, sastoken);
             }
@@ -1462,9 +1443,9 @@ namespace Management.Storage.ScenarioTest.BVT
                 string permission = "rwdlacup";
                 SharedAccessProtocol protocal = SharedAccessProtocol.HttpsOrHttp;
                 string iPAddressOrRange = "0.0.0.0-255.255.255.255";
-                Test.Assert(agent.NewAzureStorageAccountSAS(service, resourceType, permission, protocal, iPAddressOrRange),
+                Test.Assert(CommandAgent.NewAzureStorageAccountSAS(service, resourceType, permission, protocal, iPAddressOrRange),
                     "Generate account sas token should succeed");
-                string sastoken = agent.Output[0][key].ToString();
+                string sastoken = CommandAgent.Output[0][key].ToString();
                 Test.Info("Generated sas token:{0}", sastoken);
                 blobUtil.ValidateBlobWriteableWithSasToken(blobUtil.Blob, sastoken);
             }
@@ -1497,7 +1478,7 @@ namespace Management.Storage.ScenarioTest.BVT
 
             try
             {
-                Test.Assert(agent.NewAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                Test.Assert(CommandAgent.NewAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                     "Create stored access policy in table should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
 
@@ -1538,20 +1519,20 @@ namespace Management.Storage.ScenarioTest.BVT
 
             try
             {
-                Test.Assert(agent.NewAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                Test.Assert(CommandAgent.NewAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                     "Create stored access policy in table should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
 
                 Utility.WaitForPolicyBecomeValid<CloudTable>(table, samplePolicy);
 
-                Test.Assert(agent.GetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName),
+                Test.Assert(CommandAgent.GetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName),
                 "Get stored access policy in table should succeed");
                 Test.Info("Get stored access policy:{0}", samplePolicy.PolicyName);
 
                 SharedAccessTablePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessTablePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission);
                 Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
                 comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessTablePolicy>(policy, samplePolicy.PolicyName));
-                agent.OutputValidation(comp);
+                CommandAgent.OutputValidation(comp);
             }
             finally
             {
@@ -1582,11 +1563,11 @@ namespace Management.Storage.ScenarioTest.BVT
 
             try
             {
-                Test.Assert(agent.NewAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                Test.Assert(CommandAgent.NewAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                     "Create stored access policy in table should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
 
-                Test.Assert(agent.RemoveAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName),
+                Test.Assert(CommandAgent.RemoveAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy.PolicyName),
                     "Remove stored access policy in table should succeed");
                 Test.Info("Remove stored access policy:{0}", samplePolicy.PolicyName);
 
@@ -1628,10 +1609,10 @@ namespace Management.Storage.ScenarioTest.BVT
 
             try
             {
-                Test.Assert(agent.NewAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy1.PolicyName, samplePolicy1.Permission, samplePolicy1.StartTime, samplePolicy1.ExpiryTime),
+                Test.Assert(CommandAgent.NewAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy1.PolicyName, samplePolicy1.Permission, samplePolicy1.StartTime, samplePolicy1.ExpiryTime),
                     "Create stored access policy in table should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy1.PolicyName);
-                Test.Assert(agent.SetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy2.PolicyName, samplePolicy2.Permission, samplePolicy2.StartTime, samplePolicy2.ExpiryTime),
+                Test.Assert(CommandAgent.SetAzureStorageTableStoredAccessPolicy(table.Name, samplePolicy2.PolicyName, samplePolicy2.Permission, samplePolicy2.StartTime, samplePolicy2.ExpiryTime),
                 "Set stored access policy in table should succeed");
                 Test.Info("Set stored access policy:{0}", samplePolicy2.PolicyName);
 
@@ -1646,7 +1627,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 SharedAccessTablePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessTablePolicy>(samplePolicy2.StartTime, samplePolicy2.ExpiryTime, samplePolicy2.Permission);
                 Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
                 comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessTablePolicy>(policy, samplePolicy2.PolicyName));
-                agent.OutputValidation(comp);
+                CommandAgent.OutputValidation(comp);
             }
             finally
             {
@@ -1677,7 +1658,7 @@ namespace Management.Storage.ScenarioTest.BVT
 
             try
             {
-                Test.Assert(agent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                Test.Assert(CommandAgent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                     "Create stored access policy in queue should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
 
@@ -1718,20 +1699,20 @@ namespace Management.Storage.ScenarioTest.BVT
 
             try
             {
-                Test.Assert(agent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                Test.Assert(CommandAgent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                     "Create stored access policy in queue should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
 
                 Utility.WaitForPolicyBecomeValid<CloudQueue>(queue, samplePolicy);
 
-                Test.Assert(agent.GetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName),
+                Test.Assert(CommandAgent.GetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName),
                 "Get stored access policy in queue should succeed");
                 Test.Info("Get stored access policy:{0}", samplePolicy.PolicyName);
 
                 SharedAccessQueuePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessQueuePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission);
                 Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
                 comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessQueuePolicy>(policy, samplePolicy.PolicyName));
-                agent.OutputValidation(comp);
+                CommandAgent.OutputValidation(comp);
             }
             finally
             {
@@ -1762,11 +1743,11 @@ namespace Management.Storage.ScenarioTest.BVT
 
             try
             {
-                Test.Assert(agent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                Test.Assert(CommandAgent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                     "Create stored access policy in queue should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
 
-                Test.Assert(agent.RemoveAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName),
+                Test.Assert(CommandAgent.RemoveAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy.PolicyName),
                     "Remove stored access policy in queue should succeed");
                 Test.Info("Remove stored access policy:{0}", samplePolicy.PolicyName);
 
@@ -1808,11 +1789,11 @@ namespace Management.Storage.ScenarioTest.BVT
 
             try
             {
-                Test.Assert(agent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy1.PolicyName, samplePolicy1.Permission, samplePolicy1.StartTime, samplePolicy1.ExpiryTime),
+                Test.Assert(CommandAgent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy1.PolicyName, samplePolicy1.Permission, samplePolicy1.StartTime, samplePolicy1.ExpiryTime),
                     "Create stored access policy in queue should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy1.PolicyName);
 
-                Test.Assert(agent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy2.PolicyName, samplePolicy2.Permission, samplePolicy2.StartTime, samplePolicy2.ExpiryTime),
+                Test.Assert(CommandAgent.SetAzureStorageQueueStoredAccessPolicy(queue.Name, samplePolicy2.PolicyName, samplePolicy2.Permission, samplePolicy2.StartTime, samplePolicy2.ExpiryTime),
                 "Set stored access policy in queue should succeed");
                 Test.Info("Set stored access policy:{0}", samplePolicy2.PolicyName);
 
@@ -1827,7 +1808,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 SharedAccessQueuePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessQueuePolicy>(samplePolicy2.StartTime, samplePolicy2.ExpiryTime, samplePolicy2.Permission);
                 Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
                 comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessQueuePolicy>(policy, samplePolicy2.PolicyName));
-                agent.OutputValidation(comp);
+                CommandAgent.OutputValidation(comp);
             }
             finally
             {
@@ -1859,7 +1840,7 @@ namespace Management.Storage.ScenarioTest.BVT
 
             try
             {
-                Test.Assert(agent.NewAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                Test.Assert(CommandAgent.NewAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                     "Create stored access policy in container should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
 
@@ -1900,20 +1881,20 @@ namespace Management.Storage.ScenarioTest.BVT
 
             try
             {
-                Test.Assert(agent.NewAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                Test.Assert(CommandAgent.NewAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                     "Create stored access policy in container should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
 
                 Utility.WaitForPolicyBecomeValid<CloudBlobContainer>(container, samplePolicy);
 
-                Test.Assert(agent.GetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName),
+                Test.Assert(CommandAgent.GetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName),
                 "Get stored access policy in container should succeed");
                 Test.Info("Get stored access policy:{0}", samplePolicy.PolicyName);
 
                 SharedAccessBlobPolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessBlobPolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission);
                 Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
                 comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessBlobPolicy>(policy, samplePolicy.PolicyName));
-                agent.OutputValidation(comp);
+                CommandAgent.OutputValidation(comp);
             }
             finally
             {
@@ -1944,11 +1925,11 @@ namespace Management.Storage.ScenarioTest.BVT
 
             try
             {
-                Test.Assert(agent.NewAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                Test.Assert(CommandAgent.NewAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                     "Create stored access policy in container should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
 
-                Test.Assert(agent.RemoveAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName),
+                Test.Assert(CommandAgent.RemoveAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy.PolicyName),
                     "Remove stored access policy in container should succeed");
                 Test.Info("Remove stored access policy:{0}", samplePolicy.PolicyName);
 
@@ -1990,11 +1971,11 @@ namespace Management.Storage.ScenarioTest.BVT
 
             try
             {
-                Test.Assert(agent.NewAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy1.PolicyName, samplePolicy1.Permission, samplePolicy1.StartTime, samplePolicy1.ExpiryTime),
+                Test.Assert(CommandAgent.NewAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy1.PolicyName, samplePolicy1.Permission, samplePolicy1.StartTime, samplePolicy1.ExpiryTime),
                     "Create stored access policy in container should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy1.PolicyName);
 
-                Test.Assert(agent.SetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy2.PolicyName, samplePolicy2.Permission, samplePolicy2.StartTime, samplePolicy2.ExpiryTime),
+                Test.Assert(CommandAgent.SetAzureStorageContainerStoredAccessPolicy(container.Name, samplePolicy2.PolicyName, samplePolicy2.Permission, samplePolicy2.StartTime, samplePolicy2.ExpiryTime),
                 "Set stored access policy in container should succeed");
                 Test.Info("Set stored access policy:{0}", samplePolicy2.PolicyName);
 
@@ -2009,7 +1990,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 SharedAccessBlobPolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessBlobPolicy>(samplePolicy2.StartTime, samplePolicy2.ExpiryTime, samplePolicy2.Permission);
                 Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
                 comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessBlobPolicy>(policy, samplePolicy2.PolicyName));
-                agent.OutputValidation(comp);
+                CommandAgent.OutputValidation(comp);
             }
             finally
             {
@@ -2037,20 +2018,20 @@ namespace Management.Storage.ScenarioTest.BVT
             {
                 PSCorsRule[] corsRules = CORSRuleUtil.GetRandomValidCORSRules(corsRuleCount);
 
-                Test.Assert(agent.SetAzureStorageCORSRules(serviceType, corsRules),
+                Test.Assert(CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules),
                     "Set 5 Cors rules to {0} service should succeed.", serviceType);
 
-                Test.Assert(agent.GetAzureStorageCORSRules(serviceType),
+                Test.Assert(CommandAgent.GetAzureStorageCORSRules(serviceType),
                     "Get CORS rules from {0} service should succeed.", serviceType);
 
                 PSCorsRule[] acturalRules = this.GetCORSRulesFromOutput();
 
                 CORSRuleUtil.ValidateCORSRules(corsRules, acturalRules);
 
-                Test.Assert(agent.RemoveAzureStorageCORSRules(serviceType),
+                Test.Assert(CommandAgent.RemoveAzureStorageCORSRules(serviceType),
                     "Remove CORS rules of {0} service should succeed.", serviceType);
 
-                Test.Assert(agent.GetAzureStorageCORSRules(serviceType),
+                Test.Assert(CommandAgent.GetAzureStorageCORSRules(serviceType),
                     "Get CORS rules from {0} service should succeed.", serviceType);
 
                 acturalRules = this.GetCORSRulesFromOutput();

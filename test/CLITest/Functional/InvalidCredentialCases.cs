@@ -58,7 +58,7 @@ namespace Management.Storage.ScenarioTest.Functional
             Constants.ServiceType serviceType = GetRandomServiceType();
             var corsRules = CORSRuleUtil.GetRandomValidCORSRules(random.Next(1, 5));
 
-            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set CORS rules with invalid credential should fail.");
+            Test.Assert(!CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "Set CORS rules with invalid credential should fail.");
             CheckErrorMessage();
         }
 
@@ -70,7 +70,7 @@ namespace Management.Storage.ScenarioTest.Functional
         {
             Constants.ServiceType serviceType = GetRandomServiceType();
 
-            Test.Assert(!agent.GetAzureStorageCORSRules(serviceType), "Get CORS rules with invalid credential should fail.");
+            Test.Assert(!CommandAgent.GetAzureStorageCORSRules(serviceType), "Get CORS rules with invalid credential should fail.");
             CheckErrorMessage();
         }
 
@@ -82,7 +82,7 @@ namespace Management.Storage.ScenarioTest.Functional
         {
             Constants.ServiceType serviceType = GetRandomServiceType();
 
-            Test.Assert(!agent.RemoveAzureStorageCORSRules(serviceType), "Remove CORS rules with invalid credential should fail.");
+            Test.Assert(!CommandAgent.RemoveAzureStorageCORSRules(serviceType), "Remove CORS rules with invalid credential should fail.");
             CheckErrorMessage();
         }
 
@@ -97,7 +97,7 @@ namespace Management.Storage.ScenarioTest.Functional
 
             try
             {
-                Test.Assert(!agent.SetAzureStorageShareQuota(shareName, random.Next(1, 5120)), "Set quota with invalid credential should fail.");
+                Test.Assert(!CommandAgent.SetAzureStorageShareQuota(shareName, random.Next(1, 5120)), "Set quota with invalid credential should fail.");
                 CheckErrorMessage();
             }
             finally
@@ -119,7 +119,7 @@ namespace Management.Storage.ScenarioTest.Functional
             try
             {
                 StorageFile.CloudFile file = fileUtil.CreateFile(share.GetRootDirectoryReference(), Utility.GenNameString(""));
-                Test.Assert(!agent.StopFileCopy(shareName, file.Name, Guid.NewGuid().ToString()), "Stop file copy with invalid credential should fail.");
+                Test.Assert(!CommandAgent.StopFileCopy(shareName, file.Name, Guid.NewGuid().ToString()), "Stop file copy with invalid credential should fail.");
                 CheckErrorMessage();
             }
             finally
@@ -135,7 +135,7 @@ namespace Management.Storage.ScenarioTest.Functional
             if (isResourceMode)
             {
                 PowerShellAgent.RemoveAzureSubscriptionIfExists();
-                Test.Assert(!agent.GetAzureStorageUsage(), "Get azure storage usage should fail.");
+                Test.Assert(!CommandAgent.GetAzureStorageUsage(), "Get azure storage usage should fail.");
                 ExpectedContainErrorMessage("No default subscription has been designated.");
             }
         }
@@ -148,7 +148,7 @@ namespace Management.Storage.ScenarioTest.Functional
             {
                 PowerShellAgent.RemoveAzureSubscriptionIfExists();
                 string accountName = AccountUtils.GenerateAvailableAccountName();
-                Test.Assert(!agent.CheckNameAvailability(accountName), "Check name availability should fail.");
+                Test.Assert(!CommandAgent.CheckNameAvailability(accountName), "Check name availability should fail.");
                 ExpectedContainErrorMessage("No default subscription has been designated.");
             }
         }

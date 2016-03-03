@@ -192,57 +192,57 @@ namespace Management.Storage.ScenarioTest
             {
                 case PsTag.NewContainer:
                     {
-                        Test.Assert(agent.NewAzureStorageContainer(sNames), Utility.GenComparisonData("NewAzureStorageContainer", true));
+                        Test.Assert(CommandAgent.NewAzureStorageContainer(sNames), Utility.GenComparisonData("NewAzureStorageContainer", true));
                     }
                     break;
                 case PsTag.NewQueue:
                     {
-                        Test.Assert(agent.NewAzureStorageQueue(sNames), Utility.GenComparisonData("NewAzureStorageQueue", true));
+                        Test.Assert(CommandAgent.NewAzureStorageQueue(sNames), Utility.GenComparisonData("NewAzureStorageQueue", true));
                     }
                     break;
                 case PsTag.NewTable:
                     {
-                        Test.Assert(agent.NewAzureStorageTable(sNames), Utility.GenComparisonData("NewAzureStorageTable", true));
+                        Test.Assert(CommandAgent.NewAzureStorageTable(sNames), Utility.GenComparisonData("NewAzureStorageTable", true));
                     }
                     break;
                 case PsTag.NewShare:
                     {
-                        Test.Assert(agent.NewFileShares(sNames), Utility.GenComparisonData("NewFileShare", true));
+                        Test.Assert(CommandAgent.NewFileShares(sNames), Utility.GenComparisonData("NewFileShare", true));
                     }
                     break;
                 case PsTag.NewDirectory:
                     {
-                        Test.Assert(agent.NewDirectories(CLIPerf.sharedObject as string, sNames), Utility.GenComparisonData("NewDirectory", true));
+                        Test.Assert(CommandAgent.NewDirectories(CLIPerf.sharedObject as string, sNames), Utility.GenComparisonData("NewDirectory", true));
                     }
                     break;
                 case PsTag.GetDirectory:
                     {
-                        Test.Assert(agent.ListDirectories(CLIPerf.sharedObject as string), Utility.GenComparisonData("ListDirectory", true));
+                        Test.Assert(CommandAgent.ListDirectories(CLIPerf.sharedObject as string), Utility.GenComparisonData("ListDirectory", true));
                     }
                     break;
                 case PsTag.RemoveDirectory:
                     {
-                        Test.Assert(agent.ListDirectories(CLIPerf.sharedObject as string), Utility.GenComparisonData("ListDirectory", true));
+                        Test.Assert(CommandAgent.ListDirectories(CLIPerf.sharedObject as string), Utility.GenComparisonData("ListDirectory", true));
                     }
                     break;
                 case PsTag.GetContainer:
                     {
-                        Test.Assert(agent.GetAzureStorageContainerByPrefix(prefix), Utility.GenComparisonData("GetAzureStorageContainer", true));
+                        Test.Assert(CommandAgent.GetAzureStorageContainerByPrefix(prefix), Utility.GenComparisonData("GetAzureStorageContainer", true));
                     }
                     break;
                 case PsTag.GetShare:
                     {
-                        Test.Assert(agent.GetFileSharesByPrefix(prefix), Utility.GenComparisonData("GetFileShare", true));
+                        Test.Assert(CommandAgent.GetFileSharesByPrefix(prefix), Utility.GenComparisonData("GetFileShare", true));
                     }
                     break;
                 case PsTag.GetQueue:
                     {
-                        Test.Assert(agent.GetAzureStorageQueueByPrefix(prefix), Utility.GenComparisonData("GetAzureStorageQueue", true));
+                        Test.Assert(CommandAgent.GetAzureStorageQueueByPrefix(prefix), Utility.GenComparisonData("GetAzureStorageQueue", true));
                     }
                     break;
                 case PsTag.GetTable:
                     {
-                        Test.Assert(agent.GetAzureStorageTableByPrefix(prefix), Utility.GenComparisonData("GetAzureStorageTable", true));
+                        Test.Assert(CommandAgent.GetAzureStorageTableByPrefix(prefix), Utility.GenComparisonData("GetAzureStorageTable", true));
                     }
                     break;
                 case PsTag.RemoveContainer:
@@ -253,22 +253,22 @@ namespace Management.Storage.ScenarioTest
                     break;
                 case PsTag.RemoveShare:
                     {
-                        Test.Assert(agent.RemoveFileShares(sNames), Utility.GenComparisonData("RemoveFileShare", true));
+                        Test.Assert(CommandAgent.RemoveFileShares(sNames), Utility.GenComparisonData("RemoveFileShare", true));
                     }
                     break;
                 case PsTag.RemoveQueue:
                     {
-                        Test.Assert(agent.RemoveAzureStorageQueue(sNames), Utility.GenComparisonData("RemoveAzureStorageQueue", true));
+                        Test.Assert(CommandAgent.RemoveAzureStorageQueue(sNames), Utility.GenComparisonData("RemoveAzureStorageQueue", true));
                     }
                     break;
                 case PsTag.RemoveTable:
                     {
-                        Test.Assert(agent.RemoveAzureStorageTable(sNames), Utility.GenComparisonData("RemoveAzureStorageTable", true));
+                        Test.Assert(CommandAgent.RemoveAzureStorageTable(sNames), Utility.GenComparisonData("RemoveAzureStorageTable", true));
                     }
                     break;
                 case PsTag.SetContainerAcl:
                     {
-                        Test.Assert(agent.SetAzureStorageContainerACL(sNames, BlobContainerPublicAccessType.Container), Utility.GenComparisonData("SetAzureStorageContainerACL", true));
+                        Test.Assert(CommandAgent.SetAzureStorageContainerACL(sNames, BlobContainerPublicAccessType.Container), Utility.GenComparisonData("SetAzureStorageContainerACL", true));
                     }
                     break;
                 default:
@@ -291,11 +291,11 @@ namespace Management.Storage.ScenarioTest
                 case PsTag.NewDirectory:
                 case PsTag.SetContainerAcl:
                     {
-                        if (!(agent is NodeJSAgent))
+                        if (!(CommandAgent is NodeJSAgent))
                         {
                             // no need to check for Node.js commands as it does not support pipeline
-                            Test.Assert(agent.Output.Count == nCount, "{0} row returned : {1}", nCount, agent.Output.Count);
-                            if (agent.Output.Count != nCount)
+                            Test.Assert(CommandAgent.Output.Count == nCount, "{0} row returned : {1}", nCount, CommandAgent.Output.Count);
+                            if (CommandAgent.Output.Count != nCount)
                             {
                                 //only for debug
                                 Test.Assert(false, "error found! terminate instantly for debug!");
@@ -306,29 +306,29 @@ namespace Management.Storage.ScenarioTest
                     break;
                 case PsTag.GetContainer:                
                     {
-                        agent.OutputValidation(StorageAccount.CreateCloudBlobClient().ListContainers(prefix, ContainerListingDetails.All));
+                        CommandAgent.OutputValidation(StorageAccount.CreateCloudBlobClient().ListContainers(prefix, ContainerListingDetails.All));
                     }
                     break;
                 case PsTag.GetShare:
                     {
-                        agent.OutputValidation(StorageAccount.CreateCloudFileClient().ListShares(
+                        CommandAgent.OutputValidation(StorageAccount.CreateCloudFileClient().ListShares(
                             prefix: prefix, 
                             detailsIncluded: Microsoft.WindowsAzure.Storage.File.ShareListingDetails.All));
                     }
                     break;
                 case PsTag.GetDirectory:
                     {
-                        agent.OutputValidation(StorageAccount.CreateCloudFileClient().GetShareReference(CLIPerf.sharedObject as string).GetRootDirectoryReference().ListFilesAndDirectories());
+                        CommandAgent.OutputValidation(StorageAccount.CreateCloudFileClient().GetShareReference(CLIPerf.sharedObject as string).GetRootDirectoryReference().ListFilesAndDirectories());
                     }
                     break;
                 case PsTag.GetQueue:
                     {
-                        agent.OutputValidation(StorageAccount.CreateCloudQueueClient().ListQueues(prefix, QueueListingDetails.All));
+                        CommandAgent.OutputValidation(StorageAccount.CreateCloudQueueClient().ListQueues(prefix, QueueListingDetails.All));
                     }
                     break;
                 case PsTag.GetTable:
                     {
-                        agent.OutputValidation(StorageAccount.CreateCloudTableClient().ListTables(prefix));
+                        CommandAgent.OutputValidation(StorageAccount.CreateCloudTableClient().ListTables(prefix));
                     }
                     break;
                 case PsTag.RemoveContainer:
@@ -356,7 +356,8 @@ namespace Management.Storage.ScenarioTest
                 case PsTag.NewDirectory:
                     {
                         var shareName = "sh" + (new Random()).Next(100000);
-                        if (agent.NewFileShares(new string[] {shareName})) {
+                        if (CommandAgent.NewFileShares(new string[] { shareName }))
+                        {
                             obj = shareName;
                             return;
                         }
@@ -377,7 +378,7 @@ namespace Management.Storage.ScenarioTest
                         var shareName = o as string;
                         if (shareName != null)
                         {
-                            agent.RemoveFileShares(new string[] { shareName });
+                            CommandAgent.RemoveFileShares(new string[] { shareName });
                         }
                     }
                     break;

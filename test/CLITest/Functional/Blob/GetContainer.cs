@@ -71,11 +71,11 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 //list all containers with properties and meta data
                 string containerName = string.Empty;
 
-                Test.Assert(agent.GetAzureStorageContainer(containerName), Utility.GenComparisonData("GetAzureStorageContainer", true));
-                Test.Assert(agent.Output.Count == containers.Count, String.Format("Create {0} containers, but retrieved {1} containers", containers.Count, agent.Output.Count));
+                Test.Assert(CommandAgent.GetAzureStorageContainer(containerName), Utility.GenComparisonData("GetAzureStorageContainer", true));
+                Test.Assert(CommandAgent.Output.Count == containers.Count, String.Format("Create {0} containers, but retrieved {1} containers", containers.Count, CommandAgent.Output.Count));
 
                 // Verification for returned values
-                agent.OutputValidation(containers);
+                CommandAgent.OutputValidation(containers);
             }
             finally
             {
@@ -116,10 +116,10 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 container.SetPermissions(permission);
 
-                Test.Assert(agent.GetAzureStorageContainer(containerName), Utility.GenComparisonData("GetAzureStorageContainer", true));
-                Test.Assert(agent.Output.Count == 1, String.Format("Create {0} containers, actually retrieved {1} containers", 1, agent.Output.Count));
+                Test.Assert(CommandAgent.GetAzureStorageContainer(containerName), Utility.GenComparisonData("GetAzureStorageContainer", true));
+                Test.Assert(CommandAgent.Output.Count == 1, String.Format("Create {0} containers, actually retrieved {1} containers", 1, CommandAgent.Output.Count));
 
-                agent.OutputValidation(new List<BlobContainerPermissions>() { permission });
+                CommandAgent.OutputValidation(new List<BlobContainerPermissions>() { permission });
             }
             finally
             {

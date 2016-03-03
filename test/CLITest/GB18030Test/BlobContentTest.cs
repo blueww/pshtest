@@ -102,7 +102,7 @@ namespace Management.Storage.ScenarioTest.GB18030Test.Blob
             try
             {
                 //--------------Upload operation--------------
-                Test.Assert(agent.SetAzureStorageBlobContent(uploadFilePath, containerName, blobType), 
+                Test.Assert(CommandAgent.SetAzureStorageBlobContent(uploadFilePath, containerName, blobType), 
                     Utility.GenComparisonData("SendAzureStorageBlob", true));
 
                 CloudBlob blob = CloudBlobUtil.GetBlob(container, blobName, blobType);
@@ -147,7 +147,7 @@ namespace Management.Storage.ScenarioTest.GB18030Test.Blob
                 }
 
                 //--------------Download operation--------------
-                Test.Assert(agent.GetAzureStorageBlobContent(blobName, downloadFilePath, containerName, true), "download blob should be successful");
+                Test.Assert(CommandAgent.GetAzureStorageBlobContent(blobName, downloadFilePath, containerName, true), "download blob should be successful");
 
                 // Check MD5
                 string localMd5 = Helper.GetFileContentMD5(downloadFilePath);
@@ -195,7 +195,7 @@ namespace Management.Storage.ScenarioTest.GB18030Test.Blob
                 }
 
                 //--------------Copy blob operation--------------
-                Test.Assert(agent.StartAzureStorageBlobCopy(srcContainerName, blobName, destContainerName, blobName), Utility.GenComparisonData("Start copy blob using blob name", true));
+                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(srcContainerName, blobName, destContainerName, blobName), Utility.GenComparisonData("Start copy blob using blob name", true));
 
                 // Get destination blob
                 blob = CloudBlobUtil.GetBlob(destContainer, blobName, blobType);

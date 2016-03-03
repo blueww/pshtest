@@ -38,7 +38,6 @@
 
         public override void OnTestCleanUp()
         {
-            this.agent.Dispose();
             fileUtil.DeleteFileShareIfExists(this.fileShare.Name);
         }
 
@@ -56,9 +55,9 @@
             fileUtil.CreateFile(this.fileShare, cloudFileName);
             string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
-            this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName, true);
-            var result = agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.UploadFile(this.fileShare, localFilePath, cloudFileName, true);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             if (lang == Language.NodeJS)
             {
                 result.AssertObjectCollection(obj => result.AssertCloudFile(obj, "/" + cloudFileName));
@@ -80,9 +79,9 @@
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
-            this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName, false, true);
-            var result = agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.UploadFile(this.fileShare, localFilePath, cloudFileName, false, true);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertObjectCollection(obj => obj.AssertCloudFile(cloudFileName));
         }
 
@@ -99,9 +98,9 @@
             var directory = fileUtil.EnsureDirectoryExists(this.fileShare, cloudDirectoryName);
             string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
-            this.agent.UploadFile(directory, localFilePath, cloudFileName, true);
-            var result = agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.UploadFile(directory, localFilePath, cloudFileName, true);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertNoResult();
         }
 
@@ -120,9 +119,9 @@
             string cloudPath = "/a/b/c/" + cloudFileName;
             string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
-            this.agent.UploadFile(this.fileShare, localFilePath, cloudPath);
-            this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.UploadFile(this.fileShare, localFilePath, cloudPath);
+            CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             Test.Assert(baseDir.GetFileReference(cloudFileName).Exists(), "File should exist after uploaded.");
         }
 
@@ -141,9 +140,9 @@
             string relativeCloudPath = "a/b/../b/./c/" + cloudFileName;
             string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
-            this.agent.UploadFile(this.fileShare, localFilePath, relativeCloudPath);
-            this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.UploadFile(this.fileShare, localFilePath, relativeCloudPath);
+            CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             Test.Assert(baseDir.GetFileReference(cloudFileName).Exists(), "File should exist after uploaded.");
         }
 
@@ -161,9 +160,9 @@
             string relativeCloudPath = "../../b/./c/" + cloudFileName;
             string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
-            this.agent.UploadFile(baseDir, localFilePath, relativeCloudPath);
-            this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.UploadFile(baseDir, localFilePath, relativeCloudPath);
+            CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             Test.Assert(baseDir.GetFileReference(cloudFileName).Exists(), "File should exist after uploaded.");
         }
 
@@ -175,15 +174,24 @@
         [TestCategory(Tag.Function)]
         public void UploadLocalFileUsingRelativePathAfterChangedDefaultLocation()
         {
-            string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), cloudFileName);
-            FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
-            this.agent.ChangeLocation(Test.Data.Get("TempDir"));
-            this.agent.UploadFile(this.fileShare, cloudFileName, cloudFileName, true);
-            var result = this.agent.Invoke();
-            result.AssertNoResult();
-            var file = this.fileShare.GetRootDirectoryReference().GetFileReference(cloudFileName);
-            Test.Assert(file.Exists(), "File shold exist after uploaded.");
+            string currentPath = CommandAgent.GetCurrentLocation();
+            try
+            {
+                string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
+                string localFilePath = Path.Combine(Test.Data.Get("TempDir"), cloudFileName);
+                FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
+                CommandAgent.ChangeLocation(Test.Data.Get("TempDir"));
+                CommandAgent.UploadFile(this.fileShare, cloudFileName, cloudFileName, true);
+                var result = CommandAgent.Invoke();
+                result.AssertNoResult();
+                var file = this.fileShare.GetRootDirectoryReference().GetFileReference(cloudFileName);
+                Test.Assert(file.Exists(), "File shold exist after uploaded.");
+            }
+            finally
+            {
+                CommandAgent.Clear();
+                CommandAgent.ChangeLocation(currentPath);
+            }
         }
 
         [TestMethod]
@@ -197,15 +205,15 @@
             string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             string localFilePath2 = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             FileUtil.GenerateSmallFile(localFilePath, 0, true);
-            this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName, true);
-            var result = agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.UploadFile(this.fileShare, localFilePath, cloudFileName, true);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             Test.Assert(fileShare.GetRootDirectoryReference().GetFileReference(cloudFileName).Exists(), "File should exist after uploaded.");
 
-            this.agent.Clear();
-            this.agent.DownloadFile(this.fileShare.GetRootDirectoryReference(), cloudFileName, localFilePath2, true);
-            result = agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.Clear();
+            CommandAgent.DownloadFile(this.fileShare.GetRootDirectoryReference(), cloudFileName, localFilePath2, true);
+            result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             Test.Assert(File.Exists(localFilePath2), "File should exist after uploaded.");
             Test.Assert(FileUtil.GetFileContentMD5(localFilePath) == FileUtil.GetFileContentMD5(localFilePath2), "The download file MD5 {0} should match Uploaded File MD5 {1}.", FileUtil.GetFileContentMD5(localFilePath2), FileUtil.GetFileContentMD5(localFilePath));
         }
@@ -223,10 +231,10 @@
             string cloudFileName = FileNamingGenerator.GenerateValidateASCIIName(256);
             string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
-            this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName, true);
-            var result = this.agent.Invoke();
+            CommandAgent.UploadFile(this.fileShare, localFilePath, cloudFileName, true);
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -244,10 +252,10 @@
             cloudFileName = cloudFileName.Replace(@"/", "*");
             string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
-            this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName, true);
-            var result = this.agent.Invoke();
+            CommandAgent.UploadFile(this.fileShare, localFilePath, cloudFileName, true);
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -267,10 +275,10 @@
             // Creates an storage context object with invalid account
             // name.
             var invalidAccount = CloudFileUtil.MockupStorageAccount(StorageAccount, mockupAccountName: true);
-            object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
-            this.agent.UploadFile(this.fileShare.Name, localFilePath, cloudFileName, false, false, invalidStorageContextObject);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertError(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
+            object invalidStorageContextObject = CommandAgent.CreateStorageContextObject(invalidAccount.ToString(true));
+            CommandAgent.UploadFile(this.fileShare.Name, localFilePath, cloudFileName, false, false, invalidStorageContextObject);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(record => record.AssertError(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -289,10 +297,10 @@
 
             // Creates an storage context object with invalid key value
             var invalidAccount = CloudFileUtil.MockupStorageAccount(StorageAccount, mockupAccountKey: true);
-            object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
-            this.agent.UploadFile(this.fileShare.Name, localFilePath, cloudFileName, false, false, invalidStorageContextObject);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertError(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
+            object invalidStorageContextObject = CommandAgent.CreateStorageContextObject(invalidAccount.ToString(true));
+            CommandAgent.UploadFile(this.fileShare.Name, localFilePath, cloudFileName, false, false, invalidStorageContextObject);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(record => record.AssertError(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -308,9 +316,9 @@
             var etag = file.Properties.ETag;
             string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
-            this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName, false);
-            var result = agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId));
+            CommandAgent.UploadFile(this.fileShare, localFilePath, cloudFileName, false);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId));
             file.FetchAttributes();
             Test.Assert(etag == file.Properties.ETag, "File should not be overwritten without overwrite flag.");
         }
@@ -359,9 +367,9 @@
             fileUtil.DeleteDirectoryIfExists(this.fileShare, cloudDirectoryName);
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             var file = this.fileShare.GetRootDirectoryReference().GetDirectoryReference(cloudDirectoryName).GetFileReference(cloudFileName);
-            this.agent.UploadFile(this.fileShare, localFilePath, CloudFileUtil.GetFullPath(file));
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ParentNotFoundFullQualifiedErrorId));
+            CommandAgent.UploadFile(this.fileShare, localFilePath, CloudFileUtil.GetFullPath(file));
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ParentNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -376,9 +384,9 @@
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             fileUtil.CreateFile(this.fileShare, cloudFileName);
 
-            this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName);
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId));
+            CommandAgent.UploadFile(this.fileShare, localFilePath, cloudFileName);
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -396,9 +404,9 @@
 
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
 
-            this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName);
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.PathNotFoundFullQualifiedErrorId));
+            CommandAgent.UploadFile(this.fileShare, localFilePath, cloudFileName);
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.PathNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -420,9 +428,9 @@
             file.Delete();
 
             // Upload the file immediately
-            this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName);
-            this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.UploadFile(this.fileShare, localFilePath, cloudFileName);
+            CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             fileUtil.AssertFileExists(this.fileShare, cloudFileName, "File should exist after uploaded.");
         }
 
@@ -440,9 +448,9 @@
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             string cloudFileName = "CLOCK$";
 
-            this.agent.UploadFile(this.fileShare, localFilePath, cloudFileName);
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+            CommandAgent.UploadFile(this.fileShare, localFilePath, cloudFileName);
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -459,9 +467,9 @@
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             var dir = fileUtil.EnsureDirectoryExists(this.fileShare, CloudFileUtil.GenerateUniqueDirectoryName());
             dir.Delete();
-            this.agent.UploadFile(this.fileShare, localFilePath, CloudFileUtil.GetFullPath(dir) + "/");
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ParentNotFoundFullQualifiedErrorId));
+            CommandAgent.UploadFile(this.fileShare, localFilePath, CloudFileUtil.GetFullPath(dir) + "/");
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ParentNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -476,9 +484,9 @@
         {
             string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
-            this.agent.UploadFile(this.fileShare, localFilePath, "../a");
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId, AssertUtil.AuthenticationFailedFullQualifiedErrorId));
+            CommandAgent.UploadFile(this.fileShare, localFilePath, "../a");
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId, AssertUtil.AuthenticationFailedFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -494,9 +502,9 @@
             string relativeCloudPath = "../../ddd/../b/./c/" + cloudFileName;
             string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
-            this.agent.UploadFile(baseDir, localFilePath, relativeCloudPath);
-            this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.UploadFile(baseDir, localFilePath, relativeCloudPath);
+            CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             Test.Assert(baseDir.GetFileReference(cloudFileName).Exists(), "File should exist after uploaded.");
         }
 
@@ -516,8 +524,8 @@
                 indexToBeRemoved.RemoveAt(id);
             }
 
-            this.agent.UploadFilesFromPipeline(this.fileShare.Name, localFilePath);
-            var result = this.agent.Invoke(names);
+            CommandAgent.UploadFilesFromPipeline(this.fileShare.Name, localFilePath);
+            var result = CommandAgent.Invoke(names);
 
             // Assert all files are created
             foreach (string name in names)

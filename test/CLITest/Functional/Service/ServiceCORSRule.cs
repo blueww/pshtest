@@ -84,7 +84,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             Action<Constants.ServiceType> setCORSRules = (serviceType) =>
             {
                 PSCorsRule[] corsRules = CORSRuleUtil.GetRandomValidCORSRules(random.Next(1, 5));
-                Test.Assert(agent.SetAzureStorageCORSRules(serviceType, corsRules),
+                Test.Assert(CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules),
                      "Set cors rule to blob service should succeed");
             };
 
@@ -106,10 +106,10 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             try
             {
                 PSCorsRule[] corsRules = CORSRuleUtil.GetRandomValidCORSRules(random.Next(1, 5));
-                Test.Assert(agent.SetAzureStorageCORSRules(serviceType, corsRules),
+                Test.Assert(CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules),
                     "Set cors rule to {0} service should succeed", serviceType);
 
-                Test.Assert(agent.GetAzureStorageCORSRules(serviceType),
+                Test.Assert(CommandAgent.GetAzureStorageCORSRules(serviceType),
                     "Get CORS rule of {0} service should succeed.", serviceType);
 
                 PSCorsRule[] newCorsRules = GetCORSRules();
@@ -138,10 +138,10 @@ namespace Management.Storage.ScenarioTest.Functional.Service
                     }
                 }
 
-                Test.Assert(agent.SetAzureStorageCORSRules(serviceType, newCorsRules),
+                Test.Assert(CommandAgent.SetAzureStorageCORSRules(serviceType, newCorsRules),
                     "Set cors rule to {0} service should succeed", serviceType);
 
-                Test.Assert(agent.GetAzureStorageCORSRules(serviceType),
+                Test.Assert(CommandAgent.GetAzureStorageCORSRules(serviceType),
                     "Set cors rule of {0} service should succeed", serviceType);
 
                 PSCorsRule[] actualCORSRules = GetCORSRules();
@@ -231,12 +231,12 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             Constants.ServiceType serviceType = GetRandomServiceType();
             if (lang == Language.PowerShell)
             {
-                Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set 0 cors rule  to {0} service should fail", serviceType);
+                Test.Assert(!CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "Set 0 cors rule  to {0} service should fail", serviceType);
                 ExpectedContainErrorMessage("Cannot bind argument to parameter 'CorsRules' because it is an empty array.");
             }
             else
             {
-                Test.Assert(agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set 0 cors rule  to {0} service should succeed", serviceType);
+                Test.Assert(CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "Set 0 cors rule  to {0} service should succeed", serviceType);
             }
         }
 
@@ -259,7 +259,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             };
             Constants.ServiceType serviceType = GetRandomServiceType();
 
-            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule without allowed origin to {0} service should fail", serviceType);
+            Test.Assert(!CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule without allowed origin to {0} service should fail", serviceType);
 
             if (lang == Language.PowerShell)
             {
@@ -275,7 +275,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             corsRules[0].AllowedMethods = new string[0];
 
             serviceType = GetRandomServiceType();
-            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule without allowed method to {0} service should fail", serviceType);
+            Test.Assert(!CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule without allowed method to {0} service should fail", serviceType);
 
             if (lang == Language.PowerShell)
             {
@@ -294,12 +294,12 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
             if (lang == Language.PowerShell)
             {
-                Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule to {0} service should fail when max age is negative.", serviceType);
+                Test.Assert(!CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule to {0} service should fail when max age is negative.", serviceType);
                 ExpectedContainErrorMessage(NoOriginNoMethod0MaxCacheAgeError);
             }
             else
             {
-                Test.Assert(agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule to {0} service should succeed when max age is negative.", serviceType);
+                Test.Assert(CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule to {0} service should succeed when max age is negative.", serviceType);
             }
 
             // Length of one of allowed origins is greater than 256
@@ -308,7 +308,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             corsRules[0].AllowedOrigins[0] = Utility.GenNameString("origin", 251);
 
             serviceType = GetRandomServiceType();
-            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule to {0} service should fail, when allowed origin length is greater than 256.", serviceType);
+            Test.Assert(!CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule to {0} service should fail, when allowed origin length is greater than 256.", serviceType);
 
             if (lang == Language.PowerShell)
             {
@@ -323,7 +323,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             corsRules[0].AllowedOrigins = CORSRuleUtil.GetRandomOrigins(random.Next(65, 100));
 
             serviceType = GetRandomServiceType();
-            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Allowed origins count is greater than 64, set cors rule {0} service should fail", serviceType);
+            Test.Assert(!CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "Allowed origins count is greater than 64, set cors rule {0} service should fail", serviceType);
             if (lang == Language.PowerShell)
             {
                 ExpectedContainErrorMessage(CORSRuleInvalidError);
@@ -340,7 +340,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             corsRules[0].AllowedMethods[0] = invalidMethodName;
 
             serviceType = GetRandomServiceType();
-            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Inalid method name, set cors rule to {0} service should fail", serviceType);
+            Test.Assert(!CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "Inalid method name, set cors rule to {0} service should fail", serviceType);
 
             if (lang == Language.PowerShell)
             {
@@ -356,7 +356,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             corsRules[0].AllowedHeaders = CORSRuleUtil.GetRandomHeaders(null, random.Next(3, 10));
 
             serviceType = GetRandomServiceType();
-            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "More than 2 prefixed allowed headers, set cors rule to {0} service should fail", serviceType);
+            Test.Assert(!CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "More than 2 prefixed allowed headers, set cors rule to {0} service should fail", serviceType);
             if (lang == Language.PowerShell)
             {
                 ExpectedContainErrorMessage(CORSRuleInvalidError);
@@ -370,7 +370,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             corsRules[0].AllowedHeaders = CORSRuleUtil.GetRandomHeaders(random.Next(65, 100));
 
             serviceType = GetRandomServiceType();
-            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "More than 64 defined allowed headers, set cors rule to {0} service should fail", serviceType);
+            Test.Assert(!CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "More than 64 defined allowed headers, set cors rule to {0} service should fail", serviceType);
             if (lang == Language.PowerShell)
             {
                 ExpectedContainErrorMessage(CORSRuleInvalidError);
@@ -385,7 +385,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             corsRules[0].AllowedHeaders[0] = Utility.GenNameString("header", 251);
 
             serviceType = GetRandomServiceType();
-            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Allowed header length greater than 256, set cors rule to {0} service should fail", serviceType);
+            Test.Assert(!CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "Allowed header length greater than 256, set cors rule to {0} service should fail", serviceType);
             if (lang == Language.PowerShell)
             {
                 ExpectedContainErrorMessage(CORSRuleInvalidError);
@@ -400,7 +400,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             corsRules[0].ExposedHeaders = CORSRuleUtil.GetRandomHeaders(null, random.Next(3, 10));
 
             serviceType = GetRandomServiceType();
-            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "More than 2 prefixed exposed headers, set cors rule to {0} service should fail", serviceType);
+            Test.Assert(!CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "More than 2 prefixed exposed headers, set cors rule to {0} service should fail", serviceType);
             if (lang == Language.PowerShell)
             {
                 ExpectedContainErrorMessage(CORSRuleInvalidError);
@@ -414,7 +414,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             corsRules[0].ExposedHeaders = CORSRuleUtil.GetRandomHeaders(random.Next(65, 100));
 
             serviceType = GetRandomServiceType();
-            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "More than 64 defined exposed headers, set cors rule to {0} service should fail", serviceType);
+            Test.Assert(!CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "More than 64 defined exposed headers, set cors rule to {0} service should fail", serviceType);
             if (lang == Language.PowerShell)
             {
                 ExpectedContainErrorMessage(CORSRuleInvalidError);
@@ -429,7 +429,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             corsRules[0].ExposedHeaders[0] = Utility.GenNameString("header", 251);
 
             serviceType = GetRandomServiceType();
-            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Exposed header length greater than 256, set cors rule to {0} service should fail", serviceType);
+            Test.Assert(!CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "Exposed header length greater than 256, set cors rule to {0} service should fail", serviceType);
             if (lang == Language.PowerShell)
             {
                 ExpectedContainErrorMessage(CORSRuleInvalidError);
@@ -445,7 +445,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             corsRules[0].ExposedHeaders = CORSRuleUtil.GetRandomHeaders(null, null, true);
 
             serviceType = GetRandomServiceType();
-            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "Exposed header length greater than 256, set cors rule to {0} service should fail", serviceType);
+            Test.Assert(!CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "Exposed header length greater than 256, set cors rule to {0} service should fail", serviceType);
             if (lang == Language.PowerShell)
             {
                 ExpectedContainErrorMessage(CORSRuleInvalidError);
@@ -461,7 +461,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             corsRules = CORSRuleUtil.GetRandomValidCORSRules(6);
 
             serviceType = GetRandomServiceType();
-            Test.Assert(!agent.SetAzureStorageCORSRules(serviceType, corsRules), "6 CORS rules, set cors rule to {0} service should fail", serviceType);
+            Test.Assert(!CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "6 CORS rules, set cors rule to {0} service should fail", serviceType);
             if (lang == Language.PowerShell)
             {
                 ExpectedContainErrorMessage(CORSRuleInvalidError);
@@ -476,7 +476,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
             if (lang == Language.PowerShell)
             {
-                Test.Assert(!agent.SetAzureStorageCORSRules(Constants.ServiceType.InvalidService, corsRules), "Set cors rules to invalid service type should fail.");
+                Test.Assert(!CommandAgent.SetAzureStorageCORSRules(Constants.ServiceType.InvalidService, corsRules), "Set cors rules to invalid service type should fail.");
                 ExpectedContainErrorMessage(string.Format("Unable to match the identifier name {0} to a valid enumerator name. Specify one of the following enumerator names and try again:",
                     Constants.ServiceType.InvalidService.ToString()));
             }
@@ -491,13 +491,13 @@ namespace Management.Storage.ScenarioTest.Functional.Service
         {
             if (lang == Language.PowerShell)
             {
-                Test.Assert(!agent.GetAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Get CORS rules of invalid service type should fail.");
+                Test.Assert(!CommandAgent.GetAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Get CORS rules of invalid service type should fail.");
                 ExpectedContainErrorMessage(string.Format("Unable to match the identifier name {0} to a valid enumerator name. Specify one of the following enumerator names and try again:",
                     Constants.ServiceType.InvalidService.ToString()));
             }
             else
             {
-                Test.Assert(!agent.GetAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Get CORS rules of invalid service type should fail.");
+                Test.Assert(!CommandAgent.GetAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Get CORS rules of invalid service type should fail.");
                 ExpectedContainErrorMessage(string.Format("error: unknown option `--{0}'", Constants.ServiceType.InvalidService.ToString().ToLower()));
             }
         }
@@ -511,13 +511,13 @@ namespace Management.Storage.ScenarioTest.Functional.Service
         {
             if (lang == Language.PowerShell)
             {
-                Test.Assert(!agent.RemoveAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Remove CORS rules of invalid service type should fail.");
+                Test.Assert(!CommandAgent.RemoveAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Remove CORS rules of invalid service type should fail.");
                 ExpectedContainErrorMessage(string.Format("Unable to match the identifier name {0} to a valid enumerator name. Specify one of the following enumerator names and try again:",
                     Constants.ServiceType.InvalidService.ToString()));
             }
             else
             {
-                Test.Assert(!agent.RemoveAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Remove CORS rules of invalid service type should fail.");
+                Test.Assert(!CommandAgent.RemoveAzureStorageCORSRules(Constants.ServiceType.InvalidService), "Remove CORS rules of invalid service type should fail.");
                 ExpectedContainErrorMessage(string.Format("error: unknown option `--{0}'", Constants.ServiceType.InvalidService.ToString().ToLower()));
             }
         }
@@ -538,16 +538,16 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             // Set CORS rules with cmdlet
             serviceType = GetRandomServiceType();
             PSCorsRule[] corsRules = CORSRuleUtil.GetRandomValidCORSRules(random.Next(1, 5));
-            Test.Assert(agent.SetAzureStorageCORSRules(serviceType, corsRules),
+            Test.Assert(CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules),
                 "Set CORS rules to {0} service should succeed.", serviceType);
             this.ValidateRemoveCORSRule(serviceType);
         }
 
         private void ValidateRemoveCORSRule(Constants.ServiceType serviceType)
         {
-            Test.Assert(agent.RemoveAzureStorageCORSRules(serviceType), "Remove CORS rules of {0} service should succeed.", serviceType);
+            Test.Assert(CommandAgent.RemoveAzureStorageCORSRules(serviceType), "Remove CORS rules of {0} service should succeed.", serviceType);
 
-            Test.Assert(agent.GetAzureStorageCORSRules(serviceType), "Get CORS rules of {0} service should succeed.", serviceType);
+            Test.Assert(CommandAgent.GetAzureStorageCORSRules(serviceType), "Get CORS rules of {0} service should succeed.", serviceType);
 
             PSCorsRule[] actualCORSRule = GetCORSRules();
 
@@ -562,9 +562,9 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             try
             {
 
-                Test.Assert(agent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule  to {0} service should succeed", serviceType);
+                Test.Assert(CommandAgent.SetAzureStorageCORSRules(serviceType, corsRules), "Set cors rule  to {0} service should succeed", serviceType);
 
-                Test.Assert(agent.GetAzureStorageCORSRules(serviceType), "Get CORS rules of {0} service should succeed", serviceType);
+                Test.Assert(CommandAgent.GetAzureStorageCORSRules(serviceType), "Get CORS rules of {0} service should succeed", serviceType);
 
                 CORSRuleUtil.ValidateCORSRules(corsRules, GetCORSRules());
             }
@@ -588,10 +588,10 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
                 PSCorsRule[] newCorsRules = CORSRuleUtil.GetRandomValidCORSRules(random.Next(1, 5));
 
-                Test.Assert(agent.SetAzureStorageCORSRules(serviceType, newCorsRules),
+                Test.Assert(CommandAgent.SetAzureStorageCORSRules(serviceType, newCorsRules),
                     "Set cors rule to blob service should succeed");
 
-                Test.Assert(agent.GetAzureStorageCORSRules(serviceType),
+                Test.Assert(CommandAgent.GetAzureStorageCORSRules(serviceType),
                     "Get cors rules of blob service should succeed.");
 
                 PSCorsRule[] acturalRules = GetCORSRules();
@@ -608,12 +608,12 @@ namespace Management.Storage.ScenarioTest.Functional.Service
         {
             if (lang == Language.PowerShell)
             {
-                return agent.Output[0][PowerShellAgent.BaseObject] as PSCorsRule[];
+                return CommandAgent.Output[0][PowerShellAgent.BaseObject] as PSCorsRule[];
             }
             else
             {
                 List<PSCorsRule> rules = new List<PSCorsRule>();
-                for (int i = 0; i < agent.Output.Count; i++)
+                for (int i = 0; i < CommandAgent.Output.Count; i++)
                 {
                     PSCorsRule rule = new PSCorsRule();
 
@@ -623,18 +623,18 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
                     foreach (string key in keys)
                     {
-                        if (agent.Output[i].ContainsKey(key))
+                        if (CommandAgent.Output[i].ContainsKey(key))
                         {
-                            categories = (JArray)agent.Output[i][key];
+                            categories = (JArray)CommandAgent.Output[i][key];
                             rule.GetType().GetProperty(key).SetValue(rule, categories.Select(c => (string)c).ToArray());
                             hasValue = true;
                         }
                     }
 
                     string ageKey = "MaxAgeInSeconds";
-                    if (agent.Output[i].ContainsKey(ageKey))
+                    if (CommandAgent.Output[i].ContainsKey(ageKey))
                     {
-                        rule.MaxAgeInSeconds = (int)(agent.Output[i][ageKey] as long?);
+                        rule.MaxAgeInSeconds = (int)(CommandAgent.Output[i][ageKey] as long?);
                         hasValue = true;
                     }
 

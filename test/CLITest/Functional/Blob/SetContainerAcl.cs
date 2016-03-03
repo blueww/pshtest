@@ -54,9 +54,9 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             string containerName = "ContainerName";
 
-            Test.Assert(!agent.SetAzureStorageContainerACL(containerName, BlobContainerPublicAccessType.Blob), "SetAzureStorageContainerACL with invalid operation should fail");
-            Test.Assert(agent.ErrorMessages.Count == 1, "set container acl with invalid name should only throw one exception");
-            agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, containerName);
+            Test.Assert(!CommandAgent.SetAzureStorageContainerACL(containerName, BlobContainerPublicAccessType.Blob), "SetAzureStorageContainerACL with invalid operation should fail");
+            Test.Assert(CommandAgent.ErrorMessages.Count == 1, "set container acl with invalid name should only throw one exception");
+            CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, containerName);
         }
     }
 }

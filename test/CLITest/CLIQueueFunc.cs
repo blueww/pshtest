@@ -97,11 +97,11 @@ namespace Management.Storage.ScenarioTest
             }
 
             //--------------1. New operation--------------
-            Test.Assert(agent.NewAzureStorageQueue(QUEUE_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", true));
+            Test.Assert(CommandAgent.NewAzureStorageQueue(QUEUE_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", true));
             if (multiOutput)
             {
                 // Verification for returned values
-                Test.Assert(agent.Output.Count == 3, "3 row returned : {0}", agent.Output.Count);
+                Test.Assert(CommandAgent.Output.Count == 3, "3 row returned : {0}", CommandAgent.Output.Count);
             }
 
             // Check if all the above queues have been created
@@ -116,29 +116,29 @@ namespace Management.Storage.ScenarioTest
                 //--------------2. New operation--------------
                 if (multiOutput)
                 {
-                    Test.Assert(!agent.NewAzureStorageQueue(QUEUE_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", false));
+                    Test.Assert(!CommandAgent.NewAzureStorageQueue(QUEUE_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", false));
                     // Verification for returned values
-                    Test.Assert(agent.Output.Count == 0, "0 row returned : {0}", agent.Output.Count);
+                    Test.Assert(CommandAgent.Output.Count == 0, "0 row returned : {0}", CommandAgent.Output.Count);
 
                     int i = 0;
                     foreach (string name in QUEUE_NAMES)
                     {
-                        Test.Assert(agent.ErrorMessages[i].Contains(String.Format("Queue '{0}' already exists.", name)), agent.ErrorMessages[i]);
+                        Test.Assert(CommandAgent.ErrorMessages[i].Contains(String.Format("Queue '{0}' already exists.", name)), CommandAgent.ErrorMessages[i]);
                         ++i;
                     }
 
                     //--------------3. New operation--------------
-                    Test.Assert(!agent.NewAzureStorageQueue(PARTLY_EXISTING_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", false));
-                    Test.Assert(agent.Output.Count == 1, "1 row returned : {0}", agent.Output.Count);
+                    Test.Assert(!CommandAgent.NewAzureStorageQueue(PARTLY_EXISTING_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", false));
+                    Test.Assert(CommandAgent.Output.Count == 1, "1 row returned : {0}", CommandAgent.Output.Count);
                 }
                 else
                 {
                     // Queue with the same could be created as long as the metadata is the same.
                     // http://msdn.microsoft.com/en-us/library/azure/dd179342.aspx
-                    Test.Assert(agent.NewAzureStorageQueue(QUEUE_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", true));
+                    Test.Assert(CommandAgent.NewAzureStorageQueue(QUEUE_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", true));
 
-                    Test.Assert(agent.NewAzureStorageQueue(PARTLY_EXISTING_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", true));
-                    Test.Assert(agent.Output.Count == 1, "1 row returned : {0}", agent.Output.Count);
+                    Test.Assert(CommandAgent.NewAzureStorageQueue(PARTLY_EXISTING_NAMES), Utility.GenComparisonData("NewAzureStorageQueue", true));
+                    Test.Assert(CommandAgent.Output.Count == 1, "1 row returned : {0}", CommandAgent.Output.Count);
                 }
 
                 // Check if all the above queues have been created
@@ -151,20 +151,20 @@ namespace Management.Storage.ScenarioTest
                 //--------------4. Get operation--------------
                 if (multiOutput)
                 {
-                    Test.Assert(agent.GetAzureStorageQueue("*" + PREFIX + "*"), Utility.GenComparisonData("GetAzureStorageQueue", true));
+                    Test.Assert(CommandAgent.GetAzureStorageQueue("*" + PREFIX + "*"), Utility.GenComparisonData("GetAzureStorageQueue", true));
                     // Verification for returned values
-                    agent.OutputValidation(StorageAccount.CreateCloudQueueClient().ListQueues(PREFIX, QueueListingDetails.All));
+                    CommandAgent.OutputValidation(StorageAccount.CreateCloudQueueClient().ListQueues(PREFIX, QueueListingDetails.All));
                 }
 
                 // use Prefix parameter
-                Test.Assert(agent.GetAzureStorageQueueByPrefix(PREFIX), Utility.GenComparisonData("GetAzureStorageQueueByPrefix", true));
+                Test.Assert(CommandAgent.GetAzureStorageQueueByPrefix(PREFIX), Utility.GenComparisonData("GetAzureStorageQueueByPrefix", true));
                 // Verification for returned values
-                agent.OutputValidation(StorageAccount.CreateCloudQueueClient().ListQueues(PREFIX, QueueListingDetails.All));
+                CommandAgent.OutputValidation(StorageAccount.CreateCloudQueueClient().ListQueues(PREFIX, QueueListingDetails.All));
             }
             finally
             {
                 //--------------5. Remove operation--------------
-                Test.Assert(agent.RemoveAzureStorageQueue(MERGED_NAMES), Utility.GenComparisonData("RemoveAzureStorageQueue", true));
+                Test.Assert(CommandAgent.RemoveAzureStorageQueue(MERGED_NAMES), Utility.GenComparisonData("RemoveAzureStorageQueue", true));
                 // Check if all the above queues have been removed
                 foreach (string name in QUEUE_NAMES)
                 {
@@ -198,17 +198,17 @@ namespace Management.Storage.ScenarioTest
                 if (canCreateWithSameName)
                 {
                     //--------------New operation--------------
-                    Test.Assert(agent.NewAzureStorageQueue(QUEUE_NAME), Utility.GenComparisonData("NewAzureStorageQueue", true));
+                    Test.Assert(CommandAgent.NewAzureStorageQueue(QUEUE_NAME), Utility.GenComparisonData("NewAzureStorageQueue", true));
                     // Verification for returned values
-                    Test.Assert(agent.Output.Count == 1, "Only 1 row returned : {0}", agent.Output.Count);
+                    Test.Assert(CommandAgent.Output.Count == 1, "Only 1 row returned : {0}", CommandAgent.Output.Count);
                 }
                 else
                 {
                     //--------------New operation--------------
-                    Test.Assert(!agent.NewAzureStorageQueue(QUEUE_NAME), Utility.GenComparisonData("NewAzureStorageQueue", false));
+                    Test.Assert(!CommandAgent.NewAzureStorageQueue(QUEUE_NAME), Utility.GenComparisonData("NewAzureStorageQueue", false));
                     // Verification for returned values
-                    Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-                    agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, QUEUE_NAME);
+                    Test.Assert(CommandAgent.Output.Count == 0, "Only 0 row returned : {0}", CommandAgent.Output.Count);
+                    CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, QUEUE_NAME);
                 }
             }
             finally
@@ -232,10 +232,10 @@ namespace Management.Storage.ScenarioTest
             string queueName = Utility.GenNameString("abc_");
 
             //--------------New operation--------------
-            Test.Assert(!agent.NewAzureStorageQueue(queueName), Utility.GenComparisonData("NewAzureStorageQueue", false));
+            Test.Assert(!CommandAgent.NewAzureStorageQueue(queueName), Utility.GenComparisonData("NewAzureStorageQueue", false));
             // Verification for returned values
-            Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-            agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, queueName);
+            Test.Assert(CommandAgent.Output.Count == 0, "Only 0 row returned : {0}", CommandAgent.Output.Count);
+            CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, queueName);
         }
 
 
@@ -257,10 +257,10 @@ namespace Management.Storage.ScenarioTest
             queue.DeleteIfExists();
 
             //--------------Get operation--------------
-            Test.Assert(!agent.GetAzureStorageQueue(QUEUE_NAME), Utility.GenComparisonData("GetAzureStorageQueue", false));
+            Test.Assert(!CommandAgent.GetAzureStorageQueue(QUEUE_NAME), Utility.GenComparisonData("GetAzureStorageQueue", false));
             // Verification for returned values
-            Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-            agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, QUEUE_NAME);
+            Test.Assert(CommandAgent.Output.Count == 0, "Only 0 row returned : {0}", CommandAgent.Output.Count);
+            CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, QUEUE_NAME);
         }
 
         /// <summary>
@@ -275,10 +275,10 @@ namespace Management.Storage.ScenarioTest
         public void EnumerateAllQueues()
         {
             //--------------Get operation--------------
-            Test.Assert(agent.GetAzureStorageQueue(""), Utility.GenComparisonData("EnumerateAllQueues", false));
+            Test.Assert(CommandAgent.GetAzureStorageQueue(""), Utility.GenComparisonData("EnumerateAllQueues", false));
 
             // Verification for returned values
-            agent.OutputValidation(StorageAccount.CreateCloudQueueClient().ListQueues());
+            CommandAgent.OutputValidation(StorageAccount.CreateCloudQueueClient().ListQueues());
         }
 
         /// <summary>
@@ -299,10 +299,10 @@ namespace Management.Storage.ScenarioTest
             queue.DeleteIfExists();
 
             //--------------Remove operation--------------
-            Test.Assert(!agent.RemoveAzureStorageQueue(QUEUE_NAME), Utility.GenComparisonData("RemoveAzureStorageQueue", false));
+            Test.Assert(!CommandAgent.RemoveAzureStorageQueue(QUEUE_NAME), Utility.GenComparisonData("RemoveAzureStorageQueue", false));
             // Verification for returned values
-            Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-            agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, QUEUE_NAME);
+            Test.Assert(CommandAgent.Output.Count == 0, "Only 0 row returned : {0}", CommandAgent.Output.Count);
+            CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, QUEUE_NAME);
         }
 
         /// <summary>
@@ -322,10 +322,10 @@ namespace Management.Storage.ScenarioTest
             try
             {
                 //--------------Remove operation--------------
-                Test.Assert(!agent.RemoveAzureStorageQueue(QUEUE_NAME, false), Utility.GenComparisonData("RemoveAzureStorageQueue", false));
+                Test.Assert(!CommandAgent.RemoveAzureStorageQueue(QUEUE_NAME, false), Utility.GenComparisonData("RemoveAzureStorageQueue", false));
                 // Verification for returned values
-                Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-                Test.Assert(agent.ErrorMessages[0].Contains("A command that prompts the user failed because"), agent.ErrorMessages[0]);
+                Test.Assert(CommandAgent.Output.Count == 0, "Only 0 row returned : {0}", CommandAgent.Output.Count);
+                Test.Assert(CommandAgent.ErrorMessages[0].Contains("A command that prompts the user failed because"), CommandAgent.ErrorMessages[0]);
             }
             finally
             {
@@ -365,9 +365,9 @@ namespace Management.Storage.ScenarioTest
             try
             {
                 //--------------Get operation--------------
-                Test.Assert(agent.GetAzureStorageQueue(QUEUE_NAME), Utility.GenComparisonData("GetAzureStorageQueue", true));
+                Test.Assert(CommandAgent.GetAzureStorageQueue(QUEUE_NAME), Utility.GenComparisonData("GetAzureStorageQueue", true));
                 // Verification for returned values
-                agent.OutputValidation(comp);
+                CommandAgent.OutputValidation(comp);
             }
             finally
             {

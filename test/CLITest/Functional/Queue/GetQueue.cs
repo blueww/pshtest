@@ -58,13 +58,13 @@ namespace Management.Storage.ScenarioTest.Functional.Queue
             try
             {
                 //list specified queue with properties and meta data
-                Test.Assert(agent.GetAzureStorageQueue(queueName), Utility.GenComparisonData("GetAzureStorageQueue", true));
+                Test.Assert(CommandAgent.GetAzureStorageQueue(queueName), Utility.GenComparisonData("GetAzureStorageQueue", true));
 
                 int queueCount = 1;
-                Test.Assert(agent.Output.Count == queueCount, String.Format("Create {0} queues, but retrieved {1} queues", queueCount, agent.Output.Count));
+                Test.Assert(CommandAgent.Output.Count == queueCount, String.Format("Create {0} queues, but retrieved {1} queues", queueCount, CommandAgent.Output.Count));
 
                 // Verification for returned values
-                agent.OutputValidation(new List<CloudQueue>() { queue});
+                CommandAgent.OutputValidation(new List<CloudQueue>() { queue });
             }
             finally
             {

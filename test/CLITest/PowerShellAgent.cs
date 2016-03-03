@@ -2942,6 +2942,15 @@ namespace Management.Storage.ScenarioTest
             this.Clear();
         }
 
+        public override string GetCurrentLocation()
+        {
+            this.shell.AddCommand("Get-Location");
+            ParseCollection(this.shell.Invoke());
+            ParseErrorMessages(this.shell);
+            this.Clear();
+            return _Output[0][PowerShellAgent.BaseObject].ToString();
+        }
+
         public override void ChangeLocation(string path)
         {
             this.shell.AddCommand("Set-Location");

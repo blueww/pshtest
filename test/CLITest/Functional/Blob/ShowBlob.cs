@@ -56,7 +56,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             string blockBlobName = Utility.GenNameString("block");
             CloudBlobContainer container = blobUtil.CreateContainer(containerName);
 
-            NodeJSAgent nodejsAgent = (NodeJSAgent)agent;
+            NodeJSAgent nodejsAgent = (NodeJSAgent)CommandAgent;
             try
             {
                 CloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
@@ -92,7 +92,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             string blockBlobName = Utility.GenNameString("block");
             CloudBlobContainer container = blobUtil.CreateContainer(containerName);
 
-            NodeJSAgent nodejsAgent = (NodeJSAgent)agent;
+            NodeJSAgent nodejsAgent = (NodeJSAgent)CommandAgent;
             try
             {
                 CloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
@@ -141,7 +141,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             string blobName = SpecialChars;
             CloudBlob blob = blobUtil.CreateBlob(container, blobName, blobType);
 
-            NodeJSAgent nodejsAgent = (NodeJSAgent)agent;
+            NodeJSAgent nodejsAgent = (NodeJSAgent)CommandAgent;
 
             try
             {
@@ -170,7 +170,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             string blobName = Utility.GenNameString("blob", 12);
             CloudBlobContainer container = blobUtil.CreateContainer(containerName);
 
-            NodeJSAgent nodejsAgent = (NodeJSAgent)agent;
+            NodeJSAgent nodejsAgent = (NodeJSAgent)CommandAgent;
             try
             {
                 string notExistingBlobName = "notexistingblob";
