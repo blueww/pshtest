@@ -361,6 +361,8 @@ namespace Management.Storage.ScenarioTest
 
         public abstract void SetVariable(string variableName, object value);
 
+        public abstract string GetCurrentLocation();
+
         public abstract void ChangeLocation(string path);
 
         public abstract void NewFileShare(string fileShareName, object contextObject = null);

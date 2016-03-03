@@ -58,8 +58,8 @@ namespace Management.Storage.ScenarioTest.Functional.Table
             List<string> queueNames = Utility.GenNameLists(tablePrefix, tableCount);
             List<CloudTable> containers = tableUtil.CreateTable(queueNames);
 
-            ((PowerShellAgent)agent).AddPipelineScript(string.Format("Get-AzureStorageTable {0}*", tablePrefix));
-            Test.Assert(agent.RemoveAzureStorageTable(string.Empty), "Remove table using wildcard and pipeline should be successed");
+            ((PowerShellAgent)CommandAgent).AddPipelineScript(string.Format("Get-AzureStorageTable {0}*", tablePrefix));
+            Test.Assert(CommandAgent.RemoveAzureStorageTable(string.Empty), "Remove table using wildcard and pipeline should be successed");
             containers.ForEach(table => Test.Assert(!table.Exists(), string.Format("the specified table '{0}' should not exist", table.Name)));
         }
 
@@ -76,7 +76,7 @@ namespace Management.Storage.ScenarioTest.Functional.Table
 
             try
             {
-                Test.Assert(!agent.RemoveAzureStorageTable(table.Name, false), "remove an table without force should throw a confirmation exception");
+                Test.Assert(!CommandAgent.RemoveAzureStorageTable(table.Name, false), "remove an table without force should throw a confirmation exception");
                 ExpectedContainErrorMessage(ConfirmExceptionMessage);
                 Test.Assert(table.Exists(), "the table should exist");
             }

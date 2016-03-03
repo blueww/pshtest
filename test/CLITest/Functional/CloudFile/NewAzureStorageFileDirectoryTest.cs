@@ -40,7 +40,6 @@
 
         public override void OnTestCleanUp()
         {
-            this.agent.Dispose();
             fileUtil.DeleteFileShareIfExists(this.fileShare.Name);
         }
 
@@ -58,10 +57,10 @@
             string[] names = Enumerable.Range(0, numberOfDirectories)
                     .Select(i => CloudFileUtil.GenerateUniqueDirectoryName()).ToArray();
 
-            this.agent.NewDirectoryFromPipeline(this.fileShare.Name);
-            var result = this.agent.Invoke(names);
+            CommandAgent.NewDirectoryFromPipeline(this.fileShare.Name);
+            var result = CommandAgent.Invoke(names);
 
-            this.agent.AssertNoError();
+            CommandAgent.AssertNoError();
             result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory(new List<string>(names)), numberOfDirectories);
         }
 
@@ -94,7 +93,7 @@
             string subDirName = CloudFileUtil.GenerateUniqueDirectoryName();
             string fullPath = CloudFileUtil.GetFullPath(directory.GetDirectoryReference(subDirName));
             this.CreateDirectoryInternal(
-                () => this.agent.NewDirectory(directory, subDirName),
+                () => CommandAgent.NewDirectory(directory, subDirName),
                 fullPath.TrimEnd('/'));
         }
 
@@ -116,7 +115,7 @@
             foreach (var dirName in FileNamingGenerator.GenerateValidateUnicodeName(FileNamingGenerator.MaxFileNameLength))
             {
                 this.CreateDirectoryInternal(dirName, traceCommand: false);
-                this.agent.Clear();
+                CommandAgent.Clear();
             }
         }
 
@@ -145,11 +144,11 @@
             string dir1 = CloudFileUtil.GenerateUniqueDirectoryName();
             string dir2 = CloudFileUtil.GenerateUniqueDirectoryName();
             string fullPathForDir2 = string.Concat(dir1, "/", dir2);
-            this.agent.NewDirectory(this.fileShare, dir1);
-            ((PowerShellAgent)this.agent).PowerShellSession.AddCommand("New-AzureStorageDirectory");
-            ((PowerShellAgent)this.agent).PowerShellSession.AddParameter("Path", dir2);
-            var result = this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.NewDirectory(this.fileShare, dir1);
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("New-AzureStorageDirectory");
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddParameter("Path", dir2);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory(fullPathForDir2));
             fileUtil.AssertDirectoryExists(this.fileShare, dir1, "Base directory should be created.");
             fileUtil.AssertDirectoryExists(this.fileShare, fullPathForDir2, "Sub directory should be created.");
@@ -164,16 +163,16 @@
         public void CreateChainsOfDirectories()
         {
             StringBuilder expectedPathBuilder = new StringBuilder("a");
-            this.agent.NewDirectory(this.fileShare, "a");
+            CommandAgent.NewDirectory(this.fileShare, "a");
             for (int i = 1; i < 250; i++)
             {
-                ((PowerShellAgent)this.agent).PowerShellSession.AddCommand("New-AzureStorageDirectory");
-                ((PowerShellAgent)this.agent).PowerShellSession.AddParameter("Path", "a");
+                ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("New-AzureStorageDirectory");
+                ((PowerShellAgent)CommandAgent).PowerShellSession.AddParameter("Path", "a");
                 expectedPathBuilder.Append("/a");
             }
 
-            var result = this.agent.Invoke();
-            this.agent.AssertNoError();
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory(expectedPathBuilder.ToString()));
         }
 
@@ -189,11 +188,11 @@
         {
             string dir1 = CloudFileUtil.GenerateUniqueDirectoryName();
             this.CreateDirectoryInternal("/" + dir1);
-            this.agent.Clear();
+            CommandAgent.Clear();
 
             string dir2 = CloudFileUtil.GenerateUniqueDirectoryName();
             this.CreateDirectoryInternal("\\" + dir2);
-            this.agent.Clear();
+            CommandAgent.Clear();
         }
 
         /// <summary>
@@ -208,15 +207,15 @@
 
             string dir1 = CloudFileUtil.GenerateUniqueDirectoryName();
             this.CreateDirectoryInternal(
-                () => this.agent.NewDirectory(baseDir, "/" + dir1),
+                () => CommandAgent.NewDirectory(baseDir, "/" + dir1),
                 baseDir.Name + "/" + dir1);
-            this.agent.Clear();
+            CommandAgent.Clear();
 
             string dir2 = CloudFileUtil.GenerateUniqueDirectoryName();
             this.CreateDirectoryInternal(
-                () => this.agent.NewDirectory(baseDir, "\\" + dir2),
+                () => CommandAgent.NewDirectory(baseDir, "\\" + dir2),
                 baseDir.Name + "/" + dir2);
-            this.agent.Clear();
+            CommandAgent.Clear();
         }
 
         /// <summary>
@@ -231,15 +230,15 @@
 
             string dir1 = CloudFileUtil.GenerateUniqueDirectoryName();
             this.CreateDirectoryInternal(
-                () => this.agent.NewDirectory(baseDir, "../" + dir1),
+                () => CommandAgent.NewDirectory(baseDir, "../" + dir1),
                 dir1);
-            this.agent.Clear();
+            CommandAgent.Clear();
 
             string dir2 = CloudFileUtil.GenerateUniqueDirectoryName();
             this.CreateDirectoryInternal(
-                () => this.agent.NewDirectory(baseDir, "./c/../../" + dir2),
+                () => CommandAgent.NewDirectory(baseDir, "./c/../../" + dir2),
                 dir2);
-            this.agent.Clear();
+            CommandAgent.Clear();
         }
 
         /// <summary>
@@ -254,16 +253,16 @@
 
             string dir1 = CloudFileUtil.GenerateUniqueDirectoryName();
             this.CreateDirectoryInternal(
-                () => this.agent.NewDirectory(baseDir, "..//" + dir1),
+                () => CommandAgent.NewDirectory(baseDir, "..//" + dir1),
                 dir1);
-            this.agent.Clear();
+            CommandAgent.Clear();
 
             baseDir.GetDirectoryReference("a").CreateIfNotExists();
             string dir2 = CloudFileUtil.GenerateUniqueDirectoryName();
             this.CreateDirectoryInternal(
-                () => this.agent.NewDirectory(baseDir, @"//a\\" + dir2),
+                () => CommandAgent.NewDirectory(baseDir, @"//a\\" + dir2),
                 string.Format("{0}/a/{1}", baseDir.Name, dir2));
-            this.agent.Clear();
+            CommandAgent.Clear();
         }
 
         /// <summary>
@@ -280,10 +279,10 @@
             string dirName = CloudFileUtil.GenerateUniqueDirectoryName();
             fileUtil.DeleteFileShareIfExists(shareName);
             this.CreateDirectoryInternal(
-                () => this.agent.NewDirectory(shareName, dirName),
+                () => CommandAgent.NewDirectory(shareName, dirName),
                 dirName,
                 false);
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ShareNotFoundFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ShareNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -303,10 +302,10 @@
             // Creates an storage context object with invalid account
             // name.
             var invalidAccount = CloudFileUtil.MockupStorageAccount(StorageAccount, mockupAccountName: true);
-            object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
-            this.agent.NewDirectory(this.fileShare.Name, dir, invalidStorageContextObject);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertError(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
+            object invalidStorageContextObject = CommandAgent.CreateStorageContextObject(invalidAccount.ToString(true));
+            CommandAgent.NewDirectory(this.fileShare.Name, dir, invalidStorageContextObject);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(record => record.AssertError(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
             fileUtil.AssertDirectoryNotExists(this.fileShare, dir, "Directory should not be created when providing invalid credentials.");
         }
 
@@ -326,10 +325,10 @@
 
             // Creates an storage context object with invalid key value
             var invalidAccount = CloudFileUtil.MockupStorageAccount(StorageAccount, mockupAccountKey: true);
-            object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
-            this.agent.NewDirectory(this.fileShare.Name, dir, invalidStorageContextObject);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertError(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
+            object invalidStorageContextObject = CommandAgent.CreateStorageContextObject(invalidAccount.ToString(true));
+            CommandAgent.NewDirectory(this.fileShare.Name, dir, invalidStorageContextObject);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(record => record.AssertError(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
             fileUtil.AssertDirectoryNotExists(this.fileShare, dir, "Directory should not be created when providing invalid credentials.");
         }
 
@@ -345,9 +344,9 @@
         {
             string dirName = CloudFileUtil.GenerateUniqueDirectoryName();
             var directory = fileUtil.EnsureDirectoryExists(this.fileShare, dirName);
-            this.agent.NewDirectory(this.fileShare, dirName);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId));
+            CommandAgent.NewDirectory(this.fileShare, dirName);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -371,11 +370,11 @@
                 indexToBeRemoved.RemoveAt(id);
             }
 
-            this.agent.NewDirectoryFromPipeline(this.fileShare.Name);
-            var result = this.agent.Invoke(names);
+            CommandAgent.NewDirectoryFromPipeline(this.fileShare.Name);
+            var result = CommandAgent.Invoke(names);
 
             // A total number of "numberOfExistingDirectories" errors should throw while others should success.
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId), numberOfExistingDirectories);
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId), numberOfExistingDirectories);
 
             // Assert all directories are created
             foreach (string name in names)
@@ -397,9 +396,9 @@
             string nonExistingFileShareName = CloudFileUtil.GenerateUniqueFileShareName();
             fileUtil.DeleteFileShareIfExists(nonExistingFileShareName);
             string dirName = CloudFileUtil.GenerateUniqueDirectoryName();
-            this.agent.NewDirectory(nonExistingFileShareName, dirName);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ShareNotFoundFullQualifiedErrorId));
+            CommandAgent.NewDirectory(nonExistingFileShareName, dirName);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ShareNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -414,7 +413,7 @@
         {
             string dirName = FileNamingGenerator.GenerateValidateASCIIName(FileNamingGenerator.MaxFileNameLength + 1);
             this.CreateDirectoryInternal(dirName, false);
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -429,7 +428,7 @@
         {
             string dirName = FileNamingGenerator.GenerateASCIINameWithInvalidCharacters(this.randomProvider.Next(3, FileNamingGenerator.MaxFileNameLength + 1));
             this.CreateDirectoryInternal(dirName, false);
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -460,9 +459,9 @@
             string newDirName = sb.ToString();
 
             Test.Info("Original dir name: {0}. New dir name: {1}.", dirName, newDirName);
-            this.agent.NewDirectory(this.fileShare, newDirName);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId));
+            CommandAgent.NewDirectory(this.fileShare, newDirName);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ResourceAlreadyExistsFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -478,18 +477,18 @@
             // which is 28 characters long. So the total length would be
             // 249*(1+3)+28=1024.
             StringBuilder expectedPathBuilder = new StringBuilder("1234567890123456789012345678");
-            this.agent.NewDirectory(this.fileShare, "1234567890123456789012345678");
+            CommandAgent.NewDirectory(this.fileShare, "1234567890123456789012345678");
             for (int i = 1; i < 250; i++)
             {
-                ((PowerShellAgent)this.agent).PowerShellSession.AddCommand("New-AzureStorageDirectory");
-                ((PowerShellAgent)this.agent).PowerShellSession.AddParameter("Path", "123");
+                ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("New-AzureStorageDirectory");
+                ((PowerShellAgent)CommandAgent).PowerShellSession.AddParameter("Path", "123");
                 expectedPathBuilder.Append("/123");
             }
 
             string expectedPath = expectedPathBuilder.ToString();
             Test.Assert(expectedPath.Length == 1024, "Generated path should be 1024 while it is {0}.", expectedPath.Length);
-            var result = this.agent.Invoke();
-            this.agent.AssertNoError();
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory(expectedPath));
         }
 
@@ -502,17 +501,17 @@
         public void CreateChainsOfDirectoriesWithDepthTo251()
         {
             StringBuilder expectedPathBuilder = new StringBuilder("a");
-            this.agent.NewDirectory(this.fileShare, "a");
+            CommandAgent.NewDirectory(this.fileShare, "a");
             for (int i = 1; i < 251; i++)
             {
-                ((PowerShellAgent)this.agent).PowerShellSession.AddCommand("New-AzureStorageDirectory");
-                ((PowerShellAgent)this.agent).PowerShellSession.AddParameter("Path", "a");
+                ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("New-AzureStorageDirectory");
+                ((PowerShellAgent)CommandAgent).PowerShellSession.AddParameter("Path", "a");
                 expectedPathBuilder.Append("/a");
             }
 
-            var result = this.agent.Invoke();
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidFileOrDirectoryPathNameFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidFileOrDirectoryPathNameFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -527,7 +526,7 @@
         {
             string dirName = CloudFileUtil.GenerateUniqueDirectoryName();
             this.CreateDirectoryInternal("../" + dirName, false);
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId, AssertUtil.AuthenticationFailedFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId, AssertUtil.AuthenticationFailedFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -540,22 +539,22 @@
         {
             var dir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
             this.CreateDirectoryInternal(
-                () => this.agent.NewDirectory(dir, "d/../e/./../../f"),
+                () => CommandAgent.NewDirectory(dir, "d/../e/./../../f"),
                 "a/b/f");
         }
 
         private void CreateDirectoryInternal(string dirName, bool assertForSuccess = true, bool traceCommand = true)
         {
-            this.CreateDirectoryInternal(() => this.agent.NewDirectory(this.fileShare, dirName), dirName, assertForSuccess, traceCommand);
+            this.CreateDirectoryInternal(() => CommandAgent.NewDirectory(this.fileShare, dirName), dirName, assertForSuccess, traceCommand);
         }
 
         private void CreateDirectoryInternal(Action newDirectoryAction, string dirName, bool assertForSuccess = true, bool traceCommand = true)
         {
             newDirectoryAction();
-            var result = this.agent.Invoke(traceCommand: traceCommand);
+            var result = CommandAgent.Invoke(traceCommand: traceCommand);
             if (assertForSuccess)
             {
-                this.agent.AssertNoError();
+                CommandAgent.AssertNoError();
                 result.AssertObjectCollection(obj => result.AssertCloudFileDirectory(obj, dirName), 1);
                 fileUtil.AssertDirectoryExists(this.fileShare, dirName.Trim(CloudFileUtil.PathSeparators), "Directory should exist after creation.");
             }

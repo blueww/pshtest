@@ -82,7 +82,7 @@
             try
             {
                 string blobPermission = Utility.GenRandomCombination(Utility.BlobPermission);
-                string sastoken = agent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission, startTime, expiryTime);
+                string sastoken = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission, startTime, expiryTime);
                 try
                 {
                     ValidateSasToken(blobUtil.Blob, blobPermission, sastoken);
@@ -149,7 +149,7 @@
                 });
 
                 blobUtil.Container.SetPermissions(permission);
-                string sasToken = agent.GetBlobSasFromCmd(blobUtil.Blob, policyName, string.Empty);
+                string sasToken = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, policyName, string.Empty);
                 Test.Info("Sleep and wait for sas policy taking effect");
                 double lifeTime = 1;
                 Thread.Sleep(TimeSpan.FromMinutes(lifeTime));
@@ -176,7 +176,7 @@
             {
                 string policyName = Utility.GenNameString("notexistpolicy");
 
-                Test.Assert(!agent.NewAzureStorageBlobSAS(blobUtil.Container.Name, blobUtil.Blob.Name, policyName, string.Empty),
+                Test.Assert(!CommandAgent.NewAzureStorageBlobSAS(blobUtil.Container.Name, blobUtil.Blob.Name, policyName, string.Empty),
                     "Generate Blob sas token with not exist policy should fail");
                 ExpectedContainErrorMessage(string.Format("Invalid access policy '{0}'.", policyName));
             }
@@ -201,7 +201,7 @@
             string blobName = Utility.GenNameString("blob");
             DateTime start = DateTime.UtcNow;
             DateTime end = start.AddHours(1.0);
-            Test.Assert(!agent.NewAzureStorageBlobSAS(containerName, blobName, string.Empty, string.Empty, end, start),
+            Test.Assert(!CommandAgent.NewAzureStorageBlobSAS(containerName, blobName, string.Empty, string.Empty, end, start),
                     "Generate Blob sas token with invalid should fail");
             ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
         }
@@ -221,7 +221,7 @@
             try
             {
                 string blobPermission = Utility.GenRandomCombination(Utility.BlobPermission);
-                string fullUri = agent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
+                string fullUri = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
                 string sasToken = (lang == Language.PowerShell ? fullUri.Substring(fullUri.IndexOf("?")) : fullUri);
                 ValidateSasToken(blobUtil.Blob, blobPermission, sasToken);
             }
@@ -249,19 +249,19 @@
                 //Blob read permission
                 string blobPermission = "r";
                 string limitedPermission = "wd";
-                string sastoken = agent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
+                string sastoken = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
                 ValidateLimitedSasPermission(blobUtil.Blob, limitedPermission, sastoken);
 
                 //Blob write permission
                 blobPermission = "w";
                 limitedPermission = "rd";
-                sastoken = agent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
+                sastoken = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
                 ValidateLimitedSasPermission(blobUtil.Blob, limitedPermission, sastoken);
 
                 //Blob delete permission
                 blobPermission = "d";
                 limitedPermission = "rw";
-                sastoken = agent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
+                sastoken = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
                 ValidateLimitedSasPermission(blobUtil.Blob, limitedPermission, sastoken);
 
                 //Blob none permission
@@ -294,7 +294,7 @@
             {
                 CloudBlob blob = blobUtil.CreateRandomBlob(blobUtil.Container, specialBlobName);
                 string permisson = "r";
-                string fullUri = agent.GetBlobSasFromCmd(blob, string.Empty, permisson, null, null, true);
+                string fullUri = CommandAgent.GetBlobSasFromCmd(blob, string.Empty, permisson, null, null, true);
                 string sasToken = (lang == Language.PowerShell ? fullUri.Substring(fullUri.IndexOf("?")) : fullUri);
                 blobUtil.ValidateBlobReadableWithSasToken(blob, sasToken);
             }
@@ -317,7 +317,7 @@
         {           
             string containerName = Utility.GenNameString("container");
             string blobName = Utility.GenNameString("blob");
-            agent.GetBlobSasFromCmd(containerName, blobName, string.Empty, string.Empty);
+            CommandAgent.GetBlobSasFromCmd(containerName, blobName, string.Empty, string.Empty);
         }
 
         /// <summary>
@@ -332,7 +332,7 @@
             blobUtil.SetupTestContainerAndBlob();
             try
             {
-                string fullUri = agent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, "rwd", null, null, true, SharedAccessProtocol.HttpsOrHttp);
+                string fullUri = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, "rwd", null, null, true, SharedAccessProtocol.HttpsOrHttp);
                 string sasToken = (lang == Language.PowerShell ? fullUri.Substring(fullUri.IndexOf("?")) : fullUri);
 
                 blobUtil.ValidateBlobReadableWithSasToken(blobUtil.Blob, sasToken, useHttps: false); 
@@ -356,7 +356,7 @@
             blobUtil.SetupTestContainerAndBlob();
             try
             {
-                string sastoken = agent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, "rwd", null, null, false, null, "0.0.0.0-255.255.255.255");
+                string sastoken = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, "rwd", null, null, false, null, "0.0.0.0-255.255.255.255");
 
                 blobUtil.ValidateBlobWriteableWithSasToken(blobUtil.Blob, sastoken);
             }
@@ -375,7 +375,7 @@
             blobUtil.SetupTestContainerAndBlob();
             try
             {
-                string sastoken = agent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
+                string sastoken = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
                 ValidateSasToken(blobUtil.Blob, blobPermission, sastoken);
             }
             finally

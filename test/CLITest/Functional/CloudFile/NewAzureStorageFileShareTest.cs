@@ -28,11 +28,6 @@
             TestBase.TestClassCleanup();
         }
 
-        public override void OnTestCleanUp()
-        {
-            this.agent.Dispose();
-        }
-
         /// <summary>
         /// Positive functional test case 5.2.1
         /// </summary>
@@ -60,10 +55,10 @@
 
             try
             {
-                this.agent.NewFileShareFromPipeline();
-                var result = this.agent.Invoke(names);
+                CommandAgent.NewFileShareFromPipeline();
+                var result = CommandAgent.Invoke(names);
 
-                this.agent.AssertNoError();
+                CommandAgent.AssertNoError();
                 result.AssertObjectCollection(obj => result.AssertCloudFileContainer(obj, new List<string>(names)), numberOfShares);
             }
             finally
@@ -101,16 +96,16 @@
                 {
                     Thread.Sleep(CreateShareInterval);
                     Test.Info("Try to create a share which has just been deleted. RetryCount = {0}", i);
-                    this.agent.NewFileShare(fileShareName);
-                    var result = this.agent.Invoke();
-                    if (!this.agent.HadErrors)
+                    CommandAgent.NewFileShare(fileShareName);
+                    var result = CommandAgent.Invoke();
+                    if (!CommandAgent.HadErrors)
                     {
                         Test.Info("Successfully created the file share at round {0}.", i);
                         return;
                     }
 
-                    this.agent.AssertErrors(errorRecord => errorRecord.AssertError(AssertUtil.ShareBeingDeletedFullQualifiedErrorId));
-                    this.agent.Clear();
+                    CommandAgent.AssertErrors(errorRecord => errorRecord.AssertError(AssertUtil.ShareBeingDeletedFullQualifiedErrorId));
+                    CommandAgent.Clear();
                 }
 
                 Test.Error("Failed to create the file share within the given retry count {0}. Total time passed is {1}", CreateShareRetryLimit, watch.Elapsed);
@@ -134,7 +129,7 @@
                 () => FileNamingGenerator.GenerateValidShareName(63),
                 (results, shareName) =>
                 {
-                    this.agent.AssertNoError();
+                    CommandAgent.AssertNoError();
                     results.AssertObjectCollection(obj => results.AssertCloudFileContainer(obj, shareName));
                 });
         }
@@ -152,7 +147,7 @@
                 () => FileNamingGenerator.GenerateValidShareName(3),
                 (results, shareName) =>
                 {
-                    this.agent.AssertNoError();
+                    CommandAgent.AssertNoError();
                     results.AssertObjectCollection(obj => results.AssertCloudFileContainer(obj, shareName));
                 });
         }
@@ -171,7 +166,7 @@
                 () => FileNamingGenerator.GenerateInvalidShareName_DoubleDash(length),
                 (results, shareName) =>
                 {
-                    this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+                    CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
                 },
                 false);
         }
@@ -189,7 +184,7 @@
                 () => FileNamingGenerator.GenerateInvalidShareName_StartsWithDash(length),
                 (results, shareName) =>
                 {
-                    this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+                    CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
                 },
                 false);
         }
@@ -208,7 +203,7 @@
                 () => FileNamingGenerator.GenerateInvalidShareName_EndsWithDash(length),
                 (results, shareName) =>
                 {
-                    this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+                    CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
                 },
                 false);
         }
@@ -226,7 +221,7 @@
                 () => FileNamingGenerator.GenerateValidShareName(2),
                 (results, shareName) =>
                 {
-                    this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+                    CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
                 },
                 false);
         }
@@ -246,7 +241,7 @@
                 () => shareName,
                 (results, fileShareName) =>
                 {
-                    this.agent.AssertErrors(err => err.AssertError(AssertUtil.ShareAlreadyExistsFullQualifiedErrorId));
+                    CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ShareAlreadyExistsFullQualifiedErrorId));
                 },
                 false);
         }
@@ -278,9 +273,9 @@
                     fileUtil.EnsureFileShareExists(shareName);
                 }
 
-                this.agent.NewFileShareFromPipeline();
-                var result = this.agent.Invoke(shareNames);
-                this.agent.AssertErrors(
+                CommandAgent.NewFileShareFromPipeline();
+                var result = CommandAgent.Invoke(shareNames);
+                CommandAgent.AssertErrors(
                     err => err.AssertError(AssertUtil.ShareAlreadyExistsFullQualifiedErrorId),
                     numberOfSharesAlreadyExists);
 
@@ -312,7 +307,7 @@
                 () => FileNamingGenerator.GenerateInvalidShareName_UpperCase(length),
                 (results, shareName) =>
                 {
-                    this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+                    CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
                 },
                 false);
         }
@@ -330,7 +325,7 @@
                 () => FileNamingGenerator.GenerateValidShareName(64),
                 (results, shareName) =>
                 {
-                    this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+                    CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
                 },
                 false);
         }
@@ -351,7 +346,7 @@
                 () => shareName,
                 (results, fileShareName) =>
                 {
-                    this.agent.AssertErrors(err => err.AssertError(AssertUtil.ShareBeingDeletedFullQualifiedErrorId));
+                    CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ShareBeingDeletedFullQualifiedErrorId));
                 },
                 false);
         }
@@ -370,8 +365,8 @@
 
             try
             {
-                this.agent.NewFileShare(shareName);
-                assertAction(this.agent.Invoke(), shareName);
+                CommandAgent.NewFileShare(shareName);
+                assertAction(CommandAgent.Invoke(), shareName);
             }
             finally
             {

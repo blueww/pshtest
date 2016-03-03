@@ -252,7 +252,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             DateTime expiryTime = DateTime.Now.AddMinutes(60);
 
             //invalid permission
-            Test.Assert(!agent.NewAzureStorageAccountSAS(
+            Test.Assert(!CommandAgent.NewAzureStorageAccountSAS(
                 service, resourceType, "racwx", sasProtocal, iPAddressOrRange, startTime, expiryTime), "Set stored access policy with invalid permission should fail");
             if (lang == Language.PowerShell)
             {
@@ -268,7 +268,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
                 service, resourceType, "rracw", sasProtocal, iPAddressOrRange, startTime, expiryTime);
 
             //invalid IP/IP range
-            Test.Assert(!agent.NewAzureStorageAccountSAS(
+            Test.Assert(!CommandAgent.NewAzureStorageAccountSAS(
                 service, resourceType, permission, null, "123.3.4a", null, null), "Set stored access policy with invalid iPAddressOrRange should fail");
             if (lang == Language.PowerShell)
             {
@@ -278,7 +278,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             {
                 ExpectedContainErrorMessage("Invalid iPAddressOrRange");
             }
-            Test.Assert(!agent.NewAzureStorageAccountSAS(
+            Test.Assert(!CommandAgent.NewAzureStorageAccountSAS(
                 service, resourceType, permission, sasProtocal, "123.4.5.6_125.6.7.8", null, null), "Set stored access policy with invalid iPAddressOrRange should fail");
             if (lang == Language.PowerShell)
             {
@@ -294,7 +294,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
                 service, resourceType, permission, sasProtocal, "22.22.22.22-11.111.11.11", startTime, expiryTime);
 
             //Start time > expire Time
-            Test.Assert(!agent.NewAzureStorageAccountSAS(
+            Test.Assert(!CommandAgent.NewAzureStorageAccountSAS(
                 service, resourceType, permission, sasProtocal, iPAddressOrRange, DateTime.Now.AddMinutes(5), DateTime.Now.AddMinutes(-5)), "Set stored access policy with invalid Start Time should fail");
             if (lang == Language.PowerShell)
             {
@@ -315,13 +315,13 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             string iPAddressOrRange = null,
             DateTime? startTime = null, DateTime? expiryTime = null)
         {
-            Test.Assert(agent.NewAzureStorageAccountSAS(
+            Test.Assert(CommandAgent.NewAzureStorageAccountSAS(
                 service, resourceType, permission, protocol, iPAddressOrRange, startTime, expiryTime), "Should succeeded in generating an account sas with full permissions, services and resource types");
 
             AccountSASUtils.ValidateAccountSAS(
-                service, resourceType, permission, protocol, iPAddressOrRange, startTime, expiryTime, agent.Output[0][Constants.SASTokenKey].ToString());
+                service, resourceType, permission, protocol, iPAddressOrRange, startTime, expiryTime, CommandAgent.Output[0][Constants.SASTokenKey].ToString());
 
-            return agent.Output[0][Constants.SASTokenKey].ToString();
+            return CommandAgent.Output[0][Constants.SASTokenKey].ToString();
         }
     }
 }

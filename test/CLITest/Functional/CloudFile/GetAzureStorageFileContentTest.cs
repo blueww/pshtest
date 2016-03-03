@@ -38,7 +38,6 @@
 
         public override void OnTestCleanUp()
         {
-            this.agent.Dispose();
             fileUtil.DeleteFileShareIfExists(this.fileShare.Name);
         }
 
@@ -70,9 +69,9 @@
                 try
                 {
                     Test.Info("About to download: {0} to {1}", filesToDownload[i], destination);
-                    this.agent.DownloadFile(this.fileShare, filesToDownload[i], destination);
-                    var result = this.agent.Invoke();
-                    agent.AssertNoError();
+                    CommandAgent.DownloadFile(this.fileShare, filesToDownload[i], destination);
+                    var result = CommandAgent.Invoke();
+                    CommandAgent.AssertNoError();
                     result.AssertNoResult();
 
                     string destinationMD5 = FileUtil.GetFileContentMD5(destination);
@@ -106,7 +105,7 @@
             UploadAndDownloadFileInternal(
                 sourceFile,
                 FileUtil.GetFileContentMD5(localFilePath),
-                destination => this.agent.DownloadFile(this.fileShare.Name, cloudFileName, destination, true));
+                destination => CommandAgent.DownloadFile(this.fileShare.Name, cloudFileName, destination, true));
         }
 
         /// <summary>
@@ -132,11 +131,11 @@
 
             DirectoryInfo localDir = new DirectoryInfo(Test.Data.Get("TempDir"));
 
-            this.agent.GetFile(this.fileShare);
-            ((PowerShellAgent)this.agent).PowerShellSession.AddCommand("Get-AzureStorageFileContent");
-            ((PowerShellAgent)this.agent).PowerShellSession.AddParameter("Destination", localDir.FullName);
-            this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.GetFile(this.fileShare);
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzureStorageFileContent");
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddParameter("Destination", localDir.FullName);
+            CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
 
             var localFilesInfo = localDir.GetFiles();
             foreach (var fileInfo in localFilesInfo)
@@ -166,7 +165,7 @@
             UploadAndDownloadFileInternal(
                 sourceFile,
                 FileUtil.GetFileContentMD5(localFilePath),
-                destination => this.agent.DownloadFile(sourceFile, destination, true));
+                destination => CommandAgent.DownloadFile(sourceFile, destination, true));
         }
 
         /// <summary>
@@ -188,7 +187,7 @@
             UploadAndDownloadFileInternal(
                 sourceFile,
                 FileUtil.GetFileContentMD5(localFilePath),
-                destination => this.agent.DownloadFile(sourceFile, destination, true),
+                destination => CommandAgent.DownloadFile(sourceFile, destination, true),
                 () => Path.GetDirectoryName(localExistingPath));
         }
 
@@ -211,7 +210,7 @@
             UploadAndDownloadFileInternal(
                 sourceFile,
                 FileUtil.GetFileContentMD5(localFilePath),
-                destination => this.agent.DownloadFile(sourceFile, destination, true),
+                destination => CommandAgent.DownloadFile(sourceFile, destination, true),
                 () => localExistingPath);
         }
 
@@ -234,7 +233,7 @@
             UploadAndDownloadFileInternal(
                 sourceFile,
                 FileUtil.GetFileContentMD5(localFilePath),
-                destination => this.agent.DownloadFile(this.fileShare, cloudPath, destination, true));
+                destination => CommandAgent.DownloadFile(this.fileShare, cloudPath, destination, true));
         }
 
         /// <summary>
@@ -257,7 +256,7 @@
             UploadAndDownloadFileInternal(
                 sourceFile,
                 FileUtil.GetFileContentMD5(localFilePath),
-                destination => this.agent.DownloadFile(this.fileShare, relativeCloudPath, destination, true));
+                destination => CommandAgent.DownloadFile(this.fileShare, relativeCloudPath, destination, true));
         }
 
         /// <summary>
@@ -278,7 +277,7 @@
             UploadAndDownloadFileInternal(
                 sourceFile,
                 FileUtil.GetFileContentMD5(localFilePath),
-                destination => this.agent.DownloadFile(baseDir, relativeCloudPath, destination, true));
+                destination => CommandAgent.DownloadFile(baseDir, relativeCloudPath, destination, true));
         }
 
         /// <summary>
@@ -293,12 +292,12 @@
             string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
             var sourceFile = fileUtil.CreateFile(this.fileShare, cloudFileName, localFilePath);
-            this.agent.ChangeLocation(Test.Data.Get("TempDir"));
+            CommandAgent.ChangeLocation(Test.Data.Get("TempDir"));
             UploadAndDownloadFileInternal(
                 sourceFile,
                 FileUtil.GetFileContentMD5(localFilePath),
-                destination => this.agent.DownloadFile(this.fileShare, cloudFileName, ".", true));
-            var result = this.agent.Invoke();
+                destination => CommandAgent.DownloadFile(this.fileShare, cloudFileName, ".", true));
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
             Test.Assert(new FileInfo(Path.Combine(Test.Data.Get("TempDir"), cloudFileName)).Exists, "File should exist after downloaded.");
         }
@@ -315,9 +314,9 @@
         {
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             var file = fileUtil.DeleteFileIfExists(this.fileShare, cloudFileName);
-            this.agent.DownloadFile(file, Test.Data.Get("TempDir"), true);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.PathNotFoundFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
+            CommandAgent.DownloadFile(file, Test.Data.Get("TempDir"), true);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.PathNotFoundFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -336,10 +335,10 @@
             // Creates an storage context object with invalid account
             // name.
             var invalidAccount = CloudFileUtil.MockupStorageAccount(StorageAccount, mockupAccountName: true);
-            object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
-            this.agent.DownloadFile(this.fileShare.Name, file.Name, Test.Data.Get("TempDir"), true, invalidStorageContextObject);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertError(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
+            object invalidStorageContextObject = CommandAgent.CreateStorageContextObject(invalidAccount.ToString(true));
+            CommandAgent.DownloadFile(this.fileShare.Name, file.Name, Test.Data.Get("TempDir"), true, invalidStorageContextObject);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(record => record.AssertError(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -357,10 +356,10 @@
 
             // Creates an storage context object with invalid key value
             var invalidAccount = CloudFileUtil.MockupStorageAccount(StorageAccount, mockupAccountKey: true);
-            object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
-            this.agent.DownloadFile(this.fileShare.Name, file.Name, Test.Data.Get("TempDir"), true, invalidStorageContextObject);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertError(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
+            object invalidStorageContextObject = CommandAgent.CreateStorageContextObject(invalidAccount.ToString(true));
+            CommandAgent.DownloadFile(this.fileShare.Name, file.Name, Test.Data.Get("TempDir"), true, invalidStorageContextObject);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(record => record.AssertError(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -377,9 +376,9 @@
             fileUtil.DeleteFileShareIfExists(fileShareName);
 
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
-            this.agent.DownloadFile(fileShareName, cloudFileName, Test.Data.Get("TempDir"), true);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.PathNotFoundFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
+            CommandAgent.DownloadFile(fileShareName, cloudFileName, Test.Data.Get("TempDir"), true);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.PathNotFoundFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -396,9 +395,9 @@
             fileUtil.DeleteDirectoryIfExists(this.fileShare, cloudDirectoryName);
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             var file = this.fileShare.GetRootDirectoryReference().GetDirectoryReference(cloudDirectoryName).GetFileReference(cloudFileName);
-            this.agent.DownloadFile(file, Test.Data.Get("TempDir"), true);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.PathNotFoundFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
+            CommandAgent.DownloadFile(file, Test.Data.Get("TempDir"), true);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.PathNotFoundFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -417,11 +416,11 @@
             UploadAndDownloadFileInternal(
                 sourceFile,
                 FileUtil.GetFileContentMD5(localFilePath),
-                destination => this.agent.DownloadFile(sourceFile, destination, false),
+                destination => CommandAgent.DownloadFile(sourceFile, destination, false),
                 () => localExistingPath,
                 false);
 
-            this.agent.AssertErrors(err => err.AssertError("IOException"));
+            CommandAgent.AssertErrors(err => err.AssertError("IOException"));
         }
 
         /// <summary>
@@ -440,11 +439,11 @@
             UploadAndDownloadFileInternal(
                 sourceFile,
                 FileUtil.GetFileContentMD5(localFilePath),
-                destination => this.agent.DownloadFile(sourceFile, destination, false),
+                destination => CommandAgent.DownloadFile(sourceFile, destination, false),
                 () => Path.GetDirectoryName(localExistingPath),
                 false);
 
-            this.agent.AssertErrors(err => err.AssertError("IOException"));
+            CommandAgent.AssertErrors(err => err.AssertError("IOException"));
         }
 
         /// <summary>
@@ -471,11 +470,11 @@
             UploadAndDownloadFileInternal(
                 sourceFile,
                 FileUtil.GetFileContentMD5(localFilePath),
-                destination => this.agent.DownloadFile(sourceFile, destination, false),
+                destination => CommandAgent.DownloadFile(sourceFile, destination, false),
                 () => Path.Combine(destinationFolder.FullName, CloudFileUtil.GenerateUniqueFileName()),
                 false);
 
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.TransferExceptionFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.TransferExceptionFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -488,9 +487,9 @@
         [TestCategory(CLITag.NodeJSFT)]
         public void DownloadFileFromSubDirectoryOfRootTest()
         {
-            this.agent.DownloadFile(this.fileShare, "../a", Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()), true);
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId));
+            CommandAgent.DownloadFile(this.fileShare, "../a", Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()), true);
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -513,7 +512,7 @@
             UploadAndDownloadFileInternal(
                 sourceFile,
                 FileUtil.GetFileContentMD5(localFilePath),
-                destination => this.agent.DownloadFile(baseDir, relativeCloudPath, destination, true));
+                destination => CommandAgent.DownloadFile(baseDir, relativeCloudPath, destination, true));
         }
 
         private void UploadAndDownloadFileInternal(CloudFile sourceFile, string md5Checksum, Action<string> getContentAction, Func<string> getDestination = null, bool assertNoError = true)
@@ -524,11 +523,11 @@
             {
                 Test.Info("Download source file {0} to destination {1}.", sourceFile.Uri.OriginalString, destination);
                 getContentAction(destination);
-                var result = this.agent.Invoke();
+                var result = CommandAgent.Invoke();
 
                 if (assertNoError)
                 {
-                    agent.AssertNoError();
+                    CommandAgent.AssertNoError();
                     if (lang == Language.NodeJS)
                     {
                         result.AssertObjectCollection(obj => result.AssertCloudFile(obj, CloudFileUtil.GetFullPath(sourceFile)));

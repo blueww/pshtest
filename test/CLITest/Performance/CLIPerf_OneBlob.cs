@@ -61,7 +61,7 @@ namespace Management.Storage.ScenarioTest
         [Timeout(14400000)]
         public void UploadHttpBlock()
         {
-            var o = new BlockBlobUploadOperation(this.agent, BlobHelper);
+            var o = new BlockBlobUploadOperation(CommandAgent, BlobHelper);
             Run(o);
         }
 
@@ -71,8 +71,8 @@ namespace Management.Storage.ScenarioTest
         [Timeout(14400000)]
         public void DownloadHttpBlock()
         {
-            var o = new BlockBlobDownloadOperation(this.agent, BlobHelper);
-            var ro = new BlockBlobUploadOperation(this.agent, BlobHelper);
+            var o = new BlockBlobDownloadOperation(CommandAgent, BlobHelper);
+            var ro = new BlockBlobUploadOperation(CommandAgent, BlobHelper);
             Run(o, ro);
         }
 
@@ -82,7 +82,7 @@ namespace Management.Storage.ScenarioTest
         [Timeout(14400000)]
         public void UploadHttpPage()
         {
-            var o = new PageBlobUploadOperation(this.agent, BlobHelper);
+            var o = new PageBlobUploadOperation(CommandAgent, BlobHelper);
             Run(o);
         }
 
@@ -92,8 +92,8 @@ namespace Management.Storage.ScenarioTest
         [Timeout(14400000)]
         public void DownloadHttpPage()
         {
-            var o = new PageBlobDownloadOperation(this.agent, BlobHelper);
-            var ro = new PageBlobUploadOperation(this.agent, BlobHelper);
+            var o = new PageBlobDownloadOperation(CommandAgent, BlobHelper);
+            var ro = new PageBlobUploadOperation(CommandAgent, BlobHelper);
             Run(o, ro);
         }
 
@@ -103,7 +103,7 @@ namespace Management.Storage.ScenarioTest
         [Timeout(144000000)]
         public void UploadHttpBlock_Max()
         {
-            var o = new BlockBlobUploadOperation(this.agent, BlobHelper);
+            var o = new BlockBlobUploadOperation(CommandAgent, BlobHelper);
             Run(o, max: true);
         }
 
@@ -113,8 +113,8 @@ namespace Management.Storage.ScenarioTest
         [Timeout(144000000)]
         public void DownloadHttpBlock_Max()
         {
-            var o = new BlockBlobDownloadOperation(this.agent, BlobHelper);
-            var ro = new BlockBlobUploadOperation(this.agent, BlobHelper);
+            var o = new BlockBlobDownloadOperation(CommandAgent, BlobHelper);
+            var ro = new BlockBlobUploadOperation(CommandAgent, BlobHelper);
             Run(o, ro, max: true);
         }
 
@@ -124,7 +124,7 @@ namespace Management.Storage.ScenarioTest
         [Timeout(144000000)]
         public void UploadHttpPage_Max()
         {
-            var o = new PageBlobUploadOperation(this.agent, BlobHelper);
+            var o = new PageBlobUploadOperation(CommandAgent, BlobHelper);
             Run(o, max: true);
         }
 
@@ -134,8 +134,8 @@ namespace Management.Storage.ScenarioTest
         [Timeout(144000000)]
         public void DownloadHttpPage_Max()
         {
-            var o = new PageBlobDownloadOperation(this.agent, BlobHelper);
-            var ro = new PageBlobUploadOperation(this.agent, BlobHelper);
+            var o = new PageBlobDownloadOperation(CommandAgent, BlobHelper);
+            var ro = new PageBlobUploadOperation(CommandAgent, BlobHelper);
             Run(o, ro, max: true);
         }
 
@@ -146,7 +146,7 @@ namespace Management.Storage.ScenarioTest
         [Timeout(14400000)]
         public void UploadFile()
         {
-            var o = new FileUploadOperation(this.agent, FileHelper);
+            var o = new FileUploadOperation(CommandAgent, FileHelper);
             Run(o);
         }
 
@@ -157,8 +157,8 @@ namespace Management.Storage.ScenarioTest
         [Timeout(14400000)]
         public void DownloadFile()
         {
-            var o = new FileDownloadOperation(this.agent, FileHelper);
-            var ro = new FileUploadOperation(this.agent, FileHelper);
+            var o = new FileDownloadOperation(CommandAgent, FileHelper);
+            var ro = new FileUploadOperation(CommandAgent, FileHelper);
             Run(o, ro);
         }
 
@@ -169,7 +169,7 @@ namespace Management.Storage.ScenarioTest
         [Timeout(200000000)]
         public void UploadFile_Max()
         {
-            var o = new FileUploadOperation(this.agent, FileHelper);
+            var o = new FileUploadOperation(CommandAgent, FileHelper);
             Run(o, max: true);
         }
 
@@ -179,8 +179,8 @@ namespace Management.Storage.ScenarioTest
         [Timeout(200000000)]
         public void DownloadFile_Max()
         {
-            var o = new FileDownloadOperation(this.agent, FileHelper);
-            var ro = new FileUploadOperation(this.agent, FileHelper);
+            var o = new FileDownloadOperation(CommandAgent, FileHelper);
+            var ro = new FileUploadOperation(CommandAgent, FileHelper);
             Run(o, ro, max: true);
         }
 
@@ -191,7 +191,7 @@ namespace Management.Storage.ScenarioTest
         [Timeout(14400000)]
         public void UploadHttpAppend()
         {
-            var o = new AppendBlobUploadOperation(this.agent, BlobHelper);
+            var o = new AppendBlobUploadOperation(CommandAgent, BlobHelper);
             Run(o);
         }
 
@@ -201,8 +201,8 @@ namespace Management.Storage.ScenarioTest
         [Timeout(14400000)]
         public void DownloadHttpAppend()
         {
-            var o = new AppendBlobDownloadOperation(this.agent, BlobHelper);
-            var ro = new AppendBlobUploadOperation(this.agent, BlobHelper);
+            var o = new AppendBlobDownloadOperation(CommandAgent, BlobHelper);
+            var ro = new AppendBlobUploadOperation(CommandAgent, BlobHelper);
             Run(o, ro);
         }
 
@@ -213,7 +213,7 @@ namespace Management.Storage.ScenarioTest
         public void UploadHttpAppend_Max()
         {
             //put the generating files here, because it will cost a few hours to generate very big files
-            var o = new AppendBlobUploadOperation(this.agent, BlobHelper);
+            var o = new AppendBlobUploadOperation(CommandAgent, BlobHelper);
             GenerateTestFiles_Max(o);
             Run(o, max: true);
         }
@@ -224,8 +224,8 @@ namespace Management.Storage.ScenarioTest
         [Timeout(144000000)]
         public void DownloadHttpAppend_Max()
         {
-            var o = new AppendBlobDownloadOperation(this.agent, BlobHelper);
-            var ro = new AppendBlobUploadOperation(this.agent, BlobHelper);
+            var o = new AppendBlobDownloadOperation(CommandAgent, BlobHelper);
+            var ro = new AppendBlobUploadOperation(CommandAgent, BlobHelper);
             Run(o, ro, max: true);
         }
 

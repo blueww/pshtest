@@ -140,7 +140,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 string destFileName = Utility.GenNameString("download");
                 string destFilePath = Path.Combine(downloadDirRoot, destFileName);
-                Test.Assert(agent.GetAzureStorageBlobContent(BlobName, destFilePath, ContainerName, true), "download blob should be successful");
+                Test.Assert(CommandAgent.GetAzureStorageBlobContent(BlobName, destFilePath, ContainerName, true), "download blob should be successful");
                 string localMd5 = FileUtil.GetFileContentMD5(destFilePath);
                 Test.Assert(localMd5 == Blob.Properties.ContentMD5, string.Format("blob content md5 should be {0}, and actually it's {1}", localMd5, Blob.Properties.ContentMD5));
             }
@@ -168,8 +168,8 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 string destFileName = Utility.GenNameString("download");
                 string destFilePath = Path.Combine(downloadDirRoot, destFileName);
 
-                ((PowerShellAgent)agent).AddPipelineScript(string.Format("Get-AzureStorageContainer {0}", ContainerName));
-                Test.Assert(agent.GetAzureStorageBlobContent(BlobName, destFilePath, string.Empty, true), "download blob should be successful");
+                ((PowerShellAgent)CommandAgent).AddPipelineScript(string.Format("Get-AzureStorageContainer {0}", ContainerName));
+                Test.Assert(CommandAgent.GetAzureStorageBlobContent(BlobName, destFilePath, string.Empty, true), "download blob should be successful");
                 string localMd5 = FileUtil.GetFileContentMD5(destFilePath);
                 Test.Assert(localMd5 == Blob.Properties.ContentMD5, string.Format("blob content md5 should be {0}, and actually it's {1}", localMd5, Blob.Properties.ContentMD5));
             }
@@ -217,8 +217,8 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 FileUtil.CleanDirectory(downloadDirRoot);
 
-                Test.Assert(agent.DownloadBlobFiles(downloadDirRoot, ContainerName, true), "download blob should be successful");
-                Test.Assert(agent.Output.Count == files.Count, "Get-AzureStroageBlobContent should download {0} blobs, and actually it's {1}", files.Count, agent.Output.Count);
+                Test.Assert(CommandAgent.DownloadBlobFiles(downloadDirRoot, ContainerName, true), "download blob should be successful");
+                Test.Assert(CommandAgent.Output.Count == files.Count, "Get-AzureStroageBlobContent should download {0} blobs, and actually it's {1}", files.Count, CommandAgent.Output.Count);
 
                 for (int i = 0, count = files.Count(); i < count; i++)
                 {
@@ -275,10 +275,10 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 FileUtil.CleanDirectory(downloadDirRoot);
 
-                ((PowerShellAgent)agent).AddPipelineScript(string.Format("Get-AzureStorageContainer {0}", ContainerName));
-                ((PowerShellAgent)agent).AddPipelineScript("Get-AzureStorageBlob");
-                Test.Assert(agent.GetAzureStorageBlobContent(string.Empty, downloadDirRoot, string.Empty, true), "download blob should be successful");
-                Test.Assert(agent.Output.Count == blobs.Count, "Get-AzureStroageBlobContent should download {0} blobs, and actully it's {1}", blobs.Count, agent.Output.Count);
+                ((PowerShellAgent)CommandAgent).AddPipelineScript(string.Format("Get-AzureStorageContainer {0}", ContainerName));
+                ((PowerShellAgent)CommandAgent).AddPipelineScript("Get-AzureStorageBlob");
+                Test.Assert(CommandAgent.GetAzureStorageBlobContent(string.Empty, downloadDirRoot, string.Empty, true), "download blob should be successful");
+                Test.Assert(CommandAgent.Output.Count == blobs.Count, "Get-AzureStroageBlobContent should download {0} blobs, and actully it's {1}", blobs.Count, CommandAgent.Output.Count);
 
                 for (int i = 0, count = blobs.Count(); i < count; i++)
                 {
@@ -320,8 +320,8 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 DirectoryInfo dir = new DirectoryInfo(downloadDirRoot);
                 int filesCountBeforeDowloading = dir.GetFiles().Count();
                 string downloadFileName = Path.Combine(downloadDirRoot, Utility.GenNameString("download"));
-                Test.Assert(!agent.GetAzureStorageBlobContent(notExistingBlobName, downloadFileName, ContainerName, true), "download not existing blob should fail");
-                agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, notExistingBlobName, ContainerName);
+                Test.Assert(!CommandAgent.GetAzureStorageBlobContent(notExistingBlobName, downloadFileName, ContainerName, true), "download not existing blob should fail");
+                CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, notExistingBlobName, ContainerName);
                 int filesCountAfterDowloading = dir.GetFiles().Count();
                 Test.Assert(filesCountBeforeDowloading == filesCountAfterDowloading, "the files count should be equal after a failed downloading");
             }
@@ -349,11 +349,11 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             DirectoryInfo dir = new DirectoryInfo(downloadDirRoot);
             int filesCountBeforeDowloading = dir.GetFiles().Count();
             string downloadFileName = Path.Combine(downloadDirRoot, Utility.GenNameString("download"));
-            Test.Assert(!agent.GetAzureStorageBlobContent(blobName, downloadFileName, containerName, true), "download blob from not existing container should fail");
+            Test.Assert(!CommandAgent.GetAzureStorageBlobContent(blobName, downloadFileName, containerName, true), "download blob from not existing container should fail");
 
             try
             {
-                agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, blobName, containerName);
+                CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, blobName, containerName);
 
                 int filesCountAfterDowloading = dir.GetFiles().Count();
                 Test.Assert(filesCountBeforeDowloading == filesCountAfterDowloading, "the files count should be equal after download failure");
@@ -390,7 +390,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                Test.Assert(agent.GetAzureStorageBlobContent(blobName, downloadFileName, container.Name, true), "download blob name with special chars should succeed");
+                Test.Assert(CommandAgent.GetAzureStorageBlobContent(blobName, downloadFileName, container.Name, true), "download blob name with special chars should succeed");
                 blob.FetchAttributes();
                 string downloadedMD5 = FileUtil.GetFileContentMD5(downloadFileName);
                 ExpectEqual(downloadedMD5, blob.Properties.ContentMD5, "content md5");
@@ -427,7 +427,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             try
             {
                 CloudBlob blob = blobUtil.CreateBlob(container, blobName, blobType);
-                Test.Assert(agent.GetAzureStorageBlobContent(blobName, downloadFileName, container.Name, true), "download blob with zero size should succeed");
+                Test.Assert(CommandAgent.GetAzureStorageBlobContent(blobName, downloadFileName, container.Name, true), "download blob with zero size should succeed");
                 string downloadedMD5 = FileUtil.GetFileContentMD5(downloadFileName);
 
                 ExpectEqual(downloadedMD5, blob.Properties.ContentMD5, "content md5");
@@ -462,7 +462,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 blobUtil.CreatePageBlobWithManySmallRanges(container.Name, blobName, blobSize);
 
                 // download the page blob by CLI agent
-                Test.Assert(agent.GetAzureStorageBlobContent(blobName, downloadFileName, container.Name, true), "download page blob should succeed");
+                Test.Assert(CommandAgent.GetAzureStorageBlobContent(blobName, downloadFileName, container.Name, true), "download page blob should succeed");
                 string downloadedMD5 = FileUtil.GetFileContentMD5(downloadFileName);
 
                 Test.Info("using xscl to download the page blob in order to check the MD5 value");

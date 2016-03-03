@@ -45,7 +45,7 @@
         [TestInitialize()]
         public override void InitAgent()
         {
-            agent = AgentFactory.CreateAgent(TestContext.Properties);
+            CommandAgent = AgentFactory.CreateAgent(TestContext.Properties);
 
             SetCLIEnv(TestContext);
 
@@ -122,15 +122,15 @@
 
             try
             {
-                agent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, StorageEndpoint, string.Empty, "r");
+                CommandAgent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, StorageEndpoint, string.Empty, "r");
 
                 // Get blob with the generated SAS token
-                Test.Assert(agent.GetAzureStorageBlob(blobUtil.Blob.Name, blobUtil.ContainerName),
+                Test.Assert(CommandAgent.GetAzureStorageBlob(blobUtil.Blob.Name, blobUtil.ContainerName),
                     string.Format("Get existing blob {0} in container {1} should succeed", blobUtil.Blob.Name, blobUtil.ContainerName));
 
                 // Download blob with the generated SAS token
                 string downloadFilePath = Path.Combine(downloadDirPath, blobUtil.Blob.Name);
-                Test.Assert(agent.GetAzureStorageBlobContent(blobUtil.Blob.Name, downloadFilePath, blobUtil.ContainerName),
+                Test.Assert(CommandAgent.GetAzureStorageBlobContent(blobUtil.Blob.Name, downloadFilePath, blobUtil.ContainerName),
                     string.Format("Download blob {0} in container {1} to File {2} should succeed", blobUtil.Blob.Name, blobUtil.ContainerName, downloadFilePath));
 
                 // Copy blob with the generated SAS token(as source)
@@ -145,7 +145,7 @@
                     destContext = StorageAccount;
                 }
 
-                Test.Assert(agent.StartAzureStorageBlobCopy(blobUtil.ContainerName, blobUtil.Blob.Name, blobUtil.ContainerName, copiedName, destContext),
+                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(blobUtil.ContainerName, blobUtil.Blob.Name, blobUtil.ContainerName, copiedName, destContext),
                     string.Format("Copy blob {0} in container {1} to blob {2} in container {3} should succeed",
                     blobUtil.Blob.Name, blobUtil.ContainerName, blobUtil.ContainerName, copiedName));
             }
@@ -194,10 +194,10 @@
             blobUtil.SetupTestContainerAndBlob(type);
             try
             {
-                agent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, StorageEndpoint, string.Empty, "rw");
+                CommandAgent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, StorageEndpoint, string.Empty, "rw");
 
                 // Upload blob with the generated SAS token
-                Test.Assert(agent.SetAzureStorageBlobContent(uploadFilePath, blobUtil.ContainerName, type, blobUtil.Blob.Name),
+                Test.Assert(CommandAgent.SetAzureStorageBlobContent(uploadFilePath, blobUtil.ContainerName, type, blobUtil.Blob.Name),
                     string.Format("Overwriting existing blob {0} in container {1} should succeed", blobUtil.Blob.Name, blobUtil.ContainerName));
             }
             finally
@@ -241,10 +241,10 @@
             blobUtil.SetupTestContainerAndBlob();
             try
             {
-                agent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, StorageEndpoint, string.Empty, "rd");
+                CommandAgent.SetContextWithSASToken(StorageAccount.Credentials.AccountName, blobUtil, objectType, StorageEndpoint, string.Empty, "rd");
 
                 // Delete blob with the generated SAS token
-                Test.Assert(agent.RemoveAzureStorageBlob(blobUtil.Blob.Name, blobUtil.ContainerName),
+                Test.Assert(CommandAgent.RemoveAzureStorageBlob(blobUtil.Blob.Name, blobUtil.ContainerName),
                     string.Format("Remove blob {0} in container {1} should succeed", blobUtil.Blob.Name, blobUtil.ContainerName));
             }
             finally
@@ -268,11 +268,11 @@
             blobUtil.SetupTestContainerAndBlob();
             try
             {
-                string sastoken = agent.GetContainerSasFromCmd(blobUtil.ContainerName, string.Empty, "l");
-                agent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sastoken, StorageEndpoint);
+                string sastoken = CommandAgent.GetContainerSasFromCmd(blobUtil.ContainerName, string.Empty, "l");
+                CommandAgent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sastoken, StorageEndpoint);
 
                 // List blobs with the generated SAS token
-                Test.Assert(agent.GetAzureStorageBlob(string.Empty, blobUtil.ContainerName),
+                Test.Assert(CommandAgent.GetAzureStorageBlob(string.Empty, blobUtil.ContainerName),
                     string.Format("List blobs in container {0} should succeed", blobUtil.ContainerName));
             }
             finally
@@ -296,11 +296,11 @@
             CloudQueue queue = queueUtil.CreateQueue();
             try
             {
-                string sastoken = agent.GetQueueSasFromCmd(queue.Name, string.Empty, "r");
-                agent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sastoken, StorageEndpoint);
+                string sastoken = CommandAgent.GetQueueSasFromCmd(queue.Name, string.Empty, "r");
+                CommandAgent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sastoken, StorageEndpoint);
 
                 //list specified queue with properties and meta data
-                Test.Assert(agent.GetAzureStorageQueue(queue.Name), Utility.GenComparisonData("GetAzureStorageQueue", true));
+                Test.Assert(CommandAgent.GetAzureStorageQueue(queue.Name), Utility.GenComparisonData("GetAzureStorageQueue", true));
             }
             finally
             {

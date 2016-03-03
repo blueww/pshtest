@@ -92,12 +92,12 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                     CopyBigFileToBlob(blob);
                 }
 
-                ((PowerShellAgent)agent).AddPipelineScript(String.Format("Get-AzureStorageBlob -Container {0}", container.Name));
+                ((PowerShellAgent)CommandAgent).AddPipelineScript(String.Format("Get-AzureStorageBlob -Container {0}", container.Name));
                 string copyId = "*";
                 bool force = true;
-                Test.Assert(agent.StopAzureStorageBlobCopy(string.Empty, string.Empty, copyId, force), "Stop multiple copy operations using blob pipeline should be successful");
+                Test.Assert(CommandAgent.StopAzureStorageBlobCopy(string.Empty, string.Empty, copyId, force), "Stop multiple copy operations using blob pipeline should be successful");
                 int expectedOutputCount = blobs.Count;
-                Test.Assert(agent.Output.Count == expectedOutputCount, String.Format("Should return {0} message, and actually it's {1}", expectedOutputCount, agent.Output.Count));
+                Test.Assert(CommandAgent.Output.Count == expectedOutputCount, String.Format("Should return {0} message, and actually it's {1}", expectedOutputCount, CommandAgent.Output.Count));
 
                 for (int i = 0; i < expectedOutputCount; i++)
                 {
@@ -140,9 +140,9 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 invalidContainerErrorMessage = "Container name format is incorrect";
                 invalidBlobErrorMessage = "Value for one of the query parameters specified in the request URI is invalid";
             }
-            Test.Assert(!agent.StopAzureStorageBlobCopy(invalidContainerName, Utility.GenNameString("blob"), copyId, false), "Stop copy should failed with invalid container name");
+            Test.Assert(!CommandAgent.StopAzureStorageBlobCopy(invalidContainerName, Utility.GenNameString("blob"), copyId, false), "Stop copy should failed with invalid container name");
             ExpectedContainErrorMessage(invalidContainerErrorMessage);
-            Test.Assert(!agent.StopAzureStorageBlobCopy(Utility.GenNameString("container"), invalidBlobName, copyId, false), "Start copy should failed with invalid blob name");
+            Test.Assert(!CommandAgent.StopAzureStorageBlobCopy(Utility.GenNameString("container"), invalidBlobName, copyId, false), "Start copy should failed with invalid blob name");
             ExpectedContainErrorMessage(invalidBlobErrorMessage);
         }
 
@@ -175,13 +175,13 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 validator = ExpectedStartsWithErrorMessage;
             }
 
-            Test.Assert(!agent.StopAzureStorageBlobCopy(srcContainerName, blobName, copyId, false), "Stop copy should failed with not existing src container");
+            Test.Assert(!CommandAgent.StopAzureStorageBlobCopy(srcContainerName, blobName, copyId, false), "Stop copy should failed with not existing src container");
             validator(errorMessage);
 
             try
             {
                 CloudBlobContainer srcContainer = blobUtil.CreateContainer(srcContainerName);
-                Test.Assert(!agent.StopAzureStorageBlobCopy(srcContainerName, blobName, copyId, false), "Stop copy should failed with not existing src container");
+                Test.Assert(!CommandAgent.StopAzureStorageBlobCopy(srcContainerName, blobName, copyId, false), "Stop copy should failed with not existing src container");
                 if (lang == Language.PowerShell)
                 {
                     errorMessage = string.Format("Can not find blob '{0}' in container '{1}', or the blob type is unsupported.", blobName, srcContainerName);
@@ -222,7 +222,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 CloudBlockBlob blob = destContainer.GetBlockBlobReference(Utility.GenNameString("destBlobName"));
 
-                Test.Assert(agent.StartAzureStorageBlobCopy(file, destContainer.Name, blob.Name, PowerShellAgent.Context), "Start azure storage copy from file to blob should succeed.");
+                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(file, destContainer.Name, blob.Name, PowerShellAgent.Context), "Start azure storage copy from file to blob should succeed.");
 
                 while (true)
                 {
@@ -236,7 +236,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                     Thread.Sleep(2000);
                 }
 
-                Test.Assert(!agent.StopAzureStorageBlobCopy(destContainerName, blob.Name, null, true), "Stop blob copy should fail");
+                Test.Assert(!CommandAgent.StopAzureStorageBlobCopy(destContainerName, blob.Name, null, true), "Stop blob copy should fail");
 
                 ExpectedContainErrorMessage("There is currently no pending copy operation.");
             }
@@ -251,11 +251,11 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             Test.Assert(blob.CopyState.Status == CopyStatus.Pending, String.Format("The copy status should be pending, actually it's {0}", blob.CopyState.Status));
             bool force = true;
-            Test.Assert(agent.StopAzureStorageBlobCopy(blob.Container.Name, blob.Name, copyId, force), "Stop copy operation should be successed");
+            Test.Assert(CommandAgent.StopAzureStorageBlobCopy(blob.Container.Name, blob.Name, copyId, force), "Stop copy operation should be successed");
             blob.FetchAttributes();
             Test.Assert(blob.CopyState.Status == CopyStatus.Aborted, String.Format("The copy status should be aborted, actually it's {0}", blob.CopyState.Status));
             int expectedOutputCount = lang == Language.PowerShell ? 1 : 0;
-            Test.Assert(agent.Output.Count == expectedOutputCount, String.Format("Should return {0} message, and actually it's {1}", expectedOutputCount, agent.Output.Count));
+            Test.Assert(CommandAgent.Output.Count == expectedOutputCount, String.Format("Should return {0} message, and actually it's {1}", expectedOutputCount, CommandAgent.Output.Count));
         }
 
         private string CopyBigFileToBlob(CloudBlob blob)

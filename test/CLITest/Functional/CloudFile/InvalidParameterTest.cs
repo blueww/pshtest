@@ -28,11 +28,6 @@
             TestBase.TestClassCleanup();
         }
 
-        public override void OnTestCleanUp()
-        {
-            this.agent.Dispose();
-        }
-
         /// <summary>
         /// Negative functional test case 5.14.1
         /// </summary>
@@ -41,10 +36,10 @@
         [TestCategory(Tag.Function)]
         public void NewShareWithNullNameTest()
         {
-            ((PowerShellAgent)this.agent).PowerShellSession.AddScript("New-AzureStorageShare -Name $null");
-            var result = this.agent.Invoke();
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("New-AzureStorageShare -Name $null");
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -55,10 +50,10 @@
         [TestCategory(Tag.Function)]
         public void NewShareWithEmptyNameTest()
         {
-            ((PowerShellAgent)this.agent).PowerShellSession.AddScript("New-AzureStorageShare -Name \"\"");
-            var result = this.agent.Invoke();
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("New-AzureStorageShare -Name \"\"");
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -69,10 +64,10 @@
         [TestCategory(Tag.Function)]
         public void NewDirectoryWithNullShareObjectTest()
         {
-            ((PowerShellAgent)this.agent).PowerShellSession.AddScript("New-AzureStorageDirectory -Share $null -Path dir");
-            var result = this.agent.Invoke();
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("New-AzureStorageDirectory -Share $null -Path dir");
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -83,10 +78,10 @@
         [TestCategory(Tag.Function)]
         public void ListFilesUsingNullDirectoryObjectTest()
         {
-            ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Get-AzureStorageFile -Directory $null");
-            var result = this.agent.Invoke();
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("Get-AzureStorageFile -Directory $null");
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -97,10 +92,10 @@
         [TestCategory(Tag.Function)]
         public void DownloadFileUsingNullFileObjectTest()
         {
-            ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Get-AzureStorageFileContent -File $null -Destination .");
-            var result = this.agent.Invoke();
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("Get-AzureStorageFileContent -File $null -Destination .");
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -116,10 +111,10 @@
             {
                 var file = fileUtil.CreateFile(share, CloudFileUtil.GenerateUniqueFileName());
                 file.Delete();
-                this.agent.DownloadFile(file, Test.Data.Get("TempDir"), true);
-                var result = this.agent.Invoke();
+                CommandAgent.DownloadFile(file, Test.Data.Get("TempDir"), true);
+                var result = CommandAgent.Invoke();
                 result.AssertNoResult();
-                this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
+                CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.InvalidOperationExceptionFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
             }
             finally
             {

@@ -59,7 +59,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSFT)]
         public void CreateInvalidContainer()
         {
-            CreateInvalidContainer(agent);
+            CreateInvalidContainer(CommandAgent);
         }
 
         [TestMethod]
@@ -67,7 +67,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSFT)]
         public void CreateExistingContainer()
         {
-            CreateExistingContainer(agent);
+            CreateExistingContainer(CommandAgent);
         }
 
         [TestMethod]
@@ -75,7 +75,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSFT)]
         public void RootContainerOperations()
         {
-            RootContainerOperations(agent);
+            RootContainerOperations(CommandAgent);
         }
 
         [TestMethod]
@@ -83,14 +83,14 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSFT)]
         public void ContainerListOperations()
         {
-            ContainerListOperations(agent);
+            ContainerListOperations(CommandAgent);
         }
 
         [TestMethod]
         [TestCategory(Tag.Function)]
         public void GetNonExistingContainer()
         {
-            GetNonExistingContainer(agent);
+            GetNonExistingContainer(CommandAgent);
         }
 
         [TestMethod]
@@ -98,7 +98,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSFT)]
         public void EnumerateAllContainers()
         {
-            EnumerateAllContainers(agent);
+            EnumerateAllContainers(CommandAgent);
         }
 
         [TestMethod]
@@ -106,14 +106,14 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSFT)]
         public void RemoveNonExistingContainer()
         {
-            RemoveNonExistingContainer(agent);
+            RemoveNonExistingContainer(CommandAgent);
         }
 
         [TestMethod]
         [TestCategory(Tag.Function)]
         public void RemoveContainerWithoutForce()
         {
-            RemoveContainerWithoutForce(agent);
+            RemoveContainerWithoutForce(CommandAgent);
         }
 
         /// <summary>
@@ -132,10 +132,10 @@ namespace Management.Storage.ScenarioTest
             container.DeleteIfExists();
 
             //--------------Get operation--------------
-            Test.Assert(agent.GetAzureStorageContainer(ContainerName), Utility.GenComparisonData("get container", true));
+            Test.Assert(CommandAgent.GetAzureStorageContainer(ContainerName), Utility.GenComparisonData("get container", true));
             // Verification for returned values
-            ExpectEqual(agent.Output.Count, 0, string.Format("0 row should be returned : {0}", agent.Output.Count));
-            Test.Assert(agent.ErrorMessages.Count == 0, "0 error message returned : {0}", agent.ErrorMessages.Count);
+            ExpectEqual(CommandAgent.Output.Count, 0, string.Format("0 row should be returned : {0}", CommandAgent.Output.Count));
+            Test.Assert(CommandAgent.ErrorMessages.Count == 0, "0 error message returned : {0}", CommandAgent.ErrorMessages.Count);
         }
 
         /// <summary>

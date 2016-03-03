@@ -55,7 +55,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             blobUtil.RemoveContainer(container.Name);
 
-            Test.Assert(!agent.NewAzureStorageContainer(container.Name), "Create a container which is being deleted should fail");
+            Test.Assert(!CommandAgent.NewAzureStorageContainer(container.Name), "Create a container which is being deleted should fail");
             ExpectedContainErrorMessage("The specified container is being deleted. Try operation later.");
         }
     }

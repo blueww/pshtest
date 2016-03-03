@@ -96,11 +96,11 @@ namespace Management.Storage.ScenarioTest
             }
 
             //--------------1. New operation--------------
-            Test.Assert(agent.NewAzureStorageTable(TABLE_NAMES), Utility.GenComparisonData("NewAzureStorageTable", true));
+            Test.Assert(CommandAgent.NewAzureStorageTable(TABLE_NAMES), Utility.GenComparisonData("NewAzureStorageTable", true));
             // Verification for returned values
             if (multiOutput)
             {
-                Test.Assert(agent.Output.Count == TABLE_NAMES.Count(), "{0} row returned : {1}", TABLE_NAMES.Count(), agent.Output.Count);
+                Test.Assert(CommandAgent.Output.Count == TABLE_NAMES.Count(), "{0} row returned : {1}", TABLE_NAMES.Count(), CommandAgent.Output.Count);
             }
 
             // Check if all the above tables have been created
@@ -113,32 +113,32 @@ namespace Management.Storage.ScenarioTest
             try
             {
                 //--------------2. New operation--------------
-                Test.Assert(!agent.NewAzureStorageTable(TABLE_NAMES), Utility.GenComparisonData("NewAzureStorageTable", false));
+                Test.Assert(!CommandAgent.NewAzureStorageTable(TABLE_NAMES), Utility.GenComparisonData("NewAzureStorageTable", false));
                 // Verification for returned values
                 if (multiOutput)
                 {
-                    Test.Assert(agent.Output.Count == 0, "0 row returned : {0}", agent.Output.Count);
+                    Test.Assert(CommandAgent.Output.Count == 0, "0 row returned : {0}", CommandAgent.Output.Count);
                 }
                 int i = 0;
                 foreach (string name in TABLE_NAMES)
                 {
                     if (multiOutput)
                     {
-                        Test.Assert(agent.ErrorMessages[i].Contains(String.Format("Table '{0}' already exists.", name)), agent.ErrorMessages[i]);
+                        Test.Assert(CommandAgent.ErrorMessages[i].Contains(String.Format("Table '{0}' already exists.", name)), CommandAgent.ErrorMessages[i]);
                     }
                     else
                     {
-                        Test.Assert(agent.ErrorMessages[0].Contains("The table specified already exists"), agent.ErrorMessages[0]);
+                        Test.Assert(CommandAgent.ErrorMessages[0].Contains("The table specified already exists"), CommandAgent.ErrorMessages[0]);
                     }
                     ++i;
                 }
 
                 //--------------3. New operation--------------
-                Test.Assert(!agent.NewAzureStorageTable(PARTLY_EXISTING_NAMES), Utility.GenComparisonData("NewAzureStorageTable", false));
+                Test.Assert(!CommandAgent.NewAzureStorageTable(PARTLY_EXISTING_NAMES), Utility.GenComparisonData("NewAzureStorageTable", false));
                 // Verification for returned values
                 if (multiOutput)
                 {
-                    Test.Assert(agent.Output.Count == 1, "1 row returned : {0}", agent.Output.Count);
+                    Test.Assert(CommandAgent.Output.Count == 1, "1 row returned : {0}", CommandAgent.Output.Count);
                 }
 
                 // Check if all the above tables have been created
@@ -151,20 +151,20 @@ namespace Management.Storage.ScenarioTest
                 //--------------4. Get operation--------------
                 if (multiOutput)
                 {
-                    Test.Assert(agent.GetAzureStorageTable("*" + PREFIX + "*"), Utility.GenComparisonData("GetAzureStorageTable", true));
+                    Test.Assert(CommandAgent.GetAzureStorageTable("*" + PREFIX + "*"), Utility.GenComparisonData("GetAzureStorageTable", true));
                     // Verification for returned values
-                    agent.OutputValidation(StorageAccount.CreateCloudTableClient().ListTables(PREFIX));
+                    CommandAgent.OutputValidation(StorageAccount.CreateCloudTableClient().ListTables(PREFIX));
                 }
 
                 // use Prefix parameter
-                Test.Assert(agent.GetAzureStorageTableByPrefix(PREFIX), Utility.GenComparisonData("GetAzureStorageTableByPrefix", true));
+                Test.Assert(CommandAgent.GetAzureStorageTableByPrefix(PREFIX), Utility.GenComparisonData("GetAzureStorageTableByPrefix", true));
                 // Verification for returned values
-                agent.OutputValidation(StorageAccount.CreateCloudTableClient().ListTables(PREFIX));
+                CommandAgent.OutputValidation(StorageAccount.CreateCloudTableClient().ListTables(PREFIX));
             }
             finally
             {
                 //--------------5. Remove operation--------------
-                Test.Assert(agent.RemoveAzureStorageTable(TABLE_NAMES), Utility.GenComparisonData("RemoveAzureStorageTable", true));
+                Test.Assert(CommandAgent.RemoveAzureStorageTable(TABLE_NAMES), Utility.GenComparisonData("RemoveAzureStorageTable", true));
                 // Check if all the above tables have been removed
                 foreach (string name in TABLE_NAMES)
                 {
@@ -194,10 +194,10 @@ namespace Management.Storage.ScenarioTest
             try
             {
                 //--------------New operation--------------
-                Test.Assert(!agent.NewAzureStorageTable(TABLE_NAME), Utility.GenComparisonData("NewAzureStorageTable", false));
+                Test.Assert(!CommandAgent.NewAzureStorageTable(TABLE_NAME), Utility.GenComparisonData("NewAzureStorageTable", false));
                 // Verification for returned values
-                Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-                agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, TABLE_NAME);
+                Test.Assert(CommandAgent.Output.Count == 0, "Only 0 row returned : {0}", CommandAgent.Output.Count);
+                CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, TABLE_NAME);
             }
             finally
             {
@@ -220,10 +220,10 @@ namespace Management.Storage.ScenarioTest
             string tableName = Utility.GenNameString("abc_");
 
             //--------------New operation--------------
-            Test.Assert(!agent.NewAzureStorageTable(tableName), Utility.GenComparisonData("NewAzureStorageTable", false));
+            Test.Assert(!CommandAgent.NewAzureStorageTable(tableName), Utility.GenComparisonData("NewAzureStorageTable", false));
             // Verification for returned values
-            Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-            agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, tableName);
+            Test.Assert(CommandAgent.Output.Count == 0, "Only 0 row returned : {0}", CommandAgent.Output.Count);
+            CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, tableName);
         }
 
         /// <summary>
@@ -244,10 +244,10 @@ namespace Management.Storage.ScenarioTest
             table.DeleteIfExists();
 
             //--------------Get operation--------------
-            Test.Assert(!agent.GetAzureStorageTable(TABLE_NAME), Utility.GenComparisonData("GetAzureStorageTable", false));
+            Test.Assert(!CommandAgent.GetAzureStorageTable(TABLE_NAME), Utility.GenComparisonData("GetAzureStorageTable", false));
             // Verification for returned values
-            Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-            agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, TABLE_NAME);
+            Test.Assert(CommandAgent.Output.Count == 0, "Only 0 row returned : {0}", CommandAgent.Output.Count);
+            CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, TABLE_NAME);
         }
 
         /// <summary>
@@ -262,10 +262,10 @@ namespace Management.Storage.ScenarioTest
         public void EnumerateAllTables()
         {
             //--------------Get operation--------------
-            Test.Assert(agent.GetAzureStorageTable(""), Utility.GenComparisonData("EnumerateAllTables", true));
+            Test.Assert(CommandAgent.GetAzureStorageTable(""), Utility.GenComparisonData("EnumerateAllTables", true));
 
             // Verification for returned values
-            agent.OutputValidation(StorageAccount.CreateCloudTableClient().ListTables());
+            CommandAgent.OutputValidation(StorageAccount.CreateCloudTableClient().ListTables());
         }
 
         /// <summary>
@@ -286,10 +286,10 @@ namespace Management.Storage.ScenarioTest
             table.DeleteIfExists();
 
             //--------------Remove operation--------------
-            Test.Assert(!agent.RemoveAzureStorageTable(TABLE_NAME), Utility.GenComparisonData("RemoveAzureStorageTable", false));
+            Test.Assert(!CommandAgent.RemoveAzureStorageTable(TABLE_NAME), Utility.GenComparisonData("RemoveAzureStorageTable", false));
             // Verification for returned values
-            Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-            agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, TABLE_NAME);
+            Test.Assert(CommandAgent.Output.Count == 0, "Only 0 row returned : {0}", CommandAgent.Output.Count);
+            CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, TABLE_NAME);
         }
 
         /// <summary>
@@ -309,10 +309,10 @@ namespace Management.Storage.ScenarioTest
             try
             {
                 //--------------Remove operation--------------
-                Test.Assert(!agent.RemoveAzureStorageTable(TABLE_NAME, false), Utility.GenComparisonData("RemoveAzureStorageTable", false));
+                Test.Assert(!CommandAgent.RemoveAzureStorageTable(TABLE_NAME, false), Utility.GenComparisonData("RemoveAzureStorageTable", false));
                 // Verification for returned values
-                Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-                Test.Assert(agent.ErrorMessages[0].Contains("A command that prompts the user failed because"), agent.ErrorMessages[0]);
+                Test.Assert(CommandAgent.Output.Count == 0, "Only 0 row returned : {0}", CommandAgent.Output.Count);
+                Test.Assert(CommandAgent.ErrorMessages[0].Contains("A command that prompts the user failed because"), CommandAgent.ErrorMessages[0]);
             }
             finally
             {
