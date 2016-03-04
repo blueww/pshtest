@@ -986,7 +986,7 @@ namespace Management.Storage.ScenarioTest
             {
                 Test.Assert(!agent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
                     string.Format("Creating existing stoarge account {0} in location {1} should fail", accountName, location));
-                ExpectedContainErrorMessage(string.Format("The provided location '{0}' is not permitted for subscription.", location));
+                ExpectedContainErrorMessage(string.Format("The provided location '{0}' is not available for resource type 'Microsoft.Storage/storageAccounts'.", location));
             }
             else
             {
@@ -1291,9 +1291,18 @@ namespace Management.Storage.ScenarioTest
 
                     if (isResourceMode)
                     {
-                        errorMsg = string.Format("The storage account type Standard_ZRS cannot be changed.");
-                        Test.Assert(!agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, newAccountType),
-                            string.Format("Setting storage account {0} to type {1} should fail", accountName, newAccountType));
+                        if (string.Equals(newAccountType, Constants.AccountType.Standard_ZRS))
+                        {
+                            Test.Assert(agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, newAccountType),
+                                string.Format("Setting stoarge account {0} to type {1} should succeed.", accountName, newAccountType));
+                            continue;
+                        }
+                        else
+                        {
+                            errorMsg = string.Format("Storage account type cannot be changed to {0}.", newAccountType);
+                            Test.Assert(!agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, newAccountType),
+                                string.Format("Setting storage account {0} to type {1} should fail", accountName, newAccountType));
+                        }
                     }
                     else
                     {
@@ -1373,9 +1382,17 @@ namespace Management.Storage.ScenarioTest
 
                     if (isResourceMode)
                     {
-                        errorMsg = string.Format("The storage account type Premium_LRS cannot be changed.");
-                        Test.Assert(!agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, newAccountType),
-                            string.Format("Setting storage account {0} to type {1} should fail", accountName, newAccountType));
+                        if (string.Equals(newAccountType, Constants.AccountType.Premium_LRS))
+                        {
+                            Test.Assert(agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, newAccountType),
+                             string.Format("Setting storage account {0} to type {1} should succeed", accountName, newAccountType));
+                        }
+                        else
+                        {
+                            errorMsg = string.Format("Storage account type cannot be changed to {0}.", newAccountType);
+                            Test.Assert(!agent.SetSRPAzureStorageAccount(resourceGroupName, accountName, newAccountType),
+                                string.Format("Setting storage account {0} to type {1} should fail", accountName, newAccountType));
+                        }
                     }
                     else
                     {
