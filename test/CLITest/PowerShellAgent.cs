@@ -95,8 +95,6 @@ namespace Management.Storage.ScenarioTest
         // add this member for importing module
         private static InitialSessionState _InitState = InitialSessionState.CreateDefault();
 
-        private static PSCommand InitCommand = null;
-
         private PowerShell GetPowerShellInstance()
         {
             this.Clear();
@@ -2923,6 +2921,15 @@ namespace Management.Storage.ScenarioTest
             var result = this.Invoke();
             this.AssertNoError();
             this.Clear();
+        }
+
+        public override string GetCurrentLocation()
+        {
+            this.shell.AddCommand("Get-Location");
+            ParseCollection(this.shell.Invoke());
+            ParseErrorMessages(this.shell);
+            this.Clear();
+            return _Output[0][PowerShellAgent.BaseObject].ToString();
         }
 
         public override void ChangeLocation(string path)

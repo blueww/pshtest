@@ -86,7 +86,7 @@
             try
             {
                 string queuePermission = Utility.GenRandomCombination(Utility.QueuePermission);
-                string sastoken = agent.GetQueueSasFromCmd(queue.Name, string.Empty, queuePermission, startTime, expiryTime);
+                string sastoken = CommandAgent.GetQueueSasFromCmd(queue.Name, string.Empty, queuePermission, startTime, expiryTime);
                 try
                 {
                     ValidateSasToken(queue, queuePermission, sastoken);
@@ -151,7 +151,7 @@
 
                 queue.SetPermissions(permission);
 
-                string sasToken = agent.GetQueueSasFromCmd(queue.Name, policyName, string.Empty);
+                string sasToken = CommandAgent.GetQueueSasFromCmd(queue.Name, policyName, string.Empty);
                 Test.Info("Sleep and wait for sas policy taking effect");
                 double lifeTime = 1;
                 Thread.Sleep(TimeSpan.FromMinutes(lifeTime));
@@ -178,7 +178,7 @@
             {
                 string policyName = Utility.GenNameString("notexistpolicy");
 
-                Test.Assert(!agent.NewAzureStorageQueueSAS(queue.Name, policyName, string.Empty),
+                Test.Assert(!CommandAgent.NewAzureStorageQueueSAS(queue.Name, policyName, string.Empty),
                     "Generate queue sas token with not exist policy should fail");
                 ExpectedContainErrorMessage(string.Format("Invalid access policy '{0}'.", policyName));
             }
@@ -204,7 +204,7 @@
             {
                 DateTime start = DateTime.UtcNow;
                 DateTime end = start.AddHours(1.0);
-                Test.Assert(!agent.NewAzureStorageQueueSAS(queue.Name, string.Empty, "r", end, start),
+                Test.Assert(!CommandAgent.NewAzureStorageQueueSAS(queue.Name, string.Empty, "r", end, start),
                         "Generate queue sas token with invalid should fail");
                 ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
             }
@@ -229,7 +229,7 @@
             try
             {
                 string queuePermission = Utility.GenRandomCombination(Utility.QueuePermission);
-                string fullUri = agent.GetQueueSasFromCmd(queue.Name, string.Empty, queuePermission);
+                string fullUri = CommandAgent.GetQueueSasFromCmd(queue.Name, string.Empty, queuePermission);
                 string sasToken = (lang == Language.PowerShell ? fullUri.Substring(fullUri.IndexOf("?")) : fullUri);
                 ValidateSasToken(queue, queuePermission, sasToken);
             }
@@ -258,25 +258,25 @@
                 //queue read permission
                 string queuePermission = "r";
                 string limitedPermission = "aup";
-                string sastoken = agent.GetQueueSasFromCmd(queue.Name, string.Empty, queuePermission);
+                string sastoken = CommandAgent.GetQueueSasFromCmd(queue.Name, string.Empty, queuePermission);
                 ValidateLimitedSasPermission(queue, limitedPermission, sastoken);
 
                 //queue add permission
                 queuePermission = "a";
                 limitedPermission = "rup";
-                sastoken = agent.GetQueueSasFromCmd(queue.Name, string.Empty, queuePermission);
+                sastoken = CommandAgent.GetQueueSasFromCmd(queue.Name, string.Empty, queuePermission);
                 ValidateLimitedSasPermission(queue, limitedPermission, sastoken);
 
                 //queue update permission
                 queuePermission = "u";
                 limitedPermission = "rap";
-                sastoken = agent.GetQueueSasFromCmd(queue.Name, string.Empty, queuePermission);
+                sastoken = CommandAgent.GetQueueSasFromCmd(queue.Name, string.Empty, queuePermission);
                 ValidateLimitedSasPermission(queue, limitedPermission, sastoken);
 
                 //queue update permission
                 queuePermission = "p";
                 limitedPermission = "rau";
-                sastoken = agent.GetQueueSasFromCmd(queue.Name, string.Empty, queuePermission);
+                sastoken = CommandAgent.GetQueueSasFromCmd(queue.Name, string.Empty, queuePermission);
                 ValidateLimitedSasPermission(queue, limitedPermission, sastoken);
             }
             finally
@@ -297,7 +297,7 @@
         public void NewQueueSasWithNotExistQueue()
         {
             string queueName = Utility.GenNameString("queue");
-            agent.GetQueueSasFromCmd(queueName, string.Empty, "r");
+            CommandAgent.GetQueueSasFromCmd(queueName, string.Empty, "r");
         }
 
         /// <summary>
@@ -312,7 +312,7 @@
             CloudQueue queue = queueUtil.CreateQueue();
             try
             {
-                string sastoken = agent.GetQueueSasFromCmd(queue.Name, string.Empty, "raup", null, null, false, SharedAccessProtocol.HttpsOnly);
+                string sastoken = CommandAgent.GetQueueSasFromCmd(queue.Name, string.Empty, "raup", null, null, false, SharedAccessProtocol.HttpsOnly);
 
                 queueUtil.ValidateQueueAddableWithSasToken(queue, sastoken);
 
@@ -346,7 +346,7 @@
             CloudQueue queue = queueUtil.CreateQueue();
             try
             {
-                string sastoken = agent.GetQueueSasFromCmd(queue.Name, string.Empty, "raup", null, null, false, null, "2.3.4.5");
+                string sastoken = CommandAgent.GetQueueSasFromCmd(queue.Name, string.Empty, "raup", null, null, false, null, "2.3.4.5");
 
                 try
                 {
@@ -378,7 +378,7 @@
             CloudQueue queue = queueUtil.CreateQueue();
             try
             {
-                string sastoken = agent.GetQueueSasFromCmd(queue.Name, string.Empty, "raup", null, null, false, null, "0.0.0.0-255.255.255.255");
+                string sastoken = CommandAgent.GetQueueSasFromCmd(queue.Name, string.Empty, "raup", null, null, false, null, "0.0.0.0-255.255.255.255");
                 queueUtil.ValidateQueueUpdateableWithSasToken(queue, sastoken);
             }
             finally
@@ -396,7 +396,7 @@
             CloudQueue queue = queueUtil.CreateQueue();
             try
             {
-                string sastoken = agent.GetQueueSasFromCmd(queue.Name, string.Empty, queuePermission);
+                string sastoken = CommandAgent.GetQueueSasFromCmd(queue.Name, string.Empty, queuePermission);
                 ValidateSasToken(queue, queuePermission, sastoken);
             }
             finally

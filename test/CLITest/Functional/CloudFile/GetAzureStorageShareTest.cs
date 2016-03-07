@@ -27,16 +27,6 @@
             TestBase.TestClassCleanup();
         }
 
-        public override void OnTestSetup()
-        {
-            this.agent.Clear();
-        }
-
-        public override void OnTestCleanUp()
-        {
-            this.agent.Clear();
-        }
-
         /// <summary>
         /// Positive functional test case 5.3.2
         /// </summary>
@@ -67,8 +57,8 @@
                     fileUtil.EnsureFileShareExists(shareName);
                 }
 
-                this.agent.GetFileShareByPrefix(prefix);
-                var result = this.agent.Invoke();
+                CommandAgent.GetFileShareByPrefix(prefix);
+                var result = CommandAgent.Invoke();
                 result.AssertObjectCollection(obj => result.AssertCloudFileContainer(obj, sharesMatchingPrefixList), sharesMatchingPrefixList.Count);
             }
             finally
@@ -101,24 +91,23 @@
 
             try
             {
-                agent.GetFileShareByName(fileShareName);
+                CommandAgent.GetFileShareByName(fileShareName);
 
-                var result = agent.Invoke();
+                var result = CommandAgent.Invoke();
 
-                agent.AssertNoError();
+                CommandAgent.AssertNoError();
                 result.AssertObjectCollection(obj => result.AssertCloudFileContainer(obj, fileShareName), 1);
 
                 fileUtil.CreateFile(fileShare.GetRootDirectoryReference(), cloudFileName);
 
-                agent.GetFileShareByName(fileShareName);
+                CommandAgent.GetFileShareByName(fileShareName);
 
-                result = agent.Invoke();
-                agent.AssertNoError();
+                result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
                 result.AssertObjectCollection(obj => result.AssertCloudFileContainer(obj, fileShareName, 1), 1);
             }
             finally
             {
-                agent.Dispose();
                 fileUtil.DeleteFileShareIfExists(fileShareName);
             }
         }
@@ -141,8 +130,8 @@
                     fileUtil.EnsureFileShareExists(shareName);
                 }
 
-                this.agent.GetFileShareByPrefix(string.Empty);
-                var result = this.agent.Invoke();
+                CommandAgent.GetFileShareByPrefix(string.Empty);
+                var result = CommandAgent.Invoke();
                 result.AssertObjectCollection(obj =>
                 {
                     if (sharesList.Count > 0)
@@ -180,9 +169,9 @@
         {
             string shareName = CloudFileUtil.GenerateUniqueFileShareName();
             fileUtil.DeleteFileShareIfExists(shareName);
-            this.agent.GetFileShareByName(shareName);
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(
+            CommandAgent.GetFileShareByName(shareName);
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(
                 AssertUtil.ResourceNotFoundFullQualifiedErrorId,
                 AssertUtil.ShareNotFoundFullQualifiedErrorId,
                 AssertUtil.ShareBeingDeletedFullQualifiedErrorId));
@@ -205,9 +194,9 @@
                 share.DeleteIfExists();
             }
 
-            this.agent.GetFileShareByPrefix(prefix);
-            var result = this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.GetFileShareByPrefix(prefix);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertNoResult();
         }
 
@@ -221,9 +210,9 @@
         public void GetShareByNameUsingWildCardTest()
         {
             string shareName = string.Concat("*", CloudFileUtil.GenerateUniqueFileShareName());
-            this.agent.GetFileShareByName(shareName);
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+            CommandAgent.GetFileShareByName(shareName);
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -236,9 +225,9 @@
         public void GetShareByPrefixUsingWildCardTest()
         {
             string shareName = string.Concat("*", CloudFileUtil.GenerateUniqueFileShareName());
-            this.agent.GetFileShareByPrefix(shareName);
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
+            CommandAgent.GetFileShareByPrefix(shareName);
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidArgumentFullQualifiedErrorId));
         }
 
         private static IEnumerable<string> BuildShareNamesByPrefix(string prefix, int numberOfShares)

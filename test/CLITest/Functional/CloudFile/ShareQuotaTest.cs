@@ -43,28 +43,28 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 fileUtil.CleanupDirectory(share.GetRootDirectoryReference());
                 int quota = random.Next(MinQuota, MaxQuota);
 
-                Test.Assert(agent.SetAzureStorageShareQuota(shareName, quota),
+                Test.Assert(CommandAgent.SetAzureStorageShareQuota(shareName, quota),
                     "Set share quota should succeed");
                 ValidateShareQuota(share, quota);
 
                 fileUtil.CleanupDirectory(share.GetRootDirectoryReference());
                 quota = random.Next(MinQuota, MaxQuota);
-                Test.Assert(agent.SetAzureStorageShareQuota(share, quota),
+                Test.Assert(CommandAgent.SetAzureStorageShareQuota(share, quota),
                     "Set share quota with share instance should succeed");
                 ValidateShareQuota(share, quota);
 
                 fileUtil.CleanupDirectory(share.GetRootDirectoryReference());
-                Test.Assert(agent.SetAzureStorageShareQuota(share, quota),
+                Test.Assert(CommandAgent.SetAzureStorageShareQuota(share, quota),
                     "Set share quota with unchanged value should succeed");
                 ValidateShareQuota(share, quota);
 
                 fileUtil.CleanupDirectory(share.GetRootDirectoryReference());
-                Test.Assert(agent.SetAzureStorageShareQuota(shareName, MinQuota),
+                Test.Assert(CommandAgent.SetAzureStorageShareQuota(shareName, MinQuota),
                     "Set share minimum quota to a share should succeed");
                 ValidateShareQuota(share, MinQuota);
 
                 fileUtil.CleanupDirectory(share.GetRootDirectoryReference());
-                Test.Assert(agent.SetAzureStorageShareQuota(shareName, MaxQuota),
+                Test.Assert(CommandAgent.SetAzureStorageShareQuota(shareName, MaxQuota),
                     "Set share Maximum quota to a share should succeed");
                 ValidateShareQuota(share, MaxQuota);
             }
@@ -91,7 +91,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 fileUtil.CleanupDirectory(share.GetRootDirectoryReference());
                 int quota = random.Next(MinQuota, MaxQuota);
 
-                Test.Assert(agent.SetAzureStorageShareQuota(shareName, quota),
+                Test.Assert(CommandAgent.SetAzureStorageShareQuota(shareName, quota),
                     "Set quota of share with longest name should succeed");
                 ValidateShareQuota(share, quota);
             }
@@ -108,7 +108,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 fileUtil.CleanupDirectory(share.GetRootDirectoryReference());
                 int quota = random.Next(MinQuota, MaxQuota);
 
-                Test.Assert(agent.SetAzureStorageShareQuota(shareName, quota),
+                Test.Assert(CommandAgent.SetAzureStorageShareQuota(shareName, quota),
                     "Set quota of share with shortest name should succeed");
                 ValidateShareQuota(share, quota);
             }
@@ -135,13 +135,13 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 // Quota less than minimum value
                 int quota = random.Next(0 - MaxQuota, MinQuota);
-                Test.Assert(!agent.SetAzureStorageShareQuota(shareName, quota),
+                Test.Assert(!CommandAgent.SetAzureStorageShareQuota(shareName, quota),
                     "Set quota with value of less than 1 to a share should fail.");
                 ExpectedContainErrorMessage(string.Format("The {0} argument is less than the minimum allowed range of 1.", quota));
                 
                 // Quota greater than maximum value
                 quota = random.Next(MaxQuota + 1, int.MaxValue);
-                Test.Assert(!agent.SetAzureStorageShareQuota(shareName, quota),
+                Test.Assert(!CommandAgent.SetAzureStorageShareQuota(shareName, quota),
                     "Set quota with value of greater than 5120 to a share should fail.");
                 ExpectedContainErrorMessage(string.Format("The {0} argument is greater than the maximum allowed range of 5120.", quota));
 
@@ -149,12 +149,12 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string nonExistShareName = Utility.GenNameString("share");
                 fileUtil.DeleteFileShareIfExists(nonExistShareName);
                 quota = random.Next(MinQuota, MaxQuota);
-                Test.Assert(!agent.SetAzureStorageShareQuota(nonExistShareName, quota),
+                Test.Assert(!CommandAgent.SetAzureStorageShareQuota(nonExistShareName, quota),
                     "Set quota to a non-exist share should fail.");
                 ExpectedContainErrorMessage("The specified share does not exist");
 
                 string notValidShareName = "SHARE";
-                Test.Assert(!agent.SetAzureStorageShareQuota(notValidShareName, quota),
+                Test.Assert(!CommandAgent.SetAzureStorageShareQuota(notValidShareName, quota),
                     "Set quota to a not valid share name should fail.");
                 ExpectedContainErrorMessage(string.Format("The given share name/prefix '{0}' is not a valid name for a file share of Microsoft Azure File Service", notValidShareName));
             }

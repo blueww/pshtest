@@ -623,7 +623,8 @@ namespace Management.Storage.ScenarioTest
                 properties = GetServiceProperties(account, serviceType);
 
                 LoggingOperations current = (LoggingOperations)Enum.Parse(typeof(LoggingOperations), loggingOperations, true);
-                if (properties.Logging.RetentionDays == retentionDays && current.Equals(properties.Logging.LoggingOperations))
+                if ((((properties.Logging.RetentionDays == null) && (retentionDays == -1)) || (properties.Logging.RetentionDays == retentionDays)) 
+                    && ((current == LoggingOperations.None) || current.Equals(properties.Logging.LoggingOperations)))
                 {
                     break;
                 }

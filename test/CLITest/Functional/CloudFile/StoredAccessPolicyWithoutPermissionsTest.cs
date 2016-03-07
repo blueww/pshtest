@@ -36,11 +36,11 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
             if (lang == Language.PowerShell)
             {
-                this.agent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sasToken);
+                CommandAgent.SetStorageContextWithSASToken(StorageAccount.Credentials.AccountName, sasToken);
             }
             else
             {
-                this.agent.SetStorageContextWithSASTokenInConnectionString(StorageAccount, sasToken);
+                CommandAgent.SetStorageContextWithSASTokenInConnectionString(StorageAccount, sasToken);
             }
         }
 
@@ -60,19 +60,19 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
             string errorMsg = "This request is not authorized to perform this operation.";
 
-            Test.Assert(!agent.NewAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p"), permission, null, expiryTime),
+            Test.Assert(!CommandAgent.NewAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p"), permission, null, expiryTime),
                 "Should fail to new a stored access policy to share with sas token credentials");
             ExpectedContainErrorMessage(errorMsg);
 
-            Test.Assert(!agent.GetAzureStorageShareStoredAccessPolicy(shareName, null),
+            Test.Assert(!CommandAgent.GetAzureStorageShareStoredAccessPolicy(shareName, null),
                 "Should fail to get stored access policy on a share with sas token credentials");
             ExpectedContainErrorMessage(errorMsg);
 
-            Test.Assert(!agent.RemoveAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p")),
+            Test.Assert(!CommandAgent.RemoveAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p")),
                 "Should fail to remove stored access policy on a share with sas token credentials");
             ExpectedContainErrorMessage(errorMsg);
 
-            Test.Assert(!agent.SetAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p"), permission, null, null),
+            Test.Assert(!CommandAgent.SetAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p"), permission, null, null),
                 "Should fail to set stored access policy on a share with sas token credentials");
             ExpectedContainErrorMessage(errorMsg);
         }

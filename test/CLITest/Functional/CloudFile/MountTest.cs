@@ -59,7 +59,6 @@
 
         public override void OnTestCleanUp()
         {
-            this.agent.Dispose();
             if (this.mountedShareRoot != null)
             {
                 DismountShare(this.mountedShareRoot);
@@ -90,9 +89,9 @@
         public void CreateDirectoryAndListThroughSMBTest()
         {
             string directoryName = CloudFileUtil.GenerateUniqueDirectoryName();
-            this.agent.NewDirectory(this.fileShare, directoryName);
-            this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.NewDirectory(this.fileShare, directoryName);
+            CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             SMBValidationRetry(
                 () => this.mountedShareRoot.GetDirectories().Select(x => x.Name).Contains(directoryName),
                 "list the newly created directory through SMB protocol");
@@ -109,9 +108,9 @@
         {
             string directoryName = CloudFileUtil.GenerateUniqueDirectoryName();
             this.mountedShareRoot.CreateSubdirectory(directoryName);
-            this.agent.GetFile(this.fileShare);
-            var result = this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.GetFile(this.fileShare);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory(directoryName));
         }
 
@@ -127,9 +126,9 @@
             string fileName = CloudFileUtil.GenerateUniqueFileName();
             string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
             FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
-            this.agent.UploadFile(this.fileShare, localFilePath, fileName);
-            this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.UploadFile(this.fileShare, localFilePath, fileName);
+            CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             SMBValidationRetry(
                 () => this.mountedShareRoot.GetFiles().Select(x => x.Name).Contains(fileName),
                 "list the newly created directory through SMB protocol");
@@ -153,9 +152,9 @@
                 stream.Write(randomContent, 0, randomContent.Length);
             }
 
-            this.agent.GetFile(this.fileShare);
-            var result = this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.GetFile(this.fileShare);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertObjectCollection(obj => obj.AssertCloudFile(fileName));
         }
 

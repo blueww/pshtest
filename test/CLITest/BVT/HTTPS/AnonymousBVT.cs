@@ -73,7 +73,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
 
             try
             {
-                Test.Assert(agent.GetAzureStorageContainer(containerName), Utility.GenComparisonData("GetAzureStorageContainer", true));
+                Test.Assert(CommandAgent.GetAzureStorageContainer(containerName), Utility.GenComparisonData("GetAzureStorageContainer", true));
 
                 Dictionary<string, object> dic = Utility.GenComparisonData(StorageObjectType.Container, containerName);
 
@@ -83,10 +83,10 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
                 dic["PublicAccess"] = null;
                 dic["Permission"] = null;
                 // Verification for returned values
-                agent.OutputValidation(comp);
+                CommandAgent.OutputValidation(comp);
 
                 //check the http or https usage
-                CloudBlobContainer retrievedContainer = (CloudBlobContainer)agent.Output[0]["CloudBlobContainer"]; ;
+                CloudBlobContainer retrievedContainer = (CloudBlobContainer)CommandAgent.Output[0]["CloudBlobContainer"]; ;
                 string uri = retrievedContainer.Uri.ToString();
                 string uriPrefix = string.Empty;
 
@@ -126,12 +126,12 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
                 CloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
                 CloudBlob appendBlob = blobUtil.CreateAppendBlob(container, appendBlobName);
 
-                Test.Assert(agent.GetAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
-                agent.OutputValidation(new List<CloudBlob> { blockBlob });
-                Test.Assert(agent.GetAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
-                agent.OutputValidation(new List<CloudBlob> { pageBlob });
-                Test.Assert(agent.GetAzureStorageBlob(appendBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
-                agent.OutputValidation(new List<CloudBlob> { appendBlob });
+                Test.Assert(CommandAgent.GetAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
+                CommandAgent.OutputValidation(new List<CloudBlob> { blockBlob });
+                Test.Assert(CommandAgent.GetAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
+                CommandAgent.OutputValidation(new List<CloudBlob> { pageBlob });
+                Test.Assert(CommandAgent.GetAzureStorageBlob(appendBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
+                CommandAgent.OutputValidation(new List<CloudBlob> { appendBlob });
             }
             finally
             {
@@ -201,10 +201,10 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             CloudBlob blob = blobUtil.CreateBlob(container, blobName, type);
 
             string filePath = Path.Combine(downloadDirRoot, blob.Name);
-            Test.Assert(agent.GetAzureStorageBlobContent(blob.Name, filePath, container.Name, true), "download blob should be successful");
+            Test.Assert(CommandAgent.GetAzureStorageBlobContent(blob.Name, filePath, container.Name, true), "download blob should be successful");
             string localMd5 = FileUtil.GetFileContentMD5(filePath);
             Test.Assert(localMd5 == blob.Properties.ContentMD5, string.Format("local content md5 should be {0}, and actually it's {1}", blob.Properties.ContentMD5, localMd5));
-            agent.OutputValidation(new List<CloudBlob> { blob });
+            CommandAgent.OutputValidation(new List<CloudBlob> { blob });
         }
 
         [TestMethod()]
@@ -224,7 +224,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
         [TestCategory(Tag.BVT)]
         public void AnonymousContextWithEndPoint()
         {
-            PowerShellAgent psAgent = (PowerShellAgent)agent;
+            PowerShellAgent psAgent = (PowerShellAgent)CommandAgent;
             string containerName = Utility.GenNameString(ContainerPrefix);
             CloudBlobContainer container = blobUtil.CreateContainer(containerName, BlobContainerPublicAccessType.Blob);
 
@@ -243,14 +243,14 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
                 string cmd = string.Format("New-AzureStorageContext -StorageAccountName {0} -Anonymous -Protocol {1} -EndPoint {2}",
                     StorageAccountName, protocol, StorageEndPoint);
                 psAgent.AddPipelineScript(cmd);
-                Test.Assert(agent.GetAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
-                agent.OutputValidation(new List<CloudBlob> { blockBlob });
+                Test.Assert(CommandAgent.GetAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
+                CommandAgent.OutputValidation(new List<CloudBlob> { blockBlob });
                 psAgent.AddPipelineScript(cmd);
-                Test.Assert(agent.GetAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
-                agent.OutputValidation(new List<CloudBlob> { pageBlob });
+                Test.Assert(CommandAgent.GetAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
+                CommandAgent.OutputValidation(new List<CloudBlob> { pageBlob });
                 psAgent.AddPipelineScript(cmd);
-                Test.Assert(agent.GetAzureStorageBlob(appendBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
-                agent.OutputValidation(new List<CloudBlob> { appendBlob });
+                Test.Assert(CommandAgent.GetAzureStorageBlob(appendBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
+                CommandAgent.OutputValidation(new List<CloudBlob> { appendBlob });
             }
             finally
             {

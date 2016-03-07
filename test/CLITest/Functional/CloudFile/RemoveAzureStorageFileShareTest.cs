@@ -42,16 +42,6 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             TestBase.TestClassCleanup();
         }
 
-        public override void OnTestSetup()
-        {
-            this.agent.Clear();
-        }
-
-        public override void OnTestCleanUp()
-        {
-            this.agent.Clear();
-        }
-
         /// <summary>
         /// Positive functional test case 5.4.2
         /// </summary>
@@ -72,10 +62,10 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
             try
             {
-                this.agent.RemoveFileShareFromPipeline();
-                var result = this.agent.Invoke(names);
+                CommandAgent.RemoveFileShareFromPipeline();
+                var result = CommandAgent.Invoke(names);
 
-                this.agent.AssertNoError();
+                CommandAgent.AssertNoError();
                 result.AssertNoResult();
             }
             finally
@@ -103,10 +93,10 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 // Creates an storage context object with invalid account
                 // name.
                 var invalidAccount = CloudFileUtil.MockupStorageAccount(StorageAccount, mockupAccountName: true);
-                object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
-                this.agent.RemoveFileShareByName(fileShareName, false, invalidStorageContextObject);
-                var result = this.agent.Invoke();
-                this.agent.AssertErrors(record => record.AssertError(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
+                object invalidStorageContextObject = CommandAgent.CreateStorageContextObject(invalidAccount.ToString(true));
+                CommandAgent.RemoveFileShareByName(fileShareName, false, invalidStorageContextObject);
+                var result = CommandAgent.Invoke();
+                CommandAgent.AssertErrors(record => record.AssertError(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
                 fileUtil.AssertFileShareExists(fileShareName, "File share should not be removed when providing invalid credentials.");
             }
             finally
@@ -130,10 +120,10 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             {
                 // Creates an storage context object with invalid key value
                 var invalidAccount = CloudFileUtil.MockupStorageAccount(StorageAccount, mockupAccountKey: true);
-                object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
-                this.agent.RemoveFileShareByName(fileShareName, false, invalidStorageContextObject);
-                var result = this.agent.Invoke();
-                this.agent.AssertErrors(record => record.AssertError(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
+                object invalidStorageContextObject = CommandAgent.CreateStorageContextObject(invalidAccount.ToString(true));
+                CommandAgent.RemoveFileShareByName(fileShareName, false, invalidStorageContextObject);
+                var result = CommandAgent.Invoke();
+                CommandAgent.AssertErrors(record => record.AssertError(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
                 fileUtil.AssertFileShareExists(fileShareName, "File share should not be removed when providing invalid credentials.");
             }
             finally
@@ -156,9 +146,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
             try
             {
-                this.agent.RemoveFileShareByName(fileShareName);
-                var result = this.agent.Invoke();
-                this.agent.AssertErrors(record => record.AssertError(AssertUtil.ShareNotFoundFullQualifiedErrorId));
+                CommandAgent.RemoveFileShareByName(fileShareName);
+                var result = CommandAgent.Invoke();
+                CommandAgent.AssertErrors(record => record.AssertError(AssertUtil.ShareNotFoundFullQualifiedErrorId));
             }
             finally
             {
@@ -187,9 +177,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 // Creates a stream which would block the read operation.
                 uploadTask = Task.Factory.StartNew(() => file.UploadFromStream(stream));
-                this.agent.RemoveFileShareByName(fileShareName);
-                var result = this.agent.Invoke();
-                this.agent.AssertNoError();
+                CommandAgent.RemoveFileShareByName(fileShareName);
+                var result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
             }
             finally
             {
