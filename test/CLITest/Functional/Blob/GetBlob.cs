@@ -69,8 +69,8 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 List<CloudBlob> blobs = blobUtil.CreateRandomBlob(container, blobNames);
 
-                Test.Assert(agent.GetAzureStorageBlob(string.Empty, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
-                agent.OutputValidation(blobs);
+                Test.Assert(CommandAgent.GetAzureStorageBlob(string.Empty, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
+                CommandAgent.OutputValidation(blobs);
             }
             finally
             {
@@ -111,16 +111,16 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 List<CloudBlob> blobs = blobUtil.CreateRandomBlob(container, blobNames);
 
                 CloudBlob pageBlob = blobUtil.CreatePageBlob(container, pageBlobName);
-                Test.Assert(agent.GetAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
-                agent.OutputValidation(new List<CloudBlob>() { pageBlob });
+                Test.Assert(CommandAgent.GetAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
+                CommandAgent.OutputValidation(new List<CloudBlob>() { pageBlob });
 
                 CloudBlob blockBlob = blobUtil.CreateBlockBlob(container, blockBlobName);
-                Test.Assert(agent.GetAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
-                agent.OutputValidation(new List<CloudBlob>() { blockBlob });
+                Test.Assert(CommandAgent.GetAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
+                CommandAgent.OutputValidation(new List<CloudBlob>() { blockBlob });
 
                 CloudBlob appendBlob = blobUtil.CreateAppendBlob(container, appendBlobName);
-                Test.Assert(agent.GetAzureStorageBlob(appendBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
-                agent.OutputValidation(new List<CloudBlob>() { appendBlob });
+                Test.Assert(CommandAgent.GetAzureStorageBlob(appendBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob", true));
+                CommandAgent.OutputValidation(new List<CloudBlob>() { appendBlob });
             }
             finally
             {
@@ -149,30 +149,30 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 CloudBlob blob = blobUtil.CreatePageBlob(container, blobName);
                 string cmd = String.Format("Get-AzureStorageContainer {0}", containerName);
-                ((PowerShellAgent)agent).AddPipelineScript(cmd);
+                ((PowerShellAgent)CommandAgent).AddPipelineScript(cmd);
 
-                Test.Assert(agent.GetAzureStorageBlob(blobName, string.Empty), Utility.GenComparisonData("Get-AzureStorageContainer | Get-AzureStorageBlob", true));
-                Test.Assert(agent.Output.Count == 1, String.Format("Want to retrieve {0} page blob, but retrieved {1} page blobs", 1, agent.Output.Count));
+                Test.Assert(CommandAgent.GetAzureStorageBlob(blobName, string.Empty), Utility.GenComparisonData("Get-AzureStorageContainer | Get-AzureStorageBlob", true));
+                Test.Assert(CommandAgent.Output.Count == 1, String.Format("Want to retrieve {0} page blob, but retrieved {1} page blobs", 1, CommandAgent.Output.Count));
 
-                agent.OutputValidation(new List<CloudBlob>() { blob });
+                CommandAgent.OutputValidation(new List<CloudBlob>() { blob });
 
                 blobName = Utility.GenNameString("blob");
                 blob = blobUtil.CreateBlockBlob(container, blobName);
-                ((PowerShellAgent)agent).AddPipelineScript(cmd);
+                ((PowerShellAgent)CommandAgent).AddPipelineScript(cmd);
 
-                Test.Assert(agent.GetAzureStorageBlob(blobName, string.Empty), Utility.GenComparisonData("Get-AzureStorageContainer | Get-AzureStorageBlob", true));
-                Test.Assert(agent.Output.Count == 1, String.Format("Want to retrieve {0} block blob, but retrieved {1} block blobs", 1, agent.Output.Count));
+                Test.Assert(CommandAgent.GetAzureStorageBlob(blobName, string.Empty), Utility.GenComparisonData("Get-AzureStorageContainer | Get-AzureStorageBlob", true));
+                Test.Assert(CommandAgent.Output.Count == 1, String.Format("Want to retrieve {0} block blob, but retrieved {1} block blobs", 1, CommandAgent.Output.Count));
 
-                agent.OutputValidation(new List<CloudBlob>() { blob });
+                CommandAgent.OutputValidation(new List<CloudBlob>() { blob });
 
                 blobName = Utility.GenNameString("blob");
                 blob = blobUtil.CreateAppendBlob(container, blobName);
-                ((PowerShellAgent)agent).AddPipelineScript(cmd);
+                ((PowerShellAgent)CommandAgent).AddPipelineScript(cmd);
 
-                Test.Assert(agent.GetAzureStorageBlob(blobName, string.Empty), Utility.GenComparisonData("Get-AzureStorageContainer | Get-AzureStorageBlob", true));
-                Test.Assert(agent.Output.Count == 1, String.Format("Want to retrieve {0} append blob, but retrieved {1} append blobs", 1, agent.Output.Count));
+                Test.Assert(CommandAgent.GetAzureStorageBlob(blobName, string.Empty), Utility.GenComparisonData("Get-AzureStorageContainer | Get-AzureStorageBlob", true));
+                Test.Assert(CommandAgent.Output.Count == 1, String.Format("Want to retrieve {0} append blob, but retrieved {1} append blobs", 1, CommandAgent.Output.Count));
 
-                agent.OutputValidation(new List<CloudBlob>() { blob });
+                CommandAgent.OutputValidation(new List<CloudBlob>() { blob });
             }
             finally
             {
@@ -208,10 +208,10 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 List<CloudBlob> blobs = blobUtil.CreateRandomBlob(container, blobNames);
 
-                Test.Assert(agent.GetAzureStorageBlob(string.Empty, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with empty blob name", true));
-                Test.Assert(agent.Output.Count == blobNames.Count, String.Format("Want to retrieve {0} blobs, but retrieved {1} blobs", blobNames.Count, agent.Output.Count));
+                Test.Assert(CommandAgent.GetAzureStorageBlob(string.Empty, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with empty blob name", true));
+                Test.Assert(CommandAgent.Output.Count == blobNames.Count, String.Format("Want to retrieve {0} blobs, but retrieved {1} blobs", blobNames.Count, CommandAgent.Output.Count));
 
-                agent.OutputValidation(blobs);
+                CommandAgent.OutputValidation(blobs);
             }
             finally
             {
@@ -247,10 +247,10 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 List<CloudBlob> blobs = blobUtil.CreateRandomBlob(container, blobNames);
 
-                Test.Assert(agent.GetAzureStorageBlobByPrefix("blobprefix", containerName), Utility.GenComparisonData("Get-AzureStorageBlob with prefix", true));
-                Test.Assert(agent.Output.Count == blobs.Count, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", blobs.Count, agent.Output.Count));
+                Test.Assert(CommandAgent.GetAzureStorageBlobByPrefix("blobprefix", containerName), Utility.GenComparisonData("Get-AzureStorageBlob with prefix", true));
+                Test.Assert(CommandAgent.Output.Count == blobs.Count, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", blobs.Count, CommandAgent.Output.Count));
 
-                agent.OutputValidation(blobs);
+                CommandAgent.OutputValidation(blobs);
             }
             finally
             {
@@ -294,10 +294,10 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 List<CloudBlob> prefixBlobs = blobUtil.CreateRandomBlob(container, prefixes);
                 List<CloudBlob> noprefixBlobs = blobUtil.CreateRandomBlob(container, noprefixes);
 
-                Test.Assert(agent.GetAzureStorageBlob("prefix*", containerName), Utility.GenComparisonData("Get-AzureStorageBlob with wildcard", true));
-                Test.Assert(agent.Output.Count == prefixBlobs.Count, String.Format("Expect to retrieve {0} blobs, actually retrieved {1} blobs", prefixBlobs.Count, agent.Output.Count));
+                Test.Assert(CommandAgent.GetAzureStorageBlob("prefix*", containerName), Utility.GenComparisonData("Get-AzureStorageBlob with wildcard", true));
+                Test.Assert(CommandAgent.Output.Count == prefixBlobs.Count, String.Format("Expect to retrieve {0} blobs, actually retrieved {1} blobs", prefixBlobs.Count, CommandAgent.Output.Count));
 
-                agent.OutputValidation(prefixBlobs);
+                CommandAgent.OutputValidation(prefixBlobs);
             }
             finally
             {
@@ -373,9 +373,9 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 blobs.Add(pageBlob);
 
-                Test.Assert(agent.GetAzureStorageBlob(string.Empty, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with snapshot blobs", true));
-                Test.Assert(agent.Output.Count == blobs.Count, String.Format("Expect to retrieve {0} blobs, actually retrieved {1} blobs", blobs.Count, agent.Output.Count));
-                agent.OutputValidation(blobs);
+                Test.Assert(CommandAgent.GetAzureStorageBlob(string.Empty, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with snapshot blobs", true));
+                Test.Assert(CommandAgent.Output.Count == blobs.Count, String.Format("Expect to retrieve {0} blobs, actually retrieved {1} blobs", blobs.Count, CommandAgent.Output.Count));
+                CommandAgent.OutputValidation(blobs);
             }
             finally
             {
@@ -414,14 +414,14 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 blockBlob.FetchAttributes();
                 appendBlob.FetchAttributes();
 
-                Test.Assert(agent.GetAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with lease", true));
-                agent.OutputValidation(new List<CloudBlob>() { pageBlob });
+                Test.Assert(CommandAgent.GetAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with lease", true));
+                CommandAgent.OutputValidation(new List<CloudBlob>() { pageBlob });
 
-                Test.Assert(agent.GetAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with lease", true));
-                agent.OutputValidation(new List<CloudBlob>() { blockBlob });
+                Test.Assert(CommandAgent.GetAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with lease", true));
+                CommandAgent.OutputValidation(new List<CloudBlob>() { blockBlob });
 
-                Test.Assert(agent.GetAzureStorageBlob(appendBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with lease", true));
-                agent.OutputValidation(new List<CloudBlob>() { appendBlob });
+                Test.Assert(CommandAgent.GetAzureStorageBlob(appendBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with lease", true));
+                CommandAgent.OutputValidation(new List<CloudBlob>() { appendBlob });
             }
             finally
             {
@@ -465,17 +465,17 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                     appendBlob.SetMetadata();
                 }
 
-                Test.Assert(agent.GetAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with metadata", true));
-                Test.Assert(agent.Output.Count == 1, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 1, agent.Output.Count));
-                agent.OutputValidation(new List<CloudBlob>() { pageBlob });
+                Test.Assert(CommandAgent.GetAzureStorageBlob(pageBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with metadata", true));
+                Test.Assert(CommandAgent.Output.Count == 1, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 1, CommandAgent.Output.Count));
+                CommandAgent.OutputValidation(new List<CloudBlob>() { pageBlob });
 
-                Test.Assert(agent.GetAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with metadata", true));
-                Test.Assert(agent.Output.Count == 1, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 1, agent.Output.Count));
-                agent.OutputValidation(new List<CloudBlob>() { blockBlob });
+                Test.Assert(CommandAgent.GetAzureStorageBlob(blockBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with metadata", true));
+                Test.Assert(CommandAgent.Output.Count == 1, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 1, CommandAgent.Output.Count));
+                CommandAgent.OutputValidation(new List<CloudBlob>() { blockBlob });
 
-                Test.Assert(agent.GetAzureStorageBlob(appendBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with metadata", true));
-                Test.Assert(agent.Output.Count == 1, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 1, agent.Output.Count));
-                agent.OutputValidation(new List<CloudBlob>() { appendBlob });
+                Test.Assert(CommandAgent.GetAzureStorageBlob(appendBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with metadata", true));
+                Test.Assert(CommandAgent.Output.Count == 1, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 1, CommandAgent.Output.Count));
+                CommandAgent.OutputValidation(new List<CloudBlob>() { appendBlob });
             }
             finally
             {
@@ -512,10 +512,10 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 List<CloudBlob> blobs = blobUtil.CreateRandomBlob(container, blobNames);
 
-                Test.Assert(agent.GetAzureStorageBlob(string.Empty, containerName), Utility.GenComparisonData("Get-AzureStorageBlob in sub directory", true));
-                Test.Assert(agent.Output.Count == blobs.Count, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", blobs.Count, agent.Output.Count));
+                Test.Assert(CommandAgent.GetAzureStorageBlob(string.Empty, containerName), Utility.GenComparisonData("Get-AzureStorageBlob in sub directory", true));
+                Test.Assert(CommandAgent.Output.Count == blobs.Count, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", blobs.Count, CommandAgent.Output.Count));
 
-                agent.OutputValidation(blobs);
+                CommandAgent.OutputValidation(blobs);
             }
             finally
             {
@@ -545,13 +545,13 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
 
                 string notExistingBlobName = "notexistingblob";
-                Test.Assert(!agent.GetAzureStorageBlob(notExistingBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with not existing blob", false));
-                Test.Assert(agent.ErrorMessages.Count == 1, "only throw an exception");
+                Test.Assert(!CommandAgent.GetAzureStorageBlob(notExistingBlobName, containerName), Utility.GenComparisonData("Get-AzureStorageBlob with not existing blob", false));
+                Test.Assert(CommandAgent.ErrorMessages.Count == 1, "only throw an exception");
                 //the same error may output different error messages in different environments
-                bool expectedError = agent.ErrorMessages[0].Contains(String.Format("Can not find blob '{0}' in container '{1}', or the blob type is unsupported.", notExistingBlobName, containerName))
-                    || agent.ErrorMessages[0].Contains("The remote server returned an error: (404) Not Found")
-                    || agent.ErrorMessages[0].Contains(String.Format("Blob {0} in Container {1} doesn't exist", notExistingBlobName, containerName));
-                Test.Assert(expectedError, agent.ErrorMessages[0]);
+                bool expectedError = CommandAgent.ErrorMessages[0].Contains(String.Format("Can not find blob '{0}' in container '{1}', or the blob type is unsupported.", notExistingBlobName, containerName))
+                    || CommandAgent.ErrorMessages[0].Contains("The remote server returned an error: (404) Not Found")
+                    || CommandAgent.ErrorMessages[0].Contains(String.Format("Blob {0} in Container {1} doesn't exist", notExistingBlobName, containerName));
+                Test.Assert(expectedError, CommandAgent.ErrorMessages[0]);
             }
             finally
             {

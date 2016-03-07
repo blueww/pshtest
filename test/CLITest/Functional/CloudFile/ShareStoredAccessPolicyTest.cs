@@ -123,7 +123,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
             try
             {
-                Test.Assert(!agent.NewAzureStorageShareStoredAccessPolicy("SHARE", Utility.GenNameString("p", 5), null, null, null), "Create stored access policy for invalid container name CONTAINER should fail");
+                Test.Assert(!CommandAgent.NewAzureStorageShareStoredAccessPolicy("SHARE", Utility.GenNameString("p", 5), null, null, null), "Create stored access policy for invalid container name CONTAINER should fail");
                 if (lang == Language.PowerShell)
                 {
                     ExpectedContainErrorMessage("The given share name/prefix 'SHARE' is not a valid name for a file share of Microsoft Azure File Service");
@@ -133,14 +133,14 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     ExpectedContainErrorMessage("Share name format is incorrect");
                 }
 
-                Test.Assert(!agent.NewAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p", 5), null, startTime, expiryTime), "Create stored access policy for ExpiryTime earlier than StartTime should fail");
-                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");   
+                Test.Assert(!CommandAgent.NewAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p", 5), null, startTime, expiryTime), "Create stored access policy for ExpiryTime earlier than StartTime should fail");
+                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
 
 
-                Test.Assert(!agent.NewAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p", 5), null, startTime, startTime), "Create stored access policy for ExpiryTime same as StartTime should fail");
-                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");  
+                Test.Assert(!CommandAgent.NewAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p", 5), null, startTime, startTime), "Create stored access policy for ExpiryTime same as StartTime should fail");
+                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
 
-                Test.Assert(!agent.NewAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p", 5), "x", null, null), "Create stored access policy with invalid permission should fail");
+                Test.Assert(!CommandAgent.NewAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p", 5), "x", null, null), "Create stored access policy with invalid permission should fail");
                 if (lang == Language.PowerShell)
                 {
                     ExpectedContainErrorMessage("Invalid access permission");    
@@ -151,7 +151,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
 
                 string longPolicyName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
-                Test.Assert(!agent.NewAzureStorageShareStoredAccessPolicy(shareName, longPolicyName, null, null, null), "Create stored access policy with invalid policy name should fail");
+                Test.Assert(!CommandAgent.NewAzureStorageShareStoredAccessPolicy(shareName, longPolicyName, null, null, null), "Create stored access policy with invalid policy name should fail");
                 if (lang == Language.PowerShell)
                 {
                     ExpectedContainErrorMessage(string.Format(
@@ -165,10 +165,10 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 for (int i = 1; i <= 5; i++)
                 {
-                    agent.NewAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p", i), null, null, null);
+                    CommandAgent.NewAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p", i), null, null, null);
                 }
 
-                Test.Assert(!agent.NewAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p", 6), null, null, null), "Create more than 5 stored access policies should fail");
+                Test.Assert(!CommandAgent.NewAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p", 6), null, null, null), "Create more than 5 stored access policies should fail");
                 if (lang == Language.PowerShell)
                 {
                     ExpectedContainErrorMessage("Too many '6' shared access policy identifiers provided");  
@@ -180,8 +180,8 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 Utility.ClearStoredAccessPolicy<CloudFileShare>(share);
                 string policyName = Utility.GenNameString("p", 5);
-                agent.NewAzureStorageShareStoredAccessPolicy(shareName, policyName, null, null, null);
-                Test.Assert(!agent.NewAzureStorageShareStoredAccessPolicy(shareName, policyName, null, null, null), "Create policy with the same name should fail.");
+                CommandAgent.NewAzureStorageShareStoredAccessPolicy(shareName, policyName, null, null, null);
+                Test.Assert(!CommandAgent.NewAzureStorageShareStoredAccessPolicy(shareName, policyName, null, null, null), "Create policy with the same name should fail.");
                 if (lang == Language.PowerShell)
                 {
                     ExpectedContainErrorMessage(string.Format("Policy '{0}' already exists.", policyName));
@@ -192,7 +192,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
 
                 fileUtil.DeleteFileShareIfExists(shareName);
-                Test.Assert(!agent.NewAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p", 5), null, null, null), "Create stored access policy against non-existing share should fail");
+                Test.Assert(!CommandAgent.NewAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p", 5), null, null, null), "Create stored access policy against non-existing share should fail");
                 ExpectedContainErrorMessage("The specified share does not exist");
             }
             finally
@@ -220,10 +220,10 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             try
             {
                 //empty policies
-                Test.Assert(agent.GetAzureStorageShareStoredAccessPolicy(shareName, null),
+                Test.Assert(CommandAgent.GetAzureStorageShareStoredAccessPolicy(shareName, null),
                     "Get stored access policy in share should succeed");
                 Test.Info("Get stored access policy");
-                Assert.IsTrue(agent.Output.Count == 0);
+                Assert.IsTrue(CommandAgent.Output.Count == 0);
 
                 //get all policies
                 List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessFilePolicy>();
@@ -235,10 +235,10 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessFilePolicy>(policy, samplePolicy.PolicyName));
                 }
 
-                Test.Assert(agent.GetAzureStorageShareStoredAccessPolicy(shareName, null),
+                Test.Assert(CommandAgent.GetAzureStorageShareStoredAccessPolicy(shareName, null),
                     "Get stored access policy in share should succeed");
                 Test.Info("Get stored access policy");
-                agent.OutputValidation(comp);
+                CommandAgent.OutputValidation(comp);
             }
             finally
             {
@@ -265,7 +265,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             try
             {
                 string policyName = "policy";
-                Test.Assert(!agent.GetAzureStorageShareStoredAccessPolicy(shareName, policyName),
+                Test.Assert(!CommandAgent.GetAzureStorageShareStoredAccessPolicy(shareName, policyName),
                     "Get non-existing stored access policy should fail");
                 if (lang == Language.NodeJS)
                 {
@@ -277,7 +277,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
 
                 string invalidName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
-                Test.Assert(!agent.GetAzureStorageShareStoredAccessPolicy(shareName, invalidName),
+                Test.Assert(!CommandAgent.GetAzureStorageShareStoredAccessPolicy(shareName, invalidName),
                     "Get stored access policy with name length larger than 64 should fail");
                 if (lang == Language.NodeJS)
                 {
@@ -288,7 +288,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     ExpectedContainErrorMessage("Can not find policy");
                 }
 
-                Test.Assert(!agent.GetAzureStorageShareStoredAccessPolicy("SHARE", policyName),
+                Test.Assert(!CommandAgent.GetAzureStorageShareStoredAccessPolicy("SHARE", policyName),
                     "Get stored access policy from invalid share name should fail");
                 if (lang == Language.NodeJS)
                 {
@@ -300,7 +300,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
                 
                 fileUtil.DeleteFileShareIfExists(shareName);
-                Test.Assert(!agent.GetAzureStorageShareStoredAccessPolicy(shareName, policyName),
+                Test.Assert(!CommandAgent.GetAzureStorageShareStoredAccessPolicy(shareName, policyName),
                     "Get stored access policy from invalid share name should fail");
                 ExpectedContainErrorMessage("The specified share does not exist.");
             }
@@ -330,7 +330,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             {
                 string errorMsg = string.Empty;
                 string policyName = "policy";
-                Test.Assert(!agent.RemoveAzureStorageShareStoredAccessPolicy(shareName, policyName),
+                Test.Assert(!CommandAgent.RemoveAzureStorageShareStoredAccessPolicy(shareName, policyName),
                     "Remove non-existing stored access policy should fail");
 
                 if (lang == Language.PowerShell)
@@ -345,7 +345,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 ExpectedContainErrorMessage(errorMsg);
 
                 string invalidName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
-                Test.Assert(!agent.RemoveAzureStorageShareStoredAccessPolicy(shareName, invalidName),
+                Test.Assert(!CommandAgent.RemoveAzureStorageShareStoredAccessPolicy(shareName, invalidName),
                     "Remove stored access policy with name length larger than 64 should fail");
 
                 if (lang == Language.NodeJS)
@@ -355,7 +355,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 ExpectedContainErrorMessage(errorMsg);
 
-                Test.Assert(!agent.RemoveAzureStorageShareStoredAccessPolicy("SHARE", policyName),
+                Test.Assert(!CommandAgent.RemoveAzureStorageShareStoredAccessPolicy("SHARE", policyName),
                     "Remove stored access policy from invalid share name should fail");
                
                 if (lang == Language.PowerShell)
@@ -370,7 +370,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 ExpectedContainErrorMessage(errorMsg);
 
                 fileUtil.DeleteFileShareIfExists(shareName);
-                Test.Assert(!agent.RemoveAzureStorageShareStoredAccessPolicy(shareName, policyName),
+                Test.Assert(!CommandAgent.RemoveAzureStorageShareStoredAccessPolicy(shareName, policyName),
                     "Remove stored access policy from invalid container name should fail");
                 ExpectedContainErrorMessage("The specified share does not exist");
 
@@ -452,7 +452,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 CreateStoredAccessPolicy(samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime, share);
 
                 //NoStartTime
-                Test.Assert(agent.SetAzureStorageShareStoredAccessPolicy(shareName, samplePolicy.PolicyName, null, null, null, true, false),
+                Test.Assert(CommandAgent.SetAzureStorageShareStoredAccessPolicy(shareName, samplePolicy.PolicyName, null, null, null, true, false),
                     "Set stored access policy with -NoStartTime should succeed");
                 Thread.Sleep(TimeSpan.FromSeconds(effectiveTime));
                 SharedAccessFilePolicies expectedPolicies = new SharedAccessFilePolicies();
@@ -461,10 +461,10 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 SharedAccessFilePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(null, samplePolicy.ExpiryTime, samplePolicy.Permission);
                 Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
                 comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessFilePolicy>(policy, samplePolicy.PolicyName));
-                agent.OutputValidation(comp);
+                CommandAgent.OutputValidation(comp);
 
                 //NoExpiryTime
-                Test.Assert(agent.SetAzureStorageShareStoredAccessPolicy(shareName, samplePolicy.PolicyName, null, null, null, false, true),
+                Test.Assert(CommandAgent.SetAzureStorageShareStoredAccessPolicy(shareName, samplePolicy.PolicyName, null, null, null, false, true),
                     "Set stored access policy with -NoExpiryTime should succeed");
                 Thread.Sleep(TimeSpan.FromSeconds(effectiveTime));
                 expectedPolicies = new SharedAccessFilePolicies();
@@ -473,13 +473,13 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 policy = Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(null, null, samplePolicy.Permission);
                 comp = new Collection<Dictionary<string, object>>();
                 comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessFilePolicy>(policy, samplePolicy.PolicyName));
-                agent.OutputValidation(comp);
+                CommandAgent.OutputValidation(comp);
 
                 //both
                 Utility.ClearStoredAccessPolicy<CloudFileShare>(share);
                 CreateStoredAccessPolicy(samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime, share);
 
-                Test.Assert(agent.SetAzureStorageShareStoredAccessPolicy(shareName, samplePolicy.PolicyName, null, null, null, true, true),
+                Test.Assert(CommandAgent.SetAzureStorageShareStoredAccessPolicy(shareName, samplePolicy.PolicyName, null, null, null, true, true),
                     "Set stored access policy with both -NoStartTime and -NoExpiryTime should succeed");
                 Thread.Sleep(TimeSpan.FromSeconds(effectiveTime));
                 expectedPolicies = new SharedAccessFilePolicies();
@@ -488,7 +488,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 policy = Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(null, null, samplePolicy.Permission);
                 comp = new Collection<Dictionary<string, object>>();
                 comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessFilePolicy>(policy, samplePolicy.PolicyName));
-                agent.OutputValidation(comp);
+                CommandAgent.OutputValidation(comp);
             }
             finally
             {
@@ -517,7 +517,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             try
             {
                 string errorMsg = string.Empty;
-                Test.Assert(!agent.SetAzureStorageShareStoredAccessPolicy("SHARE", Utility.GenNameString("p", 5), null, null, null), "Set stored acess policy for invalid share name SHARE should fail");
+                Test.Assert(!CommandAgent.SetAzureStorageShareStoredAccessPolicy("SHARE", Utility.GenNameString("p", 5), null, null, null), "Set stored acess policy for invalid share name SHARE should fail");
 
                 if (lang == Language.PowerShell)
                 {
@@ -532,13 +532,13 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessFilePolicy>()[0];
                 CreateStoredAccessPolicy(samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime, share);
-                Test.Assert(!agent.SetAzureStorageShareStoredAccessPolicy(shareName, samplePolicy.PolicyName, null, startTime, expiryTime), "Set stored access policy for ExpiryTime earlier than StartTime should fail");
+                Test.Assert(!CommandAgent.SetAzureStorageShareStoredAccessPolicy(shareName, samplePolicy.PolicyName, null, startTime, expiryTime), "Set stored access policy for ExpiryTime earlier than StartTime should fail");
                 ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
 
-                Test.Assert(!agent.SetAzureStorageShareStoredAccessPolicy(shareName, samplePolicy.PolicyName, null, startTime, startTime), "Set stored access policy for ExpiryTime same as StartTime should fail");
+                Test.Assert(!CommandAgent.SetAzureStorageShareStoredAccessPolicy(shareName, samplePolicy.PolicyName, null, startTime, startTime), "Set stored access policy for ExpiryTime same as StartTime should fail");
                 ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
 
-                Test.Assert(!agent.SetAzureStorageShareStoredAccessPolicy(shareName, samplePolicy.PolicyName, "x", null, null), "Set stored access policy with invalid permission should fail");
+                Test.Assert(!CommandAgent.SetAzureStorageShareStoredAccessPolicy(shareName, samplePolicy.PolicyName, "x", null, null), "Set stored access policy with invalid permission should fail");
                 if (lang == Language.PowerShell)
                 {
                     errorMsg = "Invalid access permission";
@@ -551,7 +551,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 ExpectedContainErrorMessage(errorMsg);
 
                 string invalidName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
-                Test.Assert(!agent.SetAzureStorageShareStoredAccessPolicy(shareName, invalidName, null, null, null), "Create stored access policy with invalid name length should fail");
+                Test.Assert(!CommandAgent.SetAzureStorageShareStoredAccessPolicy(shareName, invalidName, null, null, null), "Create stored access policy with invalid name length should fail");
                 if (lang == Language.PowerShell)
                 {
                     errorMsg = "Can not find policy";
@@ -566,15 +566,15 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 // Only PowerShell uses two parameters for setting time and removing time in the policy
                 if (lang == Language.PowerShell)
                 {
-                    Test.Assert(!agent.SetAzureStorageShareStoredAccessPolicy(shareName, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, null, true, false), "Setting both -StartTime and -NoStartTime should fail");
+                    Test.Assert(!CommandAgent.SetAzureStorageShareStoredAccessPolicy(shareName, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, null, true, false), "Setting both -StartTime and -NoStartTime should fail");
                     ExpectedContainErrorMessage("Parameter -StartTime and -NoStartTime are mutually exclusive");
 
-                    Test.Assert(!agent.SetAzureStorageShareStoredAccessPolicy(shareName, samplePolicy.PolicyName, samplePolicy.Permission, null, samplePolicy.ExpiryTime, false, true), "Setting both -ExpiryTime and -NoExpiryTime should fail");
+                    Test.Assert(!CommandAgent.SetAzureStorageShareStoredAccessPolicy(shareName, samplePolicy.PolicyName, samplePolicy.Permission, null, samplePolicy.ExpiryTime, false, true), "Setting both -ExpiryTime and -NoExpiryTime should fail");
                     ExpectedContainErrorMessage("Parameter -ExpiryTime and -NoExpiryTime are mutually exclusive");
                 }
 
                 fileUtil.DeleteFileShareIfExists(shareName);
-                Test.Assert(!agent.SetAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p", 5), null, null, null), "Set stored access policy against non-existing share should fail");
+                Test.Assert(!CommandAgent.SetAzureStorageShareStoredAccessPolicy(shareName, Utility.GenNameString("p", 5), null, null, null), "Set stored access policy against non-existing share should fail");
                 ExpectedContainErrorMessage("does not exist");
             }
             finally
@@ -610,7 +610,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 //start time is in the past
                 CreateStoredAccessPolicy(policyName, permission, startTime, expiryTime, share, false);
-                string sasToken = agent.GetAzureStorageShareSasFromCmd(shareName, policyName);
+                string sasToken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, policyName);
                 Test.Info("Sleep and wait for sas policy taking effect");
                 double lifeTime = 1;
                 Thread.Sleep(TimeSpan.FromMinutes(lifeTime));
@@ -618,7 +618,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 //modify start time to future
                 startTime = DateTime.Today.AddDays(2);
-                agent.SetAzureStorageShareStoredAccessPolicy(shareName, policyName, null, startTime, null);
+                CommandAgent.SetAzureStorageShareStoredAccessPolicy(shareName, policyName, null, startTime, null);
                 Test.Info("Sleep and wait for sas policy taking effect");
                 Thread.Sleep(TimeSpan.FromMinutes(lifeTime));
 
@@ -667,7 +667,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 //start time is in the future
                 CreateStoredAccessPolicy(policyName, permission, startTime, expiryTime, share, false);
-                string sasToken = agent.GetAzureStorageShareSasFromCmd(shareName, policyName);
+                string sasToken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, policyName);
                 Test.Info("Sleep and wait for sas policy taking effect");
                 double lifeTime = 1;
                 Thread.Sleep(TimeSpan.FromMinutes(lifeTime));
@@ -685,7 +685,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 //modify start time to past
                 startTime = DateTime.Today.AddDays(-2);
-                agent.SetAzureStorageShareStoredAccessPolicy(shareName, policyName, null, startTime, null);
+                CommandAgent.SetAzureStorageShareStoredAccessPolicy(shareName, policyName, null, startTime, null);
 
                 fileUtil.ValidateShareReadableWithSasToken(share, fileName, sasToken);
             }
@@ -722,7 +722,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 //start time is in the past
                 CreateStoredAccessPolicy(policyName, permission, startTime, expiryTime, share, false);
-                string sasToken = agent.GetAzureStorageShareSasFromCmd(shareName, policyName, string.Empty);
+                string sasToken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, policyName, string.Empty);
                 Test.Info("Sleep and wait for sas policy taking effect");
                 double lifeTime = 1;
                 Thread.Sleep(TimeSpan.FromMinutes(lifeTime));
@@ -730,7 +730,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 //remove the policy
                 startTime = DateTime.Today.AddDays(2);
-                agent.RemoveAzureStorageShareStoredAccessPolicy(shareName, policyName);
+                CommandAgent.RemoveAzureStorageShareStoredAccessPolicy(shareName, policyName);
                 Test.Info("Sleep and wait for sas policy taking effect");
                 Thread.Sleep(TimeSpan.FromMinutes(lifeTime));
 
@@ -806,7 +806,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             try
             {
                 string sharePermissions = Utility.GenRandomCombination(Utility.SharePermission);
-                string sastoken = agent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermissions, startTime, expiryTime);
+                string sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermissions, startTime, expiryTime);
                 try
                 {
                     ValidateSasToken(share, sharePermissions, sastoken);
@@ -873,7 +873,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 Test.Info("Sleep and wait for sas policy taking effect");
                 double lifeTime = 1;
                 Thread.Sleep(TimeSpan.FromMinutes(lifeTime));
-                string sasToken = agent.GetAzureStorageShareSasFromCmd(shareName, policyName);
+                string sasToken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, policyName);
                 ValidateSasToken(share, "r", sasToken);
 
                 permission.SharedAccessPolicies[policyName] = new SharedAccessFilePolicy()
@@ -888,13 +888,13 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     Test.Info("Sleep and wait for sas policy taking effect");
 
                     Thread.Sleep(30000);
-                    sasToken = agent.GetAzureStorageShareSasFromCmd(shareName, policyName, null, null, DateTime.Now.Add(sasLifeTime));
+                    sasToken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, policyName, null, null, DateTime.Now.Add(sasLifeTime));
                     ValidateSasToken(share, "r", sasToken);
                 }
                 else
                 {
-                   sasToken = agent.GetAzureStorageShareSasFromCmd(shareName, policyName, null, null, DateTime.Now.Add(sasLifeTime));
-                   Test.Assert(agent.HadErrors, "Generate share sas token with both policy and expiry should fail");
+                   sasToken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, policyName, null, null, DateTime.Now.Add(sasLifeTime));
+                   Test.Assert(CommandAgent.HadErrors, "Generate share sas token with both policy and expiry should fail");
                    ExpectedContainErrorMessage("Permissions, start and expiry cannot be specified with a stored policy");
                 }
             }
@@ -924,13 +924,13 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 if (lang == Language.PowerShell)
                 {
-                    Test.Assert(!agent.NewAzureStorageShareSAS(shareName, policyName, string.Empty),
+                    Test.Assert(!CommandAgent.NewAzureStorageShareSAS(shareName, policyName, string.Empty),
                         "Generate share sas token with non-exist policy should fail");
                     ExpectedContainErrorMessage(string.Format("Invalid access policy '{0}'.", policyName));
                 }
                 else
                 {
-                    Test.Assert(agent.NewAzureStorageShareSAS(shareName, policyName, string.Empty),
+                    Test.Assert(CommandAgent.NewAzureStorageShareSAS(shareName, policyName, string.Empty),
                         "Generate share sas token with non-exist policy should succeed");
                 }
             }
@@ -958,7 +958,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             {
                 DateTime start = DateTime.UtcNow;
                 DateTime end = start.AddHours(1.0);
-                Test.Assert(!agent.NewAzureStorageShareSAS(shareName, string.Empty, "l", end, start),
+                Test.Assert(!CommandAgent.NewAzureStorageShareSAS(shareName, string.Empty, "l", end, start),
                         "Generate share sas token with invalid should fail");
                 ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
             }
@@ -985,7 +985,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             try
             {
                 string sharePermissions = Utility.GenRandomCombination(Utility.SharePermission);
-                string fullUri = agent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermissions);
+                string fullUri = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermissions);
                 string sasToken = (lang == Language.PowerShell ? fullUri.Substring(fullUri.IndexOf("?")) : fullUri);
                 ValidateSasToken(share, sharePermissions, sasToken);
             }
@@ -1015,25 +1015,25 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 //Share read permission
                 string sharePermission = "r";
                 string limitedPermission = "wdl";
-                string sastoken = agent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
+                string sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
                 ValidateLimitedSasPermission(share, limitedPermission, sastoken);
 
                 //Share write permission
                 sharePermission = "w";
                 limitedPermission = "rdl";
-                sastoken = agent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
+                sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
                 ValidateLimitedSasPermission(share, limitedPermission, sastoken);
 
                 //Share delete permission
                 sharePermission = "d";
                 limitedPermission = "rwl";
-                sastoken = agent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
+                sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
                 ValidateLimitedSasPermission(share, limitedPermission, sastoken);
 
                 //Share list permission
                 sharePermission = "l";
                 limitedPermission = "rwd";
-                sastoken = agent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
+                sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
                 ValidateLimitedSasPermission(share, limitedPermission, sastoken);
             }
             finally
@@ -1071,11 +1071,11 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
 
                 Utility.ClearStoredAccessPolicy<CloudFileShare>(share);
-                Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(shareName, policyName, sharePermission, startTime, expiryTime),
+                Test.Assert(CommandAgent.NewAzureStorageShareStoredAccessPolicy(shareName, policyName, sharePermission, startTime, expiryTime),
                     "Create stored access policy to a share should succeed");
                 Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, new Utility.RawStoredAccessPolicy(policyName, startTime, expiryTime, sharePermission));
 
-                Test.Assert(!agent.NewAzureStorageShareSAS(shareName, policyName, startTime:startTime),
+                Test.Assert(!CommandAgent.NewAzureStorageShareSAS(shareName, policyName, startTime: startTime),
                     "Create sas with Policy and start time should failed.");
                 if (lang == Language.PowerShell)
                 {
@@ -1084,7 +1084,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 ExpectedContainErrorMessage(errorMsg);
 
-                Test.Assert(!agent.NewAzureStorageShareSAS(shareName, policyName, sharePermission),
+                Test.Assert(!CommandAgent.NewAzureStorageShareSAS(shareName, policyName, sharePermission),
                     "Create sas with Policy and permission should failed.");
                 if (lang == Language.PowerShell)
                 {
@@ -1093,7 +1093,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 
                 ExpectedContainErrorMessage(errorMsg);
 
-                Test.Assert(!agent.NewAzureStorageShareSAS(shareName, policyName, expiryTime:expiryTime),
+                Test.Assert(!CommandAgent.NewAzureStorageShareSAS(shareName, policyName, expiryTime: expiryTime),
                     "Create sas with Policy and expiry time should failed.");
                 if (lang == Language.PowerShell)
                 {
@@ -1105,10 +1105,10 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 if (lang == Language.PowerShell)
                 {
                     fileUtil.DeleteFileShareIfExists(shareName);
-                    Test.Assert(agent.NewAzureStorageShareSAS(shareName, null, sharePermission, startTime, expiryTime),
+                    Test.Assert(CommandAgent.NewAzureStorageShareSAS(shareName, null, sharePermission, startTime, expiryTime),
                         "Create sas on a non-exist share without policy should succeed.");
 
-                    Test.Assert(!agent.NewAzureStorageShareSAS(shareName, policyName), "Create sas on a non-exist share with policy should fail.");
+                    Test.Assert(!CommandAgent.NewAzureStorageShareSAS(shareName, policyName), "Create sas on a non-exist share with policy should fail.");
                 }
             }
             finally
@@ -1170,7 +1170,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string fileName = Utility.GenNameString("file");
                 var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
                 string permissions = "rw";
-                string sastoken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions, startTime, expiryTime);
+                string sastoken = CommandAgent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions, startTime, expiryTime);
                 try
                 {
                     ValidateFileSasToken(file, permissions, sastoken);
@@ -1240,7 +1240,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 Test.Info("Sleep and wait for sas policy taking effect");
                 double lifeTime = 1;
                 Thread.Sleep(TimeSpan.FromMinutes(lifeTime));
-                string sasToken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, policyName);
+                string sasToken = CommandAgent.GetAzureStorageFileSasFromCmd(shareName, fileName, policyName);
                 ValidateFileSasToken(file, "r", sasToken);
 
                 permission.SharedAccessPolicies[policyName] = new SharedAccessFilePolicy()
@@ -1256,13 +1256,13 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 {
                     Test.Info("Sleep and wait for sas policy taking effect");
                     Thread.Sleep(30000);
-                    sasToken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, policyName, null, null, DateTime.Now.Add(sasLifeTime));
+                    sasToken = CommandAgent.GetAzureStorageFileSasFromCmd(shareName, fileName, policyName, null, null, DateTime.Now.Add(sasLifeTime));
                     ValidateFileSasToken(file, "r", sasToken);
                 }
                 else
                 {
-                    sasToken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, policyName, null, null, DateTime.Now.Add(sasLifeTime));
-                    Test.Assert(agent.HadErrors, "Generate file sas token with both policy and expiry should fail");
+                    sasToken = CommandAgent.GetAzureStorageFileSasFromCmd(shareName, fileName, policyName, null, null, DateTime.Now.Add(sasLifeTime));
+                    Test.Assert(CommandAgent.HadErrors, "Generate file sas token with both policy and expiry should fail");
                     ExpectedContainErrorMessage("Permissions, start and expiry cannot be specified with a stored policy");
                 }
             }
@@ -1295,13 +1295,13 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 if (lang == Language.PowerShell)
                 {
-                    Test.Assert(!agent.NewAzureStorageFileSAS(shareName, fileName, policyName, string.Empty),
+                    Test.Assert(!CommandAgent.NewAzureStorageFileSAS(shareName, fileName, policyName, string.Empty),
                         "Generate file sas token with non-exist policy should fail");
                     ExpectedContainErrorMessage(string.Format("Invalid access policy '{0}'.", policyName));
                 }
                 else
                 {
-                    Test.Assert(agent.NewAzureStorageFileSAS(shareName, fileName, policyName, string.Empty),
+                    Test.Assert(CommandAgent.NewAzureStorageFileSAS(shareName, fileName, policyName, string.Empty),
                         "Generate file sas token with non-exist policy should succeed");
                 }
             }
@@ -1332,7 +1332,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 DateTime start = DateTime.UtcNow;
                 DateTime end = start.AddHours(1.0);
-                Test.Assert(!agent.NewAzureStorageFileSAS(shareName, fileName, string.Empty, "l", end, start),
+                Test.Assert(!CommandAgent.NewAzureStorageFileSAS(shareName, fileName, string.Empty, "l", end, start),
                         "Generate file sas token with invalid should fail");
                 ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
             }
@@ -1362,7 +1362,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
 
                 string permissions = Utility.GenRandomCombination(Utility.FilePermission);
-                string fullUri = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions);
+                string fullUri = CommandAgent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions);
                 string sasToken = (lang == Language.PowerShell ? fullUri.Substring(fullUri.IndexOf("?")) : fullUri);
                 ValidateFileSasToken(file, permissions, sasToken);
             }
@@ -1395,19 +1395,19 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 //File read permission
                 string permissions = "r";
                 string limitedPermission = "wd";
-                string sastoken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions);
+                string sastoken = CommandAgent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions);
                 ValidateFileLimitedSasPermission(file, limitedPermission, sastoken);
 
                 //File write permission
                 permissions = "w";
                 limitedPermission = "rd";
-                sastoken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions);
+                sastoken = CommandAgent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions);
                 ValidateLimitedSasPermission(share, limitedPermission, sastoken);
 
                 //File delete permission
                 permissions = "d";
                 limitedPermission = "rw";
-                sastoken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions);
+                sastoken = CommandAgent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions);
                 ValidateLimitedSasPermission(share, limitedPermission, sastoken);
             }
             finally
@@ -1439,14 +1439,14 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             try
             {
                 Utility.ClearStoredAccessPolicy<CloudFileShare>(share);
-                Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(shareName, policyName, sharePermission, startTime, expiryTime),
+                Test.Assert(CommandAgent.NewAzureStorageShareStoredAccessPolicy(shareName, policyName, sharePermission, startTime, expiryTime),
                     "Create stored access policy to a share should succeed");
                 Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, new Utility.RawStoredAccessPolicy(policyName, startTime, expiryTime, sharePermission));
 
                 string fileName = Utility.GenNameString("file");
                 var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
 
-                Test.Assert(!agent.NewAzureStorageFileSAS(shareName, fileName, policyName, startTime: startTime),
+                Test.Assert(!CommandAgent.NewAzureStorageFileSAS(shareName, fileName, policyName, startTime: startTime),
                     "Create sas with Policy and start time should failed.");
                 if (lang == Language.PowerShell)
                 {
@@ -1457,7 +1457,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     ExpectedContainErrorMessage("Permissions, start and expiry cannot be specified with a stored policy");
                 }
 
-                Test.Assert(!agent.NewAzureStorageFileSAS(shareName, fileName, policyName, sharePermission),
+                Test.Assert(!CommandAgent.NewAzureStorageFileSAS(shareName, fileName, policyName, sharePermission),
                     "Create sas with Policy and permission should failed.");
                 if (lang == Language.PowerShell)
                 {
@@ -1468,7 +1468,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     ExpectedContainErrorMessage("Permissions, start and expiry cannot be specified with a stored policy");
                 }
 
-                Test.Assert(!agent.NewAzureStorageFileSAS(shareName, fileName, policyName, expiryTime: expiryTime),
+                Test.Assert(!CommandAgent.NewAzureStorageFileSAS(shareName, fileName, policyName, expiryTime: expiryTime),
                     "Create sas with Policy and expiry time should failed.");
                 if (lang == Language.PowerShell)
                 {
@@ -1480,10 +1480,10 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
 
                 fileUtil.DeleteFileIfExists(share, fileName);
-                Test.Assert(agent.NewAzureStorageFileSAS(shareName, fileName, null, sharePermission, startTime, expiryTime),
+                Test.Assert(CommandAgent.NewAzureStorageFileSAS(shareName, fileName, null, sharePermission, startTime, expiryTime),
                         "Create sas on a non-exist file without policy should succeed.");
 
-                Test.Assert(agent.NewAzureStorageFileSAS(shareName, fileName, policyName),
+                Test.Assert(CommandAgent.NewAzureStorageFileSAS(shareName, fileName, policyName),
                         "Create sas on a non-exist file with policy should succeed.");
             }
             finally
@@ -1508,7 +1508,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string fileName = Utility.GenNameString("file");
                 var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
 
-                string sastoken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, "rwd", null, null, false, SharedAccessProtocol.HttpsOnly);
+                string sastoken = CommandAgent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, "rwd", null, null, false, SharedAccessProtocol.HttpsOnly);
 
                 fileUtil.ValidateFileWriteableWithSasToken(file, sastoken, useHttps: true);
 
@@ -1545,7 +1545,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string fileName = Utility.GenNameString("file");
                 var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
 
-                string sastoken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, "rwd", null, null, false, null, "3.4.5.6");
+                string sastoken = CommandAgent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, "rwd", null, null, false, null, "3.4.5.6");
 
                 try
                 {
@@ -1580,7 +1580,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string fileName = Utility.GenNameString("file");
                 var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
 
-                string sastoken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, "rwd", null, null, false, null, "0.0.0.0-255.255.255.255");
+                string sastoken = CommandAgent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, "rwd", null, null, false, null, "0.0.0.0-255.255.255.255");
                 fileUtil.ValidateFileDeleteableWithSasToken(file, sastoken);
             }
             finally
@@ -1606,7 +1606,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             {
                 string fileName = Utility.GenNameString("file");
                 var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
-                string sastoken = agent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, "rwdl", null, null, false, SharedAccessProtocol.HttpsOrHttp);
+                string sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, "rwdl", null, null, false, SharedAccessProtocol.HttpsOrHttp);
 
                 fileUtil.ValidateFileWriteableWithSasToken(file, sastoken, useHttps: true);
                 fileUtil.ValidateFileWriteableWithSasToken(file, sastoken, useHttps: false);
@@ -1630,7 +1630,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
             try
             {
-                string sastoken = agent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, "rwd", null, null, false, null, "0.0.0.0-0.0.0.1");
+                string sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, "rwd", null, null, false, null, "0.0.0.0-0.0.0.1");
                 try
                 {
                     fileUtil.ValidateShareWriteableWithSasToken(share, sastoken);
@@ -1659,7 +1659,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             {
                 string fileName = Utility.GenNameString("file");
                 var file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
-                string sastoken = agent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permission);
+                string sastoken = CommandAgent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permission);
                 ValidateFileSasToken(file, permission, sastoken);
             }
             finally
@@ -1676,7 +1676,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
             try
             {
-                string sastoken = agent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
+                string sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
                 ValidateSasToken(share, sharePermission, sastoken);
             }
             finally
@@ -1806,7 +1806,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 Utility.ClearStoredAccessPolicy<CloudFileShare>(share);
             }
 
-            Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(share.Name, policyName, permission, startTime, expiryTime),
+            Test.Assert(CommandAgent.NewAzureStorageShareStoredAccessPolicy(share.Name, policyName, permission, startTime, expiryTime),
                 "Create stored access policy in share should succeed");
             Test.Info("Created stored access policy:{0}", policyName);
         }
@@ -1828,8 +1828,8 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
             try
             {
-                agent.NewAzureStorageShareStoredAccessPolicy(shareName, policy1.PolicyName, policy1.Permission, policy1.StartTime, policy1.ExpiryTime);
-                Test.Assert(agent.SetAzureStorageShareStoredAccessPolicy(shareName, policy2.PolicyName, policy2.Permission, policy2.StartTime, policy2.ExpiryTime),
+                CommandAgent.NewAzureStorageShareStoredAccessPolicy(shareName, policy1.PolicyName, policy1.Permission, policy1.StartTime, policy1.ExpiryTime);
+                Test.Assert(CommandAgent.SetAzureStorageShareStoredAccessPolicy(shareName, policy2.PolicyName, policy2.Permission, policy2.StartTime, policy2.ExpiryTime),
                 "Set stored access policy in container should succeed");
                 Test.Info("Set stored access policy:{0}", policy2.PolicyName);
 
@@ -1856,7 +1856,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 SharedAccessFilePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(policy2.StartTime, policy2.ExpiryTime, policy2.Permission);
                 Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
                 comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessFilePolicy>(policy, policy2.PolicyName));
-                agent.OutputValidation(comp);
+                CommandAgent.OutputValidation(comp);
             }
             finally
             {

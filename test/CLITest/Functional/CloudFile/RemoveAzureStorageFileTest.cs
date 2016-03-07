@@ -35,13 +35,11 @@
 
         public override void OnTestSetup()
         {
-            this.agent.Clear();
             this.fileShare = fileUtil.EnsureFileShareExists(CloudFileUtil.GenerateUniqueFileShareName());
         }
 
         public override void OnTestCleanUp()
         {
-            this.agent.Clear();
             fileUtil.DeleteFileShareIfExists(this.fileShare.Name);
         }
 
@@ -61,10 +59,10 @@
                 fileUtil.CreateFile(this.fileShare, name);
             }
 
-            this.agent.RemoveFilesFromPipeline(this.fileShare.Name);
-            var result = this.agent.Invoke(names);
+            CommandAgent.RemoveFilesFromPipeline(this.fileShare.Name);
+            var result = CommandAgent.Invoke(names);
 
-            this.agent.AssertNoError();
+            CommandAgent.AssertNoError();
             result.AssertNoResult();
 
             foreach (var name in names)
@@ -87,9 +85,9 @@
             var directory = fileUtil.EnsureDirectoryExists(this.fileShare, cloudDirectoryName);
             var file = fileUtil.CreateFile(directory, cloudFileName);
 
-            this.agent.RemoveFile(file);
-            var result = agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.RemoveFile(file);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertNoResult();
             fileUtil.AssertFileNotExists(this.fileShare, file.Name, "File should not exist after deleting.");
         }
@@ -107,9 +105,9 @@
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             string cloudPath = "/a/b/c/" + cloudFileName;
             var sourceFile = fileUtil.CreateFile(this.fileShare, cloudPath);
-            this.agent.RemoveFile(this.fileShare, cloudPath);
-            this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.RemoveFile(this.fileShare, cloudPath);
+            CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             Test.Assert(!sourceFile.Exists(), "File should not exist after removed.");
         }
 
@@ -127,9 +125,9 @@
             string cloudPath = "a/b/c/" + cloudFileName;
             string relativeCloudPath = "a/b/../b/./c/" + cloudFileName;
             var sourceFile = fileUtil.CreateFile(this.fileShare, cloudPath);
-            this.agent.RemoveFile(this.fileShare, relativeCloudPath);
-            this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.RemoveFile(this.fileShare, relativeCloudPath);
+            CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             Test.Assert(!sourceFile.Exists(), "File should not exist after removed.");
         }
 
@@ -146,9 +144,9 @@
             string cloudPath = "a/b/c/" + cloudFileName;
             string relativeCloudPath = "../../b/./c/" + cloudFileName;
             var sourceFile = fileUtil.CreateFile(this.fileShare, cloudPath);
-            this.agent.RemoveFile(baseDir, relativeCloudPath);
-            this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.RemoveFile(baseDir, relativeCloudPath);
+            CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             Test.Assert(!sourceFile.Exists(), "File should not exist after removed.");
         }
 
@@ -167,10 +165,10 @@
             // Creates an storage context object with invalid account
             // name.
             var invalidAccount = CloudFileUtil.MockupStorageAccount(StorageAccount, mockupAccountName: true);
-            object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
-            this.agent.RemoveFile(this.fileShare.Name, fileName, invalidStorageContextObject);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertError(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
+            object invalidStorageContextObject = CommandAgent.CreateStorageContextObject(invalidAccount.ToString(true));
+            CommandAgent.RemoveFile(this.fileShare.Name, fileName, invalidStorageContextObject);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(record => record.AssertError(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
             fileUtil.AssertFileExists(this.fileShare, fileName, "File should not be removed when providing invalid credentials.");
         }
 
@@ -188,10 +186,10 @@
 
             // Creates an storage context object with invalid key value
             var invalidAccount = CloudFileUtil.MockupStorageAccount(StorageAccount, mockupAccountKey: true);
-            object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
-            this.agent.RemoveFile(this.fileShare.Name, fileName, invalidStorageContextObject);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertError(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
+            object invalidStorageContextObject = CommandAgent.CreateStorageContextObject(invalidAccount.ToString(true));
+            CommandAgent.RemoveFile(this.fileShare.Name, fileName, invalidStorageContextObject);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(record => record.AssertError(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
             fileUtil.AssertFileExists(this.fileShare, fileName, "File should not be removed when providing invalid credentials.");
         }
 
@@ -207,9 +205,9 @@
             string fileName = CloudFileUtil.GenerateUniqueFileName();
             fileUtil.DeleteFileIfExists(this.fileShare, fileName);
 
-            this.agent.RemoveFile(this.fileShare, fileName);
-            var result = agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ResourceNotFoundFullQualifiedErrorId));
+            CommandAgent.RemoveFile(this.fileShare, fileName);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -226,9 +224,9 @@
             string fileName = CloudFileUtil.GenerateUniqueFileName();
             var file = this.fileShare.GetRootDirectoryReference().GetDirectoryReference(directoryName).GetFileReference(fileName);
 
-            this.agent.RemoveFile(this.fileShare, file.Name);
-            var result = agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ParentNotFoundFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
+            CommandAgent.RemoveFile(this.fileShare, file.Name);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ParentNotFoundFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -245,9 +243,9 @@
             string existingFile = fileName + "postfix";
             fileUtil.CreateFile(this.fileShare, existingFile);
 
-            this.agent.RemoveFile(this.fileShare, fileName);
-            var result = agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ResourceNotFoundFullQualifiedErrorId));
+            CommandAgent.RemoveFile(this.fileShare, fileName);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -263,9 +261,9 @@
             fileUtil.DeleteFileIfExists(this.fileShare, fileName);
             fileUtil.EnsureDirectoryExists(this.fileShare, fileName);
 
-            this.agent.RemoveFile(this.fileShare, fileName);
-            var result = agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.ResourceNotFoundFullQualifiedErrorId));
+            CommandAgent.RemoveFile(this.fileShare, fileName);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -277,9 +275,9 @@
         [TestCategory(CLITag.NodeJSFT)]
         public void RemoveFileFromSubDirectoryOfRootTest()
         {
-            this.agent.RemoveFile(this.fileShare, "../a");
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId, AssertUtil.AuthenticationFailedFullQualifiedErrorId));
+            CommandAgent.RemoveFile(this.fileShare, "../a");
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId, AssertUtil.AuthenticationFailedFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -294,9 +292,9 @@
             string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
             string relativeCloudPath = "../../ddd/../b/./c/" + cloudFileName;
             fileUtil.CreateFile(baseDir, cloudFileName);
-            this.agent.RemoveFile(baseDir, relativeCloudPath);
-            this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.RemoveFile(baseDir, relativeCloudPath);
+            CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             Test.Assert(!baseDir.GetFileReference(cloudFileName).Exists(), "File should exist after uploaded.");
         }
     }

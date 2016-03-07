@@ -33,7 +33,6 @@
 
         public override void OnTestCleanUp()
         {
-            this.agent.Dispose();
             fileUtil.DeleteFileShareIfExists(this.fileShare.Name);
         }
 
@@ -45,11 +44,11 @@
         [TestCategory(Tag.Function)]
         public void CreateDirectoryWithNoPath_FileShare()
         {
-            this.agent.SetVariable("share", this.fileShare);
-            ((PowerShellAgent)this.agent).PowerShellSession.AddScript("New-AzureStorageDirectory -Share $share");
-            var result = this.agent.Invoke();
+            CommandAgent.SetVariable("share", this.fileShare);
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("New-AzureStorageDirectory -Share $share");
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -60,10 +59,10 @@
         [TestCategory(Tag.Function)]
         public void CreateDirectoryWithNoPath_FileShareName()
         {
-            ((PowerShellAgent)this.agent).PowerShellSession.AddScript("New-AzureStorageDirectory -ShareName " + this.fileShare.Name);
-            var result = this.agent.Invoke();
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("New-AzureStorageDirectory -ShareName " + this.fileShare.Name);
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -75,11 +74,11 @@
         public void CreateDirectoryWithNoPath_Directory()
         {
             var dir = fileUtil.EnsureDirectoryExists(this.fileShare, CloudFileUtil.GenerateUniqueDirectoryName());
-            this.agent.SetVariable("dir", dir);
-            ((PowerShellAgent)this.agent).PowerShellSession.AddScript("New-AzureStorageDirectory -Directory $dir");
-            var result = this.agent.Invoke();
+            CommandAgent.SetVariable("dir", dir);
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("New-AzureStorageDirectory -Directory $dir");
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -90,11 +89,11 @@
         [TestCategory(Tag.Function)]
         public void RemoveDirectoryWithNoPath_FileShare()
         {
-            this.agent.SetVariable("share", this.fileShare);
-            ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Remove-AzureStorageDirectory -Share $share");
-            var result = this.agent.Invoke();
+            CommandAgent.SetVariable("share", this.fileShare);
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("Remove-AzureStorageDirectory -Share $share");
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -105,10 +104,10 @@
         [TestCategory(Tag.Function)]
         public void RemoveDirectoryWithNoPath_FileShareName()
         {
-            ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Remove-AzureStorageDirectory -ShareName " + this.fileShare.Name);
-            var result = this.agent.Invoke();
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("Remove-AzureStorageDirectory -ShareName " + this.fileShare.Name);
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -119,11 +118,11 @@
         [TestCategory(Tag.Function)]
         public void DownloadFileWithNoPath_FileShare()
         {
-            this.agent.SetVariable("share", this.fileShare);
-            ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Get-AzureStorageFileContent -Share $share");
-            var result = this.agent.Invoke();
+            CommandAgent.SetVariable("share", this.fileShare);
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("Get-AzureStorageFileContent -Share $share");
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -134,10 +133,10 @@
         [TestCategory(Tag.Function)]
         public void DownloadFileWithNoPath_FileShareName()
         {
-            ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Get-AzureStorageFileContent -ShareName " + this.fileShare.Name);
-            var result = this.agent.Invoke();
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("Get-AzureStorageFileContent -ShareName " + this.fileShare.Name);
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -149,11 +148,11 @@
         public void DownloadFileWithNoPath_Directory()
         {
             var dir = fileUtil.EnsureDirectoryExists(this.fileShare, CloudFileUtil.GenerateUniqueDirectoryName());
-            this.agent.SetVariable("dir", dir);
-            ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Get-AzureStorageFileContent -Directory $dir");
-            var result = this.agent.Invoke();
+            CommandAgent.SetVariable("dir", dir);
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("Get-AzureStorageFileContent -Directory $dir");
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -164,11 +163,11 @@
         [TestCategory(Tag.Function)]
         public void UploadFileWithNoPath_FileShare()
         {
-            this.agent.SetVariable("share", this.fileShare);
-            ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Set-AzureStorageFileContent -Share $share");
-            var result = this.agent.Invoke();
+            CommandAgent.SetVariable("share", this.fileShare);
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("Set-AzureStorageFileContent -Share $share");
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -179,10 +178,10 @@
         [TestCategory(Tag.Function)]
         public void UploadFileWithNoPath_FileShareName()
         {
-            ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Set-AzureStorageFileContent -ShareName " + this.fileShare.Name);
-            var result = this.agent.Invoke();
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("Set-AzureStorageFileContent -ShareName " + this.fileShare.Name);
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -193,11 +192,11 @@
         [TestCategory(Tag.Function)]
         public void RemoveFileWithNoPath_FileShare()
         {
-            this.agent.SetVariable("share", this.fileShare);
-            ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Remove-AzureStorageFile -Share $share");
-            var result = this.agent.Invoke();
+            CommandAgent.SetVariable("share", this.fileShare);
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("Remove-AzureStorageFile -Share $share");
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -208,10 +207,10 @@
         [TestCategory(Tag.Function)]
         public void RemoveFileWithNoPath_FileShareName()
         {
-            ((PowerShellAgent)this.agent).PowerShellSession.AddScript("Remove-AzureStorageFile -ShareName " + this.fileShare.Name);
-            var result = this.agent.Invoke();
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("Remove-AzureStorageFile -ShareName " + this.fileShare.Name);
+            var result = CommandAgent.Invoke();
             result.AssertNoResult();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.MissingMandatoryParameterFullQualifiedErrorId));
         }
     }
 }

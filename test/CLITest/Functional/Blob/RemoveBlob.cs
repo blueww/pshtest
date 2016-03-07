@@ -71,14 +71,14 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 List<CloudBlob> blobs = blobUtil.CreateRandomBlob(container, blobNames);
 
                 string cmd = String.Format("{0} {1}", "Get-AzureStorageContainer", containerName);
-                ((PowerShellAgent)agent).AddPipelineScript(cmd);
+                ((PowerShellAgent)CommandAgent).AddPipelineScript(cmd);
                 cmd = "Get-AzureStorageBlob";
-                ((PowerShellAgent)agent).AddPipelineScript(cmd);
+                ((PowerShellAgent)CommandAgent).AddPipelineScript(cmd);
 
                 List<IListBlobItem> blobLists = container.ListBlobs().ToList();
                 Test.Assert(blobLists.Count == blobs.Count, string.Format("container {0} should contain {1} blobs", containerName, blobs.Count));
 
-                Test.Assert(agent.RemoveAzureStorageBlob(string.Empty, string.Empty), Utility.GenComparisonData("Get-AzureStorageContainer | Get-AzureStorageBlob | Remove-AzureStorageBlob", true));
+                Test.Assert(CommandAgent.RemoveAzureStorageBlob(string.Empty, string.Empty), Utility.GenComparisonData("Get-AzureStorageContainer | Get-AzureStorageBlob | Remove-AzureStorageBlob", true));
 
                 blobLists = container.ListBlobs().ToList();
                 Test.Assert(blobLists.Count == 0, string.Format("container {0} should contain {1} blobs", containerName, 0));
@@ -121,7 +121,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 List<IListBlobItem> blobLists = container.ListBlobs(string.Empty, true).ToList();
                 Test.Assert(blobLists.Count == 3, string.Format("container {0} should contain {1} blobs", containerName, 3));
 
-                Test.Assert(agent.RemoveAzureStorageBlob(subBlobName, containerName), Utility.GenComparisonData("Remove-AzureStorageBlob in subdirectory", true));
+                Test.Assert(CommandAgent.RemoveAzureStorageBlob(subBlobName, containerName), Utility.GenComparisonData("Remove-AzureStorageBlob in subdirectory", true));
                 blobLists = container.ListBlobs(string.Empty, true).ToList();
                 Test.Assert(blobLists.Count == 2, string.Format("container {0} should contain {1} blobs", containerName, 2));
                 bool blobFound = false, subsubBlobFound = false;
@@ -179,7 +179,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 List<IListBlobItem> blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
                 Test.Assert(blobLists.Count == blobs.Count, string.Format("container {0} should contain {1} blobs, but actually it contain {2} blobs", containerName, blobs.Count, blobLists.Count));
-                Test.Assert(agent.RemoveAzureStorageBlob(blobName, containerName), Utility.GenComparisonData("Remove-AzureStorageBlob and snapshot", true));
+                Test.Assert(CommandAgent.RemoveAzureStorageBlob(blobName, containerName), Utility.GenComparisonData("Remove-AzureStorageBlob and snapshot", true));
                 blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
                 Test.Assert(blobLists.Count == 0, string.Format("container {0} should contain {1} blobs", containerName, 0));
             }
@@ -221,7 +221,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 blobs.Add(blob);
                 List<IListBlobItem> blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
                 Test.Assert(blobLists.Count == blobs.Count, string.Format("container {0} should contain {1} blobs, and actually it contain {2} blobs", containerName, blobs.Count, blobLists.Count));
-                Test.Assert(agent.RemoveAzureStorageBlob(blobName, containerName, true), Utility.GenComparisonData("Remove-AzureStorageBlob and snapshot", true));
+                Test.Assert(CommandAgent.RemoveAzureStorageBlob(blobName, containerName, true), Utility.GenComparisonData("Remove-AzureStorageBlob and snapshot", true));
                 blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
                 Test.Assert(blobLists.Count == 1, string.Format("container {0} should contain {1} blobs", containerName, 1));
                 CloudBlob remainBlob = blobLists[0] as CloudBlob;
@@ -257,9 +257,9 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
                 List<IListBlobItem> blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
                 Test.Assert(blobLists.Count == 1, string.Format("container {0} should contain {1} blobs, and actually it contain {2} blobs", containerName, 1, blobLists.Count));
-                Test.Assert(!agent.RemoveAzureStorageBlob(blobName, containerName), Utility.GenComparisonData("Remove-AzureStorageBlob with lease", false));
-                
-                agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name);
+                Test.Assert(!CommandAgent.RemoveAzureStorageBlob(blobName, containerName), Utility.GenComparisonData("Remove-AzureStorageBlob with lease", false));
+
+                CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name);
                 
                 blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
                 Test.Assert(blobLists.Count == 1, string.Format("container {0} should contain {1} blobs, and actually it contain {2} blobs", containerName, 1, blobLists.Count));
@@ -297,7 +297,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                Test.Assert(agent.RemoveAzureStorageBlob(blobName, container.Name), "remove blob name with special chars should succeed");
+                Test.Assert(CommandAgent.RemoveAzureStorageBlob(blobName, container.Name), "remove blob name with special chars should succeed");
                 Test.Assert(!blob.Exists(), string.Format("the specified blob '{0}' should not exist", blobName));
             }
             finally
@@ -324,7 +324,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                Test.Assert(!agent.RemoveAzureStorageBlob(blobName, container.Name, false, false), "remove a blob with snapshot should throw a confirmation exception");
+                Test.Assert(!CommandAgent.RemoveAzureStorageBlob(blobName, container.Name, false, false), "remove a blob with snapshot should throw a confirmation exception");
                 ExpectedContainErrorMessage(ConfirmExceptionMessage);
                 Test.Assert(blob.Exists(), string.Format("the specified blob '{0}' should exist", blob.Name));
                 Test.Assert(snapshot.Exists(), "the snapshot should exist");

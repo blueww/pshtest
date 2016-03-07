@@ -34,13 +34,11 @@
 
         public override void OnTestSetup()
         {
-            this.agent.Clear();
             this.fileShare = fileUtil.EnsureFileShareExists(CloudFileUtil.GenerateUniqueFileShareName());
         }
 
         public override void OnTestCleanUp()
         {
-            this.agent.Clear();
             fileUtil.DeleteFileShareIfExists(this.fileShare.Name);
         }
 
@@ -55,32 +53,32 @@
             var directoryName = CloudFileUtil.GenerateUniqueDirectoryName();
             var directory = fileUtil.EnsureDirectoryExists(this.fileShare, directoryName);
             fileUtil.CleanupDirectory(directory);
-            this.agent.GetFileShareByName(this.fileShare.Name);
-            ((PowerShellAgent)this.agent).PowerShellSession.AddCommand("Get-AzureStorageFile");
-            ((PowerShellAgent)this.agent).PowerShellSession.AddParameter("Path", directoryName);
-            var result = this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.GetFileShareByName(this.fileShare.Name);
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzureStorageFile");
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddParameter("Path", directoryName);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory(directoryName));
 
-            this.agent.Clear();
+            CommandAgent.Clear();
             var fileName = CloudFileUtil.GenerateUniqueFileName();
             var file = fileUtil.CreateFile(this.fileShare.GetRootDirectoryReference(), fileName);
-            this.agent.GetFileShareByName(this.fileShare.Name);
-            ((PowerShellAgent)this.agent).PowerShellSession.AddCommand("Get-AzureStorageFile");
-            ((PowerShellAgent)this.agent).PowerShellSession.AddParameter("Path", fileName);
-            result = this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.GetFileShareByName(this.fileShare.Name);
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzureStorageFile");
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddParameter("Path", fileName);
+            result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertObjectCollection(obj => obj.AssertCloudFile(fileName));
 
-            this.agent.Clear();
+            CommandAgent.Clear();
             List<CloudFileDirectory> dirs = new List<CloudFileDirectory>();
             List<CloudFile> files = new List<CloudFile>();
             dirs.Add(directory);
             files.Add(file);
-            this.agent.GetFileShareByName(this.fileShare.Name);
-            ((PowerShellAgent)this.agent).PowerShellSession.AddCommand("Get-AzureStorageFile");
-            result = this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.GetFileShareByName(this.fileShare.Name);
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzureStorageFile");
+            result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertFileListItems(files, dirs);
         }
 
@@ -101,31 +99,31 @@
             var files = fileNames.Select(name => fileUtil.CreateFile(dir, name)).ToList();
             var dirs = dirNames.Select(name => fileUtil.EnsureDirectoryExists(dir, name)).ToList();
 
-            this.agent.Clear();
-            this.agent.GetFile(this.fileShare);
-            var result = this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.Clear();
+            CommandAgent.GetFile(this.fileShare);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertFileListItems(files, dirs);
 
             // xPlat doesn't have the "file show" command. It only has the "file list" command which is only target for the directory
             if (lang != Language.NodeJS)
             {
-                this.agent.Clear();
-                this.agent.GetFile(this.fileShare, fileNames[0]);
-                result = this.agent.Invoke();
-                this.agent.AssertNoError();
+                CommandAgent.Clear();
+                CommandAgent.GetFile(this.fileShare, fileNames[0]);
+                result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
                 result.AssertObjectCollection(obj => obj.AssertCloudFile(fileNames[0]));
 
-                this.agent.Clear();
-                this.agent.GetFile(this.fileShare.Name, fileNames[0]);
-                result = this.agent.Invoke();
-                this.agent.AssertNoError();
+                CommandAgent.Clear();
+                CommandAgent.GetFile(this.fileShare.Name, fileNames[0]);
+                result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
                 result.AssertObjectCollection(obj => obj.AssertCloudFile(fileNames[0]));
 
-                this.agent.Clear();
-                this.agent.GetFile(this.fileShare.GetRootDirectoryReference(), fileNames[0]);
-                result = this.agent.Invoke();
-                this.agent.AssertNoError();
+                CommandAgent.Clear();
+                CommandAgent.GetFile(this.fileShare.GetRootDirectoryReference(), fileNames[0]);
+                result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
                 result.AssertObjectCollection(obj => obj.AssertCloudFile(fileNames[0]));
             }
         }
@@ -144,9 +142,9 @@
             fileUtil.CleanupDirectory(dir);
             var files = fileNames.Select(name => fileUtil.CreateFile(dir, name)).ToList();
 
-            this.agent.GetFile(dir);
-            var result = this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.GetFile(dir);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertFileListItems(files, Enumerable.Empty<CloudFileDirectory>());
         }
 
@@ -162,41 +160,41 @@
             var dir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
             fileUtil.CleanupDirectory(dir);
 
-            this.agent.Clear();
+            CommandAgent.Clear();
             IExecutionResult result;
 
             if (lang == Language.NodeJS)
             {
-                this.agent.GetFile(this.fileShare, "/a/b");
-                result = this.agent.Invoke();
-                this.agent.AssertNoError();
+                CommandAgent.GetFile(this.fileShare, "/a/b");
+                result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
 
                 result.AssertFileListItems(Enumerable.Empty<CloudFile>(), new []{ dir });
             }
             else
             {
-                this.agent.GetFile(this.fileShare, "/a/b/c");
-                result = this.agent.Invoke();
-                this.agent.AssertNoError();
+                CommandAgent.GetFile(this.fileShare, "/a/b/c");
+                result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
                 result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory("a/b/c"));
             }
 
-            this.agent.Clear();
+            CommandAgent.Clear();
             var file = fileUtil.CreateFile(dir, "d");
 
             if (lang == Language.NodeJS)
             {
-                this.agent.GetFile(this.fileShare, "/a/b/c");
-                result = this.agent.Invoke();
-                this.agent.AssertNoError();
+                CommandAgent.GetFile(this.fileShare, "/a/b/c");
+                result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
 
                 result.AssertFileListItems(new [] { file }, Enumerable.Empty<CloudFileDirectory>());
             }
             else
             {
-                this.agent.GetFile(this.fileShare, "/a/b/c/d");
-                result = this.agent.Invoke();
-                this.agent.AssertNoError();
+                CommandAgent.GetFile(this.fileShare, "/a/b/c/d");
+                result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
                 result.AssertObjectCollection(obj => obj.AssertCloudFile("d", "a/b/c"));
             }
         }
@@ -213,41 +211,41 @@
             var dir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
             fileUtil.CleanupDirectory(dir);
 
-            this.agent.Clear();
+            CommandAgent.Clear();
             IExecutionResult result;
 
             if (lang == Language.NodeJS)
             {
-                this.agent.GetFile(this.fileShare, "a/b/.././b/../b/");
-                result = this.agent.Invoke();
-                this.agent.AssertNoError();
+                CommandAgent.GetFile(this.fileShare, "a/b/.././b/../b/");
+                result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
 
                 result.AssertFileListItems(Enumerable.Empty<CloudFile>(), new[] { dir });
             }
             else
             {
-                this.agent.GetFile(this.fileShare, "a/b/.././b/../b/c");
-                result = this.agent.Invoke();
-                this.agent.AssertNoError();
+                CommandAgent.GetFile(this.fileShare, "a/b/.././b/../b/c");
+                result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
                 result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory("a/b/c"));
             }
 
-            this.agent.Clear();
+            CommandAgent.Clear();
             var file = fileUtil.CreateFile(dir, "d");
             if (lang == Language.NodeJS)
             {
-                this.agent.GetFile(this.fileShare, "a/b/.././b/../b/c");
-                result = this.agent.Invoke();
-                this.agent.AssertNoError();
+                CommandAgent.GetFile(this.fileShare, "a/b/.././b/../b/c");
+                result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
 
                 result.AssertFileListItems(new[] { file }, Enumerable.Empty<CloudFileDirectory>());
             }
             else
             {
-                this.agent.Clear();
-                this.agent.GetFile(this.fileShare, "a/b/.././b/../b/c/d");
-                result = this.agent.Invoke();
-                this.agent.AssertNoError();
+                CommandAgent.Clear();
+                CommandAgent.GetFile(this.fileShare, "a/b/.././b/../b/c/d");
+                result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
                 result.AssertObjectCollection(obj => obj.AssertCloudFile("d", "a/b/c"));
             }
         }
@@ -264,16 +262,16 @@
             fileUtil.CleanupDirectory(dir);
             var file = fileUtil.CreateFile(dir, "d");
 
-            this.agent.Clear();
-            this.agent.GetFile(dir.Parent, "../b/./c");
-            var result = this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.Clear();
+            CommandAgent.GetFile(dir.Parent, "../b/./c");
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory("a/b/c"));
 
-            this.agent.Clear();
-            this.agent.GetFile(dir.Parent, "../b/./c/d");
-            result = this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.Clear();
+            CommandAgent.GetFile(dir.Parent, "../b/./c/d");
+            result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertObjectCollection(obj => obj.AssertCloudFile("d", "a/b/c"));
         }
 
@@ -289,9 +287,9 @@
             var dir = this.fileShare.GetRootDirectoryReference();
             fileUtil.CleanupDirectory(dir);
 
-            this.agent.GetFile(this.fileShare);
-            var result = this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.GetFile(this.fileShare);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertFileListItems(Enumerable.Empty<CloudFile>(), Enumerable.Empty<CloudFileDirectory>());
         }
 
@@ -317,22 +315,22 @@
 
             string destFolder = Path.Combine(Test.Data.Get("TempDir"), Utility.GenNameString(""));
             FileUtil.CreateNewFolder(destFolder);
-            this.agent.GetFile(this.fileShare, fileNames[0]);
-            ((PowerShellAgent)this.agent).PowerShellSession.AddCommand("Get-AzureStorageFileContent");
-            ((PowerShellAgent)this.agent).PowerShellSession.AddParameter("Destination", destFolder);
-            this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.GetFile(this.fileShare, fileNames[0]);
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzureStorageFileContent");
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddParameter("Destination", destFolder);
+            CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             string destMD5 = FileUtil.GetFileContentMD5(Path.Combine(destFolder, fileNames[0]));
             string srcMD5 = FileUtil.GetFileContentMD5(Path.Combine(sourceFolder, fileNames[0]));
             Test.Assert(destMD5.Equals(srcMD5), "Destination content should be the same with the source");
 
             FileUtil.CleanDirectory(destFolder);
-            this.agent.Clear();
-            this.agent.GetFile(this.fileShare);
-            ((PowerShellAgent)this.agent).PowerShellSession.AddCommand("Get-AzureStorageFileContent");
-            ((PowerShellAgent)this.agent).PowerShellSession.AddParameter("Destination", destFolder);
-            this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.Clear();
+            CommandAgent.GetFile(this.fileShare);
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzureStorageFileContent");
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddParameter("Destination", destFolder);
+            CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
 
             foreach (var fileName in fileNames)
             {
@@ -357,10 +355,10 @@
             var fileNames = Enumerable.Range(0, this.randomProvider.Next(5, 20)).Select(x => CloudFileUtil.GenerateUniqueFileName()).ToList();
             var files = fileNames.Select(name => fileUtil.CreateFile(dirs[0], name)).ToList();
 
-            this.agent.GetFile(this.fileShare, dirNames[0]);
-            ((PowerShellAgent)this.agent).PowerShellSession.AddCommand("Get-AzureStorageFile");
-            var result = this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.GetFile(this.fileShare, dirNames[0]);
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzureStorageFile");
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertFileListItems(files, Enumerable.Empty<CloudFileDirectory>());
 
             foreach (var dir in dirs)
@@ -369,11 +367,11 @@
                 files.AddRange(fileNames.Select(name => fileUtil.CreateFile(dir, name)).ToList());
             }
 
-            this.agent.Clear();
-            this.agent.GetFile(this.fileShare);
-            ((PowerShellAgent)this.agent).PowerShellSession.AddCommand("Get-AzureStorageFile");
-            result = this.agent.Invoke();
-            this.agent.AssertNoError();
+            CommandAgent.Clear();
+            CommandAgent.GetFile(this.fileShare);
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzureStorageFile");
+            result = CommandAgent.Invoke();
+            CommandAgent.AssertNoError();
             result.AssertFileListItems(files, Enumerable.Empty<CloudFileDirectory>());
             fileUtil.CleanupDirectory(this.fileShare.GetRootDirectoryReference());
         }
@@ -388,22 +386,22 @@
         {
             fileUtil.CleanupDirectory(this.fileShare.GetRootDirectoryReference());
 
-            this.agent.Clear();
-            this.agent.GetFile(this.fileShare, "NonExistFile");
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(
+            CommandAgent.Clear();
+            CommandAgent.GetFile(this.fileShare, "NonExistFile");
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(
                 AssertUtil.ResourceNotFoundFullQualifiedErrorId));
 
-            this.agent.Clear();
-            this.agent.GetFile(this.fileShare.Name, "NonExistFile");
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(
+            CommandAgent.Clear();
+            CommandAgent.GetFile(this.fileShare.Name, "NonExistFile");
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(
                 AssertUtil.ResourceNotFoundFullQualifiedErrorId));
 
-            this.agent.Clear();
-            this.agent.GetFile(this.fileShare.GetRootDirectoryReference(), "NonExistFile");
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(
+            CommandAgent.Clear();
+            CommandAgent.GetFile(this.fileShare.GetRootDirectoryReference(), "NonExistFile");
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(
                 AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
@@ -415,40 +413,40 @@
         [TestCategory(Tag.Function)]
         public void GetFileInNonExistShare()
         {
-            this.agent.Clear();
-            this.agent.GetFile("nonexistshare", "NonExistFile");
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(
+            CommandAgent.Clear();
+            CommandAgent.GetFile("nonexistshare", "NonExistFile");
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(
                 AssertUtil.ResourceNotFoundFullQualifiedErrorId));
 
-            this.agent.Clear();
-            this.agent.GetFile(fileUtil.GetShareReference("nonexistshare"), "NonExistFile");
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(
+            CommandAgent.Clear();
+            CommandAgent.GetFile(fileUtil.GetShareReference("nonexistshare"), "NonExistFile");
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(
                 AssertUtil.ResourceNotFoundFullQualifiedErrorId));
 
-            this.agent.Clear();
-            this.agent.GetFile(this.fileShare.GetRootDirectoryReference().GetDirectoryReference("NonExistDir"), "NonExistFile");
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(
+            CommandAgent.Clear();
+            CommandAgent.GetFile(this.fileShare.GetRootDirectoryReference().GetDirectoryReference("NonExistDir"), "NonExistFile");
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(
                 AssertUtil.ResourceNotFoundFullQualifiedErrorId));
 
-            this.agent.Clear();
-            this.agent.GetFile("nonexistshare");
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(
+            CommandAgent.Clear();
+            CommandAgent.GetFile("nonexistshare");
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(
                 AssertUtil.ShareNotFoundFullQualifiedErrorId));
 
-            this.agent.Clear();
-            this.agent.GetFile(fileUtil.GetShareReference("nonexistshare"));
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(
+            CommandAgent.Clear();
+            CommandAgent.GetFile(fileUtil.GetShareReference("nonexistshare"));
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(
                 AssertUtil.ShareNotFoundFullQualifiedErrorId));
 
-            this.agent.Clear();
-            this.agent.GetFile(this.fileShare.GetRootDirectoryReference().GetDirectoryReference("NonExistDir"));
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(
+            CommandAgent.Clear();
+            CommandAgent.GetFile(this.fileShare.GetRootDirectoryReference().GetDirectoryReference("NonExistDir"));
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(
                 AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
         /// <summary>
@@ -463,9 +461,9 @@
             var invalidFileShareName = CloudFileUtil.GenerateUniqueFileShareName();
             fileUtil.DeleteFileShareIfExists(invalidFileShareName);
 
-            this.agent.GetFile(invalidFileShareName);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(
+            CommandAgent.GetFile(invalidFileShareName);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(
                 AssertUtil.ShareBeingDeletedFullQualifiedErrorId,
                 AssertUtil.ShareNotFoundFullQualifiedErrorId,
                 AssertUtil.ProtocolErrorFullQualifiedErrorId));
@@ -482,9 +480,9 @@
             var invalidFileShareName = CloudFileUtil.GenerateUniqueFileShareName();
             fileUtil.DeleteFileShareIfExists(invalidFileShareName);
 
-            this.agent.GetFile(fileUtil.Client.GetShareReference(invalidFileShareName));
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(
+            CommandAgent.GetFile(fileUtil.Client.GetShareReference(invalidFileShareName));
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(
                 AssertUtil.ShareBeingDeletedFullQualifiedErrorId,
                 AssertUtil.ShareNotFoundFullQualifiedErrorId,
                 AssertUtil.ProtocolErrorFullQualifiedErrorId));
@@ -499,9 +497,9 @@
         [TestCategory(CLITag.NodeJSFT)]
         public void GetFilesFromSubDirectoryOfRootTest()
         {
-            this.agent.GetFile(this.fileShare, "../a");
-            this.agent.Invoke();
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId, AssertUtil.AuthenticationFailedFullQualifiedErrorId));
+            CommandAgent.GetFile(this.fileShare, "../a");
+            CommandAgent.Invoke();
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId, AssertUtil.AuthenticationFailedFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -517,42 +515,42 @@
             var dir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
             fileUtil.CleanupDirectory(dir);
 
-            this.agent.Clear();
+            CommandAgent.Clear();
             IExecutionResult result;
 
             if (lang == Language.NodeJS)
             {
-                this.agent.GetFile(this.fileShare, "a/c/./../b/./e/..");
-                result = this.agent.Invoke();
-                this.agent.AssertNoError();
+                CommandAgent.GetFile(this.fileShare, "a/c/./../b/./e/..");
+                result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
 
                 result.AssertFileListItems(Enumerable.Empty<CloudFile>(), new[] { dir });
             }
             else
             {
-                this.agent.GetFile(this.fileShare, "a/c/./../b/./c/e/..");
-                result = this.agent.Invoke();
-                this.agent.AssertNoError();
+                CommandAgent.GetFile(this.fileShare, "a/c/./../b/./c/e/..");
+                result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
                 result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory("a/b/c"));
             }
 
-            this.agent.Clear();
+            CommandAgent.Clear();
             var files = fileNames.Select(name => fileUtil.CreateFile(dir, name)).ToList();
 
             if (lang == Language.NodeJS)
             {
-                this.agent.GetFile(this.fileShare, "a/c/./../b/./c/e/..");
-                result = this.agent.Invoke();
-                this.agent.AssertNoError();
+                CommandAgent.GetFile(this.fileShare, "a/c/./../b/./c/e/..");
+                result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
 
                 result.AssertFileListItems(files, Enumerable.Empty<CloudFileDirectory>());
             }
             else
             {
-                this.agent.Clear();
-                this.agent.GetFile(this.fileShare, string.Format("a/c/./../b/./c/e/../{0}", fileNames[0]));
-                result = this.agent.Invoke();
-                this.agent.AssertNoError();
+                CommandAgent.Clear();
+                CommandAgent.GetFile(this.fileShare, string.Format("a/c/./../b/./c/e/../{0}", fileNames[0]));
+                result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
                 result.AssertObjectCollection(obj => obj.AssertCloudFile(fileNames[0], "a/b/c"));
 
             }

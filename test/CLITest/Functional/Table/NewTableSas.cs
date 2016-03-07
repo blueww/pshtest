@@ -98,7 +98,7 @@
             try
             {
                 string tablePermission = Utility.GenRandomCombination(NewTableSas.TablePermission);
-                string sastoken = agent.GetTableSasFromCmd(table.Name, string.Empty, tablePermission, startTime, expiryTime);
+                string sastoken = CommandAgent.GetTableSasFromCmd(table.Name, string.Empty, tablePermission, startTime, expiryTime);
                 try
                 {
                     ValidateSasToken(table, tablePermission, sastoken);
@@ -162,7 +162,7 @@
 
                 table.SetPermissions(permission);
 
-                string sasToken = agent.GetTableSasFromCmd(table.Name, policyName, string.Empty);
+                string sasToken = CommandAgent.GetTableSasFromCmd(table.Name, policyName, string.Empty);
                 Test.Info("Sleep and wait for sas policy taking effect");
                 double lifeTime = 1;
                 Thread.Sleep(TimeSpan.FromMinutes(lifeTime));
@@ -189,7 +189,7 @@
             {
                 string policyName = Utility.GenNameString("notexistpolicy");
 
-                Test.Assert(!agent.NewAzureStorageTableSAS(table.Name, policyName, string.Empty),
+                Test.Assert(!CommandAgent.NewAzureStorageTableSAS(table.Name, policyName, string.Empty),
                     "Generate table sas token with not exist policy should fail");
                 ExpectedContainErrorMessage(string.Format("Invalid access policy '{0}'.", policyName));
             }
@@ -216,7 +216,7 @@
             {
                 DateTime start = DateTime.UtcNow;
                 DateTime end = start.AddHours(1.0);
-                Test.Assert(!agent.NewAzureStorageTableSAS(table.Name, string.Empty, "d", end, start),
+                Test.Assert(!CommandAgent.NewAzureStorageTableSAS(table.Name, string.Empty, "d", end, start),
                         "Generate table sas token with invalid should fail");
                 ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
             }
@@ -243,7 +243,7 @@
             try
             {
                 string tablePermission = Utility.GenRandomCombination(NewTableSas.TablePermission);
-                string fullUri = agent.GetTableSasFromCmd(table.Name, string.Empty, tablePermission);
+                string fullUri = CommandAgent.GetTableSasFromCmd(table.Name, string.Empty, tablePermission);
                 string sasToken = (lang == Language.PowerShell ? fullUri.Substring(fullUri.IndexOf("?")) : fullUri);
                 ValidateSasToken(table, tablePermission, sasToken);
             }
@@ -272,25 +272,25 @@
                 //table read permission
                 string tablePermission = "r";
                 string limitedPermission = "uda";
-                string sastoken = agent.GetTableSasFromCmd(table.Name, string.Empty, tablePermission);
+                string sastoken = CommandAgent.GetTableSasFromCmd(table.Name, string.Empty, tablePermission);
                 ValidateLimitedSasPermission(table, limitedPermission, sastoken);
 
                 //table add permission
                 tablePermission = "a";
                 limitedPermission = "rdu";
-                sastoken = agent.GetTableSasFromCmd(table.Name, string.Empty, tablePermission);
+                sastoken = CommandAgent.GetTableSasFromCmd(table.Name, string.Empty, tablePermission);
                 ValidateLimitedSasPermission(table, limitedPermission, sastoken);
 
                 //table update permission
                 tablePermission = "u";
                 limitedPermission = "rad";
-                sastoken = agent.GetTableSasFromCmd(table.Name, string.Empty, tablePermission);
+                sastoken = CommandAgent.GetTableSasFromCmd(table.Name, string.Empty, tablePermission);
                 ValidateLimitedSasPermission(table, limitedPermission, sastoken);
 
                 //table delete permission
                 tablePermission = "d";
                 limitedPermission = "rau";
-                sastoken = agent.GetTableSasFromCmd(table.Name, string.Empty, tablePermission);
+                sastoken = CommandAgent.GetTableSasFromCmd(table.Name, string.Empty, tablePermission);
                 ValidateLimitedSasPermission(table, limitedPermission, sastoken);
             }
             finally
@@ -311,7 +311,7 @@
         public void NewTableSasWithNotExistTable()
         {
             string tableName = Utility.GenNameString("table");
-            agent.GetTableSasFromCmd(tableName, string.Empty, "r");
+            CommandAgent.GetTableSasFromCmd(tableName, string.Empty, "r");
         }
 
         [TestMethod()]
@@ -336,7 +336,7 @@
 
             //Range(PK2, Pk3)
             string permission = "r";
-            string sasToken = agent.GetTableSasFromCmd(table.Name, string.Empty, permission,
+            string sasToken = CommandAgent.GetTableSasFromCmd(table.Name, string.Empty, permission,
                 null, null, false, pk2, string.Empty, pk3, string.Empty);
             CloudTable sasTable = tableUtil.GetTableBySasToken(table, sasToken);
 
@@ -377,7 +377,7 @@
             {
                 //Range(RK2, Rk3)
                 string permission = "r";
-                string sasToken = agent.GetTableSasFromCmd(table.Name, string.Empty, permission,
+                string sasToken = CommandAgent.GetTableSasFromCmd(table.Name, string.Empty, permission,
                     null, null, false, pk, rk2, pk, rk3);
                 CloudTable sasTable = tableUtil.GetTableBySasToken(table, sasToken);
 
@@ -412,7 +412,7 @@
             string value3 = InsertTableEntity(table, pk3, rk, key);
             string value4 = InsertTableEntity(table, pk4, rk, key);
             string permission = "r";
-            string sasToken = agent.GetTableSasFromCmd(table.Name, string.Empty, permission,
+            string sasToken = CommandAgent.GetTableSasFromCmd(table.Name, string.Empty, permission,
                 null, null, false, pk3, string.Empty, pk2, string.Empty);
             CloudTable sasTable = tableUtil.GetTableBySasToken(table, sasToken);
 
@@ -453,7 +453,7 @@
             {
                 //Range(RK2, Rk3)
                 string permission = "r";
-                string sasToken = agent.GetTableSasFromCmd(table.Name, string.Empty, permission,
+                string sasToken = CommandAgent.GetTableSasFromCmd(table.Name, string.Empty, permission,
                     null, null, false, pk, rk3, pk, rk2);
                 CloudTable sasTable = tableUtil.GetTableBySasToken(table, sasToken);
 
@@ -480,7 +480,7 @@
             CloudTable table = tableUtil.CreateTable();
             try
             {
-                string sastoken = agent.GetTableSasFromCmd(table.Name, string.Empty, "ruda", protocol: SharedAccessProtocol.HttpsOrHttp);
+                string sastoken = CommandAgent.GetTableSasFromCmd(table.Name, string.Empty, "ruda", protocol: SharedAccessProtocol.HttpsOrHttp);
 
                 tableUtil.ValidateTableQueryableWithSasToken(table, sastoken, useHttps: false);
                 tableUtil.ValidateTableQueryableWithSasToken(table, sastoken, useHttps: true);
@@ -503,7 +503,7 @@
             CloudTable table = tableUtil.CreateTable();
             try
             {
-                string sastoken = agent.GetTableSasFromCmd(table.Name, string.Empty, "ruda", iPAddressOrRange: "10.10.10.10");
+                string sastoken = CommandAgent.GetTableSasFromCmd(table.Name, string.Empty, "ruda", iPAddressOrRange: "10.10.10.10");
                 try
                 {
                     tableUtil.ValidateTableUpdateableWithSasToken(table, sastoken);
@@ -533,7 +533,7 @@
             CloudTable table = tableUtil.CreateTable();
             try
             {
-                string sastoken = agent.GetTableSasFromCmd(table.Name, string.Empty, "ruda", iPAddressOrRange: "10.10.10.10-10.10.10.11");
+                string sastoken = CommandAgent.GetTableSasFromCmd(table.Name, string.Empty, "ruda", iPAddressOrRange: "10.10.10.10-10.10.10.11");
                 try
                 {
                     tableUtil.ValidateTableUpdateableWithSasToken(table, sastoken);
@@ -619,7 +619,7 @@
             CloudTable table = tableUtil.CreateTable();
             try
             {
-                string sastoken = agent.GetTableSasFromCmd(table.Name, string.Empty, tablePermission);
+                string sastoken = CommandAgent.GetTableSasFromCmd(table.Name, string.Empty, tablePermission);
                 ValidateSasToken(table, tablePermission, sastoken);
             }
             finally

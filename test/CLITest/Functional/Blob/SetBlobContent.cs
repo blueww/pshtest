@@ -100,7 +100,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 FileInfo[] rootFiles = rootDir.GetFiles();
 
                 Test.Info("Upload files...");
-                Test.Assert(agent.UploadLocalFiles(uploadDirRoot, containerName, blobType), "upload multiple files should be successful");
+                Test.Assert(CommandAgent.UploadLocalFiles(uploadDirRoot, containerName, blobType), "upload multiple files should be successful");
                 Test.Info("Upload finished...");
                 blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
                 Test.Assert(blobLists.Count == rootFiles.Count(), string.Format("set-azurestorageblobcontent should upload {0} files, and actually it's {1}", rootFiles.Count(), blobLists.Count));
@@ -163,9 +163,9 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                         blobType = Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob;
                     }
 
-                    ((PowerShellAgent)agent).AddPipelineScript(string.Format("ls -File -Recurse -Path {0}", dir.FullName));
+                    ((PowerShellAgent)CommandAgent).AddPipelineScript(string.Format("ls -File -Recurse -Path {0}", dir.FullName));
                     Test.Info("Upload files...");
-                    Test.Assert(agent.SetAzureStorageBlobContent(string.Empty, containerName, blobType), "upload multiple files should be successsed");
+                    Test.Assert(CommandAgent.SetAzureStorageBlobContent(string.Empty, containerName, blobType), "upload multiple files should be successsed");
                     Test.Info("Upload finished...");
 
                     blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
@@ -224,9 +224,9 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 List<IListBlobItem> blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
                 Test.Assert(blobLists.Count == 0, string.Format("container {0} should contain {1} blobs, and actually it contain {2} blobs", containerName, 0, blobLists.Count));
 
-                Test.Assert(!agent.SetAzureStorageBlobContent(Path.Combine(uploadDirRoot, files[0]), containerName, StorageBlob.BlobType.BlockBlob, blobName), "upload blob with invalid blob name should fail");
+                Test.Assert(!CommandAgent.SetAzureStorageBlobContent(Path.Combine(uploadDirRoot, files[0]), containerName, StorageBlob.BlobType.BlockBlob, blobName), "upload blob with invalid blob name should fail");
 
-                agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, blobName);
+                CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, blobName);
             }
             finally
             {
@@ -256,19 +256,19 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 List<IListBlobItem> blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
                 Test.Assert(blobLists.Count == 0, string.Format("container {0} should contain {1} blobs, and actually it contain {2} blobs", containerName, 0, blobLists.Count));
 
-                Test.Assert(agent.SetAzureStorageBlobContent(Path.Combine(uploadDirRoot, files[0]), containerName, StorageBlob.BlobType.BlockBlob, blobName), "upload blob should be successful.");
+                Test.Assert(CommandAgent.SetAzureStorageBlobContent(Path.Combine(uploadDirRoot, files[0]), containerName, StorageBlob.BlobType.BlockBlob, blobName), "upload blob should be successful.");
                 blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
                 Test.Assert(blobLists.Count == 1, string.Format("container {0} should contain {1} blobs, and actually it contain {2} blobs", containerName, 1, blobLists.Count));
                 string convertBlobName = blobUtil.ConvertFileNameToBlobName(blobName);
                 Test.Assert(((CloudBlob)blobLists[0]).Name == convertBlobName, string.Format("blob name should be {0}, actually it's {1}", convertBlobName, ((CloudBlob)blobLists[0]).Name));
 
-                Test.Assert(!agent.SetAzureStorageBlobContent(Path.Combine(uploadDirRoot, files[0]), containerName, StorageBlob.BlobType.PageBlob, blobName), "upload blob should fail with invalid blob error.");
-                
-                agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, ((ICloudBlob)blobLists[0]).Name);
+                Test.Assert(!CommandAgent.SetAzureStorageBlobContent(Path.Combine(uploadDirRoot, files[0]), containerName, StorageBlob.BlobType.PageBlob, blobName), "upload blob should fail with invalid blob error.");
 
-                Test.Assert(!agent.SetAzureStorageBlobContent(Path.Combine(uploadDirRoot, files[0]), containerName, StorageBlob.BlobType.AppendBlob, blobName), "upload blob should fail with invalid blob error.");
+                CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, ((ICloudBlob)blobLists[0]).Name);
 
-                agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, ((ICloudBlob)blobLists[0]).Name);
+                Test.Assert(!CommandAgent.SetAzureStorageBlobContent(Path.Combine(uploadDirRoot, files[0]), containerName, StorageBlob.BlobType.AppendBlob, blobName), "upload blob should fail with invalid blob error.");
+
+                CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, ((ICloudBlob)blobLists[0]).Name);
             }
             finally
             {
@@ -299,9 +299,9 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 List<IListBlobItem> blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
                 Test.Assert(blobLists.Count == 0, string.Format("container {0} should contain {1} blobs, and actually it contain {2} blobs", containerName, 0, blobLists.Count));
-                Test.Assert(!agent.SetAzureStorageBlobContent(filePath, containerName, StorageBlob.BlobType.PageBlob), "upload page blob with invalid file size should fail.");
+                Test.Assert(!CommandAgent.SetAzureStorageBlobContent(filePath, containerName, StorageBlob.BlobType.PageBlob), "upload page blob with invalid file size should fail.");
 
-                agent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, fileSize.ToString());
+                CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, fileSize.ToString());
 
                 blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
                 Test.Assert(blobLists.Count == 0, string.Format("container {0} should contain {1} blobs, and actually it contain {2} blobs", containerName, 0, blobLists.Count));
@@ -360,7 +360,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             try
             {
                 string previousMd5 = blob.Properties.ContentMD5;
-                Test.Assert(!agent.SetAzureStorageBlobContent(filePath, container.Name, blob.BlobType, blob.Name, false), "set blob content without force parameter should fail");
+                Test.Assert(!CommandAgent.SetAzureStorageBlobContent(filePath, container.Name, blob.BlobType, blob.Name, false), "set blob content without force parameter should fail");
                 ExpectedContainErrorMessage(ConfirmExceptionMessage);
                 blob.FetchAttributes();
 
@@ -393,7 +393,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             try
             {
                 string localMD5 = FileUtil.GetFileContentMD5(filePath);
-                Test.Assert(agent.SetAzureStorageBlobContent(filePath, container.Name, blob.BlobType, blob.Name, true), "set blob content with force parameter should succeed");
+                Test.Assert(CommandAgent.SetAzureStorageBlobContent(filePath, container.Name, blob.BlobType, blob.Name, true), "set blob content with force parameter should succeed");
                 blob = CloudBlobUtil.GetBlob(container, blobName, blob.BlobType);
                 blob.FetchAttributes();
 
@@ -431,7 +431,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             try
             {
                 string localMD5 = FileUtil.GetFileContentMD5(filePath);
-                Test.Assert(agent.SetAzureStorageBlobContent(filePath, container.Name, blobType, blobName, true), "upload blob with zero size should succeed");
+                Test.Assert(CommandAgent.SetAzureStorageBlobContent(filePath, container.Name, blobType, blobName, true), "upload blob with zero size should succeed");
                 CloudBlob blob = CloudBlobUtil.GetBlob(container, blobName, blobType);
                 blob.FetchAttributes();
 
@@ -469,7 +469,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             try
             {
                 string localMD5 = FileUtil.GetFileContentMD5(filePath);
-                Test.Assert(agent.SetAzureStorageBlobContent(filePath, container.Name, blobType, blobName, true), "upload a blob name with special chars should succeed");
+                Test.Assert(CommandAgent.SetAzureStorageBlobContent(filePath, container.Name, blobType, blobName, true), "upload a blob name with special chars should succeed");
                 CloudBlob blob = CloudBlobUtil.GetBlob(container, blobName, blobType);
                 blob.FetchAttributes();
 
@@ -494,7 +494,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                Test.Assert(agent.SetAzureStorageBlobContent(filePath, container.Name, blobType, string.Empty, true, -1, properties), "set blob content with property should succeed");
+                Test.Assert(CommandAgent.SetAzureStorageBlobContent(filePath, container.Name, blobType, string.Empty, true, -1, properties), "set blob content with property should succeed");
                 CloudBlob blob = StorageExtensions.GetBlobReferenceFromServer(container, Path.GetFileName(filePath));
                 blob.FetchAttributes();
                 ExpectEqual(properties["CacheControl"].ToString(), blob.Properties.CacheControl, "Cache control");
@@ -530,7 +530,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                Test.Assert(agent.SetAzureStorageBlobContent(filePath, container.Name, blobType, string.Empty, true, -1, null, metadata), "set blob content with meta should succeed");
+                Test.Assert(CommandAgent.SetAzureStorageBlobContent(filePath, container.Name, blobType, string.Empty, true, -1, null, metadata), "set blob content with meta should succeed");
                 CloudBlob blob = StorageExtensions.GetBlobReferenceFromServer(container, Path.GetFileName(filePath));
                 blob.FetchAttributes();
                 ExpectEqual(metadata.Count, blob.Metadata.Count, "meta data count");

@@ -57,7 +57,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             CloudBlobContainer container = StorageAccount.CreateCloudBlobClient().GetRootContainerReference();
             container.CreateIfNotExists();
 
-            NodeJSAgent nodejsAgent = (NodeJSAgent)agent;
+            NodeJSAgent nodejsAgent = (NodeJSAgent)CommandAgent;
             //--------------Show operation--------------
             Test.Assert(nodejsAgent.ShowAzureStorageContainer(rootContainerName), Utility.GenComparisonData("show $root container", true));
 
@@ -82,7 +82,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             CloudBlobContainer container = StorageAccount.CreateCloudBlobClient().GetContainerReference(containerName);
 
-            NodeJSAgent nodejsAgent = (NodeJSAgent)agent;
+            NodeJSAgent nodejsAgent = (NodeJSAgent)CommandAgent;
             //--------------Show operation--------------
             Test.Assert(nodejsAgent.ShowAzureStorageContainer(containerName), Utility.GenComparisonData("show $logs container", true));
 
@@ -107,7 +107,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             CloudBlobContainer container = blobClient.GetContainerReference(containerName);
             container.DeleteIfExists();
 
-            NodeJSAgent nodejsAgent = (NodeJSAgent)agent;
+            NodeJSAgent nodejsAgent = (NodeJSAgent)CommandAgent;
             //--------------Show operation--------------
             Test.Assert(!nodejsAgent.ShowAzureStorageContainer(containerName), Utility.GenComparisonData("show container", false));
             // Verification for returned values
@@ -126,7 +126,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             string containerName = Utility.GenNameString("container");
             CloudBlobContainer container = blobUtil.CreateContainer(containerName);
 
-            NodeJSAgent nodejsAgent = (NodeJSAgent)agent;
+            NodeJSAgent nodejsAgent = (NodeJSAgent)CommandAgent;
             try
             {
                 TimeSpan sasLifeTime = TimeSpan.FromMinutes(10);

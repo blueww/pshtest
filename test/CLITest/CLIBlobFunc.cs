@@ -77,16 +77,16 @@ namespace Management.Storage.ScenarioTest
         {
             string DownloadDirPath = Test.Data.Get("DownloadDir");
             FileUtil.CreateDirIfNotExits(DownloadDirPath);
-            RootBlobOperations(agent, BlockFilePath, DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
-            RootBlobOperations(agent, PageFilePath, DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
-            RootBlobOperations(agent, AppendFilePath, DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
+            RootBlobOperations(CommandAgent, BlockFilePath, DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
+            RootBlobOperations(CommandAgent, PageFilePath, DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            RootBlobOperations(CommandAgent, AppendFilePath, DownloadDirPath, Microsoft.WindowsAzure.Storage.Blob.BlobType.AppendBlob);
         }
 
         [TestMethod]
         [TestCategory(Tag.Function)]
         public void GetNonExistingBlob()
         {
-            GetNonExistingBlob(agent);
+            GetNonExistingBlob(CommandAgent);
         }
 
         [TestMethod]
@@ -94,7 +94,7 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSFT)]
         public void RemoveNonExistingBlob()
         {
-            RemoveNonExistingBlob(agent);
+            RemoveNonExistingBlob(CommandAgent);
         }
 
         /// <summary>
@@ -121,10 +121,10 @@ namespace Management.Storage.ScenarioTest
                     blob.DeleteIfExists();
 
                 //--------------Get operation--------------
-                Test.Assert(!agent.GetAzureStorageBlob(BlobName, ContainerName), Utility.GenComparisonData("get blob", true));
+                Test.Assert(!CommandAgent.GetAzureStorageBlob(BlobName, ContainerName), Utility.GenComparisonData("get blob", true));
                 // Verification for returned values
-                Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
-                Test.Assert(agent.ErrorMessages.Count == 1, "1 error message returned : {0}", agent.ErrorMessages.Count);
+                Test.Assert(CommandAgent.Output.Count == 0, "Only 0 row returned : {0}", CommandAgent.Output.Count);
+                Test.Assert(CommandAgent.ErrorMessages.Count == 1, "1 error message returned : {0}", CommandAgent.ErrorMessages.Count);
             }
             finally
             {

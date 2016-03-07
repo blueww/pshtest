@@ -1689,6 +1689,11 @@ namespace Management.Storage.ScenarioTest
             throw new NotImplementedException();
         }
 
+        public override string GetCurrentLocation()
+        {
+            throw new NotImplementedException();
+        }
+
         public override void ChangeLocation(string path)
         {
             throw new NotImplementedException();

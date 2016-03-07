@@ -92,7 +92,7 @@ namespace Management.Storage.ScenarioTest
 
         internal void StorageTest(string caseName)
         {
-            NodeJSAgent nodeAgent = (NodeJSAgent)agent;
+            NodeJSAgent nodeAgent = (NodeJSAgent)CommandAgent;
             string containerName = Utility.GenNameString("astoria-");
             string blobName = Utility.GenNameString("astoria-");
 

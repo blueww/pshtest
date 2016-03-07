@@ -37,13 +37,11 @@
 
         public override void OnTestSetup()
         {
-            this.agent.Clear();
             this.fileShare = fileUtil.EnsureFileShareExists(CloudFileUtil.GenerateUniqueFileShareName());
         }
 
         public override void OnTestCleanUp()
         {
-            this.agent.Clear();
             fileUtil.DeleteFileShareIfExists(this.fileShare.Name);
         }
 
@@ -63,10 +61,10 @@
                 fileUtil.EnsureDirectoryExists(this.fileShare, name);
             }
 
-            this.agent.RemoveDirectoriesFromPipeline(this.fileShare.Name);
-            var result = this.agent.Invoke(names);
+            CommandAgent.RemoveDirectoriesFromPipeline(this.fileShare.Name);
+            var result = CommandAgent.Invoke(names);
 
-            this.agent.AssertNoError();
+            CommandAgent.AssertNoError();
             result.AssertNoResult();
 
             foreach (var name in names)
@@ -86,7 +84,7 @@
         {
             var dir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
             this.RemoveDirectoryInternal(
-                () => this.agent.RemoveDirectory(this.fileShare, "/a/b/c"),
+                () => CommandAgent.RemoveDirectory(this.fileShare, "/a/b/c"),
                 dir);
         }
 
@@ -101,7 +99,7 @@
         {
             var dir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
             this.RemoveDirectoryInternal(
-                () => this.agent.RemoveDirectory(this.fileShare, "a/b/.././../a/b/c"),
+                () => CommandAgent.RemoveDirectory(this.fileShare, "a/b/.././../a/b/c"),
                 dir);
         }
 
@@ -115,7 +113,7 @@
         {
             var dir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
             this.RemoveDirectoryInternal(
-                () => this.agent.RemoveDirectory(dir, "../../b/./c"),
+                () => CommandAgent.RemoveDirectory(dir, "../../b/./c"),
                 dir);
         }
 
@@ -134,10 +132,10 @@
             // Creates an storage context object with invalid account
             // name.
             var invalidAccount = CloudFileUtil.MockupStorageAccount(StorageAccount, mockupAccountName: true);
-            object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
-            this.agent.RemoveDirectory(this.fileShare.Name, dir, invalidStorageContextObject);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertError(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
+            object invalidStorageContextObject = CommandAgent.CreateStorageContextObject(invalidAccount.ToString(true));
+            CommandAgent.RemoveDirectory(this.fileShare.Name, dir, invalidStorageContextObject);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(record => record.AssertError(AssertUtil.AccountIsDisabledFullQualifiedErrorId, AssertUtil.NameResolutionFailureFullQualifiedErrorId, AssertUtil.ResourceNotFoundFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId, AssertUtil.InvalidResourceFullQualifiedErrorId));
             fileUtil.AssertDirectoryExists(this.fileShare, dir, "Directory should not be created when providing invalid credentials.");
         }
 
@@ -155,10 +153,10 @@
 
             // Creates an storage context object with invalid key value
             var invalidAccount = CloudFileUtil.MockupStorageAccount(StorageAccount, mockupAccountKey: true);
-            object invalidStorageContextObject = this.agent.CreateStorageContextObject(invalidAccount.ToString(true));
-            this.agent.RemoveDirectory(this.fileShare.Name, dir, invalidStorageContextObject);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertError(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
+            object invalidStorageContextObject = CommandAgent.CreateStorageContextObject(invalidAccount.ToString(true));
+            CommandAgent.RemoveDirectory(this.fileShare.Name, dir, invalidStorageContextObject);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(record => record.AssertError(AssertUtil.AuthenticationFailedFullQualifiedErrorId, AssertUtil.ProtocolErrorFullQualifiedErrorId));
             fileUtil.AssertDirectoryExists(this.fileShare, dir, "Directory should not be created when providing invalid credentials.");
         }
 
@@ -174,9 +172,9 @@
             string dir = CloudFileUtil.GenerateUniqueDirectoryName();
             fileUtil.DeleteDirectoryIfExists(this.fileShare, dir);
 
-            this.agent.RemoveDirectory(this.fileShare, dir);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertError(AssertUtil.ResourceNotFoundFullQualifiedErrorId));
+            CommandAgent.RemoveDirectory(this.fileShare, dir);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(record => record.AssertError(AssertUtil.ResourceNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -192,9 +190,9 @@
             var directory = fileUtil.EnsureDirectoryExists(this.fileShare, dir);
             fileUtil.CreateFile(directory, CloudFileUtil.GenerateUniqueFileName());
 
-            this.agent.RemoveDirectory(this.fileShare, dir);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertError(AssertUtil.DirectoryNotEmptyFullQualifiedErrorId));
+            CommandAgent.RemoveDirectory(this.fileShare, dir);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(record => record.AssertError(AssertUtil.DirectoryNotEmptyFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -209,9 +207,9 @@
             string shareName = CloudFileUtil.GenerateUniqueFileShareName();
             string dir = CloudFileUtil.GenerateUniqueDirectoryName();
             fileUtil.DeleteFileShareIfExists(shareName);
-            this.agent.RemoveDirectory(shareName, dir);
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertError(AssertUtil.ShareNotFoundFullQualifiedErrorId));
+            CommandAgent.RemoveDirectory(shareName, dir);
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(record => record.AssertError(AssertUtil.ShareNotFoundFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -223,9 +221,9 @@
         [TestCategory(CLITag.NodeJSFT)]
         public void RemoveRootDirectoryTest()
         {
-            this.agent.RemoveDirectory(this.fileShare, "/");
-            var result = this.agent.Invoke();
-            this.agent.AssertErrors(record => record.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId, AssertUtil.AuthenticationFailedFullQualifiedErrorId));
+            CommandAgent.RemoveDirectory(this.fileShare, "/");
+            var result = CommandAgent.Invoke();
+            CommandAgent.AssertErrors(record => record.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId, AssertUtil.AuthenticationFailedFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -238,8 +236,8 @@
         public void RemoveDirectoryUnderRootsParent()
         {
             string dirName = CloudFileUtil.GenerateUniqueDirectoryName();
-            this.RemoveDirectoryInternal(() => this.agent.RemoveDirectory(this.fileShare, "../" + dirName));
-            this.agent.AssertErrors(err => err.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId, AssertUtil.AuthenticationFailedFullQualifiedErrorId));
+            this.RemoveDirectoryInternal(() => CommandAgent.RemoveDirectory(this.fileShare, "../" + dirName));
+            CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.InvalidResourceFullQualifiedErrorId, AssertUtil.AuthenticationFailedFullQualifiedErrorId));
         }
 
         /// <summary>
@@ -252,17 +250,17 @@
         {
             var dir = fileUtil.EnsureFolderStructure(this.fileShare, "a/b/c");
             this.RemoveDirectoryInternal(
-                () => this.agent.RemoveDirectory(dir, "d/../e/./../../c"),
+                () => CommandAgent.RemoveDirectory(dir, "d/../e/./../../c"),
                 dir);
         }
 
         private IExecutionResult RemoveDirectoryInternal(Action removeDirectoryAction, CloudFileDirectory dirToBeRemovedForValidation = null)
         {
             removeDirectoryAction();
-            var result = this.agent.Invoke();
+            var result = CommandAgent.Invoke();
             if (dirToBeRemovedForValidation != null)
             {
-                this.agent.AssertNoError();
+                CommandAgent.AssertNoError();
                 result.AssertNoResult();
                 Test.Assert(!dirToBeRemovedForValidation.Exists(), "Directory should not exist after removed.");
             }

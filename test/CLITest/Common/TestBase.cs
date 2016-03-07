@@ -45,7 +45,7 @@ namespace Management.Storage.ScenarioTest.Common
 
         public const string ConfirmExceptionMessage = "The host was attempting to request confirmation";
 
-        protected Agent agent;
+        protected static Agent CommandAgent;
         protected static Language lang;
         protected static bool isResourceMode = false;
         protected static bool isMooncake = false;
@@ -124,6 +124,11 @@ namespace Management.Storage.ScenarioTest.Common
             random = new Random();
 
             SetCLIEnv(testContext);
+
+            if (null == CommandAgent)
+            {
+                CommandAgent = AgentFactory.CreateAgent(testContext.Properties);
+            }
         }
 
         protected static void SetCLIEnv(TestContext testContext)
@@ -165,12 +170,13 @@ namespace Management.Storage.ScenarioTest.Common
                 {
                     if (isResourceMode)
                     {
-                        PowerShellAgent.ImportModule("AzureRm.Profile");
+                        PowerShellAgent.ImportModule("AzureRM.Profile");
                         PowerShellAgent.ImportModule("Azure.Storage");
-                        PowerShellAgent.ImportModule("AzureRm.Storage");
+                        PowerShellAgent.ImportModule("AzureRM.Storage");
                     }
                     else
                     {
+                        PowerShellAgent.ImportModule("AzureRM.Profile");
                         PowerShellAgent.ImportModule("Azure");
                     }
                 }
@@ -214,6 +220,12 @@ namespace Management.Storage.ScenarioTest.Common
             ////count = tableUtil.GetExistingTableCount();
 
             ////AssertCleanupOnStorageObject("tables", TableInitCount, count);
+
+            if (null != CommandAgent)
+            {
+                CommandAgent.Dispose();
+                CommandAgent = null;
+            }
 
             Test.Info("Test Class Cleanup");
         }
@@ -262,24 +274,24 @@ namespace Management.Storage.ScenarioTest.Common
                         int retry = 0;
                         do
                         {
-                            if (agent.HadErrors)
+                            if (CommandAgent.HadErrors)
                             {
                                 Thread.Sleep(5000);
                                 Test.Info(string.Format("Retry login... Count:{0}", retry));
                             }
                             if (!TestContext.FullyQualifiedTestClassName.Contains("SubScriptionBVT")) //For SubScriptionBVT, we already login and set current account, don't need re-login
                             {
-                                agent.Logout();
-                                agent.Login();
+                                CommandAgent.Logout();
+                                CommandAgent.Login();
                             }
                         }
-                        while (agent.HadErrors && retry++ < 5);
+                        while (CommandAgent.HadErrors && retry++ < 5);
                     }
 
                     if (lang == Language.NodeJS)
                     {
                         SetActiveSubscription();
-                        agent.ChangeCLIMode(Constants.Mode.arm);
+                        CommandAgent.ChangeCLIMode(Constants.Mode.arm);
                     }
 
                     isLogin = true;
@@ -291,17 +303,17 @@ namespace Management.Storage.ScenarioTest.Common
                 {
                     if (lang == Language.NodeJS)
                     {
-                        NodeJSAgent nodeAgent = (NodeJSAgent)agent;
+                        NodeJSAgent nodeAgent = (NodeJSAgent)CommandAgent;
                         nodeAgent.Logout();
                         nodeAgent.ChangeCLIMode(Constants.Mode.asm);
                     }
 
                     string settingFile = Test.Data.Get("AzureSubscriptionPath");
                     string subscriptionId = Test.Data.Get("AzureSubscriptionID");
-                    agent.ImportAzureSubscription(settingFile);
+                    CommandAgent.ImportAzureSubscription(settingFile);
 
                     string subscriptionID = Test.Data.Get("AzureSubscriptionID");
-                    agent.SetActiveSubscription(subscriptionID);
+                    CommandAgent.SetActiveSubscription(subscriptionID);
 
                     accountImported = true;
                 }
@@ -331,12 +343,13 @@ namespace Management.Storage.ScenarioTest.Common
         [TestInitialize()]
         public virtual void InitAgent()
         {
-            agent = AgentFactory.CreateAgent(TestContext.Properties);
             if (Agent.Context == null)
             {
                 Agent.Context = StorageAccount;
             }
             Test.Start(TestContext.FullyQualifiedTestClassName, TestContext.TestName);
+
+            CommandAgent.Clear();
             OnTestSetup();
         }
 
@@ -347,7 +360,7 @@ namespace Management.Storage.ScenarioTest.Common
         public void CleanAgent()
         {
             OnTestCleanUp();
-            agent = null;
+            CommandAgent.Clear();
             Test.End(TestContext.FullyQualifiedTestClassName, TestContext.TestName);
         }
 
@@ -371,14 +384,14 @@ namespace Management.Storage.ScenarioTest.Common
         /// <param name="expectErrorMessage">Expect error message</param>
         public void ExpectedEqualErrorMessage(string expectErrorMessage)
         {
-            Test.Assert(agent.ErrorMessages.Count > 0, "Should return error message");
+            Test.Assert(CommandAgent.ErrorMessages.Count > 0, "Should return error message");
 
-            if (agent.ErrorMessages.Count == 0)
+            if (CommandAgent.ErrorMessages.Count == 0)
             {
                 return;
             }
 
-            Test.Assert(expectErrorMessage == agent.ErrorMessages[0], String.Format("Expected error message: {0}, and actually it's {1}", expectErrorMessage, agent.ErrorMessages[0]));
+            Test.Assert(expectErrorMessage == CommandAgent.ErrorMessages[0], String.Format("Expected error message: {0}, and actually it's {1}", expectErrorMessage, CommandAgent.ErrorMessages[0]));
         }
 
         /// <summary>
@@ -387,14 +400,14 @@ namespace Management.Storage.ScenarioTest.Common
         /// <param name="expectErrorMessage">Expect error message</param>
         public void ExpectedStartsWithErrorMessage(string errorMessage)
         {
-            Test.Assert(agent.ErrorMessages.Count > 0, "Should return error message");
+            Test.Assert(CommandAgent.ErrorMessages.Count > 0, "Should return error message");
 
-            if (agent.ErrorMessages.Count == 0)
+            if (CommandAgent.ErrorMessages.Count == 0)
             {
                 return;
             }
 
-            Test.Assert(agent.ErrorMessages[0].StartsWith(errorMessage), String.Format("Expected error message should start with {0}, and actually it's {1}", errorMessage, agent.ErrorMessages[0]));
+            Test.Assert(CommandAgent.ErrorMessages[0].StartsWith(errorMessage), String.Format("Expected error message should start with {0}, and actually it's {1}", errorMessage, CommandAgent.ErrorMessages[0]));
         }
 
         /// <summary>
@@ -403,14 +416,14 @@ namespace Management.Storage.ScenarioTest.Common
         /// <param name="errorMessage">Expected error message</param>
         public void ExpectedContainErrorMessage(string errorMessage)
         {
-            Test.Assert(agent.ErrorMessages.Count > 0, "Should return error message");
+            Test.Assert(CommandAgent.ErrorMessages.Count > 0, "Should return error message");
 
-            if (agent.ErrorMessages.Count == 0)
+            if (CommandAgent.ErrorMessages.Count == 0)
             {
                 return;
             }
 
-            Test.Assert(agent.ErrorMessages[0].IndexOf(errorMessage) != -1, String.Format("Expected error message should contain '{0}', and actually it's '{1}'", errorMessage, agent.ErrorMessages[0]));
+            Test.Assert(CommandAgent.ErrorMessages[0].IndexOf(errorMessage) != -1, String.Format("Expected error message should contain '{0}', and actually it's '{1}'", errorMessage, CommandAgent.ErrorMessages[0]));
         }
 
         /// <summary>
@@ -419,9 +432,9 @@ namespace Management.Storage.ScenarioTest.Common
         /// <param name="errorMessages">list of expect error message</param>
         public void ExpectedContainErrorMessage(string[] errorMessages)
         {
-            Test.Assert(agent.ErrorMessages.Count > 0, "Should return error message");
+            Test.Assert(CommandAgent.ErrorMessages.Count > 0, "Should return error message");
 
-            if (agent.ErrorMessages.Count == 0)
+            if (CommandAgent.ErrorMessages.Count == 0)
             {
                 return;
             }
@@ -429,66 +442,66 @@ namespace Management.Storage.ScenarioTest.Common
             bool expected = false;
             foreach (var errorMsg in errorMessages)
             {
-                if (agent.ErrorMessages[0].IndexOf(errorMsg) != -1)
+                if (CommandAgent.ErrorMessages[0].IndexOf(errorMsg) != -1)
                 {
                     expected = true;
                     break;
                 }
             }
-            Test.Assert(expected, String.Format("Current error msg '{0}' should be in the expected msg list.", agent.ErrorMessages[0]));
+            Test.Assert(expected, String.Format("Current error msg '{0}' should be in the expected msg list.", CommandAgent.ErrorMessages[0]));
         }
 
         protected PSCorsRule[] GetCORSRulesFromOutput()
         {
             if (lang == Language.PowerShell)
             {
-                return agent.Output[0][PowerShellAgent.BaseObject] as PSCorsRule[];
+                return CommandAgent.Output[0][PowerShellAgent.BaseObject] as PSCorsRule[];
             }
             else
             {
                 List<PSCorsRule> rules = new List<PSCorsRule>();
-                for (int i = 0; i < agent.Output.Count; i++)
+                for (int i = 0; i < CommandAgent.Output.Count; i++)
                 {
                     PSCorsRule rule = new PSCorsRule();
 
                     bool hasValue = false;
                     JArray categories;
                     string key = "AllowedMethods";
-                    if (agent.Output[i].ContainsKey(key))
+                    if (CommandAgent.Output[i].ContainsKey(key))
                     {
-                        categories = (JArray)agent.Output[i][key];
+                        categories = (JArray)CommandAgent.Output[i][key];
                         rule.AllowedMethods = categories.Select(c => (string)c).ToArray();
                         hasValue = true;
                     }
 
                     key = "AllowedOrigins";
-                    if (agent.Output[i].ContainsKey(key))
+                    if (CommandAgent.Output[i].ContainsKey(key))
                     {
-                        categories = (JArray)agent.Output[i][key];
+                        categories = (JArray)CommandAgent.Output[i][key];
                         rule.AllowedOrigins = categories.Select(c => (string)c).ToArray();
                         hasValue = true;
                     }
 
                     key = "AllowedHeaders";
-                    if (agent.Output[i].ContainsKey(key))
+                    if (CommandAgent.Output[i].ContainsKey(key))
                     {
-                        categories = (JArray)agent.Output[i][key];
+                        categories = (JArray)CommandAgent.Output[i][key];
                         rule.AllowedHeaders = categories.Select(c => (string)c).ToArray();
                         hasValue = true;
                     }
 
                     key = "ExposedHeaders";
-                    if (agent.Output[i].ContainsKey(key))
+                    if (CommandAgent.Output[i].ContainsKey(key))
                     {
-                        categories = (JArray)agent.Output[i][key];
+                        categories = (JArray)CommandAgent.Output[i][key];
                         rule.ExposedHeaders = categories.Select(c => (string)c).ToArray();
                         hasValue = true;
                     }
 
                     key = "MaxAgeInSeconds";
-                    if (agent.Output[i].ContainsKey(key))
+                    if (CommandAgent.Output[i].ContainsKey(key))
                     {
-                        rule.MaxAgeInSeconds = (int)(agent.Output[i][key] as long?);
+                        rule.MaxAgeInSeconds = (int)(CommandAgent.Output[i][key] as long?);
                         hasValue = true;
                     }
 
@@ -555,7 +568,7 @@ namespace Management.Storage.ScenarioTest.Common
 
         protected void SetActiveSubscription()
         {
-            NodeJSAgent nodeAgent = (NodeJSAgent)agent;
+            NodeJSAgent nodeAgent = (NodeJSAgent)CommandAgent;
             string subscriptionID = Test.Data.Get("AzureSubscriptionID");
             if (!string.IsNullOrEmpty(subscriptionID))
             {

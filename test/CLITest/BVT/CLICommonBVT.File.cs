@@ -49,16 +49,15 @@
 
             try
             {
-                agent.NewFileShare(fileShareName);
-                var result = agent.Invoke();
+                CommandAgent.NewFileShare(fileShareName);
+                var result = CommandAgent.Invoke();
 
-                agent.AssertNoError();
+                CommandAgent.AssertNoError();
                 result.AssertObjectCollection(obj => result.AssertCloudFileContainer(obj, fileShareName), 1);
                 fileUtil.AssertFileShareExists(fileShareName, "Container should exist after created.");
             }
             finally
             {
-                agent.Dispose();
                 fileUtil.DeleteFileShareIfExists(fileShareName);
             }
         }
@@ -78,16 +77,15 @@
 
             try
             {
-                agent.GetFileShareByName(fileShareName);
+                CommandAgent.GetFileShareByName(fileShareName);
 
-                var result = agent.Invoke();
+                var result = CommandAgent.Invoke();
 
-                agent.AssertNoError();
+                CommandAgent.AssertNoError();
                 result.AssertObjectCollection(obj => result.AssertCloudFileContainer(obj, fileShareName), 1);
             }
             finally
             {
-                agent.Dispose();
                 fileUtil.DeleteFileShareIfExists(fileShareName);
             }
         }
@@ -107,17 +105,16 @@
 
             try
             {
-                agent.RemoveFileShareByName(fileShareName);
+                CommandAgent.RemoveFileShareByName(fileShareName);
 
-                var result = agent.Invoke();
+                var result = CommandAgent.Invoke();
 
-                agent.AssertNoError();
+                CommandAgent.AssertNoError();
                 result.AssertNoResult();
                 fileUtil.AssertFileShareNotExists(fileShareName, "Container should not exist after removed.");
             }
             finally
             {
-                agent.Dispose();
                 fileUtil.DeleteFileShareIfExists(fileShareName);
             }
         }
@@ -133,7 +130,7 @@
         {
             NewDirectoryTest((fileShare, directoryName) =>
             {
-                agent.NewDirectory(fileShare, directoryName);
+                CommandAgent.NewDirectory(fileShare, directoryName);
             });
         }
 
@@ -149,7 +146,7 @@
         {
             NewDirectoryTest((fileShare, directoryName) =>
             {
-                agent.NewDirectory(fileShare.Name, directoryName);
+                CommandAgent.NewDirectory(fileShare.Name, directoryName);
             });
         }
 
@@ -164,7 +161,7 @@
         {
             RemoveDirectoryTest((directory) =>
             {
-                agent.RemoveDirectory(directory.Share, CloudFileUtil.GetFullPath(directory));
+                CommandAgent.RemoveDirectory(directory.Share, CloudFileUtil.GetFullPath(directory));
             });
         }
 
@@ -180,7 +177,7 @@
         {
             RemoveDirectoryTest((directory) =>
             {
-                agent.RemoveDirectory(directory.Share.Name, CloudFileUtil.GetFullPath(directory));
+                CommandAgent.RemoveDirectory(directory.Share.Name, CloudFileUtil.GetFullPath(directory));
             });
         }
 
@@ -204,16 +201,15 @@
 
             try
             {
-                agent.GetFile(fileShare.Name, dirName);
+                CommandAgent.GetFile(fileShare.Name, dirName);
 
-                var result = agent.Invoke();
+                var result = CommandAgent.Invoke();
 
-                agent.AssertNoError();
+                CommandAgent.AssertNoError();
                 result.AssertFileListItems(files, directories);
             }
             finally
             {
-                agent.Dispose();
                 fileUtil.DeleteFileShareIfExists(fileShareName);
             }
         }
@@ -230,7 +226,7 @@
         {
             ListFileTest((fileShare) =>
             {
-                agent.GetFile(fileShare.Name);
+                CommandAgent.GetFile(fileShare.Name);
             });
         }
 
@@ -245,7 +241,7 @@
         {
             ListFileTest((fileShare) =>
             {
-                agent.GetFile(fileShare);
+                CommandAgent.GetFile(fileShare);
             });
         }
 
@@ -267,16 +263,15 @@
 
             try
             {
-                agent.GetFile(directory);
+                CommandAgent.GetFile(directory);
 
-                var result = (PowerShellExecutionResult)agent.Invoke();
+                var result = (PowerShellExecutionResult)CommandAgent.Invoke();
 
-                agent.AssertNoError();
+                CommandAgent.AssertNoError();
                 result.AssertObjectCollection(obj => obj.AssertCloudFile(fileName, directoryName), 1);
             }
             finally
             {
-                agent.Dispose();
                 fileUtil.DeleteFileShareIfExists(fileShareName);
             }
         }
@@ -294,7 +289,7 @@
         {
             this.GetFileTest((fileShare, path) =>
             {
-                agent.GetFile(fileShare.Name, path);
+                CommandAgent.GetFile(fileShare.Name, path);
             }, false);
         }
 
@@ -311,7 +306,7 @@
         {
             this.GetFileTest((fileShare, path) =>
             {
-                agent.GetFile(fileShare.Name, path);
+                CommandAgent.GetFile(fileShare.Name, path);
             }, true);
         }
 
@@ -326,7 +321,7 @@
         {
             GetFileTest((fileShare, path) =>
             {
-                agent.GetFile(fileShare, path);
+                CommandAgent.GetFile(fileShare, path);
             }, false);
         }
 
@@ -341,7 +336,7 @@
         {
             GetFileTest((fileShare, path) =>
             {
-                agent.GetFile(fileShare, path);
+                CommandAgent.GetFile(fileShare, path);
             }, true);
         }
 
@@ -385,7 +380,7 @@
                 MediumFileMD5,
                 (file, destination) =>
                 {
-                    agent.DownloadFile(file.Share, file.Name, destination);
+                    CommandAgent.DownloadFile(file.Share, file.Name, destination);
                 });
 
             Test.Info("Testing against small file.");
@@ -394,7 +389,7 @@
                 SmallFileMD5,
                 (file, destination) =>
                 {
-                    agent.DownloadFile(file.Share, file.Name, destination);
+                    CommandAgent.DownloadFile(file.Share, file.Name, destination);
                 });
         }
 
@@ -414,7 +409,7 @@
                 MediumFileMD5,
                 (file, destination) =>
                 {
-                    agent.DownloadFile(file.Share.Name, file.Name, destination);
+                    CommandAgent.DownloadFile(file.Share.Name, file.Name, destination);
                 });
 
             Test.Info("Testing against small file.");
@@ -423,7 +418,7 @@
                 SmallFileMD5,
                 (file, destination) =>
                 {
-                    agent.DownloadFile(file.Share.Name, file.Name, destination);
+                    CommandAgent.DownloadFile(file.Share.Name, file.Name, destination);
                 });
         }
 
@@ -443,7 +438,7 @@
                 MediumFileMD5,
                 (file, destination) =>
                 {
-                    agent.DownloadFile(file, destination);
+                    CommandAgent.DownloadFile(file, destination);
                 });
 
             Test.Info("Testing against small file.");
@@ -452,7 +447,7 @@
                 SmallFileMD5,
                 (file, destination) =>
                 {
-                    agent.DownloadFile(file, destination);
+                    CommandAgent.DownloadFile(file, destination);
                 });
         }
 
@@ -471,7 +466,7 @@
                 MediumFileMD5,
                 (fileShare, path) =>
                 {
-                    agent.UploadFile(fileShare, CommonMediumFilePath, path);
+                    CommandAgent.UploadFile(fileShare, CommonMediumFilePath, path);
                 });
 
             Test.Info("Testing against small file.");
@@ -480,7 +475,7 @@
                 SmallFileMD5,
                 (fileShare, path) =>
                 {
-                    agent.UploadFile(fileShare, CommonSmallFilePath, path);
+                    CommandAgent.UploadFile(fileShare, CommonSmallFilePath, path);
                 });
         }
 
@@ -500,7 +495,7 @@
                 MediumFileMD5,
                 (fileShare, path) =>
                 {
-                    agent.UploadFile(fileShare.Name, CommonMediumFilePath, path);
+                    CommandAgent.UploadFile(fileShare.Name, CommonMediumFilePath, path);
                 });
 
             Test.Info("Testing against small file.");
@@ -509,7 +504,7 @@
                 SmallFileMD5,
                 (fileShare, path) =>
                 {
-                    agent.UploadFile(fileShare.Name, CommonSmallFilePath, path);
+                    CommandAgent.UploadFile(fileShare.Name, CommonSmallFilePath, path);
                 });
         }
 
@@ -524,7 +519,7 @@
         {
             RemoveFileTest((file) =>
             {
-                agent.RemoveFile(file.Share, file.Name);
+                CommandAgent.RemoveFile(file.Share, file.Name);
             });
         }
 
@@ -540,7 +535,7 @@
         {
             RemoveFileTest((file) =>
             {
-                agent.RemoveFile(file.Share.Name, file.Name);
+                CommandAgent.RemoveFile(file.Share.Name, file.Name);
             });
         }
 
@@ -555,7 +550,7 @@
         {
             RemoveFileTest((file) =>
             {
-                agent.RemoveFile(file);
+                CommandAgent.RemoveFile(file);
             });
         }
 
@@ -573,7 +568,7 @@
             SharedAccessPolicyTest((share, samplePolicies) =>
             {
                 var samplePolicy = samplePolicies[0];
-                Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                Test.Assert(CommandAgent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                     "Create stored access policy in file share should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
 
@@ -600,20 +595,20 @@
             SharedAccessPolicyTest((share, samplePolicies) =>
             {
                 var samplePolicy = samplePolicies[0];
-                Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                Test.Assert(CommandAgent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                     "Create stored access policy in file share should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
 
                 Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, samplePolicy);
 
-                Test.Assert(agent.GetAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName),
+                Test.Assert(CommandAgent.GetAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName),
                     "Get stored access policy in file share should succeed");
                 Test.Info("Get stored access policy:{0}", samplePolicy.PolicyName);
 
                 SharedAccessFilePolicy policy = Utility.SetupSharedAccessPolicy<SharedAccessFilePolicy>(samplePolicy.StartTime, samplePolicy.ExpiryTime, samplePolicy.Permission);
                 Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
                 comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessFilePolicy>(policy, samplePolicy.PolicyName));
-                agent.OutputValidation(comp);
+                CommandAgent.OutputValidation(comp);
             });
         }
 
@@ -631,13 +626,13 @@
             SharedAccessPolicyTest((share, samplePolicies) =>
             {
                 var samplePolicy = samplePolicies[0];
-                Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
+                Test.Assert(CommandAgent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName, samplePolicy.Permission, samplePolicy.StartTime, samplePolicy.ExpiryTime),
                     "Create stored access policy in file share should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy.PolicyName);
 
                 Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, samplePolicy);
 
-                Test.Assert(agent.RemoveAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName),
+                Test.Assert(CommandAgent.RemoveAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy.PolicyName),
                     "Remove stored access policy in file share should succeed");
                 Test.Info("Removed stored access policy:{0}", samplePolicy.PolicyName);
 
@@ -665,14 +660,14 @@
             {
                 var samplePolicy1 = samplePolicies[0];
                 var samplePolicy2 = samplePolicies[1];
-                Test.Assert(agent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy1.PolicyName, samplePolicy1.Permission,
+                Test.Assert(CommandAgent.NewAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy1.PolicyName, samplePolicy1.Permission,
                     samplePolicy1.StartTime, samplePolicy1.ExpiryTime),
                     "Create stored access policy in file share should succeed");
                 Test.Info("Created stored access policy:{0}", samplePolicy1.PolicyName);
 
                 Utility.WaitForPolicyBecomeValid<CloudFileShare>(share, samplePolicy1);
 
-                Test.Assert(agent.SetAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy1.PolicyName, samplePolicy2.Permission,
+                Test.Assert(CommandAgent.SetAzureStorageShareStoredAccessPolicy(share.Name, samplePolicy1.PolicyName, samplePolicy2.Permission,
                     samplePolicy2.StartTime, samplePolicy2.ExpiryTime),
                     "Set stored access policy in file share should succeed");
                 Test.Info("Set stored access policy:{0}", samplePolicy1.PolicyName);
@@ -691,7 +686,7 @@
 
                 Collection<Dictionary<string, object>> comp = new Collection<Dictionary<string, object>>();
                 comp.Add(Utility.ConstructGetPolicyOutput<SharedAccessFilePolicy>(policy, expectedPolicy.PolicyName));
-                agent.OutputValidation(comp);
+                CommandAgent.OutputValidation(comp);
             });
         }
 
@@ -718,10 +713,10 @@
                 CloudBlob blob = blobUtil.CreateRandomBlob(container, fileName, StorageBlob.BlobType.BlockBlob);
                 CloudFile destFile = fileUtil.GetFileReference(share.GetRootDirectoryReference(), fileName);
 
-                Test.Assert(agent.StartFileCopyFromBlob(containerName, fileName, destShareName, fileName, Agent.Context),
+                Test.Assert(CommandAgent.StartFileCopyFromBlob(containerName, fileName, destShareName, fileName, Agent.Context),
                     "Start copy from blob to file shoule succeed.");
 
-                Test.Assert(agent.GetFileCopyState(destShareName, fileName, Agent.Context, true),
+                Test.Assert(CommandAgent.GetFileCopyState(destShareName, fileName, Agent.Context, true),
                     "Get copy state of file should succeed.");
 
                 CloudFileUtil.ValidateCopyResult(blob, destFile);
@@ -730,10 +725,10 @@
                 blob = blobUtil.CreateRandomBlob(container, fileName, StorageBlob.BlobType.AppendBlob);
                 destFile = fileUtil.GetFileReference(share.GetRootDirectoryReference(), fileName);
 
-                Test.Assert(agent.StartFileCopy(container, fileName, destShareName, fileName, Agent.Context),
+                Test.Assert(CommandAgent.StartFileCopy(container, fileName, destShareName, fileName, Agent.Context),
                     "Start copy from blob to file shoule succeed.");
 
-                Test.Assert(agent.GetFileCopyState(destShareName, fileName, Agent.Context, true),
+                Test.Assert(CommandAgent.GetFileCopyState(destShareName, fileName, Agent.Context, true),
                     "Get copy state of file should succeed.");
 
                 CloudFileUtil.ValidateCopyResult(blob, destFile);
@@ -742,10 +737,10 @@
                 fileName = Utility.GenNameString("fileName");
                 blob = blobUtil.CreateRandomBlob(container, fileName, StorageBlob.BlobType.PageBlob);
                 destFile = fileUtil.GetFileReference(share.GetRootDirectoryReference(), fileName);
-                Test.Assert(agent.StartFileCopy(container, fileName, destShareName, fileName, Agent.Context),
+                Test.Assert(CommandAgent.StartFileCopy(container, fileName, destShareName, fileName, Agent.Context),
                     "Start copy from blob to file shoule succeed.");
 
-                Test.Assert(agent.GetFileCopyState(destShareName, fileName, Agent.Context, true),
+                Test.Assert(CommandAgent.GetFileCopyState(destShareName, fileName, Agent.Context, true),
                     "Get copy state of file should succeed.");
                 CloudFileUtil.ValidateCopyResult(blob, destFile);
 
@@ -771,27 +766,27 @@
         {
             this.ValidateFileCopyFromFile((srcFile, destFile) =>
             {
-                Test.Assert(agent.StartFileCopyFromFile(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), destFile.Share.Name, CloudFileUtil.GetFullPath(destFile), Agent.Context),
+                Test.Assert(CommandAgent.StartFileCopyFromFile(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), destFile.Share.Name, CloudFileUtil.GetFullPath(destFile), Agent.Context),
                     "Start copy from file to file should succeed.");
 
-                Test.Assert(agent.GetFileCopyState(destFile, Agent.Context, true), "Get file copy state should succeed.");
+                Test.Assert(CommandAgent.GetFileCopyState(destFile, Agent.Context, true), "Get file copy state should succeed.");
             });
 
 
             this.ValidateFileCopyFromFile((srcFile, destFile) =>
             {
-                Test.Assert(agent.StartFileCopy(srcFile.Share, CloudFileUtil.GetFullPath(srcFile), destFile.Share.Name, CloudFileUtil.GetFullPath(destFile), Agent.Context),
+                Test.Assert(CommandAgent.StartFileCopy(srcFile.Share, CloudFileUtil.GetFullPath(srcFile), destFile.Share.Name, CloudFileUtil.GetFullPath(destFile), Agent.Context),
                     "Start copy from file to file should succeed.");
 
-                Test.Assert(agent.GetFileCopyState(destFile, Agent.Context, true), "Get file copy state should succeed.");
+                Test.Assert(CommandAgent.GetFileCopyState(destFile, Agent.Context, true), "Get file copy state should succeed.");
             });
 
             this.ValidateFileCopyFromFile((srcFile, destFile) =>
             {
-                string fileUri = agent.GetAzureStorageFileSasFromCmd(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), null, "r", null, DateTime.UtcNow.AddHours(1), true);
+                string fileUri = CommandAgent.GetAzureStorageFileSasFromCmd(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), null, "r", null, DateTime.UtcNow.AddHours(1), true);
 
-                Test.Assert(agent.StartFileCopy(fileUri, destFile), "Copy file to file with absolute URI should succeed.");
-                Test.Assert(agent.GetFileCopyState(destFile, Agent.Context, true), "Get file copy state should succeed.");
+                Test.Assert(CommandAgent.StartFileCopy(fileUri, destFile), "Copy file to file with absolute URI should succeed.");
+                Test.Assert(CommandAgent.GetFileCopyState(destFile, Agent.Context, true), "Get file copy state should succeed.");
             });
         }
 
@@ -825,10 +820,10 @@
 
                 var file = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), fileName);
 
-                Test.Assert(agent.StartFileCopy(blob.Uri.ToString(), destShareName, fileName, Agent.Context),
+                Test.Assert(CommandAgent.StartFileCopy(blob.Uri.ToString(), destShareName, fileName, Agent.Context),
                     "Start copying from public blob URI to file should succeed.");
 
-                Test.Assert(agent.GetFileCopyState(file, Agent.Context, true), "Get file copying state should succeed.");
+                Test.Assert(CommandAgent.GetFileCopyState(file, Agent.Context, true), "Get file copying state should succeed.");
 
                 CloudFileUtil.ValidateCopyResult(blob, file);
             }
@@ -854,31 +849,31 @@
             ValidateCopyFromFileToBlob((srcFile, destBlob) =>
             {
                 Test.Info("Starting copying with share name and file path to blob");
-                Test.Assert(agent.StartAzureStorageBlobCopyFromFile(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), destBlob.Container.Name, destBlob.Name, Agent.Context),
+                Test.Assert(CommandAgent.StartAzureStorageBlobCopyFromFile(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), destBlob.Container.Name, destBlob.Name, Agent.Context),
                     "Start copying from file to blob should succeed.");
 
-                Test.Assert(agent.GetAzureStorageBlobCopyState(destBlob, null, true), "Get blob copy state should succeed.");
+                Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(destBlob, null, true), "Get blob copy state should succeed.");
             });
 
 
             ValidateCopyFromFileToBlob((srcFile, destBlob) =>
             {
                 Test.Info("Starting copying with share instance and file path to blob");
-                Test.Assert(agent.StartAzureStorageBlobCopy(srcFile.Share, CloudFileUtil.GetFullPath(srcFile), destBlob.Container.Name, destBlob.Name, Agent.Context),
+                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(srcFile.Share, CloudFileUtil.GetFullPath(srcFile), destBlob.Container.Name, destBlob.Name, Agent.Context),
                     "Start copying from file to blob should succeed.");
 
-                Test.Assert(agent.GetAzureStorageBlobCopyState(destBlob, null, true), "Get blob copy state should succeed.");
+                Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(destBlob, null, true), "Get blob copy state should succeed.");
             });
 
             ValidateCopyFromFileToBlob((srcFile, destBlob) =>
             {
                 Test.Info("Starting copying with file absolute uri to blob");
-                string fileUriWithSAS = agent.GetAzureStorageFileSasFromCmd(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), null, "r", null, DateTime.UtcNow.AddHours(1), true);
+                string fileUriWithSAS = CommandAgent.GetAzureStorageFileSasFromCmd(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), null, "r", null, DateTime.UtcNow.AddHours(1), true);
 
-                Test.Assert(agent.StartAzureStorageBlobCopy(fileUriWithSAS, destBlob.Container.Name, destBlob.Name, Agent.Context),
+                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(fileUriWithSAS, destBlob.Container.Name, destBlob.Name, Agent.Context),
                     "Start copying from file to blob should succeed.");
 
-                Test.Assert(agent.GetAzureStorageBlobCopyState(destBlob, null, true), "Get blob copy state should succeed.");
+                Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(destBlob, null, true), "Get blob copy state should succeed.");
             });
         }
 
@@ -907,15 +902,15 @@
                     files.Add(fileUtil.CreateFile(srcShare.GetRootDirectoryReference(), fileName));
                 }
 
-                PowerShellAgent psAgent = agent as PowerShellAgent;
+                PowerShellAgent psAgent = CommandAgent as PowerShellAgent;
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageFile -ShareName {0}", srcShareName));
 
-                Test.Assert(agent.StartAzureStorageBlobCopy(srcFile: null, destContainerName: destContainerName, destBlobName: null, destContext: Agent.Context),
+                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(srcFile: null, destContainerName: destContainerName, destBlobName: null, destContext: Agent.Context),
                     "Start copying from file to blob should succeed.");
 
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageBlob -Container {0}", destContainerName));
 
-                Test.Assert(agent.GetAzureStorageBlobCopyState(blob: null, context: null, waitForComplete: true),
+                Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(blob: null, context: null, waitForComplete: true),
                     "Get blob copying state should succeed.");
 
                 foreach (var file in files)
@@ -955,7 +950,7 @@
 
                 CloudBlockBlob blob = destContainer.GetBlockBlobReference(Utility.GenNameString("destBlobName"));
 
-                Test.Assert(agent.StartAzureStorageBlobCopy(file, destContainer.Name, blob.Name, Agent.Context), "Start azure storage copy from file to blob should succeed.");
+                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(file, destContainer.Name, blob.Name, Agent.Context), "Start azure storage copy from file to blob should succeed.");
 
                 Utility.WaitCopyToFinish(() =>
                 {
@@ -966,10 +961,10 @@
 
                 VerifyGetCopyStateFinishInTime(() =>
                 {
-                    Test.Assert(agent.GetAzureStorageBlobCopyState(blob, null, true), "Get blob copy state should succeed.");
+                    Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(blob, null, true), "Get blob copy state should succeed.");
                 });
 
-                Utility.CLICopyState actualCopyState = Utility.GetCopyState(agent, lang);
+                Utility.CLICopyState actualCopyState = Utility.GetCopyState(CommandAgent, lang);
                 CopyState expectedCopyState = blob.CopyState;
 
                 Utility.VerifyCopyState(expectedCopyState, actualCopyState);
@@ -1002,15 +997,15 @@
 
                 CloudBlockBlob blob = destContainer.GetBlockBlobReference(Utility.GenNameString("destBlobName"));
 
-                Test.Assert(agent.StartAzureStorageBlobCopy(bigFileUri, destContainer.Name, blob.Name, Agent.Context), "Start azure storage copy from file to blob should succeed.");
+                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(bigFileUri, destContainer.Name, blob.Name, Agent.Context), "Start azure storage copy from file to blob should succeed.");
 
                 string copyId = null;
                 if (lang == Language.NodeJS)
                 {
-                    copyId = agent.Output[0]["copyId"] as string;
+                    copyId = CommandAgent.Output[0]["copyId"] as string;
                 }
 
-                Test.Assert(agent.StopAzureStorageBlobCopy(destContainerName, blob.Name, copyId, true), "Stop blob copy should succeed.");
+                Test.Assert(CommandAgent.StopAzureStorageBlobCopy(destContainerName, blob.Name, copyId, true), "Stop blob copy should succeed.");
 
                 blob.FetchAttributes();
 
@@ -1042,19 +1037,19 @@
                 string fileName = Utility.GenNameString("fileName");
                 CloudFile file = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
 
-                Test.Assert(!agent.GetFileCopyState(shareName, fileName, Agent.Context), "Get file copy state should fail.");
+                Test.Assert(!CommandAgent.GetFileCopyState(shareName, fileName, Agent.Context), "Get file copy state should fail.");
                 ExpectedContainErrorMessage("Can not find copy task on the specified file");
 
                 VerifyGetCopyStateFinishInTime(() =>
                 {
-                    Test.Assert(!agent.GetFileCopyState(shareName, fileName, Agent.Context, true), "Get file copy state should fail.");
+                    Test.Assert(!CommandAgent.GetFileCopyState(shareName, fileName, Agent.Context, true), "Get file copy state should fail.");
                 });
 
                 ExpectedContainErrorMessage("Can not find copy task on the specified file");
 
                 string destFileName = Utility.GenNameString("destFileName");
                 CloudFile destFile = fileUtil.CreateFile(share.GetRootDirectoryReference(), fileName);
-                Test.Assert(agent.StartFileCopy(file, destFile), "Start file copy should succeed.");
+                Test.Assert(CommandAgent.StartFileCopy(file, destFile), "Start file copy should succeed.");
 
                 Utility.WaitCopyToFinish(() =>
                 {
@@ -1062,9 +1057,9 @@
                     return destFile.CopyState;
                 });
 
-                Test.Assert(agent.GetFileCopyState(file, Agent.Context), "Get file copy state should succeed.");
+                Test.Assert(CommandAgent.GetFileCopyState(file, Agent.Context), "Get file copy state should succeed.");
 
-                Utility.VerifyCopyState(destFile.CopyState, Utility.GetCopyState(agent, lang));
+                Utility.VerifyCopyState(destFile.CopyState, Utility.GetCopyState(CommandAgent, lang));
             }
             finally
             {
@@ -1093,14 +1088,14 @@
                 CloudFile file = fileUtil.GetFileReference(share.GetRootDirectoryReference(), fileName);
 
                 string bigBlobUri = Test.Data.Get("BigBlobUri");
-                Test.Assert(agent.StartFileCopy(bigBlobUri, file), "Start file copy should succeed.");
+                Test.Assert(CommandAgent.StartFileCopy(bigBlobUri, file), "Start file copy should succeed.");
 
                 string copyId = null;
                 if (lang == Language.NodeJS)
                 {
-                    copyId = agent.Output[0]["copyId"] as string;
+                    copyId = CommandAgent.Output[0]["copyId"] as string;
                 }
-                Test.Assert(agent.StopFileCopy(shareName, fileName, copyId), "Stop file copy should succeed.");
+                Test.Assert(CommandAgent.StopFileCopy(shareName, fileName, copyId), "Stop file copy should succeed.");
 
                 file.FetchAttributes();
                 Test.Assert(file.CopyState.Status == CopyStatus.Aborted, "copy state of the destination file should be aborted.");
@@ -1109,13 +1104,13 @@
                 file = fileUtil.GetFileReference(share.GetRootDirectoryReference(), fileName);
 
                 string bigFileUri = Test.Data.Get("BigAzureFileUri");
-                Test.Assert(agent.StartFileCopy(bigFileUri, file), "Start file copy from big file should succeed.");
+                Test.Assert(CommandAgent.StartFileCopy(bigFileUri, file), "Start file copy from big file should succeed.");
 
                 if (lang == Language.NodeJS)
                 {
-                    copyId = agent.Output[0]["copyId"] as string;
+                    copyId = CommandAgent.Output[0]["copyId"] as string;
                 }
-                Test.Assert(agent.StopFileCopy(file, copyId), "Stop file copy should succeed.");
+                Test.Assert(CommandAgent.StopFileCopy(file, copyId), "Stop file copy should succeed.");
 
                 file.FetchAttributes();
                 Test.Assert(file.CopyState.Status == CopyStatus.Aborted, "copy state of the destination file should be aborted.");
@@ -1216,15 +1211,14 @@
             {
                 newDirectoryAction(fileShare, directoryName);
 
-                var result = this.agent.Invoke();
+                var result = CommandAgent.Invoke();
 
-                agent.AssertNoError();
+                CommandAgent.AssertNoError();
                 result.AssertObjectCollection(obj => result.AssertCloudFileDirectory(obj, directoryName), 1);
                 fileUtil.AssertDirectoryExists(fileShare, directoryName, "Container should exist after created.");
             }
             finally
             {
-                agent.Dispose();
                 fileUtil.DeleteFileShareIfExists(fileShareName);
             }
         }
@@ -1240,15 +1234,14 @@
             {
                 removeDirectoryAction(directory);
 
-                var result = agent.Invoke();
+                var result = CommandAgent.Invoke();
 
-                agent.AssertNoError();
+                CommandAgent.AssertNoError();
                 result.AssertNoResult();
                 fileUtil.AssertDirectoryNotExists(fileShare, directoryName, "Directory should not exist after removed.");
             }
             finally
             {
-                agent.Dispose();
                 fileUtil.DeleteFileShareIfExists(fileShareName);
             }
         }
@@ -1264,15 +1257,14 @@
             {
                 removeFileAction(file);
 
-                var result = agent.Invoke();
+                var result = CommandAgent.Invoke();
 
-                agent.AssertNoError();
+                CommandAgent.AssertNoError();
                 result.AssertNoResult();
                 fileUtil.AssertFileNotExists(fileShare, fileName, "File should not exist after removed.");
             }
             finally
             {
-                agent.Dispose();
                 fileUtil.DeleteFileShareIfExists(fileShareName);
             }
         }
@@ -1290,14 +1282,13 @@
             {
                 getFileAction(fileShare);
 
-                var result = agent.Invoke();
+                var result = CommandAgent.Invoke();
 
-                agent.AssertNoError();
+                CommandAgent.AssertNoError();
                 result.AssertFileListItems(files, directories);
             }
             finally
             {
-                agent.Dispose();
                 fileUtil.DeleteFileShareIfExists(fileShareName);
             }
         }
@@ -1321,9 +1312,9 @@
             {
                 getFileAction(fileShare, fileName);
 
-                var result = agent.Invoke();
+                var result = CommandAgent.Invoke();
 
-                agent.AssertNoError();
+                CommandAgent.AssertNoError();
                 if (isDirectory)
                 {
                     result.AssertObjectCollection(obj => obj.AssertCloudFileDirectory(fileName));
@@ -1335,7 +1326,6 @@
             }
             finally
             {
-                agent.Dispose();
                 fileUtil.DeleteFileShareIfExists(fileShareName);
             }
         }
@@ -1362,16 +1352,15 @@
 
             try
             {
-                agent.GetFile(directory, fileName);
+                CommandAgent.GetFile(directory, fileName);
 
-                var result = (PowerShellExecutionResult)agent.Invoke();
+                var result = (PowerShellExecutionResult)CommandAgent.Invoke();
 
-                agent.AssertNoError();
+                CommandAgent.AssertNoError();
                 result.AssertFileListItems(fileList, dirList);
             }
             finally
             {
-                agent.Dispose();
                 fileUtil.DeleteFileShareIfExists(fileShareName);
             }
         }
@@ -1386,10 +1375,10 @@
 
             try
             {
-                agent = AgentFactory.CreateAgent(TestContext.Properties);
+                CommandAgent = AgentFactory.CreateAgent(TestContext.Properties);
                 getContentAction(cloudFile, destination);
-                var result = agent.Invoke();
-                agent.AssertNoError();
+                var result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
                 if (lang == Language.NodeJS)
                 {
                     result.AssertObjectCollection(obj => result.AssertCloudFile(obj, "/" + cloudFileName));
@@ -1408,7 +1397,6 @@
             }
             finally
             {
-                agent.Dispose();
                 fileUtil.DeleteFileShareIfExists(fileShareName);
                 FileUtil.RemoveFile(destination);
             }
@@ -1422,10 +1410,10 @@
 
             try
             {
-                agent = AgentFactory.CreateAgent(TestContext.Properties);
+                CommandAgent = AgentFactory.CreateAgent(TestContext.Properties);
                 setContentAction(fileShare, cloudFileName);
-                var result = agent.Invoke();
-                agent.AssertNoError();
+                var result = CommandAgent.Invoke();
+                CommandAgent.AssertNoError();
                 if (lang == Language.NodeJS)
                 {
                     result.AssertObjectCollection(obj => result.AssertCloudFile(obj, "/" + cloudFileName));
@@ -1446,7 +1434,6 @@
             }
             finally
             {
-                agent.Dispose();
                 fileUtil.DeleteFileShareIfExists(fileShareName);
             }
         }
