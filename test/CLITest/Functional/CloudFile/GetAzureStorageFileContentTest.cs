@@ -288,18 +288,27 @@
         [TestCategory(PsTag.File)]
         public void DownloadFileUsingRelativePathAfterChangedDefaultLocation()
         {
-            string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
-            string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
-            FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
-            var sourceFile = fileUtil.CreateFile(this.fileShare, cloudFileName, localFilePath);
-            CommandAgent.ChangeLocation(Test.Data.Get("TempDir"));
-            UploadAndDownloadFileInternal(
-                sourceFile,
-                FileUtil.GetFileContentMD5(localFilePath),
-                destination => CommandAgent.DownloadFile(this.fileShare, cloudFileName, ".", true));
-            var result = CommandAgent.Invoke();
-            result.AssertNoResult();
-            Test.Assert(new FileInfo(Path.Combine(Test.Data.Get("TempDir"), cloudFileName)).Exists, "File should exist after downloaded.");
+            string currentPath = CommandAgent.GetCurrentLocation();
+            try
+            {
+                string cloudFileName = CloudFileUtil.GenerateUniqueFileName();
+                string localFilePath = Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName());
+                FileUtil.GenerateSmallFile(localFilePath, Utility.GetRandomTestCount(5, 10), true);
+                var sourceFile = fileUtil.CreateFile(this.fileShare, cloudFileName, localFilePath);
+                CommandAgent.ChangeLocation(Test.Data.Get("TempDir"));
+                UploadAndDownloadFileInternal(
+                    sourceFile,
+                    FileUtil.GetFileContentMD5(localFilePath),
+                    destination => CommandAgent.DownloadFile(this.fileShare, cloudFileName, ".", true));
+                var result = CommandAgent.Invoke();
+                result.AssertNoResult();
+                Test.Assert(new FileInfo(Path.Combine(Test.Data.Get("TempDir"), cloudFileName)).Exists, "File should exist after downloaded.");
+            }
+            finally
+            {
+                CommandAgent.Clear();
+                CommandAgent.ChangeLocation(currentPath);
+            }
         }
 
         /// <summary>
