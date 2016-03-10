@@ -351,6 +351,7 @@ namespace Management.Storage.ScenarioTest.Common
 
             CommandAgent.Clear();
             OnTestSetup();
+            CommandAgent.Clear();
         }
 
         /// <summary>
