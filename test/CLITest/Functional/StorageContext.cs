@@ -71,6 +71,7 @@ namespace Management.Storage.ScenarioTest.Functional
             CloudBlobUtil blobUtil1 = new CloudBlobUtil(account1);
             CloudBlobUtil blobUtil2 = new CloudBlobUtil(account2);
             string containerName = Utility.GenNameString("container");
+            bool savedParamValue = psAgent.UseContextParam;
 
             try
             {
@@ -89,6 +90,7 @@ namespace Management.Storage.ScenarioTest.Functional
             }
             finally
             {
+                psAgent.UseContextParam = savedParamValue;
                 blobUtil1.RemoveContainer(containerName);
                 blobUtil2.RemoveContainer(containerName);
             }
@@ -113,6 +115,7 @@ namespace Management.Storage.ScenarioTest.Functional
             randomAccountKey = Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes(randomAccountKey));
 
             string containerName = Utility.GenNameString("container");
+            bool savedParamValue = psAgent.UseContextParam;
 
             try
             {
@@ -132,6 +135,7 @@ namespace Management.Storage.ScenarioTest.Functional
             }
             finally
             {
+                psAgent.UseContextParam = savedParamValue;
                 //TODO test the invalid storage account in subscription
                 blobUtil.RemoveContainer(containerName);
             }
@@ -232,17 +236,25 @@ namespace Management.Storage.ScenarioTest.Functional
         public void GetContainerWithInvalidEndPoint()
         {
             PowerShellAgent psAgent = (PowerShellAgent)CommandAgent;
-            string accountName = Utility.GenNameString("account");
-            string accountKey = Utility.GenBase64String("key");
-            string endPoint = Utility.GenNameString("core.abc.def");
+            bool savedParamValue = psAgent.UseContextParam;
+            try
+            {
+                string accountName = Utility.GenNameString("account");
+                string accountKey = Utility.GenBase64String("key");
+                string endPoint = Utility.GenNameString("core.abc.def");
 
-            string cmd = String.Format("new-azurestoragecontext -StorageAccountName {0} " +
-                "-StorageAccountKey {1} -Endpoint {2}", accountName, accountKey, endPoint);
-            psAgent.AddPipelineScript(cmd);
-            psAgent.UseContextParam = false;
-            Test.Assert(!CommandAgent.GetAzureStorageContainer(string.Empty),
-                "Get containers with invalid endpoint should fail");
-            ExpectedContainErrorMessage(ExpectedErrorMsgs);
+                string cmd = String.Format("new-azurestoragecontext -StorageAccountName {0} " +
+                    "-StorageAccountKey {1} -Endpoint {2}", accountName, accountKey, endPoint);
+                psAgent.AddPipelineScript(cmd);
+                psAgent.UseContextParam = false;
+                Test.Assert(!CommandAgent.GetAzureStorageContainer(string.Empty),
+                    "Get containers with invalid endpoint should fail");
+                ExpectedContainErrorMessage(ExpectedErrorMsgs);
+            }
+            finally
+            {
+                psAgent.UseContextParam = savedParamValue;
+            }
         }
 
         /// <summary>
