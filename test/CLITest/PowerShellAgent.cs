@@ -209,7 +209,7 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = GetPowerShellInstance();
 
             ps.AddCommand("Set-AzureRmCurrentStorageAccount");
-            ps.BindParameter("StorageAccountName", storageAccountName);
+            ps.BindParameter("Name", storageAccountName);
             ps.BindParameter("ResourceGroupName", resourceGroupName);
 
             return InvokePowerShellWithoutContext(ps);
