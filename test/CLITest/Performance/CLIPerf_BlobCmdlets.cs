@@ -56,8 +56,7 @@ namespace Management.Storage.ScenarioTest
             Helper.DeletePattern(FolderName + "_*");
 
             // import module
-            string moduleFilePath = Path.Combine(Test.Data.Get("ModuleFileFolder"), Constants.ServiceModulePath);
-            PowerShellAgent.ImportModule(moduleFilePath);
+            PowerShellAgent.ImportModules(Constants.ServiceModulePaths);
 
             //set the default storage context
             PowerShellAgent.SetStorageContext(srcConnectionString);
