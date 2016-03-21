@@ -30,8 +30,7 @@ namespace Management.Storage.ScenarioTest
             TestBase.TestClassInitialize(testContext);
 
             // import module
-            string moduleFilePath = Path.Combine(Test.Data.Get("ModuleFileFolder"), Constants.ServiceModulePath);
-            PowerShellAgent.ImportModule(moduleFilePath);
+            PowerShellAgent.ImportModules(Constants.ServiceModulePaths);
 
             //set the default storage context
             PowerShellAgent.SetStorageContext(StorageAccount.ToString(true));
