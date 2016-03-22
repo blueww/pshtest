@@ -44,6 +44,7 @@ namespace Management.Storage.ScenarioTest
     using MS.Test.Common.MsTestLib;
     using StorageTestLib;
     using StorageBlobType = Microsoft.WindowsAzure.Storage.Blob.BlobType;
+    using Microsoft.Rest;
 
     internal static class Utility
     {
@@ -235,13 +236,26 @@ namespace Management.Storage.ScenarioTest
             return new CertificateCloudCredentials(Test.Data.Get("AzureSubscriptionID"), cert);
         }
 
+        public static TokenCredentials GetTokenCredential()
+        {
+            AuthenticationResult result = GetAuthenticationResult();
+            return new TokenCredentials(result.AccessToken, result.AccessTokenType); 
+        }
+
         public static TokenCloudCredentials GetTokenCloudCredential()
+        {
+            AuthenticationResult result = GetAuthenticationResult();
+            return new TokenCloudCredentials(Test.Data.Get("AzureSubscriptionID"), result.AccessToken);
+        }
+
+        public static AuthenticationResult GetAuthenticationResult()
         {
             AuthenticationContext context = new AuthenticationContext(string.Format("https://login.windows.net/{0}", Test.Data.Get("AADRealm")));
             ClientCredential clientCred = new ClientCredential(Test.Data.Get("AADClient"), Test.Data.Get("AADPassword"));
             AuthenticationResult result = context.AcquireToken("https://management.core.windows.net/", clientCred);
-            return new TokenCloudCredentials(Test.Data.Get("AzureSubscriptionID"), result.AccessToken);
+            return result;
         }
+
 
         /// <summary>
         /// Generate the data for output comparison
