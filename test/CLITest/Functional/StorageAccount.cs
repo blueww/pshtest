@@ -57,7 +57,7 @@ namespace Management.Storage.ScenarioTest
         private List<string> createdAccounts = new List<string>();
 
         private const string PSHInvalidAccountTypeError =
-            "Cannot validate argument on parameter 'SkuName'. The argument \"{0}\" does not belong to the set \"StandardLRS,StandardZRS,StandardGRS,StandardRAGRS,PremiumLRS\" specified by the ValidateSet attribute.";
+            "Cannot validate argument on parameter 'SkuName'. The argument \"{0}\" does not belong to the set \"Standard_LRS,Standard_ZRS,Standard_GRS,Standard_RAGRS,Premium_LRS\" specified by the ValidateSet attribute.";
 
         private const string PSHASMAccountTypeInvalidError = "The AccountType {0} is invalid";
 

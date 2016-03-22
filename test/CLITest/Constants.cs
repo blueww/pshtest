@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using MS.Test.Common.MsTestLib;
 
 namespace Management.Storage.ScenarioTest
 {
@@ -123,14 +125,50 @@ namespace Management.Storage.ScenarioTest
         public const string PAGE_BLOB_UNIT = "G_PAGE";
         public const string FILE_UNIT = "G_FILE";
 
-        public readonly static string[] ResourceModulePaths = {"ResourceManager\\AzureResourceManager\\AzureRM.Profile\\AzureRM.Profile.psd1",
-                                                    "ResourceManager\\AzureResourceManager\\Azure.Storage\\Azure.Storage.psd1",
-                                                    "ResourceManager\\AzureResourceManager\\AzureRM.Storage\\AzureRM.Storage.psd1"};
+        public readonly static string[] ResourceModulePaths;
 
-        public const string ServiceModulePath = "ServiceManagement\\Azure\\Azure.psd1";
+        public readonly static string[] ServiceModulePaths;
 
         public const int Iterations = 5; 
         
         public const int DefaultMaxWaitingTime = 900000;  // in miliseconds, increased from 600s to 900s due to AppendBlob. It should be less than the default timeout value of mstest2, which is 3600s for now.
+
+        static Constants()
+        {
+            if (bool.Parse(Test.Data.Get("IsPowerShellGet")))
+            {
+                ResourceModulePaths = new string[]
+                    {
+                        "AzureRM.Profile",
+                        "Azure.Storage",
+                        "AzureRM.Storage"
+                    };
+
+                ServiceModulePaths = new string[]
+                    {
+                        "AzureRM.Profile",
+                        "Azure.Storage",
+                        "Azure"
+                    };
+            }
+            else
+            {
+                string moduleFileFolder = Test.Data.Get("ModuleFileFolder");
+                if (null == moduleFileFolder)
+                {
+                    moduleFileFolder = string.Empty;
+                }
+
+                ResourceModulePaths = new string[] {
+                        Path.Combine(moduleFileFolder, "ResourceManager\\AzureResourceManager\\AzureRM.Profile\\AzureRM.Profile.psd1"),
+                        Path.Combine(moduleFileFolder, "Storage\\Azure.Storage\\Azure.Storage.psd1"),
+                        Path.Combine(moduleFileFolder, "ResourceManager\\AzureResourceManager\\AzureRM.Storage\\AzureRM.Storage.psd1") };
+
+                ServiceModulePaths = new string[] {
+                        Path.Combine(moduleFileFolder, "ResourceManager\\AzureResourceManager\\AzureRM.Profile\\AzureRM.Profile.psd1"),
+                        Path.Combine(moduleFileFolder, "Storage\\Azure.Storage\\Azure.Storage.psd1"),
+                        Path.Combine(moduleFileFolder, "ServiceManagement\\Azure\\Azure.psd1") };
+            }
+        }
     }
 }
