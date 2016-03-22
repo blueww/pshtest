@@ -116,6 +116,14 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+        public static void ImportModules(string[] ModuleFilePaths)
+        {
+            foreach (var moduleFilePath in ModuleFilePaths)
+            {
+                ImportModule(moduleFilePath);
+            }
+        }
+
         public static void ImportModule(string ModuleFilePath)
         {
             if (string.IsNullOrEmpty(ModuleFilePath))

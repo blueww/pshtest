@@ -147,38 +147,13 @@ namespace Management.Storage.ScenarioTest.Common
 
             if (lang == Language.PowerShell)
             {
-                if (!bool.Parse(Test.Data.Get("IsPowerShellGet")))
+                if (isResourceMode)
                 {
-                    string moduleFileFolder = Test.Data.Get("ModuleFileFolder");
-
-                    if (!string.IsNullOrWhiteSpace(moduleFileFolder))
-                    {
-                        if (isResourceMode)
-                        {
-                            foreach (var resourceModulePath in Constants.ResourceModulePaths)
-                            {
-                                PowerShellAgent.ImportModule(Path.Combine(moduleFileFolder, resourceModulePath));
-                            }
-                        }
-                        else
-                        {
-                            PowerShellAgent.ImportModule(Path.Combine(moduleFileFolder, Constants.ServiceModulePath));
-                        }
-                    }
+                    PowerShellAgent.ImportModules(Constants.ResourceModulePaths); ;
                 }
                 else
                 {
-                    if (isResourceMode)
-                    {
-                        PowerShellAgent.ImportModule("AzureRM.Profile");
-                        PowerShellAgent.ImportModule("Azure.Storage");
-                        PowerShellAgent.ImportModule("AzureRM.Storage");
-                    }
-                    else
-                    {
-                        PowerShellAgent.ImportModule("AzureRM.Profile");
-                        PowerShellAgent.ImportModule("Azure");
-                    }
+                    PowerShellAgent.ImportModules(Constants.ServiceModulePaths);
                 }
 
                 string snapInName = Test.Data.Get("PSSnapInName");

@@ -41,8 +41,7 @@ namespace Management.Storage.ScenarioTest
             FolderName = Test.Data.Get("FolderName");
 
             // import module
-            string moduleFilePath = Path.Combine(Test.Data.Get("ModuleFileFolder"), Constants.ServiceModulePath);
-            PowerShellAgent.ImportModule(moduleFilePath);
+            PowerShellAgent.ImportModules(Constants.ServiceModulePaths);
 
             //set the ConcurrentTaskCount field
             PowerShellAgent.ConcurrentTaskCount = Environment.ProcessorCount * 8;
