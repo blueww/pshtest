@@ -1838,12 +1838,12 @@ namespace Management.Storage.ScenarioTest
 
         public override void RemoveDirectory(CloudFileShare fileShare, string directoryName, bool confirm = false)
         {
-            this.RemoveDirectory(fileShare.Name, directoryName, confirm);
+            this.RemoveDirectory(fileShare.Name, directoryName, confirm: confirm);
         }
 
         public override void RemoveDirectory(CloudFileDirectory directory, string path, bool confirm = false)
         {
-            this.RemoveDirectory(directory.Share.Name, CloudFileUtil.GetFullPath(directory) + "/" + path, confirm);
+            this.RemoveDirectory(directory.Share.Name, CloudFileUtil.GetFullPath(directory) + "/" + path, confirm: confirm);
         }
 
         public override void RemoveDirectory(string fileShareName, string directoryName, object contextObject = null, bool confirm = false)
@@ -1858,17 +1858,17 @@ namespace Management.Storage.ScenarioTest
 
         public override void RemoveFile(CloudFileShare fileShare, string fileName, bool confirm = false)
         {
-            this.RemoveFile(fileShare.Name, fileName, confirm);
+            this.RemoveFile(fileShare.Name, fileName, confirm: confirm);
         }
 
         public override void RemoveFile(CloudFileDirectory directory, string fileName, bool confirm = false)
         {
-            this.RemoveFile(directory.Share.Name, CloudFileUtil.GetFullPath(directory) + "/" + fileName, confirm);
+            this.RemoveFile(directory.Share.Name, CloudFileUtil.GetFullPath(directory) + "/" + fileName, confirm: confirm);
         }
 
         public override void RemoveFile(CloudFile file, bool confirm = false)
         {
-            this.RemoveFile(file.Share.Name, CloudFileUtil.GetFullPath(file), confirm);
+            this.RemoveFile(file.Share.Name, CloudFileUtil.GetFullPath(file), confirm: confirm);
         }
 
         public override void RemoveFile(string fileShareName, string fileName, object contextObject = null, bool confirm = false)
