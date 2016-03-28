@@ -135,7 +135,9 @@ namespace Management.Storage.ScenarioTest
 
         static Constants()
         {
-            if (bool.Parse(Test.Data.Get("IsPowerShellGet")))
+            string isPowerShellGet = Test.Data.Get("IsPowerShellGet");
+
+            if (string.IsNullOrEmpty(isPowerShellGet) || bool.Parse(isPowerShellGet))
             {
                 ResourceModulePaths = new string[]
                     {
