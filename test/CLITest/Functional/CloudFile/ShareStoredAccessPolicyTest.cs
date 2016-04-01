@@ -778,6 +778,10 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             sharePermission = "l";
             GenerateSasTokenAndValidate(sharePermission);
 
+            //Share create permission
+            sharePermission = "c";
+            GenerateSasTokenAndValidate(sharePermission);
+
             //Random combination
             sharePermission = Utility.GenRandomCombination(Utility.SharePermission);
             GenerateSasTokenAndValidate(sharePermission);
@@ -1014,7 +1018,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             {
                 //Share read permission
                 string sharePermission = "r";
-                string limitedPermission = "wdl";
+                string limitedPermission = "wdlc";
                 string sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
                 ValidateLimitedSasPermission(share, limitedPermission, sastoken);
 
@@ -1026,13 +1030,19 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 //Share delete permission
                 sharePermission = "d";
-                limitedPermission = "rwl";
+                limitedPermission = "rwlc";
                 sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
                 ValidateLimitedSasPermission(share, limitedPermission, sastoken);
 
                 //Share list permission
                 sharePermission = "l";
-                limitedPermission = "rwd";
+                limitedPermission = "rwdc";
+                sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
+                ValidateLimitedSasPermission(share, limitedPermission, sastoken);
+
+                //Share create permission
+                sharePermission = "c";
+                limitedPermission = "rwdl";
                 sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
                 ValidateLimitedSasPermission(share, limitedPermission, sastoken);
             }
@@ -1138,6 +1148,10 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
             //File delete permission
             permission = "d";
+            GenerateFileSasTokenAndValidate(permission);
+
+            //File create permission
+            permission = "c";
             GenerateFileSasTokenAndValidate(permission);
             
             //Random combination
@@ -1394,7 +1408,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 //File read permission
                 string permissions = "r";
-                string limitedPermission = "wd";
+                string limitedPermission = "wdc";
                 string sastoken = CommandAgent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions);
                 ValidateFileLimitedSasPermission(file, limitedPermission, sastoken);
 
@@ -1406,7 +1420,13 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 //File delete permission
                 permissions = "d";
-                limitedPermission = "rw";
+                limitedPermission = "rwc";
+                sastoken = CommandAgent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions);
+                ValidateLimitedSasPermission(share, limitedPermission, sastoken);
+
+                //File create permission
+                permissions = "c";
+                limitedPermission = "rwd";
                 sastoken = CommandAgent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions);
                 ValidateLimitedSasPermission(share, limitedPermission, sastoken);
             }
@@ -1700,6 +1720,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     case 'd':
                         fileUtil.ValidateFileDeleteableWithSasToken(file, sasToken);
                         break;
+                    case 'c':
+                        fileUtil.ValidateFileCreateableWithSasToken(file, sasToken);
+                        break;
                 }
             }
         }
@@ -1722,6 +1745,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     case 'l':
                         fileUtil.ValidateShareListableWithSasToken(share, sasToken);
                         break;
+                    case 'c':
+                        fileUtil.ValidateShareCreateableWithSasToken(share, sasToken);
+                        break;
                 }
             }
         }
@@ -1729,22 +1755,25 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         private void ValidateFileLimitedSasPermission(StorageFile.CloudFile file,
             string limitedPermission, string sasToken)
         {
-            try
+            foreach (char permission in limitedPermission.ToLower())
             {
-                ValidateFileSasToken(file, limitedPermission, sasToken);
-                Test.Error("sastoken '{0}' should not contain the permission {1}", limitedPermission);
-            }
-            catch (StorageException e)
-            {
-                Test.Info(e.Message);
-                if (403 == e.RequestInformation.HttpStatusCode || 404 == e.RequestInformation.HttpStatusCode)
+                try
                 {
-                    Test.Info("Limited permission sas token should not access storage objects. {0}", e.RequestInformation.HttpStatusMessage);
+                    ValidateFileSasToken(file, permission.ToString(), sasToken);
+                    Test.Error("sastoken '{0}' should not contain the permission {1}", sasToken, permission.ToString());
                 }
-                else
+                catch (StorageException e)
                 {
-                    Test.Error("Limited permission sas token should return 403 or 404, but actually it's {0} {1}",
-                        e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage);
+                    Test.Info(e.Message);
+                    if (403 == e.RequestInformation.HttpStatusCode)
+                    {
+                        Test.Info("Limited permission sas token should not access storage objects. {0}", e.RequestInformation.HttpStatusMessage);
+                    }
+                    else
+                    {
+                        Test.Error("Limited permission sas token should return 403, but actually it's {0} {1}",
+                            e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage);
+                    }
                 }
             }
         }
@@ -1752,22 +1781,25 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         private void ValidateLimitedSasPermission(CloudFileShare share,
             string limitedPermission, string sasToken)
         {
-            try
+            foreach (char permission in limitedPermission.ToLower())
             {
-                ValidateSasToken(share, limitedPermission, sasToken);
-                Test.Error("sastoken '{0}' should not contain the permission {1}", limitedPermission);
-            }
-            catch (StorageException e)
-            {
-                Test.Info(e.Message);
-                if (403 == e.RequestInformation.HttpStatusCode || 404 == e.RequestInformation.HttpStatusCode)
+                try
                 {
-                    Test.Info("Limited permission sas token should not access storage objects. {0}", e.RequestInformation.HttpStatusMessage);
+                    ValidateSasToken(share, permission.ToString(), sasToken);
+                    Test.Error("sastoken '{0}' should not contain the permission {1}", sasToken, permission.ToString());
                 }
-                else
+                catch (StorageException e)
                 {
-                    Test.Error("Limited permission sas token should return 403 or 404, but actually it's {0} {1}",
-                        e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage);
+                    Test.Info(e.Message);
+                    if (403 == e.RequestInformation.HttpStatusCode)
+                    {
+                        Test.Info("Limited permission sas token should not access storage objects. {0}", e.RequestInformation.HttpStatusMessage);
+                    }
+                    else
+                    {
+                        Test.Error("Limited permission sas token should return 403, but actually it's {0} {1}",
+                            e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage);
+                    }
                 }
             }
         }

@@ -57,6 +57,14 @@
             containerPermission = "l";
             GenerateSasTokenAndValid(containerPermission);
 
+            //Container create permission
+            containerPermission = "c";
+            GenerateSasTokenAndValid(containerPermission);
+
+            //Container append permission
+            containerPermission = "a";
+            GenerateSasTokenAndValid(containerPermission);
+
             // Permission param is required according to the design, cannot accept string.Empty, so comment this. We may support this in the future.
             //None permission
             //containerPermission = "";
@@ -256,7 +264,7 @@
             {
                 //Container read permission
                 string containerPermission = "r";
-                string limitedPermission = "wdl";
+                string limitedPermission = "wdlac";
                 string sastoken = CommandAgent.GetContainerSasFromCmd(blobUtil.Container.Name, string.Empty, containerPermission);
                 ValidateLimitedSasPermission(blobUtil.Container, limitedPermission, sastoken);
 
@@ -268,13 +276,25 @@
 
                 //Container delete permission
                 containerPermission = "d";
-                limitedPermission = "rwl";
+                limitedPermission = "rwlac";
                 sastoken = CommandAgent.GetContainerSasFromCmd(blobUtil.Container.Name, string.Empty, containerPermission);
                 ValidateLimitedSasPermission(blobUtil.Container, limitedPermission, sastoken);
 
                 //Container list permission
                 containerPermission = "l";
-                limitedPermission = "rwd";
+                limitedPermission = "rwdac";
+                sastoken = CommandAgent.GetContainerSasFromCmd(blobUtil.Container.Name, string.Empty, containerPermission);
+                ValidateLimitedSasPermission(blobUtil.Container, limitedPermission, sastoken);
+
+                //Container add permission
+                containerPermission = "a";
+                limitedPermission = "rwdlc";
+                sastoken = CommandAgent.GetContainerSasFromCmd(blobUtil.Container.Name, string.Empty, containerPermission);
+                ValidateLimitedSasPermission(blobUtil.Container, limitedPermission, sastoken);
+
+                //Container create permission
+                containerPermission = "c";
+                limitedPermission = "rwdla";
                 sastoken = CommandAgent.GetContainerSasFromCmd(blobUtil.Container.Name, string.Empty, containerPermission);
                 ValidateLimitedSasPermission(blobUtil.Container, limitedPermission, sastoken);
 
@@ -422,6 +442,12 @@
                     case 'l':
                         blobUtil.ValidateContainerListableWithSasToken(container, sasToken);
                         break;
+                    case 'c':
+                        blobUtil.ValidateContainerCreateableWithSasToken(container, sasToken);
+                        break;
+                    case 'a':
+                        blobUtil.ValidateContainerAppendableWithSasToken(container, sasToken);
+                        break;
                 }
             }
         }
@@ -435,22 +461,25 @@
         internal void ValidateLimitedSasPermission(CloudBlobContainer container,
             string limitedPermission, string sasToken)
         {
-            try
+            foreach (char permission in limitedPermission.ToLower())
             {
-                ValidateSasToken(container, limitedPermission, sasToken);
-                Test.Error("sastoken '{0}' should not contain the permission {1}", limitedPermission);
-            }
-            catch (StorageException e)
-            {
-                Test.Info(e.Message);
-                if (403 == e.RequestInformation.HttpStatusCode || 404 == e.RequestInformation.HttpStatusCode)
+                try
                 {
-                    Test.Info("Limited permission sas token should not access storage objects. {0}", e.RequestInformation.HttpStatusMessage);
+                    ValidateSasToken(container, permission.ToString(), sasToken);
+                    Test.Error("sastoken '{0}' should not contain the permission {1}", sasToken, permission.ToString());
                 }
-                else
+                catch (StorageException e)
                 {
-                    Test.Error("Limited permission sas token should return 403 or 404, but actually it's {0} {1}",
-                        e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage);
+                    Test.Info(e.Message);
+                    if (403 == e.RequestInformation.HttpStatusCode)
+                    {
+                        Test.Info("Limited permission sas token should not access storage objects. {0}", e.RequestInformation.HttpStatusMessage);
+                    }
+                    else
+                    {
+                        Test.Error("Limited permission sas token should return 403, but actually it's {0} {1}",
+                            e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage);
+                    }
                 }
             }
         }

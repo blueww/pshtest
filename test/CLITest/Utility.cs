@@ -49,13 +49,13 @@ namespace Management.Storage.ScenarioTest
     internal static class Utility
     {
         public static List<string> LoggingOperationList = new List<string>() { "Read", "Write", "Delete" };
-        public static List<string> ContainerPermission = new List<string>() { "r", "w", "d", "l" };
-        public static List<string> BlobPermission = new List<string>() { "r", "w", "d" };
+        public static List<string> ContainerPermission = new List<string>() { "r", "w", "d", "l", "c", "a" };
+        public static List<string> BlobPermission = new List<string>() { "r", "w", "d", "c", "a" };
         public static List<string> TablePermissionPS = new List<string>() { "r", "q", "a", "u", "d" };
         public static List<string> TablePermissionNode = new List<string>() { "r", "a", "u", "d" };
         public static List<string> QueuePermission = new List<string>() { "r", "a", "u", "p" };
-        public static List<string> SharePermission = new List<string>() { "r", "w", "d", "l" };
-        public static List<string> FilePermission = new List<string>() { "r", "w", "d" };
+        public static List<string> SharePermission = new List<string>() { "r", "w", "d", "l", "c" };
+        public static List<string> FilePermission = new List<string>() { "r", "w", "d", "c" };
 
         internal static int RetryLimit = 7;
 
@@ -772,12 +772,18 @@ namespace Management.Storage.ScenarioTest
                 permission2 = "aud";
                 permission3 = "ud";
             }
-            else if ((typeof(T) == typeof(SharedAccessBlobPolicy))
-                || (typeof(T) == typeof(SharedAccessFilePolicy)))
+            else if (typeof(T) == typeof(SharedAccessBlobPolicy)
+                )
             {
-                permission1 = "rwdl";
-                permission2 = "wdl";
+                permission1 = "rwdlac";
+                permission2 = "wdlc";
                 permission3 = "dl";
+            }
+            else if (typeof(T) == typeof(SharedAccessFilePolicy))
+            {
+                permission1 = "rwdlc";
+                permission2 = "cwdr";
+                permission3 = "wr";
             }
             else if (typeof(T) == typeof(SharedAccessQueuePolicy))
             {
@@ -1132,6 +1138,12 @@ namespace Management.Storage.ScenarioTest
                     case Permission.List:
                         policy.Permissions |= SharedAccessBlobPermissions.List;
                         break;
+                    case Permission.Add:
+                        policy.Permissions |= SharedAccessBlobPermissions.Add;
+                        break;
+                    case Permission.Create:
+                        policy.Permissions |= SharedAccessBlobPermissions.Create;
+                        break;
                     default:
                         throw new Exception("Unknown Permission Type!");
                 }
@@ -1163,6 +1175,9 @@ namespace Management.Storage.ScenarioTest
                         break;
                     case Permission.List:
                         policy.Permissions |= SharedAccessFilePermissions.List;
+                        break;
+                    case Permission.Create:
+                        policy.Permissions |= SharedAccessFilePermissions.Create;
                         break;
                     default:
                         throw new Exception("Unknown Permission Type!");
@@ -1347,6 +1362,11 @@ namespace Management.Storage.ScenarioTest
             /// Query permission
             /// </summary>
             public const char Query = 'q';
+
+            /// <summary>
+            /// Create permission
+            /// </summary>
+            public const char Create = 'c';
         }
 
         public class RawStoredAccessPolicy

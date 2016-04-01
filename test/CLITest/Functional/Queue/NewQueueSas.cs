@@ -273,7 +273,7 @@
                 sastoken = CommandAgent.GetQueueSasFromCmd(queue.Name, string.Empty, queuePermission);
                 ValidateLimitedSasPermission(queue, limitedPermission, sastoken);
 
-                //queue update permission
+                //queue process permission
                 queuePermission = "p";
                 limitedPermission = "rau";
                 sastoken = CommandAgent.GetQueueSasFromCmd(queue.Name, string.Empty, queuePermission);
@@ -442,24 +442,27 @@
         internal void ValidateLimitedSasPermission(CloudQueue queue,
             string limitedPermission, string sasToken)
         {
-            try
+            foreach (char permission in limitedPermission.ToLower())
             {
-                ValidateSasToken(queue, limitedPermission, sasToken);
-                Test.Error("sastoken '{0}' should not contain the permission {1}", limitedPermission);
-            }
-            catch (StorageException e)
-            {
-                Test.Info(e.Message);
-                if (403 == e.RequestInformation.HttpStatusCode || 404 == e.RequestInformation.HttpStatusCode)
+                try
                 {
-                    Test.Info("Limited permission sas token should not access storage objects. {0}", e.RequestInformation.HttpStatusMessage);
+                    ValidateSasToken(queue, permission.ToString(), sasToken);
+                    Test.Error("sastoken '{0}' should not contain the permission {1}", sasToken, permission.ToString());
                 }
-                else
+                catch (StorageException e)
                 {
-                    Test.Error("Limited permission sas token should return 403 or 404, but actually it's {0} {1}",
-                        e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage);
+                    Test.Info(e.Message);
+                    if (403 == e.RequestInformation.HttpStatusCode)
+                    {
+                        Test.Info("Limited permission sas token should not access storage objects. {0}", e.RequestInformation.HttpStatusMessage);
+                    }
+                    else
+                    {
+                        Test.Error("Limited permission sas token should return 403, but actually it's {0} {1}",
+                            e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage);
+                    }
                 }
-            }
+            }            
         }
     }
 }

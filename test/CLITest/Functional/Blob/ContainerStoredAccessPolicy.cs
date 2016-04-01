@@ -59,7 +59,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             DateTime? expiryTime = DateTime.Today.AddDays(10);
             DateTime? startTime = DateTime.Today.AddDays(-2);
-            string permission = "rwdl";
+            string permission = "rwdlca";
             string containerName = Utility.GenNameString("container");
 
             try
@@ -475,7 +475,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             DateTime? startTime1 = DateTime.Today.AddDays(-2);
             DateTime? expiryTime2 = DateTime.Today.AddDays(11);
             DateTime? startTime2 = DateTime.Today.AddDays(-1);
-            string permission = "rwdl";
+            string permission = "rwdlac";
             string policyName = Utility.GenNameString("p", 0);
             Utility.RawStoredAccessPolicy policy1 = new Utility.RawStoredAccessPolicy(policyName, startTime1, expiryTime1, permission);
             Utility.RawStoredAccessPolicy policy2 = new Utility.RawStoredAccessPolicy(policyName, startTime2, expiryTime2, permission);
