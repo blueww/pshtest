@@ -3781,87 +3781,57 @@ namespace Management.Storage.ScenarioTest
             return !ps.HadErrors;
         }
 
-        public override bool CreateSRPAzureStorageAccount(string resourceGroupName, 
-            string accountName, 
-            string skuName, 
-            string location, 
-            Hashtable[] tags = null, 
-            Kind kind = Kind.Storage,
-            Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, 
-            AccessTier? accessTier = null, 
-            string customDomain = null, 
-            bool? useSubdomain = null)
+        public override bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string type, string location, Hashtable[] tags = null)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
             ps.AddCommand("New-AzureRmStorageAccount");
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
-            if (new Random().Next() % 2 == 0)
-            {
-                ps.BindParameter("SkuName", skuName);
-            }
-            else
-            {
-                ps.BindParameter("Type", skuName);
-            }
+            ps.BindParameter("Type", type);
             ps.BindParameter("Location", location);
-            ps.BindParameter("Kind", kind);
             ps.BindParameter("Tags", tags);
-            ps.BindParameter("AccessTier", accessTier);
-            ps.BindParameter("EnableEncryptionService", enableEncryptionService);
-            ps.BindParameter("CustomDomainName", customDomain);
-            ps.BindParameter("UseSubdomain", useSubdomain);
 
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
 
             return InvokePowerShellWithoutContext(ps);
         }
 
-        public override bool SetSRPAzureStorageAccount(string resourceGroupName, 
-            string accountName, 
-            string skuName = null,
-            Hashtable[] tags = null,
-            Constants.EncryptionSupportServiceEnum? enableEncryptionService = null,
-            Constants.EncryptionSupportServiceEnum? disableEncryptionService = null,
-            AccessTier? accessTier = null,
-            string customDomain = null,
-            bool? useSubdomain = null)
+        public override bool SetSRPAzureStorageAccount(string resourceGroupName, string accountName, string accountType)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
             ps.AddCommand("Set-AzureRmStorageAccount");
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
-            if (new Random().Next() % 2 == 0)
-            {
-                ps.BindParameter("SkuName", skuName);
-            }
-            else
-            {
-                ps.BindParameter("Type", skuName);
-            }
-            ps.BindParameter("AccessTier", accessTier);
-            ps.BindParameter("EnableEncryptionService", enableEncryptionService);
-            ps.BindParameter("DisableEncryptionService", disableEncryptionService);
-            ps.BindParameter("Tags", tags);
-            if (customDomain != null)
-            {
-                ps.AddParameter("CustomDomainName", customDomain);
-            }
-            ps.BindParameter("UseSubDomain", useSubdomain);
+            ps.BindParameter("Type", accountType);
 
             return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool SetSRPAzureStorageAccountTags(string resourceGroupName, string accountName, Hashtable[] tags)
         {
-            throw new NotImplementedException();
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Set-AzureRmStorageAccount");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("Name", accountName);
+            ps.BindParameter("Tags", tags);
+
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool SetSRPAzureStorageAccountCustomDomain(string resourceGroupName, string accountName, string customDomain, bool? useSubdomain)
         {
-            throw new NotImplementedException();
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Set-AzureRmStorageAccount");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("Name", accountName);
+            ps.BindParameter("CustomDomainName", customDomain, true);
+            ps.BindParameter("UseSubDomain", useSubdomain);
+
+            return InvokePowerShellWithoutContext(ps);
         }
 
         public override bool DeleteSRPAzureStorageAccount(string resourceGroup, string accountName)

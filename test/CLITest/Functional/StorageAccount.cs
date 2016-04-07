@@ -24,8 +24,6 @@ namespace Management.Storage.ScenarioTest
     using Management.Storage.ScenarioTest.Util;
     using Microsoft.Azure.Common.Authentication.Models;
     using Microsoft.Azure.Management.Storage;
-    using Microsoft.Azure.Management.Storage.Models;
-    using Microsoft.Rest.Azure;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Microsoft.WindowsAzure.Management;
     using Microsoft.WindowsAzure.Management.Models;
@@ -57,7 +55,7 @@ namespace Management.Storage.ScenarioTest
         private List<string> createdAccounts = new List<string>();
 
         private const string PSHInvalidAccountTypeError =
-            "Cannot validate argument on parameter 'SkuName'. The argument \"{0}\" does not belong to the set \"Standard_LRS,Standard_ZRS,Standard_GRS,Standard_RAGRS,Premium_LRS\" specified by the ValidateSet attribute.";
+            "Cannot validate argument on parameter 'Type'. The argument \"{0}\" does not belong to the set \"Standard_LRS,Standard_ZRS,Standard_GRS,Standard_RAGRS,Premium_LRS\" specified by the ValidateSet attribute.";
 
         private const string PSHASMAccountTypeInvalidError = "The AccountType {0} is invalid";
 
@@ -84,22 +82,22 @@ namespace Management.Storage.ScenarioTest
 
             if (isResourceMode)
             {
-                resourceLocation = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
+                resourceLocation = accountUtils.GenerateAccountLocation(Constants.AccountType.Standard_GRS, true, isMooncake);
                 resourceManager = new ResourceManagerWrapper();
                 resourceGroupName = accountUtils.GenerateResourceGroupName();
                 resourceManager.CreateResourceGroup(resourceGroupName, resourceLocation);
 
                 accountNameForConnectionStringTest = accountUtils.GenerateAccountName();
 
-                var parameters = new SRPModel.StorageAccountCreateParameters(new SRPModel.Sku(SRPModel.SkuName.StandardGRS),SRPModel.Kind.Storage,
+                var parameters = new SRPModel.StorageAccountCreateParameters(SRPModel.AccountType.StandardGRS,
                     isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia);
                 accountUtils.SRPStorageClient.StorageAccounts.CreateAsync(resourceGroupName, accountNameForConnectionStringTest, parameters, CancellationToken.None).Wait();
                 var keys = accountUtils.SRPStorageClient.StorageAccounts.ListKeysAsync(resourceGroupName, accountNameForConnectionStringTest, CancellationToken.None).Result;
-                primaryKeyForConnectionStringTest = keys.Keys[0].Value;
+                primaryKeyForConnectionStringTest = keys.StorageAccountKeys.Key1;
             }
             else
             {
-                var parameters = new Microsoft.WindowsAzure.Management.Storage.Models.StorageAccountCreateParameters();
+                var parameters = new StorageAccountCreateParameters();
                 parameters.Name = accountNameForConnectionStringTest;
                 parameters.Label = "Test account in service mode";
                 parameters.AccountType = Constants.AccountType.Standard_GRS;
@@ -780,9 +778,9 @@ namespace Management.Storage.ScenarioTest
             string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Description";
-            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
-            string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
+            string location = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
             string affinityGroup = null;
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
             Hashtable[] tags = new Hashtable[random.Next(1, 5)];
 
             for (int i = 0; i < tags.Length; ++i)
@@ -792,7 +790,7 @@ namespace Management.Storage.ScenarioTest
                 tags[i].Add("Value", Utility.GenNameString("Value"));
             }
 
-            CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType, tags, null, Kind.BlobStorage, Constants.EncryptionSupportServiceEnum.Blob, AccessTier.Cool);
+            CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType, tags);
         }
 
         [TestMethod]
@@ -878,26 +876,26 @@ namespace Management.Storage.ScenarioTest
         public void FTAccount105_CreateAccount_ExistingAccount()
         {
             string accountName = accountUtils.GenerateAccountName();
+            string location = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
-            string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake); 
 
             try
             {
                 if (isResourceMode)
                 {
                     CreateNewSRPAccount(accountName, location, accountType);
-                    Test.Assert(!CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
-                        string.Format("Creating an storage account {0} in location {1} with the same properties with an existing account should fail.", accountName, location));
+                    Test.Assert(CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
+                        string.Format("Creating an storage account {0} in location {1} with the same properties with an existing account should succeed", accountName, location));
 
                     string newLocation = isMooncake ? Constants.MCLocation.ChinaNorth : Constants.Location.WestUS;
                     Test.Assert(!CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, newLocation),
                         string.Format("Creating an existing storage account {0} in location {1} should fail", accountName, newLocation));
-                    ExpectedContainErrorMessage(string.Format("The storage account named '{0}' is already taken.", accountName));
+                    ExpectedContainErrorMessage(string.Format("Invalid Resource location '{0}'. The Resource already exists in location '{1}'", newLocation, location.Replace(" ", "").ToLower()));
 
                     string newType = accountUtils.mapAccountType(Constants.AccountType.Standard_RAGRS); ;
                     Test.Assert(!CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, newType, location),
                         string.Format("Creating an existing storage account {0} in location {1} should fail", accountName, newLocation));
-                    ExpectedContainErrorMessage(string.Format("The storage account named '{0}' is already taken.", accountName));
+                    ExpectedContainErrorMessage(string.Format("The storage account named {0} already exists under the subscription", accountName));
                 }
                 else
                 {
@@ -1009,8 +1007,8 @@ namespace Management.Storage.ScenarioTest
             string subscriptionId = Test.Data.Get("AzureSubscriptionID");
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Invalid Type";
+            string location = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
             string accountType = FileNamingGenerator.GenerateNameFromRange(8, validNameRange);
-            string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake); 
             string affinityGroup = null;
 
             string errorMessageFormat = Language.PowerShell == lang ? PSHInvalidAccountTypeError : NodeJSInvalidCreateTypeError;
@@ -1083,7 +1081,7 @@ namespace Management.Storage.ScenarioTest
                 CreateAndValidateAccountWithInvalidTags(accountName, location, accountUtils.mapAccountType(accountType), tags);
                 if (lang == Language.PowerShell)
                 {
-                    ExpectedContainErrorMessage("The tag name must be non-null, non-empty and non-whitespace only. Please provide an actual value.");
+                    ExpectedContainErrorMessage("InvalidTagName: The tag name must be non-null, non-empty and non-whitespace only. Please provide an actual value.");
                 }
                 else
                 {
@@ -1098,7 +1096,7 @@ namespace Management.Storage.ScenarioTest
 
                 if (lang == Language.PowerShell)
                 {
-                    ExpectedContainErrorMessage("Maximum allowed length of 128 for tag key exceeded.");
+                    ExpectedContainErrorMessage("MaxTagKeyLengthExceeded: Maximum allowed length of 128 for tag key exceeded.");
                 }
                 else
                 {
@@ -1113,7 +1111,7 @@ namespace Management.Storage.ScenarioTest
 
                 if (lang == Language.PowerShell)
                 {
-                    ExpectedContainErrorMessage(string.Format("Tag value too large.  Following tag value '{0}' exceeded the maximum length. Maximum allowed length for tag value - '256' characters.",
+                    ExpectedContainErrorMessage(string.Format("InvalidTagValueLength: Tag value too large.  Following tag value '{0}' exceeded the maximum length. Maximum allowed length for tag value - '256' characters.",
                         tags[0]["Value"].ToString()));
                 }
                 else
@@ -1134,7 +1132,7 @@ namespace Management.Storage.ScenarioTest
 
                 if (lang == Language.PowerShell)
                 {
-                    ExpectedContainErrorMessage(string.Format("Too many tags on the resource/resource group. Requested tag count - '{0}'. Maximum number of tags allowed - '15'.",
+                    ExpectedContainErrorMessage(string.Format("InvalidTags: Too many tags on the resource/resource group. Requested tag count - '{0}'. Maximum number of tags allowed - '15'.",
                        tags.Length));
                 }
                 else
@@ -1347,8 +1345,8 @@ namespace Management.Storage.ScenarioTest
             string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Set Type";
+            string location = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_ZRS);
-            string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake); 
             string affinityGroup = null;
 
             try
@@ -1530,8 +1528,8 @@ namespace Management.Storage.ScenarioTest
             string accountName = accountUtils.GenerateAccountName();
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Set Type";
+            string location = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
-            string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake); 
 
             if (isResourceMode)
             {
@@ -1595,7 +1593,7 @@ namespace Management.Storage.ScenarioTest
 
                     Hashtable[] tags = this.GetUnicodeTags();
 
-                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags), 
+                    Test.Assert(CommandAgent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags), 
                         "Set tags of account {0} in reource group {1} should succeed", accountName, resourceGroupName);
 
                     Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
@@ -1609,7 +1607,7 @@ namespace Management.Storage.ScenarioTest
                     tags[0].Add("Name", Utility.GenNameString("Value"));
                     tags[0].Add("Value", "");
 
-                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
+                    Test.Assert(CommandAgent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
                         "Set tags of account {0} in reource group {1} should succeed", accountName, resourceGroupName);
 
                     Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
@@ -1619,7 +1617,7 @@ namespace Management.Storage.ScenarioTest
                     accountUtils.ValidateTags(tags, targetTags);
 
                     tags = new Hashtable[0];
-                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
+                    Test.Assert(CommandAgent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
                         "Set tags of account {0} in reource group {1} should succeed", accountName, resourceGroupName);
 
                     Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
@@ -1657,11 +1655,11 @@ namespace Management.Storage.ScenarioTest
                     tags[0].Add("Name", "");
                     tags[0].Add("Value", Utility.GenNameString("Value"));
 
-                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
                         "Set tags of account {0} in reource group {1} should fail", accountName, resourceGroupName);
                     if (lang == Language.PowerShell)
                     {
-                        ExpectedContainErrorMessage("The tag name must be non-null, non-empty and non-whitespace only. Please provide an actual value.");
+                        ExpectedContainErrorMessage("InvalidTagName: The tag name must be non-null, non-empty and non-whitespace only. Please provide an actual value.");
                     }
                     else
                     {
@@ -1671,11 +1669,11 @@ namespace Management.Storage.ScenarioTest
                     tags[0] = new Hashtable();
                     tags[0].Add("Name", Utility.GenNameString("Name", random.Next(125, 500)));
                     tags[0].Add("Value", Utility.GenNameString("Value"));
-                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
                         "Set tags of account {0} in reource group {1} should fail", accountName, resourceGroupName);
                     if (lang == Language.PowerShell)
                     {
-                        ExpectedContainErrorMessage("Maximum allowed length of 128 for tag key exceeded.");
+                        ExpectedContainErrorMessage("MaxTagKeyLengthExceeded: Maximum allowed length of 128 for tag key exceeded.");
                     }
                     else
                     {
@@ -1685,11 +1683,11 @@ namespace Management.Storage.ScenarioTest
                     tags[0] = new Hashtable();
                     tags[0].Add("Name", Utility.GenNameString("Name"));
                     tags[0].Add("Value", Utility.GenNameString("Value", random.Next(253, 500)));
-                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
                         "Set tags of account {0} in reource group {1} should fail", accountName, resourceGroupName);
                     if (lang == Language.PowerShell)
                     {
-                        ExpectedContainErrorMessage(string.Format("Tag value too large.  Following tag value '{0}' exceeded the maximum length. Maximum allowed length for tag value - '256' characters.",
+                        ExpectedContainErrorMessage(string.Format("InvalidTagValueLength: Tag value too large.  Following tag value '{0}' exceeded the maximum length. Maximum allowed length for tag value - '256' characters.",
                             tags[0]["Value"].ToString()));
                     }
                     else
@@ -1705,11 +1703,11 @@ namespace Management.Storage.ScenarioTest
                         tags[i].Add("Name", Utility.GenNameString("Name"));
                         tags[i].Add("Value", Utility.GenNameString("Value"));
                     }
-                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
                         "Set tags of account {0} in reource group {1} should fail", accountName, resourceGroupName);
                     if (lang == Language.PowerShell)
                     {
-                        ExpectedContainErrorMessage(string.Format("Too many tags on the resource/resource group. Requested tag count - '{0}'. Maximum number of tags allowed - '15'.",
+                        ExpectedContainErrorMessage(string.Format("InvalidTags: Too many tags on the resource/resource group. Requested tag count - '{0}'. Maximum number of tags allowed - '15'.",
                            tags.Length));
                     }
                     else
@@ -1748,13 +1746,13 @@ namespace Management.Storage.ScenarioTest
 
                     if (Language.PowerShell == lang)
                     {
-                        Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
+                        Test.Assert(!CommandAgent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
                             "Set tags of account {0} in reource group {1} should fail.", accountName, resourceGroupName);
                         ExpectedContainErrorMessage("Invalid tag format. Ensure that each tag has a unique name.");
                     }
                     else
                     {
-                        Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
+                        Test.Assert(!CommandAgent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
                             "Set tags of account {0} in reource group {1} should succeeded.", accountName, resourceGroupName);
 
                         Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
@@ -1768,13 +1766,13 @@ namespace Management.Storage.ScenarioTest
 
                     if (Language.PowerShell == lang)
                     {
-                        Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
+                        Test.Assert(!CommandAgent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
                             "Set tags of account {0} in reource group {1} with empty value should fail", accountName, resourceGroupName);
                         ExpectedContainErrorMessage("Invalid tag format. Ensure that each tag has a unique name.");
                     }
                     else
                     {
-                        Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
+                        Test.Assert(!CommandAgent.SetSRPAzureStorageAccountTags(resourceGroupName, accountName, tags),
                             "Set tags of account {0} in reource group {1} with empty value should succeeded.", accountName, resourceGroupName);
 
                         Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
@@ -1796,31 +1794,36 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
-        public void FTAccount210_CreateSetAccount_CustomDomain()
+        public void FTAccount210_SetAccount_CustomDomain()
         {
             if (isResourceMode)
             {
-                string resourceGroup = resourceGroupName;
+                string resourceGroup = Test.Data.Get("CustomDomainAccountResourceGroup");
                 string accountName = Test.Data.Get("CustomDomainAccountName");
-                string customDomainName = Test.Data.Get("CustomDomain");
-                string accountType = Constants.AccountType.Standard_LRS;
-                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
-                bool? useSubdomain = GetRandomNullableBool();
+                string accountKey = Test.Data.Get("CustomDomainAccountKey");
                 try
                 {
-                    //Create account with Cutomer Domain
-                    CreateNewSRPAccount(accountName, location, accountType, null, Kind.Storage, Constants.EncryptionSupportServiceEnum.Blob, null, customDomainName, useSubdomain);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, null, Kind.Storage, null, customDomainName, useSubdomain, Constants.EncryptionSupportServiceEnum.Blob);
+                    this.SetCustomDomain(resourceGroup, accountName, "", null);
 
-                    //Set Cutomer Domain to ""
-                    useSubdomain = GetRandomNullableBool();
-                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroup, accountName, customDomain: "", useSubdomain: useSubdomain), "Set custom domain should succeed.");
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, null, Kind.Storage, null, customDomain: null, useSubdomain: useSubdomain, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                    string customDomainName = Test.Data.Get("CustomDomain");
 
-                    //Set Cutomer Domain to valid domain
-                    useSubdomain = GetRandomNullableBool();
-                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroup, accountName, customDomain: customDomainName, useSubdomain: useSubdomain, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob), "Set custom domain should succeed.");
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, null, Kind.Storage, null, customDomain: customDomainName, useSubdomain: useSubdomain);
+                    bool? useSubdomain = null;
+
+                    switch (random.Next(0, 3))
+                    {
+                        case 0:
+                            useSubdomain = null;
+                            break;
+                        case 1:
+                            useSubdomain = false;
+                            break;
+                        case 2:
+                        default:
+                            useSubdomain = true;
+                            break;
+                    }
+
+                    Test.Assert(CommandAgent.SetSRPAzureStorageAccountCustomDomain(resourceGroup, accountName, customDomainName, useSubdomain), "Set custom domain should succeed.");
 
                     Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroup, accountName), "Get storage account should succeed.");
 
@@ -1828,8 +1831,6 @@ namespace Management.Storage.ScenarioTest
 
                     Test.Assert(string.Equals(customDomainName, targetCustomDomain.Name), "Custom should be the one got set {0}.", targetCustomDomain.Name);
 
-                    string accountKey = accountUtils.SRPStorageClient.StorageAccounts.ListKeys(resourceGroupName, accountName).Keys[0].Value;
-                    
                     CloudBlobContainer container = new CloudBlobContainer(
                         new Uri(string.Format("http://{0}/{1}", customDomainName, Utility.GenNameString("container"))),
                         new StorageCredentials(accountName, accountKey));
@@ -1850,11 +1851,43 @@ namespace Management.Storage.ScenarioTest
                 }
                 finally
                 {
-                    //this.SetCustomDomain(resourceGroup, accountName, "", null);
-                    DeleteAccountWrapper(accountName);
+                    this.SetCustomDomain(resourceGroup, accountName, "", null);
                 }
             }
-        }      
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSBVT)]
+        [TestCategory(CLITag.NodeJSServiceAccount)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount211_SetAccount_EmptyCustomDomain()
+        {
+            if (isResourceMode)
+            {
+                string resourceGroup = Test.Data.Get("CustomDomainAccountResourceGroup");
+                string accountName = Test.Data.Get("CustomDomainAccountName");
+                string accountKey = Test.Data.Get("CustomDomainAccountKey");
+                try
+                {
+                    string customDomainName = Test.Data.Get("CustomDomain");
+
+                    this.SetCustomDomain(resourceGroup, accountName, customDomainName, null);
+
+                    Test.Assert(CommandAgent.SetSRPAzureStorageAccountCustomDomain(resourceGroup, accountName, "", null), "Set custom domain should succeed.");
+
+                    Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroup, accountName), "Get storage account should succeed.");
+
+                    var targetCustomDomain = GetCustomDomainFromOutput();
+
+                    Test.Assert(null == targetCustomDomain, "There should be no custom domain got set anymore.");
+                }
+                finally
+                {
+                    this.SetCustomDomain(resourceGroup, accountName, "", null);
+                }
+            }
+        }
 
         [TestMethod]
         [TestCategory(Tag.Function)]
@@ -1874,11 +1907,11 @@ namespace Management.Storage.ScenarioTest
                     this.CreateNewSRPAccount(accountName, location, accountType);
 
                     string invalidCustomDomainName = "www.bing.com";
-                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, customDomain: invalidCustomDomainName, useSubdomain: null), "Set custom domain should fail.");
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountCustomDomain(resourceGroupName, accountName, invalidCustomDomainName, null), "Set custom domain should fail.");
                     ExpectedContainErrorMessage(string.Format("The custom domain name could not be verified. CNAME mapping from {0} to {1}.blob.core.windows.net does not exist.", invalidCustomDomainName, accountName));
 
                     invalidCustomDomainName = accountUtils.GenerateAccountName();
-                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, customDomain: invalidCustomDomainName, useSubdomain: null), "Set custom domain should fail.");
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountCustomDomain(resourceGroupName, accountName, invalidCustomDomainName, null), "Set custom domain should fail.");
                     ExpectedContainErrorMessage(string.Format("The custom domain name could not be verified. CNAME mapping from {0} to {1}.blob.core.windows.net does not exist.", invalidCustomDomainName, accountName));
                 }
                 finally
@@ -2475,7 +2508,7 @@ namespace Management.Storage.ScenarioTest
                     if (lang == Language.PowerShell)
                     {
                         accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(
-                            CommandAgent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResult);
+                            CommandAgent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse);
                     }
                     else
                     {
@@ -2490,7 +2523,7 @@ namespace Management.Storage.ScenarioTest
                     if (lang == Language.PowerShell)
                     {
                         accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(
-                            CommandAgent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResult);
+                            CommandAgent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse);
                     }
                     else
                     {
@@ -2523,7 +2556,7 @@ namespace Management.Storage.ScenarioTest
                 if (isResourceMode && lang == Language.PowerShell)
                 {
                     accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(
-                        CommandAgent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResult);
+                        CommandAgent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse);
                 }
                 else
                 {
@@ -2551,7 +2584,7 @@ namespace Management.Storage.ScenarioTest
                 if (isResourceMode && lang == Language.PowerShell)
                 {
                     accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(
-                        CommandAgent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResult);
+                        CommandAgent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse);
                 }
                 else
                 {
@@ -2579,7 +2612,7 @@ namespace Management.Storage.ScenarioTest
                 if (isResourceMode && lang == Language.PowerShell)
                 {
                     accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(
-                        CommandAgent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResult);
+                        CommandAgent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse);
                 }
                 else
                 {
@@ -2605,10 +2638,10 @@ namespace Management.Storage.ScenarioTest
 
                 try
                 {
-                    if (accountUtils.SRPStorageClient.StorageAccounts.CheckNameAvailability(accountName).NameAvailable.Value)
+                    if (accountUtils.SRPStorageClient.StorageAccounts.CheckNameAvailability(accountName).NameAvailable)
                     {
+                        string location = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
                         string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
-                        string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake); 
                         CreateNewSRPAccount(accountName, location, accountType);
                     }
 
@@ -2617,7 +2650,7 @@ namespace Management.Storage.ScenarioTest
                     if (lang == Language.PowerShell)
                     {
                         accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(
-                            CommandAgent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResult);
+                            CommandAgent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse);
                     }
                     else
                     {
@@ -2692,7 +2725,7 @@ namespace Management.Storage.ScenarioTest
             if (isResourceMode && lang == Language.PowerShell)
             {
                 accountNameAvailability = AccountUtils.CheckNameAvailabilityResponse.Create(
-                    CommandAgent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResult);
+                    CommandAgent.Output[0][PowerShellAgent.BaseObject] as SRPModel.CheckNameAvailabilityResponse);
             }
             else
             {
@@ -2758,7 +2791,7 @@ namespace Management.Storage.ScenarioTest
         private void GetAzureStorageUsage_Test()
         {
             Test.Assert(CommandAgent.GetAzureStorageUsage(), "Get azure storage usage should succeeded.");
-            var usages = accountUtils.SRPStorageClient.Usage.List().Value;
+            var usages = accountUtils.SRPStorageClient.Usage.List().Usages;
             ValidateGetUsageOutput(usages);
         }
 
@@ -2795,19 +2828,14 @@ namespace Management.Storage.ScenarioTest
             string affinityGroup,
             string accountType,
             Hashtable[] tags,
-            bool? geoReplication = null,
-            Kind kind = Kind.Storage,
-            Constants.EncryptionSupportServiceEnum? enableEncryptionService = null,
-            AccessTier? accessTier = null,
-            string customDomain = null,
-            bool? useSubdomain = null)
+            bool? geoReplication = null)
         {
             try
             {
                 if (isResourceMode)
                 {
-                    CreateNewSRPAccount(accountName, location, accountType, tags, kind, enableEncryptionService, accessTier, customDomain, useSubdomain);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, tags, kind, accessTier, customDomain, useSubdomain, enableEncryptionService);
+                    CreateNewSRPAccount(accountName, location, accountType, tags);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, tags);
                 }
                 else
                 {
@@ -2821,18 +2849,9 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        private void SetAndValidateAccount(string accountName, 
-            string originalAccountType, 
-            string newLabel, 
-            string newDescription,
-            string newAccountType,
-            bool? geoReplication = null, 
-            Hashtable[] tags = null,
-            Kind kind = Kind.Storage,
-            AccessTier? originalAccessTier = null,
-            AccessTier? newAccessTier = null)
+        private void SetAndValidateAccount(string accountName, string originalAccountType, string newLabel, string newDescription, string newAccountType, bool? geoReplication = null)
         {
-            string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(originalAccountType), isResourceMode, isMooncake); 
+            string location = isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia;
             string affinityGroup = null;
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Setting";
@@ -2841,13 +2860,13 @@ namespace Management.Storage.ScenarioTest
             {
                 if (isResourceMode)
                 {
-                    CreateNewSRPAccount(accountName, location, originalAccountType, kind: kind, accessTier: originalAccessTier);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalAccountType, kind: kind, accessTier: originalAccessTier);
+                    CreateNewSRPAccount(accountName, location, originalAccountType);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalAccountType);
 
                     WaitForAccountAvailableToSet();
 
-                    SetSRPAccount(accountName, newAccountType, tags, null, null, newAccessTier);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, null, newAccountType, tags, kind, newAccessTier);
+                    SetSRPAccount(accountName, newAccountType);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, null, newAccountType);
                 }
                 else
                 {
@@ -2875,7 +2894,7 @@ namespace Management.Storage.ScenarioTest
                     Test.Assert(accountNameAvailability.Message.Contains(string.Format("The storage account named {0} is already taken.", accountName)),
                         "Account name availability message should be correct. {0}",
                         accountNameAvailability.Message);
-                    Test.Assert(!accountNameAvailability.NameAvailable.Value, "Account name should be not available.");
+                    Test.Assert(!accountNameAvailability.NameAvailable, "Account name should be not available.");
                     Test.Assert(accountNameAvailability.Reason == SRPModel.Reason.AlreadyExists, "Reason should be AlreadyExists.");
                 }
                 else
@@ -2893,21 +2912,21 @@ namespace Management.Storage.ScenarioTest
                         accountNameAvailability.Message);
                     }
 
-                    Test.Assert(!accountNameAvailability.NameAvailable.Value, "Account name should be not available.");
+                    Test.Assert(!accountNameAvailability.NameAvailable, "Account name should be not available.");
                 }
             }
             else
             {
                 Test.Assert(null == accountNameAvailability.Message,
                     "Account name availability message should be null, {0}.", accountNameAvailability.Message);
-                Test.Assert(accountNameAvailability.NameAvailable.Value, "Account name should be available.");
+                Test.Assert(accountNameAvailability.NameAvailable, "Account name should be available.");
                 Test.Assert(null == accountNameAvailability.Reason, "Reason should be null.");
             }
         }
 
         private void ValidateAccountNameAvailabilityInvalidName(AccountUtils.CheckNameAvailabilityResponse accountNameAvailability, string accountName)
         {
-            Test.Assert(!accountNameAvailability.NameAvailable.Value, "Account name should be not available.");
+            Test.Assert(!accountNameAvailability.NameAvailable, "Account name should be not available.");
 
             if (isResourceMode)
             {
@@ -2995,7 +3014,7 @@ namespace Management.Storage.ScenarioTest
             StorageAccountGetResponse response = accountUtils.StorageClient.StorageAccounts.Get(accountName);
             Test.Assert(response.StatusCode == HttpStatusCode.OK, string.Format("Account {0} should be created successfully.", accountName));
 
-            Microsoft.WindowsAzure.Management.Storage.Models.StorageAccount account = response.StorageAccount;
+            StorageAccount account = response.StorageAccount;
             Test.Assert(accountName == account.Name, string.Format("Expected account name is {0} and actually it is {1}", accountName, account.Name));
             Test.Assert(label == account.Properties.Label, string.Format("Expected label is {0} and actually it is {1}", label, account.Properties.Label));
             Test.Assert(description == account.Properties.Description, string.Format("Expected description is {0} and actually it is {1}", description, account.Properties.Description));
@@ -3038,57 +3057,31 @@ namespace Management.Storage.ScenarioTest
 
         #region Resource management account operations
 
-        private void CreateNewSRPAccount(string accountName, 
-            string location, 
-            string skuName, 
-            Hashtable[] tags = null,
-            Kind kind = Kind.Storage,
-            Constants.EncryptionSupportServiceEnum? enableEncryptionService = null,
-            AccessTier? accessTier = null,
-            string customDomain = null,
-            bool? useSubdomain = null)
+        private void CreateNewSRPAccount(string accountName, string location, string accountType, Hashtable[] tags = null)
         {
+            StorageAccountGetResponse response;
             try
             {
-                createdAccounts.Add(accountName);
-                DeleteAccountWrapper(accountName);
+                // Use service management client to check the existing account for a global search 
+                response = accountUtils.StorageClient.StorageAccounts.Get(accountName);
             }
-            catch (Exception ex)
+            catch (Hyak.Common.CloudException ex)
             {
-                Test.Assert(false, string.Format("Account {0} should not exist and be deleted successfully. Exception: {1}", accountName, ex));
+                Test.Assert(ex.Error.Code.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
+                createdAccounts.Add(accountName);
             }
 
-            DateTime startTime = DateTime.Now;
-            bool accountCreated = false;
-            while (!accountCreated && DateTime.Now.CompareTo(startTime.AddMinutes(15)) < 0)
-            {
-                if (CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, skuName, location, tags, kind, enableEncryptionService, accessTier, customDomain, useSubdomain))
-                {
-                    accountCreated = true;
-                }
-                else
-                {
-                    Thread.Sleep(10000);
-                }
-            }
-            Test.Assert(accountCreated, string.Format("Creating storage account {0} in the resource group {1} at location {2} should succeed", accountName, resourceGroupName, location));
+            Test.Assert(CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location, tags),
+                string.Format("Creating storage account {0} in the resource group {1} at location {2} should succeed", accountName, resourceGroupName, location));
         }
 
-        private void SetSRPAccount(string accountName,
-            string skuName = null,
-            Hashtable[] tags = null,
-            Constants.EncryptionSupportServiceEnum? enableEncryptionService = null,
-            Constants.EncryptionSupportServiceEnum? disableEncryptionService = null,
-            AccessTier? accessTier = null,
-            string customDomain = null,
-            bool? useSubdomain = null)
+        private void SetSRPAccount(string accountName, string newAccountType)
         {
-            AzureOperationResponse<SRPModel.StorageAccount> response = accountUtils.SRPStorageClient.StorageAccounts.GetPropertiesWithHttpMessagesAsync(resourceGroupName, accountName).Result;
-            Test.Assert(response.Response.StatusCode == HttpStatusCode.OK, string.Format("Account {0} should be created successfully.", accountName));
+            SRPModel.StorageAccountGetPropertiesResponse response = accountUtils.SRPStorageClient.StorageAccounts.GetPropertiesAsync(resourceGroupName, accountName, CancellationToken.None).Result;
+            Test.Assert(response.StatusCode == HttpStatusCode.OK, string.Format("Account {0} should be created successfully.", accountName));
 
-            Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, skuName, tags, enableEncryptionService, disableEncryptionService, accessTier, customDomain, useSubdomain),
-                string.Format("Setting storage account {0} in resource group {1} should succeed: SkuName:{2}; Tags: {3}; enableEncryptionService: {4}; disableEncryptionService: {5}, accessTier: {6}, customDomain: {7}; useSubdomain: {8}",
-                accountName, resourceGroupName, skuName, tags, enableEncryptionService, disableEncryptionService, accessTier, customDomain, useSubdomain));
+            Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, newAccountType),
+                string.Format("Setting storage account {0} in resource group {1} to type {2} should succeed", accountName, resourceGroupName, newAccountType));
         }
 
         private void DeleteSRPAccount(string accountName)
@@ -3370,32 +3363,6 @@ namespace Management.Storage.ScenarioTest
                 }
 
                 return customDomain;
-            }
-        }
-
-        private string GetAccountKeyFromOutput()
-        {
-            if (lang == Language.PowerShell)
-            {
-                return (CommandAgent.Output[0]["Keys"] as IList<StorageAccountKey>)[0].Value;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        public bool? GetRandomNullableBool()
-        {
-            switch (random.Next(0, 3))
-            {
-                case 0:
-                    return null;
-                case 1:
-                    return false;
-                case 2:
-                default:
-                    return true;
             }
         }
 
