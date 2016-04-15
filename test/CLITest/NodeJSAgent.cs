@@ -631,22 +631,79 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(command, needAccountParam: false);
         }
 
-        public override bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string skuName, string location, Hashtable[] tags = null, Kind kind = Kind.Storage, Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, AccessTier? accessTier = null, string customDomain = null, bool? useSubdomain = null)
+        public override bool CreateSRPAzureStorageAccount(
+            string resourceGroupName, 
+            string accountName, 
+            string skuName, 
+            string location, 
+            Hashtable[] tags = null, 
+            Kind kind = Kind.Storage, 
+            Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, 
+            AccessTier? accessTier = null, 
+            string customDomain = null, 
+            bool? useSubdomain = null)
         {
             string command = string.Format("account create {0}", accountName);
             command = appendStringOption(command, "--resource-group", resourceGroupName);
             command = appendStringOption(command, "--location", location, true);
-            command = appendStringOption(command, "--type", skuName);
+            command = appendStringOption(command, "--sku-name", skuName);
+            command = appendStringOption(command, "--kind", kind.ToString());
             command = appendHashOption(command, "--tags", tags);
+            if (accessTier != null)
+            {
+                command = appendStringOption(command, "--access-tier", accessTier.ToString());
+            }
+            if (enableEncryptionService != null)
+            {
+                command = appendStringOption(command, "--enable-encryption-service", enableEncryptionService.ToString());
+            }
+            if (!string.IsNullOrEmpty(customDomain))
+            {
+                command = appendStringOption(command, "--custom-domain", customDomain);
+            }
+            if (useSubdomain.HasValue && useSubdomain.Value)
+            {
+                command = appendBoolOption(command, "--subdomain");
+            }
 
             return RunNodeJSProcess(command, needAccountParam: false);
         }
 
-        public override bool SetSRPAzureStorageAccount(string resourceGroupName, string accountName, string skuName = null, Hashtable[] tags = null, Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, Constants.EncryptionSupportServiceEnum? disableEncryptionService = null, AccessTier? accessTier = null, string customDomain = null, bool? useSubdomain = null)
+        public override bool SetSRPAzureStorageAccount(
+            string resourceGroupName, 
+            string accountName, 
+            string skuName = null, 
+            Hashtable[] tags = null, 
+            Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, 
+            Constants.EncryptionSupportServiceEnum? disableEncryptionService = null, 
+            AccessTier? accessTier = null, 
+            string customDomain = null, 
+            bool? useSubdomain = null)
         {
             string command = string.Format("account set {0}", accountName);
             command = appendStringOption(command, "--resource-group", resourceGroupName);
-            command = appendStringOption(command, "--type", skuName);
+            command = appendStringOption(command, "--sku-name", skuName);
+            command = appendHashOption(command, "--tags", tags);
+            if (enableEncryptionService != null)
+            {
+                command = appendStringOption(command, "--enable-encryption-service", enableEncryptionService.ToString());
+            }
+            if (disableEncryptionService != null)
+            {
+                command = appendStringOption(command, "--disable-encryption-service", disableEncryptionService.ToString());
+            }
+            if (accessTier != null)
+            {
+                command = appendStringOption(command, "--access-tier", accessTier.ToString());
+            }
+            if (!string.IsNullOrEmpty(customDomain))
+            {
+                command = appendStringOption(command, "--custom-domain", customDomain);
+            }
+            if (useSubdomain.HasValue && useSubdomain.Value)
+            {
+                command = appendBoolOption(command, "--subdomain");
+            }
 
             return RunNodeJSProcess(command, needAccountParam: false);
         }
