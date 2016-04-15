@@ -1183,6 +1183,84 @@ namespace Management.Storage.ScenarioTest
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount113_CreateAccount_BlobStorageAccessTier()
+        {
+            if (isResourceMode)
+            {
+                string accountType = Constants.AccountType.Standard_RAGRS;
+                string accountName = accountUtils.GenerateAccountName();
+                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
+                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), null, kind: Kind.BlobStorage, accessTier: AccessTier.Hot);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount114_CreateAccount_BlobEncryption()
+        {
+            if (isResourceMode)
+            {
+                string accountType = Constants.AccountType.Standard_GRS;
+                string accountName = accountUtils.GenerateAccountName();
+                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
+                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), null, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount115_CreateAccount_InvalidCustomDomain()
+        {
+            if (isResourceMode)
+            {
+                string accountType = Constants.AccountType.Standard_LRS;
+                string accountName = accountUtils.GenerateAccountName();
+                string invalidCustomeDomain = "abc.edf.com";
+                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
+                Test.Assert(!CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountUtils.mapAccountType(accountType), location, customDomain: invalidCustomeDomain, useSubdomain: (new Random().Next(0, 1) == 0)),
+                    string.Format("Creating storage account {0} in the resource group {1}  with customDomain {2} should failed", accountName, resourceGroupName, invalidCustomeDomain));
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount116_CreateAccount_StorageAccessTier()
+        {
+            if (isResourceMode)
+            {
+                string accountType = Constants.AccountType.Standard_GRS;
+                string accountName = accountUtils.GenerateAccountName();
+                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
+                Test.Assert(!CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountUtils.mapAccountType(accountType), location, kind: Kind.Storage, accessTier: AccessTier.Cool),
+                    string.Format("Creating storage account {0} in the resource group {1} with Kind.Storage and AccessTier.Cool should failed", accountName, resourceGroupName));
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        // Don't enable this case because CLI will prompt to ask for the access tier
+        public void FTAccount117_CreateAccount_BlobStorage_NoAccessTier()
+        {
+            if (isResourceMode)
+            {
+                string accountType = Constants.AccountType.Standard_GRS;
+                string accountName = accountUtils.GenerateAccountName();
+                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
+                Test.Assert(!CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountUtils.mapAccountType(accountType), location, kind: Kind.BlobStorage),
+                    string.Format("Creating storage account {0} in the resource group {1} with Kind.BlobStorage and no AccessTier should failed", accountName, resourceGroupName));
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -1196,253 +1274,6 @@ namespace Management.Storage.ScenarioTest
 
             SetAndValidateAccount(accountName, originalAccountType, label, description, newAccountType, kind: Kind.BlobStorage, originalAccessTier: AccessTier.Cool, newAccessTier: AccessTier.Hot);
         }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void SetAccount_ChangeTags_EnableEncryptionService()
-        {
-            if (isResourceMode)
-            {
-                string skuName = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
-                string accountName = accountUtils.GenerateAccountName();
-                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(skuName), isResourceMode, isMooncake);
-                Hashtable[] origianlTags = this.GetUnicodeTags();
-                Hashtable[] newTags = this.GetUnicodeTags();
-
-
-                CreateNewSRPAccount(accountName, location, skuName, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-
-                WaitForAccountAvailableToSet();
-
-                SetSRPAccount(accountName, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: origianlTags, enableEncryptionService: null);
-
-                WaitForAccountAvailableToSet();
-
-                SetSRPAccount(accountName, tags: newTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: newTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-
-                DeleteAccountWrapper(accountName);
-            }
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void SetAccount_AllParameters()
-        {
-            if (isResourceMode)
-            {
-                string originalSkuName = accountUtils.mapAccountType(Constants.AccountType.Standard_RAGRS);
-                string newSkuName = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
-                string accountName = accountUtils.GenerateAccountName();
-                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(originalSkuName), isResourceMode, isMooncake);
-                Hashtable[] origianlTags = this.GetUnicodeTags();
-                Hashtable[] newTags = this.GetUnicodeTags();
-
-
-                CreateNewSRPAccount(accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-
-                WaitForAccountAvailableToSet();
-
-                //TODO: The customer domain not set.
-                SetSRPAccount(accountName, newSkuName, newTags, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, accessTier: AccessTier.Hot);
-                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Hot, enableEncryptionService: null);
-
-                DeleteAccountWrapper(accountName);
-            }
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void SetAccount_EachParameters()
-        {
-            if (isResourceMode)
-            {
-                string originalSkuName = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
-                string newSkuName = accountUtils.mapAccountType(Constants.AccountType.Standard_RAGRS);
-                string accountName = accountUtils.GenerateAccountName();
-                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(originalSkuName), isResourceMode, isMooncake);
-                Hashtable[] origianlTags = this.GetUnicodeTags();
-                Hashtable[] newTags = this.GetUnicodeTags();
-
-                CreateNewSRPAccount(accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-
-                WaitForAccountAvailableToSet();
-
-                //Set Tags
-                SetSRPAccount(accountName, tags: newTags);
-                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-
-                //Set SkuName
-                SetSRPAccount(accountName, newSkuName);
-                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-
-                //Set DisableEncryptionService
-                SetSRPAccount(accountName, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: null);
-
-                //Set EnableEncryptionService
-                SetSRPAccount(accountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-
-                //Set AccessTier
-                SetSRPAccount(accountName, accessTier: AccessTier.Hot);
-                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Hot, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-
-                //TODO: The customer domain not set.
-
-                DeleteAccountWrapper(accountName);
-            }
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void SetAccount_Storage_SetAccessTier()
-        {
-            if (isResourceMode)
-            {
-                string skuName = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
-                string accountName = accountUtils.GenerateAccountName();
-                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(skuName), isResourceMode, isMooncake);
-
-
-                CreateNewSRPAccount(accountName, location, skuName, kind: Kind.Storage);
-                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, kind: Kind.Storage);
-
-                WaitForAccountAvailableToSet();
-
-                Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, accessTier: AccessTier.Cool),
-                    string.Format("Change accessTier of storage account {0} in the resource group {1} with Kind.Storage should failed", accountName, resourceGroupName));
-
-                DeleteAccountWrapper(accountName);
-            }            
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void SetAccount_BlobStorage_SetAccessTier2Times()
-        {
-            if (isResourceMode)
-            {
-                string skuName = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
-                string accountName = accountUtils.GenerateAccountName();
-                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(skuName), isResourceMode, isMooncake);
-
-
-                CreateNewSRPAccount(accountName, location, skuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool);
-                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool);
-
-                WaitForAccountAvailableToSet();
-
-                SetSRPAccount(accountName, accessTier: AccessTier.Hot);
-                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, kind: Kind.BlobStorage, accessTier: AccessTier.Hot);
-
-                WaitForAccountAvailableToSet();
-
-                Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, accessTier: AccessTier.Cool),
-                    string.Format("Change accessTier 2 times continuelly of storage account {0} in the resource group {1}  should failed", accountName, resourceGroupName));
-
-
-                DeleteAccountWrapper(accountName);
-            }
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void SetAccount_SetBothEnableDisableBlobEncrption()
-        {
-            if (isResourceMode)
-            {
-                string skuName = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
-                string accountName = accountUtils.GenerateAccountName();
-                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(skuName), isResourceMode, isMooncake);
-
-
-                CreateNewSRPAccount(accountName, location, skuName);
-                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName);
-
-                WaitForAccountAvailableToSet();
-
-                Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob),
-                    string.Format("Set both enable and disable Blob Encryption of storage account {0} in the resource group {1}  should failed", accountName, resourceGroupName));
-
-                DeleteAccountWrapper(accountName);
-            }
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void CreateAccount_BlobStorageAccessTier()
-        {
-            if (isResourceMode)
-            {
-                string accountType = Constants.AccountType.Standard_RAGRS;
-                string accountName = accountUtils.GenerateAccountName();
-                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
-                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), null, kind: Kind.BlobStorage, accessTier: AccessTier.Hot);
-            }
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void CreateAccount_BlobEncryption()
-        {
-            if (isResourceMode)
-            {
-                string accountType = Constants.AccountType.Standard_GRS;
-                string accountName = accountUtils.GenerateAccountName();
-                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
-                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), null, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-            }
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void CreateAccount_InvalidCustomDomain()
-        {
-            if (isResourceMode)
-            {
-                string accountType = Constants.AccountType.Standard_LRS;
-                string accountName = accountUtils.GenerateAccountName();
-                string invalidCustomeDomain = "abc.edf.com";
-                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
-                Test.Assert(!CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location, customDomain: invalidCustomeDomain, useSubdomain: (new Random().Next(0, 1) == 0)),
-                    string.Format("Creating storage account {0} in the resource group {1}  with customDomain {2} should failed", accountName, resourceGroupName, invalidCustomeDomain));
-            }
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void CreateAccount_StorageAccessTier()
-        {
-            if (isResourceMode)
-            {
-                string accountType = Constants.AccountType.Standard_GRS;
-                string accountName = accountUtils.GenerateAccountName();
-                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
-                Test.Assert(!CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location, kind: Kind.Storage, accessTier: AccessTier.Cool),
-                    string.Format("Creating storage account {0} in the resource group {1} with Kind.Storage and AccessTier.Cool should failed", accountName, resourceGroupName));
-            }
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        public void CreateAccount_BlobStorage_NoAccessTier()
-        {
-            if (isResourceMode)
-            {
-                string accountType = Constants.AccountType.Standard_GRS;
-                string accountName = accountUtils.GenerateAccountName();
-                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
-                Test.Assert(!CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location, kind: Kind.BlobStorage),
-                    string.Format("Creating storage account {0} in the resource group {1} with Kind.BlobStorage and no AccessTier should failed", accountName, resourceGroupName));
-            }
-        }
-
-
 
         [TestMethod]
         [TestCategory(Tag.Function)]
@@ -2054,6 +1885,194 @@ namespace Management.Storage.ScenarioTest
                 {
                     this.DeleteAccountWrapper(accountName);
                 }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount213_SetAccount_ChangeTags_EnableEncryptionService()
+        {
+            if (isResourceMode)
+            {
+                string skuName = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
+                string accountName = accountUtils.GenerateAccountName();
+                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(skuName), isResourceMode, isMooncake);
+                Hashtable[] origianlTags = this.GetUnicodeTags();
+                Hashtable[] newTags = this.GetUnicodeTags();
+
+
+                CreateNewSRPAccount(accountName, location, skuName, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+
+                WaitForAccountAvailableToSet();
+
+                SetSRPAccount(accountName, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: origianlTags, enableEncryptionService: null);
+
+                WaitForAccountAvailableToSet();
+
+                SetSRPAccount(accountName, tags: newTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: newTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+
+                DeleteAccountWrapper(accountName);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount214_SetAccount_AllParameters()
+        {
+            if (isResourceMode)
+            {
+                string originalSkuName = accountUtils.mapAccountType(Constants.AccountType.Standard_RAGRS);
+                string newSkuName = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
+                string accountName = accountUtils.GenerateAccountName();
+                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(originalSkuName), isResourceMode, isMooncake);
+                Hashtable[] origianlTags = this.GetUnicodeTags();
+                Hashtable[] newTags = this.GetUnicodeTags();
+
+
+                CreateNewSRPAccount(accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+
+                WaitForAccountAvailableToSet();
+
+                //TODO: The customer domain not set.
+                SetSRPAccount(accountName, newSkuName, newTags, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, accessTier: AccessTier.Hot);
+                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Hot, enableEncryptionService: null);
+
+                DeleteAccountWrapper(accountName);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount215_SetAccount_EachParameters()
+        {
+            if (isResourceMode)
+            {
+                string originalSkuName = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
+                string newSkuName = accountUtils.mapAccountType(Constants.AccountType.Standard_RAGRS);
+                string accountName = accountUtils.GenerateAccountName();
+                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(originalSkuName), isResourceMode, isMooncake);
+                Hashtable[] origianlTags = this.GetUnicodeTags();
+                Hashtable[] newTags = this.GetUnicodeTags();
+
+                CreateNewSRPAccount(accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+
+                WaitForAccountAvailableToSet();
+
+                //Set Tags
+                SetSRPAccount(accountName, tags: newTags);
+                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+
+                //Set SkuName
+                SetSRPAccount(accountName, newSkuName);
+                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+
+                //Set DisableEncryptionService
+                SetSRPAccount(accountName, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: null);
+
+                //Set EnableEncryptionService
+                SetSRPAccount(accountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+
+                //Set AccessTier
+                SetSRPAccount(accountName, accessTier: AccessTier.Hot);
+                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Hot, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+
+                //TODO: The customer domain not set.
+
+                DeleteAccountWrapper(accountName);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount216_SetAccount_Storage_SetAccessTier()
+        {
+            if (isResourceMode)
+            {
+                string skuName = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
+                string accountName = accountUtils.GenerateAccountName();
+                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(skuName), isResourceMode, isMooncake);
+
+
+                CreateNewSRPAccount(accountName, location, skuName, kind: Kind.Storage);
+                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, kind: Kind.Storage);
+
+                WaitForAccountAvailableToSet();
+
+                Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, accessTier: AccessTier.Cool),
+                    string.Format("Change accessTier of storage account {0} in the resource group {1} with Kind.Storage should failed", accountName, resourceGroupName));
+
+                DeleteAccountWrapper(accountName);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount217_SetAccount_BlobStorage_SetAccessTier2Times()
+        {
+            if (isResourceMode)
+            {
+                string skuName = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
+                string accountName = accountUtils.GenerateAccountName();
+                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(skuName), isResourceMode, isMooncake);
+
+
+                CreateNewSRPAccount(accountName, location, skuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool);
+                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool);
+
+                WaitForAccountAvailableToSet();
+
+                SetSRPAccount(accountName, accessTier: AccessTier.Hot);
+                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, kind: Kind.BlobStorage, accessTier: AccessTier.Hot);
+
+                WaitForAccountAvailableToSet();
+
+                Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, accessTier: AccessTier.Cool),
+                    string.Format("Change accessTier 2 times continuelly of storage account {0} in the resource group {1}  should failed", accountName, resourceGroupName));
+
+
+                DeleteAccountWrapper(accountName);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount218_SetAccount_SetBothEnableDisableBlobEncrption()
+        {
+            if (isResourceMode)
+            {
+                string skuName = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
+                string accountName = accountUtils.GenerateAccountName();
+                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(skuName), isResourceMode, isMooncake);
+
+
+                CreateNewSRPAccount(accountName, location, skuName);
+                accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName);
+
+                WaitForAccountAvailableToSet();
+
+                Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob),
+                    string.Format("Set both enable and disable Blob Encryption of storage account {0} in the resource group {1}  should failed", accountName, resourceGroupName));
+
+                DeleteAccountWrapper(accountName);
             }
         }
 
