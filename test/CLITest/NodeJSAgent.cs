@@ -36,6 +36,7 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 using System.Text.RegularExpressions;
 using Microsoft.WindowsAzure.Commands.Storage.Model.ResourceModel;
+using Microsoft.Azure.Management.Storage.Models;
 
 namespace Management.Storage.ScenarioTest
 {
