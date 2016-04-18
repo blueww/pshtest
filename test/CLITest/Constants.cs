@@ -35,9 +35,9 @@ namespace Management.Storage.ScenarioTest
         };
 
         public static readonly string[] AccountTypes = { AccountType.Standard_LRS, 
-                                                           AccountType.Standard_ZRS, 
-                                                           AccountType.Standard_GRS, 
+                                                           AccountType.Standard_GRS,
                                                            AccountType.Standard_RAGRS, 
+                                                           AccountType.Standard_ZRS,  
                                                            AccountType.Premium_LRS };
 
         public struct Location
@@ -46,6 +46,7 @@ namespace Management.Storage.ScenarioTest
             public const string SouthCentralUS = "South Central US";
             public const string EastUS = "East US";
             public const string EastUS2 = "East US 2";
+            public const string EastUS2Stage = "East US 2 (Stage)";
             public const string CentralUS = "Central US";
             public const string NorthEurope = "North Europe";
             public const string WestEurope = "West Europe";
@@ -69,12 +70,14 @@ namespace Management.Storage.ScenarioTest
                                                         Location.SoutheastAsia,
                                                         Location.EastAsia };
 
-        public static readonly string[] SRPLocations = { Location.WestUS,
-                                                        Location.EastUS,
-                                                        Location.SoutheastAsia,
-                                                        Location.EastAsia,
-                                                        Location.WestEurope,
-                                                        Location.NorthEurope };
+        public static readonly string[] SRPLocations = { Location.EastUS2Stage};
+                                                        //Will add them back when E@R and XCool is enabled in product
+                                                        //{ Location.WestUS,
+                                                        //Location.EastUS,
+                                                        //Location.SoutheastAsia,
+                                                        //Location.EastAsia,
+                                                        //Location.WestEurope,
+                                                        //Location.NorthEurope };
 
         public static readonly string[] MCLocations = { MCLocation.ChinaEast,
                                                         MCLocation.ChinaNorth };
@@ -90,6 +93,11 @@ namespace Management.Storage.ScenarioTest
             File,
             InvalidService
         };
+
+        public enum EncryptionSupportServiceEnum
+        {
+            Blob = 1
+        }
 
         /// <summary>
         /// used for Set/Get Metrics Properties
