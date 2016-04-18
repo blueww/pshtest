@@ -892,12 +892,12 @@ namespace Management.Storage.ScenarioTest
                     string newLocation = isMooncake ? Constants.MCLocation.ChinaNorth : Constants.Location.WestUS;
                     Test.Assert(!CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, newLocation),
                         string.Format("Creating an existing storage account {0} in location {1} should fail", accountName, newLocation));
-                    ExpectedContainErrorMessage(string.Format("The storage account named '{0}' is already taken.", accountName));
+                    ExpectedContainErrorMessage(string.Format("The storage account named {0} is already taken.", accountName));
 
                     string newType = accountUtils.mapAccountType(Constants.AccountType.Standard_RAGRS); ;
                     Test.Assert(!CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, newType, location),
                         string.Format("Creating an existing storage account {0} in location {1} should fail", accountName, newLocation));
-                    ExpectedContainErrorMessage(string.Format("The storage account named '{0}' is already taken.", accountName));
+                    ExpectedContainErrorMessage(string.Format("The storage account named {0} is already taken.", accountName));
                 }
                 else
                 {
