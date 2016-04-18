@@ -638,7 +638,7 @@ namespace Management.Storage.ScenarioTest
             string skuName, 
             string location, 
             Hashtable[] tags = null, 
-            Kind kind = Kind.Storage, 
+            Kind? kind = null, 
             Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, 
             AccessTier? accessTier = null, 
             string customDomain = null, 
@@ -648,7 +648,14 @@ namespace Management.Storage.ScenarioTest
             command = appendStringOption(command, "--resource-group", resourceGroupName);
             command = appendStringOption(command, "--location", location, true);
             command = appendStringOption(command, "--sku-name", skuName);
-            command = appendStringOption(command, "--kind", kind.ToString());
+            if (kind == null)
+            {
+                command = appendStringOption(command, "--kind", Kind.Storage.ToString());
+            }
+            else
+            {
+                command = appendStringOption(command, "--kind", kind.Value.ToString());
+            }
             command = appendHashOption(command, "--tags", tags);
             if (accessTier != null)
             {

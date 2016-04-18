@@ -3786,7 +3786,7 @@ namespace Management.Storage.ScenarioTest
             string skuName, 
             string location, 
             Hashtable[] tags = null, 
-            Kind kind = Kind.Storage,
+            Kind? kind = null,
             Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, 
             AccessTier? accessTier = null, 
             string customDomain = null, 
