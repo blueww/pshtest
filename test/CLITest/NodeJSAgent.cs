@@ -101,6 +101,7 @@ namespace Management.Storage.ScenarioTest
         internal static void SetProcessInfo(Process p, string category, string argument)
         {
             p.StartInfo.UseShellExecute = false;
+            p.StartInfo.CreateNoWindow = true;
             p.StartInfo.RedirectStandardOutput = true;
             p.StartInfo.RedirectStandardError = true;
             p.StartInfo.StandardOutputEncoding = Encoding.UTF8;
