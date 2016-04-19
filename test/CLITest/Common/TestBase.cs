@@ -44,9 +44,9 @@ namespace Management.Storage.ScenarioTest.Common
         ////private static int TableInitCount = 0;
 
         public const string ConfirmExceptionMessage = "The host was attempting to request confirmation";
+        public static Language lang;
 
         protected static Agent CommandAgent;
-        protected static Language lang;
         protected static bool isResourceMode = false;
         protected static bool isMooncake = false;
         private bool isLogin = false;

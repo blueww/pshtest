@@ -20,7 +20,7 @@
         public static void NewTableSasClassInit(TestContext testContext)
         {
             TestBase.TestClassInitialize(testContext);
-            TablePermission = (lang == Language.PowerShell ? Utility.TablePermissionPS : Utility.TablePermissionNode);
+            TablePermission = Utility.TablePermission;
         }
 
         [ClassCleanup()]
