@@ -57,13 +57,17 @@
             containerPermission = "l";
             GenerateSasTokenAndValid(containerPermission);
 
-            //Container create permission
-            containerPermission = "c";
-            GenerateSasTokenAndValid(containerPermission);
+            // TODO: Enable it when xplat supports the permissions
+            if (lang == Language.PowerShell)
+            {
+                //Container create permission
+                containerPermission = "c";
+                GenerateSasTokenAndValid(containerPermission);
 
-            //Container append permission
-            containerPermission = "a";
-            GenerateSasTokenAndValid(containerPermission);
+                //Container append permission
+                containerPermission = "a";
+                GenerateSasTokenAndValid(containerPermission);
+            }
 
             // Permission param is required according to the design, cannot accept string.Empty, so comment this. We may support this in the future.
             //None permission
@@ -264,7 +268,7 @@
             {
                 //Container read permission
                 string containerPermission = "r";
-                string limitedPermission = "wdlac";
+                string limitedPermission = lang == Language.PowerShell ? "wdlac" : "wdl";
                 string sastoken = CommandAgent.GetContainerSasFromCmd(blobUtil.Container.Name, string.Empty, containerPermission);
                 ValidateLimitedSasPermission(blobUtil.Container, limitedPermission, sastoken);
 
@@ -276,27 +280,31 @@
 
                 //Container delete permission
                 containerPermission = "d";
-                limitedPermission = "rwlac";
+                limitedPermission = lang == Language.PowerShell ? "rwlac" : "rwl";
                 sastoken = CommandAgent.GetContainerSasFromCmd(blobUtil.Container.Name, string.Empty, containerPermission);
                 ValidateLimitedSasPermission(blobUtil.Container, limitedPermission, sastoken);
 
                 //Container list permission
                 containerPermission = "l";
-                limitedPermission = "rwdac";
+                limitedPermission = lang == Language.PowerShell ? "rwdac" : "rwd";
                 sastoken = CommandAgent.GetContainerSasFromCmd(blobUtil.Container.Name, string.Empty, containerPermission);
                 ValidateLimitedSasPermission(blobUtil.Container, limitedPermission, sastoken);
 
-                //Container add permission
-                containerPermission = "a";
-                limitedPermission = "rwdlc";
-                sastoken = CommandAgent.GetContainerSasFromCmd(blobUtil.Container.Name, string.Empty, containerPermission);
-                ValidateLimitedSasPermission(blobUtil.Container, limitedPermission, sastoken);
+                // TODO: Enable it when xplat supports the permissions
+                if (lang == Language.PowerShell)
+                {
+                    //Container add permission
+                    containerPermission = "a";
+                    limitedPermission = "rwdlc";
+                    sastoken = CommandAgent.GetContainerSasFromCmd(blobUtil.Container.Name, string.Empty, containerPermission);
+                    ValidateLimitedSasPermission(blobUtil.Container, limitedPermission, sastoken);
 
-                //Container create permission
-                containerPermission = "c";
-                limitedPermission = "rwdla";
-                sastoken = CommandAgent.GetContainerSasFromCmd(blobUtil.Container.Name, string.Empty, containerPermission);
-                ValidateLimitedSasPermission(blobUtil.Container, limitedPermission, sastoken);
+                    //Container create permission
+                    containerPermission = "c";
+                    limitedPermission = "rwdla";
+                    sastoken = CommandAgent.GetContainerSasFromCmd(blobUtil.Container.Name, string.Empty, containerPermission);
+                    ValidateLimitedSasPermission(blobUtil.Container, limitedPermission, sastoken);
+                }
 
                 //Container none permission
                 //containerPermission = "";

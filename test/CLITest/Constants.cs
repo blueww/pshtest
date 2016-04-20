@@ -83,7 +83,7 @@ namespace Management.Storage.ScenarioTest
                                                         MCLocation.ChinaNorth };
 
         /// <summary>
-        /// used for Set/Get Service Properties
+        /// used for Set/Get Service types
         /// </summary>
         public enum ServiceType
         {
@@ -92,6 +92,24 @@ namespace Management.Storage.ScenarioTest
             Table,
             File,
             InvalidService
+        };
+
+        /// <summary>
+        /// used for Set/Get resource types
+        /// </summary>
+        public enum ResourceType
+        {
+            Account,
+            Container,
+            Blob,
+            Queue,
+            Message,
+            Table,
+            Entity,
+            Share,
+            Directory,
+            File,
+            InvalidResource
         };
 
         public enum EncryptionSupportServiceEnum
