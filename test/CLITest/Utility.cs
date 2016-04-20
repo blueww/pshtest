@@ -149,6 +149,63 @@ namespace Management.Storage.ScenarioTest
 
         internal static int RetryLimit = 7;
 
+        public static string GenFullPermissions(Constants.ResourceType resoruce)
+        {
+            List<string> permissions = null;
+            if (TestBase.lang == Language.PowerShell)
+            {
+                switch (resoruce)
+                {
+                    case Constants.ResourceType.Container:
+                        permissions = containerPermissionPS;
+                        break;
+                    case Constants.ResourceType.Blob:
+                        permissions = blobPermissionPS;
+                        break;
+                    case Constants.ResourceType.Table:
+                        permissions = tablePermissionPS;
+                        permissions.Remove("r");
+                        break;
+                    case Constants.ResourceType.Queue:
+                        permissions = queuePermissionPS;
+                        break;
+                    case Constants.ResourceType.Share:
+                        permissions = sharePermissionPS;
+                        break;
+                    case Constants.ResourceType.File:
+                        permissions = filePermissionPS;
+                        break;
+                }
+            }
+            else
+            {
+                switch (resoruce)
+                {
+                    case Constants.ResourceType.Container:
+                        permissions = containerPermissionNode;
+                        break;
+                    case Constants.ResourceType.Blob:
+                        permissions = blobPermissionNode;
+                        break;
+                    case Constants.ResourceType.Table:
+                        permissions = tablePermissionNode;
+                        break;
+                    case Constants.ResourceType.Queue:
+                        permissions = queuePermissionNode;
+                        break;
+                    case Constants.ResourceType.Share:
+                        permissions = sharePermissionNode;
+                        break;
+                    case Constants.ResourceType.File:
+                        permissions = filePermissionNode;
+                        break;
+                }
+            }
+
+            return permissions != null ? string.Join("", permissions.ToArray()) : string.Empty;
+        }
+
+
         /// <summary>
         /// Generate a random string for azure object name
         /// </summary> 
@@ -862,22 +919,21 @@ namespace Management.Storage.ScenarioTest
                 permission2 = "aud";
                 permission3 = "ud";
             }
-            else if (typeof(T) == typeof(SharedAccessBlobPolicy)
-                )
+            else if (typeof(T) == typeof(SharedAccessBlobPolicy))
             {
-                permission1 = "rwdlac";
-                permission2 = "wdlc";
+                permission1 = Utility.GenFullPermissions(Constants.ResourceType.Container);
+                permission2 = "wdl";
                 permission3 = "dl";
             }
             else if (typeof(T) == typeof(SharedAccessFilePolicy))
             {
-                permission1 = "rwdlc";
-                permission2 = "cwdr";
+                permission1 = Utility.GenFullPermissions(Constants.ResourceType.Share);
+                permission2 = "wdr";
                 permission3 = "wr";
             }
             else if (typeof(T) == typeof(SharedAccessQueuePolicy))
             {
-                permission1 = "raup";
+                permission1 = Utility.GenFullPermissions(Constants.ResourceType.Queue);
                 permission2 = "aup";
                 permission3 = "up";
             }

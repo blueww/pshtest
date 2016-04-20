@@ -50,13 +50,17 @@
             blobPermission = "d";
             GenerateSasTokenAndValidate(blobPermission);
 
-            //Blob Create permission
-            blobPermission = "c";
-            GenerateSasTokenAndValidate(blobPermission);
+            // TODO: Enable it when xplat supports the permissions
+            if (lang == Language.PowerShell)
+            {
+                //Blob Create permission
+                blobPermission = "c";
+                GenerateSasTokenAndValidate(blobPermission);
 
-            //Blob append permission
-            blobPermission = "a";
-            GenerateSasTokenAndValidate(blobPermission);
+                //Blob append permission
+                blobPermission = "a";
+                GenerateSasTokenAndValidate(blobPermission);
+            }
 
             // Permission param is required according to the design, cannot accept string.Empty, so comment this. We may support this in the future.
             //None permission
@@ -256,7 +260,7 @@
             {
                 //Blob read permission
                 string blobPermission = "r";
-                string limitedPermission = "wdac";
+                string limitedPermission = lang == Language.PowerShell ? "wdac" : "wd";
                 string sastoken = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
                 ValidateLimitedSasPermission(blobUtil.Blob, limitedPermission, sastoken);
 
@@ -268,21 +272,24 @@
 
                 //Blob delete permission
                 blobPermission = "d";
-                limitedPermission = "rwac";
+                limitedPermission = lang == Language.PowerShell ? "rwac" : "rw";
                 sastoken = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
                 ValidateLimitedSasPermission(blobUtil.Blob, limitedPermission, sastoken);
 
-                //Blob add permission
-                blobPermission = "a";
-                limitedPermission = "rdwc";
-                sastoken = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
-                ValidateLimitedSasPermission(blobUtil.Blob, limitedPermission, sastoken);
+                if (lang == Language.PowerShell)
+                {
+                    //Blob add permission
+                    blobPermission = "a";
+                    limitedPermission = "rdwc";
+                    sastoken = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
+                    ValidateLimitedSasPermission(blobUtil.Blob, limitedPermission, sastoken);
 
-                //Blob create permission
-                blobPermission = "c";
-                limitedPermission = "rdwa";
-                sastoken = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
-                ValidateLimitedSasPermission(blobUtil.Blob, limitedPermission, sastoken);
+                    //Blob create permission
+                    blobPermission = "c";
+                    limitedPermission = "rdwa";
+                    sastoken = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
+                    ValidateLimitedSasPermission(blobUtil.Blob, limitedPermission, sastoken);
+                }
 
                 //Blob none permission
                 //blobPermission = "";

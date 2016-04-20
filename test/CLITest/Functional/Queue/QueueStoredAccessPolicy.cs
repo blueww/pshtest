@@ -42,7 +42,7 @@
         {
             DateTime? expiryTime = DateTime.Today.AddDays(10);
             DateTime? startTime = DateTime.Today.AddDays(-2);
-            string permission = "raup";
+            string permission = Utility.GenFullPermissions(Constants.ResourceType.Queue);
             string queueName = Utility.GenNameString("queue");
 
             try
@@ -374,7 +374,7 @@
             DateTime? startTime1 = DateTime.Today.AddDays(-2);
             DateTime? expiryTime2 = DateTime.Today.AddDays(11);
             DateTime? startTime2 = DateTime.Today.AddDays(-1);
-            string permission = "raup";
+            string permission = Utility.GenFullPermissions(Constants.ResourceType.Queue);
             string policyName = Utility.GenNameString("p", 0);
             Utility.RawStoredAccessPolicy policy1 = new Utility.RawStoredAccessPolicy(policyName, startTime1, expiryTime1, permission);
             Utility.RawStoredAccessPolicy policy2 = new Utility.RawStoredAccessPolicy(policyName, startTime2, expiryTime2, permission);

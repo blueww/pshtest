@@ -525,7 +525,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
                 else
                 {
-                    ExpectedContainErrorMessage("The specifed resource name contains invalid characters");
+                    ExpectedContainErrorMessage("File or directory path is too long");
                 }
 
                 // To invalid dest file name

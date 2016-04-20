@@ -73,7 +73,7 @@
             GenerateSasTokenAndValidate(tablePermission);
 
             //Full permission with q
-            tablePermission = "raudq";
+            tablePermission = lang == Language.PowerShell ? "raudq" : "raud";
             GenerateSasTokenAndValidate(tablePermission);
 
             //Random combination

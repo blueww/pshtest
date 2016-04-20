@@ -42,7 +42,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         {
             DateTime? expiryTime = DateTime.Today.AddDays(10);
             DateTime? startTime = DateTime.Today.AddDays(-2);
-            string permission = "rwdl";
+            string permission = Utility.GenFullPermissions(Constants.ResourceType.Share);
             string shareName = Utility.GenNameString("share");
 
             try
@@ -397,7 +397,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             DateTime? startTime1 = DateTime.Today.AddDays(-2);
             DateTime? expiryTime2 = DateTime.Today.AddDays(11);
             DateTime? startTime2 = DateTime.Today.AddDays(-1);
-            string permission = "rwdl";
+            string permission = Utility.GenFullPermissions(Constants.ResourceType.Share);
             string policyName = Utility.GenNameString("p", 0);
             Utility.RawStoredAccessPolicy policy1 = new Utility.RawStoredAccessPolicy(policyName, startTime1, expiryTime1, permission);
             Utility.RawStoredAccessPolicy policy2 = new Utility.RawStoredAccessPolicy(policyName, startTime2, expiryTime2, permission);
@@ -778,9 +778,13 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             sharePermission = "l";
             GenerateSasTokenAndValidate(sharePermission);
 
-            //Share create permission
-            sharePermission = "c";
-            GenerateSasTokenAndValidate(sharePermission);
+            // TODO: Enable it when xplat supports the permissions
+            if (lang == Language.PowerShell)
+            {
+                //Share create permission
+                sharePermission = "c";
+                GenerateSasTokenAndValidate(sharePermission);
+            }
 
             //Random combination
             sharePermission = Utility.GenRandomCombination(Utility.SharePermission);
@@ -1018,7 +1022,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             {
                 //Share read permission
                 string sharePermission = "r";
-                string limitedPermission = "wdlc";
+                string limitedPermission = lang == Language.PowerShell ? "wdlc" : "wdl";
                 string sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
                 ValidateLimitedSasPermission(share, limitedPermission, sastoken);
 
@@ -1030,21 +1034,25 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 //Share delete permission
                 sharePermission = "d";
-                limitedPermission = "rwlc";
+                limitedPermission = lang == Language.PowerShell ?  "rwlc" : "rwl";
                 sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
                 ValidateLimitedSasPermission(share, limitedPermission, sastoken);
 
                 //Share list permission
                 sharePermission = "l";
-                limitedPermission = "rwdc";
+                limitedPermission = lang == Language.PowerShell ? "rwdc" : "rwd";
                 sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
                 ValidateLimitedSasPermission(share, limitedPermission, sastoken);
 
-                //Share create permission
-                sharePermission = "c";
-                limitedPermission = "rwdl";
-                sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
-                ValidateLimitedSasPermission(share, limitedPermission, sastoken);
+                // TODO: Enable it when xplat supports the permissions
+                if (lang == Language.PowerShell)
+                {
+                    //Share create permission
+                    sharePermission = "c";
+                    limitedPermission = "rwdl";
+                    sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
+                    ValidateLimitedSasPermission(share, limitedPermission, sastoken);
+                }
             }
             finally
             {
@@ -1150,9 +1158,13 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             permission = "d";
             GenerateFileSasTokenAndValidate(permission);
 
-            //File create permission
-            permission = "c";
-            GenerateFileSasTokenAndValidate(permission);
+            // TODO: Enable it when xplat supports the permissions
+            if (lang == Language.PowerShell)
+            {
+                //File create permission
+                permission = "c";
+                GenerateFileSasTokenAndValidate(permission);
+            }
             
             //Random combination
             permission = Utility.GenRandomCombination(Utility.FilePermission);
