@@ -2924,7 +2924,7 @@ namespace Management.Storage.ScenarioTest
             {
                 if (isResourceMode)
                 {
-                    string errorFormat = lang == Language.PowerShell ? "The storage account named {0} is already taken" : "The storage account named \"{0}\" is already taken";
+                    string errorFormat = "The storage account named {0} is already taken";
                     Test.Assert(accountNameAvailability.Message.Contains(string.Format(errorFormat, accountName)),
                         "Account name availability message should be correct. {0}",
                         accountNameAvailability.Message);
