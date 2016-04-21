@@ -928,8 +928,8 @@ namespace Management.Storage.ScenarioTest
             else if (typeof(T) == typeof(SharedAccessFilePolicy))
             {
                 permission1 = Utility.GenFullPermissions(Constants.ResourceType.Share);
-                permission2 = "wdr";
-                permission3 = "wr";
+                permission2 = "rwd";
+                permission3 = "rw";
             }
             else if (typeof(T) == typeof(SharedAccessQueuePolicy))
             {
