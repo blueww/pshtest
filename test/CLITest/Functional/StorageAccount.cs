@@ -889,15 +889,17 @@ namespace Management.Storage.ScenarioTest
                     Test.Assert(!CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
                         string.Format("Creating an storage account {0} in location {1} with the same properties with an existing account should fail.", accountName, location));
 
+                    string errorFormat = lang == Language.PowerShell ? "The storage account named {0} is already taken" : "The storage account named \"{0}\" is already taken";
                     string newLocation = isMooncake ? Constants.MCLocation.ChinaNorth : Constants.Location.WestUS;
                     Test.Assert(!CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, newLocation),
                         string.Format("Creating an existing storage account {0} in location {1} should fail", accountName, newLocation));
-                    ExpectedContainErrorMessage(string.Format("The storage account named {0} is already taken.", accountName));
+                    ExpectedContainErrorMessage(string.Format(errorFormat, accountName));
 
                     string newType = accountUtils.mapAccountType(Constants.AccountType.Standard_RAGRS); ;
+
                     Test.Assert(!CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, newType, location),
-                        string.Format("Creating an existing storage account {0} in location {1} should fail", accountName, newLocation));
-                    ExpectedContainErrorMessage(string.Format("The storage account named {0} is already taken.", accountName));
+                        string.Format("Creating an existing storage account {0} in location {1} should fail", accountName, location));
+                    ExpectedContainErrorMessage(string.Format(errorFormat, accountName));
                 }
                 else
                 {
@@ -2922,7 +2924,8 @@ namespace Management.Storage.ScenarioTest
             {
                 if (isResourceMode)
                 {
-                    Test.Assert(accountNameAvailability.Message.Contains(string.Format("The storage account named {0} is already taken.", accountName)),
+                    string errorFormat = lang == Language.PowerShell ? "The storage account named {0} is already taken" : "The storage account named \"{0}\" is already taken";
+                    Test.Assert(accountNameAvailability.Message.Contains(string.Format(errorFormat, accountName)),
                         "Account name availability message should be correct. {0}",
                         accountNameAvailability.Message);
                     Test.Assert(!accountNameAvailability.NameAvailable.Value, "Account name should be not available.");
