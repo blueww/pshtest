@@ -935,12 +935,18 @@ namespace Management.Storage.ScenarioTest
 
             try
             {
-                AffinityGroupOperationsExtensions.Create(managementClient.AffinityGroups, new AffinityGroupCreateParameters(affinityGroup, "AffinityGroupLabel", groupLocation));
+                if (!isResourceMode)
+                {
+                    AffinityGroupOperationsExtensions.Create(managementClient.AffinityGroups, new AffinityGroupCreateParameters(affinityGroup, "AffinityGroupLabel", groupLocation));
+                }
                 CreateAndValidateAccount(accountName, label, description, accoutLocation, affinityGroup, accountType, null);
             }
             finally
             {
-                AffinityGroupOperationsExtensions.Delete(managementClient.AffinityGroups, affinityGroup);
+                if (!isResourceMode)
+                {
+                    AffinityGroupOperationsExtensions.Delete(managementClient.AffinityGroups, affinityGroup);
+                }
             }
         }
 
@@ -1767,8 +1773,8 @@ namespace Management.Storage.ScenarioTest
                     }
                     else
                     {
-                        Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
-                            "Set tags of account {0} in reource group {1} should succeeded.", accountName, resourceGroupName);
+                        Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
+                            "Set tags of account {0} in reource group {1} should succeed.", accountName, resourceGroupName);
 
                         Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
                         "Get storage account {0} in resource group {1} should succeed.", resourceGroupName, accountName);
@@ -1787,8 +1793,8 @@ namespace Management.Storage.ScenarioTest
                     }
                     else
                     {
-                        Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
-                            "Set tags of account {0} in reource group {1} with empty value should succeeded.", accountName, resourceGroupName);
+                        Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
+                            "Set tags of account {0} in reource group {1} with empty value should succeed.", accountName, resourceGroupName);
 
                         Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
                         "Get storage account {0} in resource group {1} should succeed.", resourceGroupName, accountName);
