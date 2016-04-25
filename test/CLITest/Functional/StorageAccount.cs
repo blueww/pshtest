@@ -1822,7 +1822,7 @@ namespace Management.Storage.ScenarioTest
                 string resourceGroup = resourceGroupName;
                 string accountName = Test.Data.Get("CustomDomainAccountName");
                 string customDomainName = Test.Data.Get("CustomDomain");
-                string accountType = Constants.AccountType.Standard_LRS;
+                string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
                 string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
                 bool? useSubdomain = GetRandomNullableBool();
                 try

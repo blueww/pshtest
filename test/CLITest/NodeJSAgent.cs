@@ -704,9 +704,16 @@ namespace Management.Storage.ScenarioTest
             {
                 command = appendStringOption(command, "--access-tier", accessTier.ToString());
             }
-            if (!string.IsNullOrEmpty(customDomain))
+            if (customDomain != null)
             {
-                command = appendStringOption(command, "--custom-domain", customDomain);
+                if (!string.IsNullOrEmpty(customDomain))
+                {
+                    command = appendStringOption(command, "--custom-domain", customDomain, quoted: true);
+                }
+                else
+                {
+                    command = appendStringOption(command, "--custom-domain", "  ", quoted: true);
+                }
             }
             if (useSubdomain.HasValue && useSubdomain.Value)
             {
