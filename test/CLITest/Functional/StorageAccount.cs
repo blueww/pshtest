@@ -828,14 +828,21 @@ namespace Management.Storage.ScenarioTest
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
             string affinityGroup = "TestAffinityGroup";
 
-            try
+            if (!isResourceMode)
             {
-                AffinityGroupOperationsExtensions.Create(managementClient.AffinityGroups, new AffinityGroupCreateParameters(affinityGroup, "AffinityGroupLabel", location));
-                CreateAndValidateAccount(accountName, label, description, isResourceMode ? location : null, affinityGroup, accountType, null);
+                try
+                {
+                    AffinityGroupOperationsExtensions.Create(managementClient.AffinityGroups, new AffinityGroupCreateParameters(affinityGroup, "AffinityGroupLabel", location));
+                    CreateAndValidateAccount(accountName, label, description, isResourceMode ? location : null, affinityGroup, accountType, null);
+                }
+                finally
+                {
+                    AffinityGroupOperationsExtensions.Delete(managementClient.AffinityGroups, affinityGroup);
+                }
             }
-            finally
+            else
             {
-                AffinityGroupOperationsExtensions.Delete(managementClient.AffinityGroups, affinityGroup);
+                Test.Info("Skip affinity group cases in resource mode");
             }
         }
 
