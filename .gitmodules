@@ -6,4 +6,4 @@
 	url = https://github.com/wastoresh/azure-powershell.git
 [submodule "Xplat"]
 	path = Xplat
-	url = https://github.com/wastoresh/azure-xplat-cli-pr.git
+	url = https://github.com/wastoresh/azure-xplat-cli.git
