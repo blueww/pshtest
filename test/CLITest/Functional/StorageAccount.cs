@@ -1405,7 +1405,7 @@ namespace Management.Storage.ScenarioTest
                         }
                         else
                         {
-                            errorMsg = string.Format("Storage account type cannot be changed to {0}.", newAccountType);
+                            errorMsg = string.Format("Storage account type cannot be changed to {0}.", info.Name);
                             Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, newAccountType),
                                 string.Format("Setting storage account {0} to type {1} should fail", accountName, newAccountType));
                         }
@@ -1495,7 +1495,7 @@ namespace Management.Storage.ScenarioTest
                         }
                         else
                         {
-                            errorMsg = string.Format("Storage account type cannot be changed to {0}.", newAccountType);
+                            errorMsg = string.Format("Storage account type cannot be changed to {0}.", info.Name);
                             Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, newAccountType),
                                 string.Format("Setting storage account {0} to type {1} should fail", accountName, newAccountType));
                         }
