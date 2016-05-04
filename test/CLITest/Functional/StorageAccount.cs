@@ -2072,45 +2072,6 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
-        public void FTAccount217_SetAccount_BlobStorage_SetAccessTier2Times()
-        {
-            if (isResourceMode)
-            {
-                string skuName = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
-                string accountName = accountUtils.GenerateAccountName();
-                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(skuName), isResourceMode, isMooncake);
-
-                try
-                {
-                    CreateNewSRPAccount(accountName, location, skuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool);
-
-                    WaitForAccountAvailableToSet();
-
-                    SetSRPAccount(accountName, accessTier: AccessTier.Hot);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, kind: Kind.BlobStorage, accessTier: AccessTier.Hot);
-
-                    WaitForAccountAvailableToSet();
-
-                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, accessTier: AccessTier.Cool),
-                        string.Format("Change accessTier 2 times continuelly of storage account {0} in the resource group {1}  should failed", accountName, resourceGroupName));
-
-                    if (lang == Language.NodeJS)
-                    {
-                        ExpectedContainErrorMessage("The property 'accessTier' was specified in the input, but it cannot be updated");
-                    }
-                }
-                finally
-                {
-                    DeleteAccountWrapper(accountName);
-                }
-            }
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount218_SetAccount_SetBothEnableDisableBlobEncrption()
         {
             if (isResourceMode)
