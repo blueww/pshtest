@@ -1402,7 +1402,7 @@ namespace Management.Storage.ScenarioTest
                                 break;
                             case "ApproximateMessageCount":
                                 {
-                                    var key = ((JObject)(dic["metadata"]))["approximatemessagecount"].ToString();
+                                    var key = ((JObject)(dic["metadata"]))["approximateMessageCount"].ToString();
                                     int? message = comp[0]["ApproximateMessageCount"] as int?;
                                     int value;
                                     if (message != null && Int32.TryParse(key, out value))
