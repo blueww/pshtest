@@ -190,7 +190,7 @@ namespace Management.Storage.ScenarioTest
         public abstract bool GetAzureStorageBlob(string BlobName, string ContainerName);
         public abstract bool GetAzureStorageBlobByPrefix(string Prefix, string ContainerName);
 
-        public abstract bool RemoveAzureStorageBlob(string BlobName, string ContainerName, bool onlySnapshot = false, bool force = true);
+        public abstract bool RemoveAzureStorageBlob(string BlobName, string ContainerName, string snapshotId = "", bool? onlySnapshot = null, bool force = true);
 
         public abstract bool StartAzureStorageBlobCopy(string sourceUri, string destContainerName, string destBlobName, object destContext, bool force = true);
         public abstract bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, object destContext = null, bool force = true);
@@ -203,6 +203,7 @@ namespace Management.Storage.ScenarioTest
         public abstract bool GetAzureStorageBlobCopyState(string containerName, string blobName, bool waitForComplete);
         public abstract bool GetAzureStorageBlobCopyState(CloudBlob blob, object context, bool waitForComplete);
         public abstract bool StopAzureStorageBlobCopy(string containerName, string blobName, string copyId, bool force);
+        public abstract bool SnapshotAzureStorageBlob(string containerName, string blobName, string leaseId = null);
         #endregion
 
         /// <summary>

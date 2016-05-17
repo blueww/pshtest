@@ -79,6 +79,10 @@ namespace Management.Storage.ScenarioTest
                 {"CreateInvalidQueue", "Queue name format is incorrect"},
                 {"GetNonExistingQueue", "Queue {0} doesn't exist"},
                 {"RemoveNonExistingQueue", "Can not find queue '{0}'"},
+                {"RemoveNonExistingBlobSnapshot", "Can not find snapshot '{0}' of blob '{1}' in container '{2}'"},
+                {"RemoveBlobSnapshotWithInvalidOption", "The deleteSnapshots option cannot be included when deleting a specific snapshot using the snapshotId option"},
+                {"SnapshotNonExistingBlob", "Blob {0} in Container {1} doesn't exist"},
+                {"SnapshotLeaseBlobWithWrongLeaseID", "The lease ID specified did not match the lease ID for the blob"},
         };
         private static readonly Regex ColorIndicatorRegex = new Regex("\x1b\\[[0-9]+m");
 
@@ -1005,10 +1009,28 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(string.Format("blob list \"{0}\" {1}", containerName, prefix));
         }
 
-        public override bool RemoveAzureStorageBlob(string blobName, string containerName, bool onlySnapshot = false, bool force = true)
+        public override bool RemoveAzureStorageBlob(string blobName, string containerName, string snapshotId= "", bool? onlySnapshot = null, bool force = true)
         {
-            // need to add onlySnapshot to the parameter list later (in V1, we won't support this functionality)
-            return RunNodeJSProcess(string.Format("blob delete \"{0}\" \"{1}\"", containerName, blobName), force);
+            string command = "blob delete";
+            command = appendStringOption(command, "", containerName);
+            command = appendStringOption(command, "", blobName, quoted: true);
+            if (!string.IsNullOrEmpty(snapshotId))
+            {
+                command = appendStringOption(command, "--snapshot", snapshotId, quoted: true);
+            }
+            if (onlySnapshot.HasValue)
+            {
+                if (onlySnapshot.Value)
+                {
+                    command = appendStringOption(command, "--delete-snapshots", "only");
+                }
+                else
+                {
+                    command = appendStringOption(command, "--delete-snapshots", "include");
+                }
+            }
+
+            return RunNodeJSProcess(command, force);
         }
 
         public override bool NewAzureStorageTable(string tableName)
@@ -1153,6 +1175,19 @@ namespace Management.Storage.ScenarioTest
         {
             AssertMandatoryParameter("--copy-id", copyId);
             return RunNodeJSProcess(string.Format("blob copy stop \"{0}\" \"{1}\" \"{2}\"", containerName, blobName, copyId));
+        }
+
+        public override bool SnapshotAzureStorageBlob(string containerName, string blobName, string leaseId = null)
+        {
+            string command = "blob snapshot";
+            command = appendStringOption(command, "--container", containerName, quoted: true);
+            command = appendStringOption(command, "--blob ", blobName, quoted: true);
+            if (!string.IsNullOrEmpty(leaseId))
+            {
+                command = appendStringOption(command, "--lease ", leaseId);
+            }
+
+            return RunNodeJSProcess(command, needAccountParam: true);
         }
 
         public override bool StartFileCopyFromBlob(string containerName, string blobName, string shareName, string filePath, object destContext, bool force = true)

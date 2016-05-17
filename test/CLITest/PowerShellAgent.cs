@@ -932,14 +932,14 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps, null, ParseBlobCollection);
         }
 
-        public override bool RemoveAzureStorageBlob(string BlobName, string ContainerName, bool onlySnapshot = false, bool force = true)
+        public override bool RemoveAzureStorageBlob(string BlobName, string ContainerName, string snapshotId = "", bool? onlySnapshot = null, bool force = true)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
             ps.AddCommand("Remove-AzureStorageBlob");
             ps.BindParameter("Blob", BlobName);
             ps.BindParameter("Container", ContainerName);
-            ps.BindParameter("DeleteSnapshot", onlySnapshot);
+            ps.BindParameter("DeleteSnapshot", onlySnapshot.HasValue ? onlySnapshot.Value : false);
 
             if (force)
             {
@@ -1145,6 +1145,11 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("Force", force);
 
             return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool SnapshotAzureStorageBlob(string containerName, string blobName, string leaseId = null)
+        {
+            throw new NotImplementedException();
         }
 
         ///-------------------------------------

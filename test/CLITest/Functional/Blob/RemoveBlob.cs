@@ -29,7 +29,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
     /// functional test for Remove-AzureStorageBlob
     /// </summary>
     [TestClass]
-    class RemoveBlob : TestBase
+    public class RemoveBlob : TestBase
     {
         [ClassInitialize()]
         public static void ClassInit(TestContext testContext)
@@ -53,7 +53,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.RemoveBlob)]
         public void RemoveBlobByPipeline()
-        { 
+        {
             //TODO add more pipeline
             string containerName = Utility.GenNameString("container");
             string blobName = Utility.GenNameString("blob");
@@ -99,6 +99,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.RemoveBlob)]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.RemoveBlob)]
         public void RemoveBlobInSubDirectory()
         {
             string containerName = Utility.GenNameString("container");
@@ -155,6 +156,9 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.RemoveBlob)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.RemoveBlob)]
+        [TestCategory(CLITag.BlobSnapshot)]
         public void RemoveBlobIncludeSnapshot()
         {
             string containerName = Utility.GenNameString("container");
@@ -178,8 +182,8 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 blobs.Add(blob);
 
                 List<IListBlobItem> blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
-                Test.Assert(blobLists.Count == blobs.Count, string.Format("container {0} should contain {1} blobs, but actually it contain {2} blobs", containerName, blobs.Count, blobLists.Count));
-                Test.Assert(CommandAgent.RemoveAzureStorageBlob(blobName, containerName), Utility.GenComparisonData("Remove-AzureStorageBlob and snapshot", true));
+                Test.Assert(blobLists.Count == blobs.Count, string.Format("container {0} should contain {1} blobs, actually it contain {2} blobs", containerName, blobs.Count, blobLists.Count));
+                Test.Assert(CommandAgent.RemoveAzureStorageBlob(blobName, containerName, string.Empty, onlySnapshot: false), Utility.GenComparisonData("Remove-AzureStorageBlob and snapshot", true));
                 blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
                 Test.Assert(blobLists.Count == 0, string.Format("container {0} should contain {1} blobs", containerName, 0));
             }
@@ -198,6 +202,9 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.RemoveBlob)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.RemoveBlob)]
+        [TestCategory(CLITag.BlobSnapshot)]
         public void RemoveSnapshot()
         {
             string containerName = Utility.GenNameString("container");
@@ -221,12 +228,59 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 blobs.Add(blob);
                 List<IListBlobItem> blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
                 Test.Assert(blobLists.Count == blobs.Count, string.Format("container {0} should contain {1} blobs, and actually it contain {2} blobs", containerName, blobs.Count, blobLists.Count));
-                Test.Assert(CommandAgent.RemoveAzureStorageBlob(blobName, containerName, true), Utility.GenComparisonData("Remove-AzureStorageBlob and snapshot", true));
+                Test.Assert(CommandAgent.RemoveAzureStorageBlob(blobName, containerName, onlySnapshot: true), Utility.GenComparisonData("Remove-AzureStorageBlob and snapshot", true));
                 blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
                 Test.Assert(blobLists.Count == 1, string.Format("container {0} should contain {1} blobs", containerName, 1));
                 CloudBlob remainBlob = blobLists[0] as CloudBlob;
                 Test.Assert(blob.Name == remainBlob.Name, string.Format("Blob name should be {0}, and actually it's {1}", blob.Name, remainBlob.Name));
                 Test.Assert(null == remainBlob.SnapshotTime, "snapshot time should be null");
+            }
+            finally
+            {
+                blobUtil.RemoveContainer(containerName);
+            }
+        }
+
+        /// <summary>
+        /// Delete a specified snapshot with –snapshot and snapshot id
+        /// 8.13 Remove-AzureStorageBlob Positive Functional Cases
+        ///     10. Delete a specified snapshot with –snapshot and snapshot id
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.RemoveBlob)]
+        [TestCategory(CLITag.BlobSnapshot)]
+        public void RemoveSpecificBlobSnapshot()
+        {
+            string containerName = Utility.GenNameString("container");
+            string blobName = Utility.GenNameString("blob");
+            CloudBlobContainer container = blobUtil.CreateContainer(containerName);
+
+            try
+            {
+                CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
+                List<CloudBlob> blobs = new List<CloudBlob>();
+                blob.FetchAttributes();
+
+                string snapshotId = string.Empty;
+                int count = random.Next(1, 5);
+                for (int i = 0; i < count; i++)
+                {
+                    CloudBlob snapshot = blob.Snapshot();
+                    snapshot.FetchAttributes();
+                    blobs.Add(snapshot);
+                    if (string.IsNullOrEmpty(snapshotId))
+                    {
+                        snapshotId = snapshot.SnapshotTime.Value.UtcDateTime.ToString("O");
+                    }
+                }
+
+                blobs.Add(blob);
+                List<IListBlobItem> blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
+                Test.Assert(blobLists.Count == blobs.Count, string.Format("container {0} should contain {1} blobs, and actually it contain {2} blobs", containerName, blobs.Count, blobLists.Count));
+                Test.Assert(CommandAgent.RemoveAzureStorageBlob(blobName, containerName, snapshotId), Utility.GenComparisonData("Remove-AzureStorageBlob and snapshot", true));
+                blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
+                Test.Assert(blobLists.Count == blobs.Count - 1, string.Format("container {0} should contain {1} blobs", containerName, blobs.Count - 1));
             }
             finally
             {
@@ -244,6 +298,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.RemoveBlob)]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.RemoveBlob)]
         public void RemoveBlobWithLease()
         {
             string containerName = Utility.GenNameString("container");
@@ -260,7 +315,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 Test.Assert(!CommandAgent.RemoveAzureStorageBlob(blobName, containerName), Utility.GenComparisonData("Remove-AzureStorageBlob with lease", false));
 
                 CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name);
-                
+
                 blobLists = container.ListBlobs(string.Empty, true, BlobListingDetails.All).ToList();
                 Test.Assert(blobLists.Count == 1, string.Format("container {0} should contain {1} blobs, and actually it contain {2} blobs", containerName, 1, blobLists.Count));
                 CloudBlob remainBlob = blobLists[0] as CloudBlob;
@@ -282,6 +337,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         [TestCategory(PsTag.Blob)]
         [TestCategory(PsTag.SetBlobContent)]
         [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.RemoveBlob)]
         public void RemoveBlobWithSpeicialChars()
         {
             RemoveBlobWithSpeicialChars(BlobType.BlockBlob);
@@ -324,7 +380,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                Test.Assert(!CommandAgent.RemoveAzureStorageBlob(blobName, container.Name, false, false), "remove a blob with snapshot should throw a confirmation exception");
+                Test.Assert(!CommandAgent.RemoveAzureStorageBlob(blobName, container.Name, onlySnapshot: false, force: false), "remove a blob with snapshot should throw a confirmation exception");
                 ExpectedContainErrorMessage(ConfirmExceptionMessage);
                 Test.Assert(blob.Exists(), string.Format("the specified blob '{0}' should exist", blob.Name));
                 Test.Assert(snapshot.Exists(), "the snapshot should exist");
@@ -333,6 +389,68 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             finally
             {
                 blobUtil.RemoveContainer(container.Name);
+            }
+        }
+
+        /// <summary>
+        /// Delete a specified snapshot with –snapshot and a non-existing snapshot id
+        /// 8.13 Remove-AzureStorageBlob Negative Functional Cases
+        ///     7. Delete a specified snapshot with –snapshot and a non-existing snapshot id
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.RemoveBlob)]
+        [TestCategory(CLITag.BlobSnapshot)]
+        public void RemoveNonExistingBlobSnapshot()
+        {
+            string containerName = Utility.GenNameString("container");
+            string blobName = Utility.GenNameString("blob");
+            CloudBlobContainer container = blobUtil.CreateContainer(containerName);
+
+            try
+            {
+                CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
+                CloudBlob snapshot = blob.Snapshot();
+                string fakeSnapshotId = DateTime.UtcNow.ToString("O");
+                string realSnapshotId = snapshot.SnapshotTime.Value.UtcDateTime.ToString("O");
+
+                Test.Assert(realSnapshotId != fakeSnapshotId, string.Format("the snapshot should be {0} while passing {1}", realSnapshotId, fakeSnapshotId));
+                Test.Assert(!CommandAgent.RemoveAzureStorageBlob(blobName, containerName, fakeSnapshotId), Utility.GenComparisonData("Remove-AzureStorageBlob and snapshot", false));
+                CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, fakeSnapshotId, blobName, containerName);
+            }
+            finally
+            {
+                blobUtil.RemoveContainer(containerName);
+            }
+        }
+
+        /// <summary>
+        /// Delete a specified snapshot with both –snapshot and --delete-snapshot
+        /// 8.13 Remove-AzureStorageBlob Negative Functional Cases
+        ///     8. Delete a specified snapshot with both –snapshot and --delete-snapshot
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.RemoveBlob)]
+        [TestCategory(CLITag.BlobSnapshot)]
+        public void RemoveBlobSnapshotWithInvalidOption()
+        {
+            string containerName = Utility.GenNameString("container");
+            string blobName = Utility.GenNameString("blob");
+            CloudBlobContainer container = blobUtil.CreateContainer(containerName);
+
+            try
+            {
+                CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
+                CloudBlob snapshot = blob.Snapshot();
+                string snapshotId = snapshot.SnapshotTime.Value.UtcDateTime.ToString("O");
+
+                Test.Assert(!CommandAgent.RemoveAzureStorageBlob(blobName, containerName, snapshotId, onlySnapshot: true), Utility.GenComparisonData("Remove-AzureStorageBlob and snapshot", false));
+                CommandAgent.ValidateErrorMessage(MethodBase.GetCurrentMethod().Name, snapshotId, blobName, containerName);
+            }
+            finally
+            {
+                blobUtil.RemoveContainer(containerName);
             }
         }
     }

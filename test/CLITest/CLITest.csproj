@@ -243,6 +243,7 @@
     <Compile Include="Functional\Blob\RemoveContainer.cs" />
     <Compile Include="Functional\Blob\SetBlobContent.cs" />
     <Compile Include="Functional\Blob\SetContainerAcl.cs" />
+    <Compile Include="Functional\Blob\SnapshotBlob.cs" />
     <Compile Include="Functional\Blob\StartCopy.cs" />
     <Compile Include="Functional\Blob\StopCopy.cs" />
     <Compile Include="Functional\CloudFile\FileAsyncCopyRandomCredentials.cs" />

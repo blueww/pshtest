@@ -25,6 +25,7 @@ using StorageTestLib;
 using StorageBlobType = Microsoft.WindowsAzure.Storage.Blob.BlobType;
 using StorageBlob = Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Shared.Protocol;
+using System.Threading.Tasks;
 
 namespace Management.Storage.ScenarioTest.Util
 {
@@ -266,6 +267,33 @@ namespace Management.Storage.ScenarioTest.Util
         }
 
         /// <summary>
+        /// create a new page blob with random properties and metadata
+        /// </summary>
+        /// <param name="container">CloudBlobContainer object</param>
+        /// <param name="blobName">blob name</param>
+        /// <returns>CloudBlob object</returns>
+        public async Task<CloudBlob> CreatePageBlobAsync(CloudBlobContainer container, string blobName, CancellationToken cancellationToken, bool createBigBlob = false)
+        {
+            CloudPageBlob pageBlob = container.GetPageBlobReference(blobName);
+            int size = (createBigBlob ? random.Next(102400, 204800) : random.Next(1, 10)) * PageBlobUnitSize;
+            pageBlob.Create(size);
+
+            byte[] buffer = new byte[size];
+            // fill in random data
+            random.NextBytes(buffer);
+            using (MemoryStream ms = new MemoryStream(buffer))
+            {
+                await pageBlob.UploadFromStreamAsync(ms, cancellationToken);
+            }
+
+            string md5sum = Convert.ToBase64String(Helper.GetMD5(buffer));
+            pageBlob.Properties.ContentMD5 = md5sum;
+            GenerateBlobPropertiesAndMetaData(pageBlob);
+            Test.Info(string.Format("create page blob '{0}' in container '{1}', md5 = {2}", blobName, container.Name, md5sum));
+            return pageBlob;
+        }
+
+        /// <summary>
         /// create a block blob with random properties and metadata
         /// </summary>
         /// <param name="container">CloudBlobContainer object</param>
@@ -471,6 +499,21 @@ namespace Management.Storage.ScenarioTest.Util
                     return container.GetAppendBlobReference(blobName);
                 default:
                     throw new InvalidOperationException(string.Format("Invalid blob type: {0}", randomValue));
+            }
+        }
+
+        public CloudBlob GetBlobReference(CloudBlobContainer container, string blobName, StorageBlobType type, DateTimeOffset? snapshotTime = null)
+        {
+            switch (type)
+            {
+                case StorageBlobType.PageBlob:
+                    return container.GetPageBlobReference(blobName, snapshotTime);
+                case StorageBlobType.BlockBlob:
+                    return container.GetBlockBlobReference(blobName, snapshotTime);
+                case StorageBlobType.AppendBlob:
+                    return container.GetAppendBlobReference(blobName, snapshotTime);
+                default:
+                    throw new InvalidOperationException(string.Format("Invalid blob type: {0}", type));
             }
         }
 
