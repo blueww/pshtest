@@ -95,6 +95,7 @@ namespace Management.Storage.ScenarioTest
         public const string Blob = "nodejsblob";
         public const string GetBlob = "nodejsgetblob";
         public const string RemoveBlob = "nodejsremoveblob";
+        public const string BlobSnapshot = "nodejsblobsnapshot";
 
         public const string StartCopyBlob = "nodestartcopyblob";
         public const string GetBlobCopyState = "nodegetblobcopystate";
