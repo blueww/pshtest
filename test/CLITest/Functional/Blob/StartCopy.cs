@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json.Linq;
 
 namespace Management.Storage.ScenarioTest.Functional.Blob
 {
@@ -508,9 +509,9 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             }
             else
             {
-                actualBlobName = (string)CommandAgent.Output[0]["blob"];
+                actualBlobName = (string)CommandAgent.Output[0]["name"];
 
-                string copyid = (string)CommandAgent.Output[0]["copyId"];
+                string copyid = ((JObject)CommandAgent.Output[0]["copy"])["id"].ToString();
                 Test.Assert(!string.IsNullOrEmpty(copyid), string.Format("Expected copy Id is not empty, and actually it's {0}", copyid));
             }
 

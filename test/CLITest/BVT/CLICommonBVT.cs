@@ -12,6 +12,8 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
+using Newtonsoft.Json.Linq;
+
 namespace Management.Storage.ScenarioTest.BVT
 {
     using System;
@@ -568,11 +570,11 @@ namespace Management.Storage.ScenarioTest.BVT
                 }
                 else
                 {
-                    string copyStatus = (string)CommandAgent.Output[0]["copyStatus"];
+                    string copyStatus = ((JObject)CommandAgent.Output[0]["copy"])["status"].ToString();
                     Test.Assert(copyStatus == "success", String.Format("The blob copy should be success, actually it's {0}", copyStatus));
 
                     string container = (string)CommandAgent.Output[0]["container"];
-                    string blob = (string)CommandAgent.Output[0]["blob"];
+                    string blob = (string)CommandAgent.Output[0]["name"];
                     Test.Assert(container == blobUtil.ContainerName, String.Format("Expected container is {0}, actually it's {1}", blobUtil.ContainerName, container));
                     Test.Assert(blob == destBlob.Name, String.Format("Expected blob is {0}, actually it's {1}", destBlob.Name, blob));
                 }

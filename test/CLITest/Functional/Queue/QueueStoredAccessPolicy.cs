@@ -141,7 +141,7 @@
                 }
                 else
                 {
-                    ExpectedContainErrorMessage("Invalid value: x. Options are: r,a,u,p");
+                    ExpectedContainErrorMessage("Given  \"x\" is invalid, supported values are: r, a, u, p");
                 }
 
                 Test.Assert(!CommandAgent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, FileNamingGenerator.GenerateValidASCIIOptionValue(65), null, null, null), "Create stored access policy with invalid name length should fail");
@@ -206,7 +206,14 @@
                 Test.Assert(CommandAgent.GetAzureStorageQueueStoredAccessPolicy(queue.Name, null),
                     "Get stored access policy in queue should succeed");
                 Test.Info("Get stored access policy");
-                Assert.IsTrue(CommandAgent.Output.Count == 0);
+                if (lang == Language.PowerShell)
+                {
+                    Assert.IsTrue(CommandAgent.Output.Count == 0);
+                }
+                else
+                {
+                    Assert.IsTrue(CommandAgent.Output[0].Count == 0);
+                }
 
                 //get all policies
                 List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessQueuePolicy>();
@@ -221,7 +228,14 @@
                 Test.Assert(CommandAgent.GetAzureStorageQueueStoredAccessPolicy(queue.Name, null),
                     "Get stored access policy in table should succeed");
                 Test.Info("Get stored access policy");
-                CommandAgent.OutputValidation(comp);
+                if (lang == Language.PowerShell)
+                {
+                    CommandAgent.OutputValidation(comp);
+                }
+                else
+                {
+                    Test.Assert(comp.Count == CommandAgent.Output[0].Count, "Comparison size: {0} = {1} Output size", comp.Count, CommandAgent.Output[0].Count);
+                }
             }
             finally
             {
@@ -519,7 +533,7 @@
                 }
                 else
                 {
-                    ExpectedContainErrorMessage("Invalid value: x. Options are: r,a,u,p");
+                    ExpectedContainErrorMessage("Given  \"x\" is invalid, supported values are: r, a, u, p");
                 }
 
                 string invalidName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);

@@ -61,9 +61,9 @@ namespace Management.Storage.ScenarioTest
 
         private const string PSHASMAccountTypeInvalidError = "The AccountType {0} is invalid";
 
-        private const string NodeJSInvalidCreateTypeError = "Invalid value: {0}. Options are: LRS,ZRS,GRS,RAGRS,PLRS";
+        private const string NodeJSInvalidCreateTypeError = "Given  \"{0}\" is invalid, supported values are: LRS, ZRS, GRS, RAGRS, PLRS";
 
-        private const string NodeJSInvalidSetTypeError = "Invalid value: {0}. Options are: LRS,GRS,RAGRS";
+        private const string NodeJSInvalidSetTypeError = "Given  \"{0}\" is invalid, supported values are: LRS, GRS, RAGRS";
 
         #region Additional test attributes
 
@@ -917,7 +917,10 @@ namespace Management.Storage.ScenarioTest
                     CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
                     Test.Assert(!CommandAgent.CreateAzureStorageAccount(accountName, subscriptionId, label, description, location, affinityGroup, accountType),
                         string.Format("Creating an existing stoarge account {0} in location {1} should fail", accountName, location));
-                    ExpectedContainErrorMessage(string.Format("A storage account named '{0}' already exists in the subscription", accountName));
+
+                    string errorFormat = lang == Language.PowerShell ? "A storage account named '{0}' already exists in the subscription" : "The storage account named \"{0}\" is already taken or not valid";
+
+                    ExpectedContainErrorMessage(string.Format(errorFormat, accountName));
                 }
             }
             finally
