@@ -1228,6 +1228,17 @@ namespace Management.Storage.ScenarioTest
             return (T?)null;
         }
 
+        public static string GenerateAccountSAS(SharedAccessAccountPolicy policy)
+        {
+            CloudStorageAccount account = null;
+            if (CloudStorageAccount.TryParse(Test.Data.Get("StorageConnectionString"), out account))
+            {
+                return account.GetSharedAccessSignature(policy);
+            }
+
+            return string.Empty;
+        }
+
         /// <summary>
         /// Set up shared access policy permission for SharedAccessTablePolicy
         /// </summary>

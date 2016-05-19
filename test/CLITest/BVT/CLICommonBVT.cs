@@ -639,7 +639,7 @@ namespace Management.Storage.ScenarioTest.BVT
         }
 
         /// <summary>
-        /// BVT case : for contaienr show command
+        /// BVT case : for container show command
         /// </summary>
         [TestMethod]
         [TestCategory(CLITag.NodeJSBVT)]

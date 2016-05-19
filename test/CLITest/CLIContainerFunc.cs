@@ -457,7 +457,7 @@ namespace Management.Storage.ScenarioTest
             try
             {
                 //--------------Remove operation--------------
-                Test.Assert(!agent.RemoveAzureStorageContainer(CONTAINER_NAME, false), Utility.GenComparisonData("RemoveAzureStorageContainer", false));
+                Test.Assert(!agent.RemoveAzureStorageContainer(CONTAINER_NAME, Force: false), Utility.GenComparisonData("RemoveAzureStorageContainer", false));
                 // Verification for returned values
                 Test.Assert(agent.Output.Count == 0, "Only 0 row returned : {0}", agent.Output.Count);
                 Test.Assert(agent.ErrorMessages[0].Contains("A command that prompts the user failed because"), agent.ErrorMessages[0]);

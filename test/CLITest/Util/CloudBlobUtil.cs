@@ -200,10 +200,15 @@ namespace Management.Storage.ScenarioTest.Util
         /// remove specified container
         /// </summary>
         /// <param name="containerName">container name</param>
-        public void RemoveContainer(string containerName)
+        public void RemoveContainer(string containerName, string leaseId = null)
         {
             CloudBlobContainer container = client.GetContainerReference(containerName);
-            container.DeleteIfExists();
+            AccessCondition condition = new AccessCondition();
+            if (!string.IsNullOrEmpty(leaseId))
+            {
+                condition.LeaseId = leaseId;
+            }
+            container.DeleteIfExists(condition);
             Test.Info(string.Format("remove container '{0}'", containerName));
         }
 
