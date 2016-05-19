@@ -91,7 +91,7 @@ namespace Management.Storage.ScenarioTest
                 {"LeaseBlobWithInvalidDuration", "The value for one of the HTTP headers is not in the correct format"},
                 {"LeaseContainerWithInvalidID", "Given string \"{0}\" is not valid UUID"},
                 {"LeaseBlobWithInvalidID", "Given string \"{0}\" is not valid UUID"},
-                {"LeaseWithoutEnoughPermission", "This request is not authorized to perform this operation using this "},
+                {"LeaseWithoutEnoughPermission", "This request is not authorized to perform this operation"},
                 {"RenewLeaseOnNonExistingContainer", "The specified blob does not exist"}, // TODO: Server returns "blob" for now, we should change when server fixes it
                 {"RenewLeaseOnNonExistingBlob", "The specified blob does not exist"},
                 {"RenewNotLeasedContainer", "The lease ID specified did not match the lease ID for the container"},
@@ -324,7 +324,15 @@ namespace Management.Storage.ScenarioTest
 
                 string errFile = "azure.err";
                 Test.Info(string.Format("Error details in {0}:", errFile));
-                Test.Info(FileUtil.ReadFileToText(errFile));
+                try
+                {
+                    Test.Info(FileUtil.ReadFileToText(errFile));
+                }
+                catch (Exception e)
+                {
+                    Test.Info(string.Format("Load details in azure.err error: %s"), e.Message);
+                }
+
             }
 
             return bSuccess;
