@@ -256,7 +256,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(srcBlob.Container.Name, srcBlob.Name, srcContainer.Name, string.Empty, PowerShellAgent.Context), "blob copy should succeed when copy itself");
+                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(srcBlob.Container.Name, srcBlob.Name, srcContainer.Name, string.Empty, destContext: PowerShellAgent.Context), "blob copy should succeed when copy itself");
             }
             finally
             {
@@ -475,7 +475,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             if (StartFunc == null)
             {
-                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(srcBlob.Container.Name, srcBlob.Name, destContainer.Name, destBlobName, destContext), "blob copy should start successfully");
+                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(srcBlob.Container.Name, srcBlob.Name, destContainer.Name, destBlobName, destContext: destContext), "blob copy should start successfully");
             }
             else
             {

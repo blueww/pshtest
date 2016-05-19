@@ -679,7 +679,7 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps, null, ParseContainerCollection);
         }
 
-        public override bool SetAzureStorageContainerACL(string ContainerName, BlobContainerPublicAccessType PublicAccess, bool PassThru = true)
+        public override bool SetAzureStorageContainerACL(string ContainerName, BlobContainerPublicAccessType PublicAccess, string leaseId = null, bool PassThru = true)
         {
             PowerShell ps = GetPowerShellInstance();
             ps.AddCommand("Set-AzureStorageContainerACL");
@@ -705,7 +705,7 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps, null, ParseContainerCollection);
         }
 
-        public override bool RemoveAzureStorageContainer(string ContainerName, bool Force = true)
+        public override bool RemoveAzureStorageContainer(string ContainerName, string leaseId = null, bool Force = true)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
@@ -932,7 +932,7 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps, null, ParseBlobCollection);
         }
 
-        public override bool RemoveAzureStorageBlob(string BlobName, string ContainerName, string snapshotId = "", bool? onlySnapshot = null, bool force = true)
+        public override bool RemoveAzureStorageBlob(string BlobName, string ContainerName, string snapshotId = "", string leaseId = null, bool ? onlySnapshot = null, bool force = true)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
@@ -1032,7 +1032,7 @@ namespace Management.Storage.ScenarioTest
             return executeState;
         }
 
-        public override bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        public override bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, string sourceLease = null, string destLease = null, object destContext = null, bool force = true)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
@@ -1148,6 +1148,31 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override bool SnapshotAzureStorageBlob(string containerName, string blobName, string leaseId = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool AcquireLease(string containerName, string blobName, string proposedLeaseId = null, int duration = -1)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool RenewLease(string containerName, string blobName, string leaseId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool ChangeLease(string containerName, string blobName, string leaseId, string proposedLeaseId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool ReleaseLease(string containerName, string blobName, string leaseId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool BreakLease(string containerName, string blobName, int duration = 0)
         {
             throw new NotImplementedException();
         }
