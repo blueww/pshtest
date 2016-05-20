@@ -241,7 +241,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                             Test.Assert(CommandAgent.BreakLease(containerName, null, duration), Utility.GenComparisonData("Break Container Lease", true));
 
                             int remainingTime = int.Parse((CommandAgent as NodeJSAgent).Output[0]["time"].ToString());
-                            Test.Assert(remainingTime == duration, Utility.GenComparisonData("Validate remaining time", true));
+                            Test.Assert(remainingTime <= duration, Utility.GenComparisonData("Validate remaining time", true));
                             Thread.Sleep((remainingTime + 1) * 1000);
                         }
                         catch (Exception e)
@@ -289,7 +289,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                             Test.Assert(CommandAgent.BreakLease(containerName, blobName, duration), Utility.GenComparisonData("Break Blob Lease", true));
 
                             int remainingTime = int.Parse((CommandAgent as NodeJSAgent).Output[0]["time"].ToString());
-                            Test.Assert(remainingTime == duration, Utility.GenComparisonData("Validate remaining time", true));
+                            Test.Assert(remainingTime <= duration, Utility.GenComparisonData("Validate remaining time", true));
                             Thread.Sleep((remainingTime + 1) * 1000);
                         }
                         catch (Exception e)
@@ -423,7 +423,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                         Test.Assert(CommandAgent.BreakLease(containerName, null, breakDuration), Utility.GenComparisonData("Break Container Lease", true));
 
                         remainingTime = int.Parse((CommandAgent as NodeJSAgent).Output[0]["time"].ToString());
-                        Test.Assert(remainingTime == breakDuration, Utility.GenComparisonData("Validate remaining time", true));
+                        Test.Assert(remainingTime <= breakDuration, Utility.GenComparisonData("Validate remaining time", true));
                     }
                     catch (Exception e)
                     {
@@ -470,7 +470,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                         Test.Assert(CommandAgent.BreakLease(containerName, blobName, breakDuration), Utility.GenComparisonData("Break Blob Lease", true));
 
                         remainingTime = int.Parse((CommandAgent as NodeJSAgent).Output[0]["time"].ToString());
-                        Test.Assert(remainingTime == breakDuration, Utility.GenComparisonData("Validate remaining time", true));
+                        Test.Assert(remainingTime <= breakDuration, Utility.GenComparisonData("Validate remaining time", true));
                     }
                     catch (Exception e)
                     {
