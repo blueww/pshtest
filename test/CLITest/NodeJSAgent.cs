@@ -2176,6 +2176,10 @@ namespace Management.Storage.ScenarioTest
         {
             this.GetFile(directory.Share.Name, directory.Name + '/' + path);
         }
+        public override void GetFile()
+        {
+            throw new NotImplementedException();
+        }
 
         public override void DownloadFile(CloudFile file, string destination, bool overwrite = false)
         {

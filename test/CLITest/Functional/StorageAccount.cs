@@ -96,6 +96,16 @@ namespace Management.Storage.ScenarioTest
                 accountUtils.SRPStorageClient.StorageAccounts.CreateAsync(resourceGroupName, accountNameForConnectionStringTest, parameters, CancellationToken.None).Wait();
                 var keys = accountUtils.SRPStorageClient.StorageAccounts.ListKeysAsync(resourceGroupName, accountNameForConnectionStringTest, CancellationToken.None).Result;
                 primaryKeyForConnectionStringTest = keys.Keys[0].Value;
+
+                string customDomainAccountName = Test.Data.Get("CustomDomainAccountName");
+                try
+                {
+                    accountUtils.SRPStorageClient.StorageAccounts.DeleteAsync(resourceGroupName, customDomainAccountName, CancellationToken.None).Wait();
+                }
+                catch (Exception ex)
+                {
+                    Test.Info(string.Format("Deleting customDomain Account Exception: {0}", ex));
+                }
             }
             else
             {

@@ -421,6 +421,7 @@ namespace Management.Storage.ScenarioTest
 
         public abstract void RemoveFile(string fileShareName, string fileName, object contextObject = null, bool confirm = false);
 
+        public abstract void GetFile();
         public abstract void GetFile(string fileShareName, string path = null);
 
         public abstract void GetFile(CloudFileShare fileShare, string path = null);
