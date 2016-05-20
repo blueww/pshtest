@@ -3165,6 +3165,15 @@ namespace Management.Storage.ScenarioTest
             this.shell.AddParameter("Context", PowerShellAgent.Context);
         }
 
+        /// <summary>
+        /// The is used for pipeline Share or Directory object to it to list file/dir.
+        /// </summary>
+        public override void GetFile()
+        {
+            this.shell.AddCommand("Get-AzureStorageFile");
+
+        }
+
         public override void GetFile(CloudFileShare fileShare, string path = null)
         {
             this.shell.AddCommand("Get-AzureStorageFile");
