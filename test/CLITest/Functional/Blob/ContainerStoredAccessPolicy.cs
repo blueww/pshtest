@@ -619,7 +619,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 }
                 else
                 {
-                    ExpectedContainErrorMessage("Reason:");
+                    ExpectedContainErrorMessage("doesn't exist");
                 }
 
                 Test.Assert(!CommandAgent.SetAzureStorageContainerStoredAccessPolicy("CONTAINER", Utility.GenNameString("p", 5), null, null, null), "Set stored acess policy for invalid container name CONTAINER should fail");
@@ -629,7 +629,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 }
                 else
                 {
-                    ExpectedContainErrorMessage("Reason:");
+                    ExpectedContainErrorMessage("Container name format is incorrect");
                 }
 
                 Utility.RawStoredAccessPolicy samplePolicy = Utility.SetUpStoredAccessPolicyData<SharedAccessBlobPolicy>()[0];

@@ -569,14 +569,7 @@
 
                 queueUtil.RemoveQueue(queue);
                 Test.Assert(!CommandAgent.SetAzureStorageTableStoredAccessPolicy(queue.Name, Utility.GenNameString("p", 5), null, null, null), "Set stored access policy against non-existing queue should fail");
-                if (lang == Language.PowerShell)
-                {
-                    ExpectedContainErrorMessage("does not exist");
-                }
-                else
-                {
-                    ExpectedContainErrorMessage("Reason:");
-                }
+                ExpectedContainErrorMessage("does not exist");
             }
             finally
             {
