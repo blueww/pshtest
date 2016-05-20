@@ -187,6 +187,7 @@ namespace Management.Storage.ScenarioTest.BVT
         /// BVT case 5.7.1 using parameter set FileShareName
         /// </summary>
         [TestMethod]
+        [TestCategory(Tag.BVT)]
         [TestCategory(CLITag.NodeJSBVT)]
         public void ListFileTest_FileShareNameParameterSet()
         {
@@ -203,7 +204,15 @@ namespace Management.Storage.ScenarioTest.BVT
 
             try
             {
-                CommandAgent.GetFile(fileShare.Name, dirName);
+                if (Language.PowerShell == lang)
+                {
+                    CommandAgent.GetFile(fileShare.Name, dirName);
+                    CommandAgent.GetFile();
+                }
+                else //NodeJS
+                {
+                    CommandAgent.GetFile(fileShare.Name, dirName);
+                }
 
                 var result = CommandAgent.Invoke();
 
