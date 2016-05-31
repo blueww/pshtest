@@ -260,7 +260,8 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             }
             else
             {
-                ExpectedContainErrorMessage("Invalid value: x.");
+
+                ExpectedContainErrorMessage("Given  \"x\" is invalid");
             }
 
             //repeated permission - success

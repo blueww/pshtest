@@ -147,7 +147,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
                 else
                 {
-                    ExpectedContainErrorMessage("Invalid value: x. Options are: r,w,d,l");
+                    ExpectedContainErrorMessage("Given  \"x\" is invalid, supported values are: r, w, d, l");
                 }
 
                 string longPolicyName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
@@ -223,7 +223,14 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 Test.Assert(CommandAgent.GetAzureStorageShareStoredAccessPolicy(shareName, null),
                     "Get stored access policy in share should succeed");
                 Test.Info("Get stored access policy");
-                Assert.IsTrue(CommandAgent.Output.Count == 0);
+                if (lang == Language.PowerShell)
+                {
+                    Assert.IsTrue(CommandAgent.Output.Count == 0);
+                }
+                else
+                {
+                    Assert.IsTrue(CommandAgent.Output[0].Count == 0);
+                }
 
                 //get all policies
                 List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessFilePolicy>();
@@ -238,7 +245,14 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 Test.Assert(CommandAgent.GetAzureStorageShareStoredAccessPolicy(shareName, null),
                     "Get stored access policy in share should succeed");
                 Test.Info("Get stored access policy");
-                CommandAgent.OutputValidation(comp);
+                if (lang == Language.PowerShell)
+                {
+                    CommandAgent.OutputValidation(comp);
+                }
+                else
+                {
+                    Test.Assert(comp.Count == CommandAgent.Output[0].Count, "Comparison size: {0} = {1} Output size", comp.Count, CommandAgent.Output[0].Count);
+                }
             }
             finally
             {
@@ -545,7 +559,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
                 else
                 {
-                    errorMsg = "Invalid value: x. Options are: r,w,d,l";
+                    errorMsg = "Given  \"x\" is invalid, supported values are: r, w, d, l";
                 }
 
                 ExpectedContainErrorMessage(errorMsg);

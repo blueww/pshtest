@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Newtonsoft.Json.Linq;
 
 namespace Management.Storage.ScenarioTest.Functional.Blob
 {
@@ -255,7 +256,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
-                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(srcBlob.Container.Name, srcBlob.Name, srcContainer.Name, string.Empty, PowerShellAgent.Context), "blob copy should succeed when copy itself");
+                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(srcBlob.Container.Name, srcBlob.Name, srcContainer.Name, string.Empty, destContext: PowerShellAgent.Context), "blob copy should succeed when copy itself");
             }
             finally
             {
@@ -474,7 +475,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
         {
             if (StartFunc == null)
             {
-                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(srcBlob.Container.Name, srcBlob.Name, destContainer.Name, destBlobName, destContext), "blob copy should start successfully");
+                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(srcBlob.Container.Name, srcBlob.Name, destContainer.Name, destBlobName, destContext: destContext), "blob copy should start successfully");
             }
             else
             {
@@ -508,9 +509,9 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             }
             else
             {
-                actualBlobName = (string)CommandAgent.Output[0]["blob"];
+                actualBlobName = (string)CommandAgent.Output[0]["name"];
 
-                string copyid = (string)CommandAgent.Output[0]["copyId"];
+                string copyid = ((JObject)CommandAgent.Output[0]["copy"])["id"].ToString();
                 Test.Assert(!string.IsNullOrEmpty(copyid), string.Format("Expected copy Id is not empty, and actually it's {0}", copyid));
             }
 

@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Newtonsoft.Json.Linq;
 using StorageBlob = Microsoft.WindowsAzure.Storage.Blob;
 
 namespace Management.Storage.ScenarioTest.Functional.Blob
@@ -259,7 +260,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 }
                 else
                 {
-                    destBlob = StorageExtensions.GetBlobReferenceFromServer(destContainer, (string)CommandAgent.Output[0]["blob"]);
+                    destBlob = StorageExtensions.GetBlobReferenceFromServer(destContainer, (string)CommandAgent.Output[0]["name"]);
                     context = destContext;
                 }
                 Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(destBlob, context, true), "Get copy state in dest container should succeed.");
@@ -357,7 +358,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                     }
                     else
                     {
-                        if (((string)CommandAgent.Output[0]["copyStatus"]).Equals("pending"))
+                        if (((JObject)CommandAgent.Output[0]["copy"])["status"].ToString().Equals("pending"))
                         {
                             status = CopyStatus.Pending;
                         }
@@ -400,7 +401,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 }
                 else
                 {
-                    if (((string)CommandAgent.Output[0]["copyStatus"]).Equals("aborted"))
+                    if (((JObject)CommandAgent.Output[0]["copy"])["status"].ToString().Equals("aborted"))
                     {
                         status = CopyStatus.Aborted;
                     }
@@ -432,9 +433,9 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             }
             else
             {
-                string status = (string)CommandAgent.Output[startIndex]["copyStatus"];
+                string status = ((JObject)CommandAgent.Output[0]["copy"])["status"].ToString();
                 Test.Assert(status != "pending", String.Format("Copy status should not be Pending, actually it's {0}", status));
-                string copyId = (string)CommandAgent.Output[startIndex]["copyId"];
+                string copyId = ((JObject)CommandAgent.Output[0]["copy"])["id"].ToString();
                 Test.Assert(!String.IsNullOrEmpty(copyId), "Copy ID should be not empty");
             }
         }

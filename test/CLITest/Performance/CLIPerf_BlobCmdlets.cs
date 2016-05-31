@@ -191,7 +191,7 @@ namespace Management.Storage.ScenarioTest
                     case StartCopyBlobs:
                         agent.AddPipelineScript(string.Format("Get-AzureStorageBlob -Container {0}", srcContainer));
                         sw.Start();
-                        Test.Assert(agent.StartAzureStorageBlobCopy(string.Empty, string.Empty, destContainer, string.Empty, destStorageContext), "start copy blob should be successful");
+                        Test.Assert(agent.StartAzureStorageBlobCopy(string.Empty, string.Empty, destContainer, string.Empty, destContext: destStorageContext), "start copy blob should be successful");
                         break;
                     case GetCopyBlobState:
                         PowerShellAgent.SetStorageContext(destConnectionString);

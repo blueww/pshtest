@@ -35,7 +35,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
         private const string NoOriginNoMethod0MaxCacheAgeError = "A CORS rule must contain at least one allowed origin and allowed method, and MaxAgeInSeconds cannot have a value less than zero.";
         private const string CORSRuleInvalidError = "CORS rules setting is invalid. Please reference to \"https://msdn.microsoft.com/en-us/library/azure/dn535601.aspx\" to get detailed information.";
-        private const string InvalidMethodsError = "Invalid value: {0}. Options are: DELETE,GET,HEAD,MERGE,POST,OPTIONS,PUT,TRACE,CONNECT";
+        private const string InvalidMethodsError = "Given  \"{0}\" is invalid, supported values are: DELETE, GET, HEAD, MERGE, POST, OPTIONS, PUT, TRACE, CONNECT";
         private string[] InvalidXMLNodeErrors = { "The value for one of the XML nodes is not in the correct format", "Error" };
 
         [TestMethod]
