@@ -146,9 +146,9 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         public abstract bool GetAzureStorageContainer(string ContainerName);
         public abstract bool GetAzureStorageContainerByPrefix(string Prefix);
-        public abstract bool SetAzureStorageContainerACL(string ContainerName, BlobContainerPublicAccessType PublicAccess, bool PassThru = true);
+        public abstract bool SetAzureStorageContainerACL(string ContainerName, BlobContainerPublicAccessType PublicAccess, string LeaseId = null, bool PassThru = true);
         public abstract bool SetAzureStorageContainerACL(string[] ContainerNames, BlobContainerPublicAccessType PublicAccess, bool PassThru = true);
-        public abstract bool RemoveAzureStorageContainer(string ContainerName, bool Force = true);
+        public abstract bool RemoveAzureStorageContainer(string ContainerName, string LeaseId = null, bool Force = true);
         /// <summary>
         /// For pipeline, new/remove a list of container names
         /// </summary>
@@ -190,10 +190,10 @@ namespace Management.Storage.ScenarioTest
         public abstract bool GetAzureStorageBlob(string BlobName, string ContainerName);
         public abstract bool GetAzureStorageBlobByPrefix(string Prefix, string ContainerName);
 
-        public abstract bool RemoveAzureStorageBlob(string BlobName, string ContainerName, bool onlySnapshot = false, bool force = true);
+        public abstract bool RemoveAzureStorageBlob(string BlobName, string ContainerName, string snapshotId = "", string leaseId = null, bool ? onlySnapshot = null, bool force = true);
 
         public abstract bool StartAzureStorageBlobCopy(string sourceUri, string destContainerName, string destBlobName, object destContext, bool force = true);
-        public abstract bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, object destContext = null, bool force = true);
+        public abstract bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, string sourceLease = null, string destLease = null, object destContext = null, bool force = true);
         public abstract bool StartAzureStorageBlobCopy(CloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true);
 
         public abstract bool StartAzureStorageBlobCopyFromFile(string srcShareName, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true);
@@ -203,6 +203,13 @@ namespace Management.Storage.ScenarioTest
         public abstract bool GetAzureStorageBlobCopyState(string containerName, string blobName, bool waitForComplete);
         public abstract bool GetAzureStorageBlobCopyState(CloudBlob blob, object context, bool waitForComplete);
         public abstract bool StopAzureStorageBlobCopy(string containerName, string blobName, string copyId, bool force);
+        public abstract bool SnapshotAzureStorageBlob(string containerName, string blobName, string leaseId = null);
+
+        public abstract bool AcquireLease(string containerName, string blobName, string proposedLeaseId = null, int duration = -1);
+        public abstract bool RenewLease(string containerName, string blobName, string leaseId);
+        public abstract bool ChangeLease(string containerName, string blobName, string leaseId, string proposedLeaseId);
+        public abstract bool ReleaseLease(string containerName, string blobName, string leaseId);
+        public abstract bool BreakLease(string containerName, string blobName, int duration = 0);
         #endregion
 
         /// <summary>

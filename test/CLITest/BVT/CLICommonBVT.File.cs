@@ -1,4 +1,6 @@
-﻿namespace Management.Storage.ScenarioTest.BVT
+﻿using Newtonsoft.Json.Linq;
+
+namespace Management.Storage.ScenarioTest.BVT
 {
     using System;
     using System.Collections.Generic;
@@ -1011,7 +1013,7 @@
                 string copyId = null;
                 if (lang == Language.NodeJS)
                 {
-                    copyId = CommandAgent.Output[0]["copyId"] as string;
+                    copyId = ((JObject)CommandAgent.Output[0]["copy"])["id"].ToString();
                 }
 
                 Test.Assert(CommandAgent.StopAzureStorageBlobCopy(destContainerName, blob.Name, copyId, true), "Stop blob copy should succeed.");
@@ -1102,7 +1104,7 @@
                 string copyId = null;
                 if (lang == Language.NodeJS)
                 {
-                    copyId = CommandAgent.Output[0]["copyId"] as string;
+                    copyId = ((JObject)CommandAgent.Output[0]["copy"])["id"].ToString();
                 }
                 Test.Assert(CommandAgent.StopFileCopy(shareName, fileName, copyId), "Stop file copy should succeed.");
 
@@ -1117,7 +1119,7 @@
 
                 if (lang == Language.NodeJS)
                 {
-                    copyId = CommandAgent.Output[0]["copyId"] as string;
+                    copyId = ((JObject)CommandAgent.Output[0]["copy"])["id"].ToString();
                 }
                 Test.Assert(CommandAgent.StopFileCopy(file, copyId), "Stop file copy should succeed.");
 

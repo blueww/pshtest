@@ -12,6 +12,8 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
+using Newtonsoft.Json.Linq;
+
 namespace Management.Storage.ScenarioTest
 {
     using System;
@@ -1137,7 +1139,7 @@ namespace Management.Storage.ScenarioTest
             else
             {
                 CLICopyState state = new CLICopyState();
-                string progess = agent.Output[0]["copyProgress"] as string;
+                string progess = ((JObject)agent.Output[0]["copy"])["progress"].ToString();
                 long bytesCopied = 0;
                 long totalBytes = 0;
                 if (!string.IsNullOrEmpty(progess))
@@ -1148,30 +1150,32 @@ namespace Management.Storage.ScenarioTest
                 }
 
                 string time = null;
-                if (agent.Output[0].ContainsKey("copyCompletionTime"))
+                JToken completionTimeToken;
+                if(((JObject) agent.Output[0]["copy"]).TryGetValue("completionTime", out completionTimeToken))
                 {
-                    time = agent.Output[0]["copyCompletionTime"] as string;
+                    time = completionTimeToken.ToString();
                 }
 
                 DateTimeOffset completionTime = new DateTimeOffset();
                 DateTimeOffset.TryParse(time, out completionTime);
 
-                string raw = agent.Output[0]["copySource"] as string;
+                string raw = ((JObject)agent.Output[0]["copy"])["source"].ToString();
                 Uri source = new Uri(raw);
-
-                raw = agent.Output[0]["copyStatus"] as string;
+                
+                raw = ((JObject)agent.Output[0]["copy"])["status"].ToString();
                 CopyStatus status;
                 Enum.TryParse<CopyStatus>(raw, true, out status);
 
                 string statusDescription = null;
-                if (agent.Output[0].ContainsKey("copyStatusDescription"))
+                JToken copyStatusDescriptionToken;
+                if (((JObject)agent.Output[0]["copy"]).TryGetValue("statusDescription", out copyStatusDescriptionToken))
                 {
-                    statusDescription = agent.Output[0]["copyStatusDescription"] as string;
+                    statusDescription = copyStatusDescriptionToken.ToString();
                 }
 
                 state.BytesCopied = bytesCopied;
                 state.CompletionTime = completionTime;
-                state.CopyId = agent.Output[0]["copyId"] as string;
+                state.CopyId = ((JObject)agent.Output[0]["copy"])["id"].ToString();
                 state.Source = source;
                 state.Status = status;
                 state.StatusDescription = statusDescription;
@@ -1222,6 +1226,17 @@ namespace Management.Storage.ScenarioTest
             }
 
             return (T?)null;
+        }
+
+        public static string GenerateAccountSAS(SharedAccessAccountPolicy policy)
+        {
+            CloudStorageAccount account = null;
+            if (CloudStorageAccount.TryParse(Test.Data.Get("StorageConnectionString"), out account))
+            {
+                return account.GetSharedAccessSignature(policy);
+            }
+
+            return string.Empty;
         }
 
         /// <summary>

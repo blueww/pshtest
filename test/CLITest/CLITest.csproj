@@ -229,6 +229,10 @@
     <Compile Include="CLIBlobFunc.cs" />
     <Compile Include="Common\TestBase.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Functional\Blob\BreakLease.cs" />
+    <Compile Include="Functional\Blob\ChangeLease.cs" />
+    <Compile Include="Functional\Blob\ReleaseLease.cs" />
+    <Compile Include="Functional\Blob\RenewLease.cs" />
     <Compile Include="Functional\Blob\ContainerStoredAccessPolicy.cs" />
     <Compile Include="Functional\Blob\NewBlobSas.cs" />
     <Compile Include="Functional\Blob\NewContainerSas.cs" />
@@ -243,6 +247,8 @@
     <Compile Include="Functional\Blob\RemoveContainer.cs" />
     <Compile Include="Functional\Blob\SetBlobContent.cs" />
     <Compile Include="Functional\Blob\SetContainerAcl.cs" />
+    <Compile Include="Functional\Blob\AcquireLease.cs" />
+    <Compile Include="Functional\Blob\SnapshotBlob.cs" />
     <Compile Include="Functional\Blob\StartCopy.cs" />
     <Compile Include="Functional\Blob\StopCopy.cs" />
     <Compile Include="Functional\CloudFile\FileAsyncCopyRandomCredentials.cs" />
