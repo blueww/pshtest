@@ -2717,7 +2717,7 @@ namespace Management.Storage.ScenarioTest
         {
             string command = string.Format("container sas create {0}", container);
 
-            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy);
+            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy, protocol, iPAddressOrRange);
 
             return RunNodeJSProcess(command);
         }
@@ -2727,7 +2727,7 @@ namespace Management.Storage.ScenarioTest
         {
             string command = string.Format("blob sas create {0} \"{1}\"", container, blob);
 
-            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy);
+            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy, protocol, iPAddressOrRange);
 
             return RunNodeJSProcess(command);
         }
@@ -2737,7 +2737,7 @@ namespace Management.Storage.ScenarioTest
         {
             string command = string.Format("share sas create {0}", shareName);
 
-            command = GetGeneralSASCmd(command, permissions, startTime, expiryTime, policyName);
+            command = GetGeneralSASCmd(command, permissions, startTime, expiryTime, policyName, protocol, iPAddressOrRange);
 
             return RunNodeJSProcess(command);
         }
@@ -2747,7 +2747,7 @@ namespace Management.Storage.ScenarioTest
         {
             string command = string.Format("file sas create {0} {1}", shareName, filePath);
 
-            command = GetGeneralSASCmd(command, permissions, startTime, expiryTime, policyName);
+            command = GetGeneralSASCmd(command, permissions, startTime, expiryTime, policyName, protocol, iPAddressOrRange);
 
             return RunNodeJSProcess(command);
         }
@@ -2763,7 +2763,7 @@ namespace Management.Storage.ScenarioTest
         {
             string command = string.Format("table sas create {0}", name);
 
-            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy);
+            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy, protocol, iPAddressOrRange);
 
             if (!string.IsNullOrEmpty(startpk))
             {
@@ -2791,7 +2791,7 @@ namespace Management.Storage.ScenarioTest
         {
             string command = string.Format("queue sas create {0}", name);
 
-            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy);
+            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy, protocol, iPAddressOrRange);
 
             return RunNodeJSProcess(command);
         }
@@ -2799,7 +2799,36 @@ namespace Management.Storage.ScenarioTest
         public override bool NewAzureStorageAccountSAS(SharedAccessAccountServices service, SharedAccessAccountResourceTypes resourceType, string permission, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null,
             DateTime? startTime = null, DateTime? expiryTime = null)
         {
-            throw new NotImplementedException();
+            string command = string.Format("account sas create");
+
+            command = appendStringOption(command, "--services", SharedAccessAccountPolicy.ServicesToString(service));
+            command = appendStringOption(command, "--resource-types ", SharedAccessAccountPolicy.ResourceTypesToString(resourceType));
+            command = appendStringOption(command, "--permissions", permission);
+
+            command = appendDateTimeOption(command, "--start", startTime);
+            if (expiryTime.HasValue)
+            {
+                command = appendDateTimeOption(command, "--expiry", expiryTime);
+            }
+            else
+            {
+                // Default value to 1 hour later from now.
+                // Normally we should not add this kind of logic in the agent like "default value" to make sure we can cover the negative case.
+                // Why we do this is because PowerShellAgent has this logic and the existing positive test cases won't pass the expiry parameter explicitly and rely on the default value logic. 
+                // Besides that, the negative case can only be covered manually because if we don't pass the expiry parameter, the command will hang there - waiting for input as the xPlat doesn't support pipeline now.
+                command = appendDateTimeOption(command, "--expiry", DateTime.UtcNow.AddHours(1));
+            }
+
+            if (protocol.HasValue)
+            {
+                command = appendStringOption(command, "--protocol", protocol.Value.ToString());
+            }
+            if (!string.IsNullOrEmpty(iPAddressOrRange))
+            {
+                command = appendStringOption(command, "--ip-range", iPAddressOrRange);
+            }
+
+            return RunNodeJSProcess(command);
         }
 
         public override string GetBlobSasFromCmd(string containerName, string blobName, string policy, string permission,
@@ -2943,7 +2972,7 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        internal string GetGeneralSASCmd(string command, string permission, DateTime? startTime, DateTime? expiryTime, string policy)
+        internal string GetGeneralSASCmd(string command, string permission, DateTime? startTime, DateTime? expiryTime, string policy, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             if (string.IsNullOrEmpty(policy))
             {
@@ -2972,6 +3001,14 @@ namespace Management.Storage.ScenarioTest
             }
 
             command = appendDateTimeOption(command, "--start", startTime);
+            if (protocol.HasValue)
+            {
+                command = appendStringOption(command, "--protocol", protocol.Value.ToString());
+            }
+            if (!string.IsNullOrEmpty(iPAddressOrRange))
+            {
+                command = appendStringOption(command, "--ip-range", iPAddressOrRange);
+            }
 
             return command;
         }
