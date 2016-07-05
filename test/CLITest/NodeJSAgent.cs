@@ -203,7 +203,7 @@ namespace Management.Storage.ScenarioTest
             }
             else
             {
-                argument = argument.Replace(DOUBLE_SPACE, "\"'  '\"");
+                argument = argument.Replace(DOUBLE_SPACE, "'\"  \"'");
             }
 
             p.StartInfo.Arguments += string.Format(" azure {0} {1} --json", category, argument);
@@ -530,7 +530,7 @@ namespace Management.Storage.ScenarioTest
                 else
                 {
                     // Double space to indicate the empty string which is a constrain on CLI
-                    return command + string.Format(" {0} \"  \" ", optionName);
+                    return command + string.Format(" {0} {1} ", optionName, DOUBLE_SPACE);
                 }
             }
 
@@ -1097,7 +1097,7 @@ namespace Management.Storage.ScenarioTest
         public override bool RemoveAzureStorageBlob(string blobName, string containerName, string snapshotId= "", string leaseId = null, bool? onlySnapshot = null, bool force = true)
         {
             string command = "blob delete";
-            command = appendStringOption(command, "", containerName);
+            command = appendStringOption(command, "", containerName, quoted: true);
             command = appendStringOption(command, "", blobName, quoted: true);
             if (!string.IsNullOrEmpty(snapshotId))
             {

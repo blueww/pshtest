@@ -163,7 +163,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 }
                 else
                 {
-                    ExpectedContainErrorMessage("Given  \"x\" is invalid, supported values are: r, w, d, l");
+                    ExpectedContainErrorMessage("Given  \"x\" is invalid, supported values are: r, a, c, w, d, l");
                 }
 
                 Test.Assert(!CommandAgent.NewAzureStorageContainerStoredAccessPolicy(container.Name, FileNamingGenerator.GenerateValidASCIIOptionValue(65), null, null, null), "Create stored access policy with invalid permission should fail");
@@ -647,7 +647,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 }
                 else
                 {
-                    ExpectedContainErrorMessage("Given  \"x\" is invalid, supported values are: r, w, d, l");
+                    ExpectedContainErrorMessage("Given  \"x\" is invalid, supported values are: r, a, c, w, d, l");
                 }
 
                 string invalidName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);

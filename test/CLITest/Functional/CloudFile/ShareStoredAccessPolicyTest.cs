@@ -147,7 +147,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
                 else
                 {
-                    ExpectedContainErrorMessage("Given  \"x\" is invalid, supported values are: r, w, d, l");
+                    ExpectedContainErrorMessage("Given  \"x\" is invalid, supported values are: r, c, w, d, l");
                 }
 
                 string longPolicyName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
@@ -559,7 +559,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
                 else
                 {
-                    errorMsg = "Given  \"x\" is invalid, supported values are: r, w, d, l";
+                    errorMsg = "Given  \"x\" is invalid, supported values are: r, c, w, d, l";
                 }
 
                 ExpectedContainErrorMessage(errorMsg);
