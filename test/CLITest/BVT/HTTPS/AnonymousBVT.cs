@@ -227,6 +227,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             PowerShellAgent psAgent = (PowerShellAgent)CommandAgent;
             string containerName = Utility.GenNameString(ContainerPrefix);
             CloudBlobContainer container = blobUtil.CreateContainer(containerName, BlobContainerPublicAccessType.Blob);
+            bool savedParamValue = psAgent.UseContextParam;
 
             try
             {
@@ -254,6 +255,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             }
             finally
             {
+                psAgent.UseContextParam = savedParamValue;
                 blobUtil.RemoveContainer(containerName);
             }
         }

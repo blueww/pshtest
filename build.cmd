@@ -19,11 +19,11 @@ if [%PRODUCT%] == [] GOTO :xPlat
 GOTO :END
 
 :xPlat
-#pushd .
-#CALL .\Xplat\tools\windows\scripts\prepareRepoClone.cmd
-#popd
-#msbuild /t:rebuild /p:Configuration=Release .\Xplat\tools\windows\azure-cli.sln
-#IF %ERRORLEVEL% NEQ 0 Exit /B %ERRORLEVEL%
+pushd .
+CALL .\Xplat\tools\windows\scripts\prepareRepoClone.cmd
+popd
+msbuild /t:rebuild /p:Configuration=Release .\Xplat\tools\windows\azure-cli.sln
+IF %ERRORLEVEL% NEQ 0 Exit /B %ERRORLEVEL%
 
 :END
 

@@ -50,6 +50,18 @@
             blobPermission = "d";
             GenerateSasTokenAndValidate(blobPermission);
 
+            // TODO: Enable it when xplat supports the permissions
+            if (lang == Language.PowerShell)
+            {
+                //Blob Create permission
+                blobPermission = "c";
+                GenerateSasTokenAndValidate(blobPermission);
+
+                //Blob append permission
+                blobPermission = "a";
+                GenerateSasTokenAndValidate(blobPermission);
+            }
+
             // Permission param is required according to the design, cannot accept string.Empty, so comment this. We may support this in the future.
             //None permission
             //blobPermission = "";
@@ -248,7 +260,7 @@
             {
                 //Blob read permission
                 string blobPermission = "r";
-                string limitedPermission = "wd";
+                string limitedPermission = lang == Language.PowerShell ? "wdac" : "wd";
                 string sastoken = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
                 ValidateLimitedSasPermission(blobUtil.Blob, limitedPermission, sastoken);
 
@@ -260,9 +272,24 @@
 
                 //Blob delete permission
                 blobPermission = "d";
-                limitedPermission = "rw";
+                limitedPermission = lang == Language.PowerShell ? "rwac" : "rw";
                 sastoken = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
                 ValidateLimitedSasPermission(blobUtil.Blob, limitedPermission, sastoken);
+
+                if (lang == Language.PowerShell)
+                {
+                    //Blob add permission
+                    blobPermission = "a";
+                    limitedPermission = "rdwc";
+                    sastoken = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
+                    ValidateLimitedSasPermission(blobUtil.Blob, limitedPermission, sastoken);
+
+                    //Blob create permission
+                    blobPermission = "c";
+                    limitedPermission = "rdwa";
+                    sastoken = CommandAgent.GetBlobSasFromCmd(blobUtil.Blob, string.Empty, blobPermission);
+                    ValidateLimitedSasPermission(blobUtil.Blob, limitedPermission, sastoken);
+                }
 
                 //Blob none permission
                 //blobPermission = "";
@@ -405,6 +432,12 @@
                     case 'd':
                         blobUtil.ValidateBlobDeleteableWithSasToken(blob, sasToken);
                         break;
+                    case 'c':
+                        blobUtil.ValidateBlobCreateableWithSasToken(blob, sasToken);
+                        break;
+                    case 'a':
+                        blobUtil.ValidateBlobAppendableWithSasToken(blob, sasToken);
+                        break;
                 }
             }
         }
@@ -418,22 +451,25 @@
         internal void ValidateLimitedSasPermission(CloudBlob blob,
             string limitedPermission, string sasToken)
         {
-            try
+            foreach (char permission in limitedPermission.ToLower())
             {
-                ValidateSasToken(blob, limitedPermission, sasToken);
-                Test.Error("sastoken '{0}' should not contain the permission {1}", limitedPermission);
-            }
-            catch (StorageException e)
-            {
-                Test.Info(e.Message);
-                if (403 == e.RequestInformation.HttpStatusCode || 404 == e.RequestInformation.HttpStatusCode)
+                try
                 {
-                    Test.Info("Limited permission sas token should not access storage objects. {0}", e.RequestInformation.HttpStatusMessage);
+                    ValidateSasToken(blob, permission.ToString(), sasToken);
+                    Test.Error("sastoken '{0}' should not contain the permission {1}", sasToken, permission.ToString());
                 }
-                else
+                catch (StorageException e)
                 {
-                    Test.Error("Limited permission sas token should return 403 or 404, but actually it's {0} {1}",
-                        e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage);
+                    Test.Info(e.Message);
+                    if (403 == e.RequestInformation.HttpStatusCode)
+                    {
+                        Test.Info("Limited permission sas token should not access storage objects. {0}", e.RequestInformation.HttpStatusMessage);
+                    }
+                    else
+                    {
+                        Test.Error("Limited permission sas token should return 403, but actually it's {0} {1}",
+                            e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage);
+                    }
                 }
             }
         }

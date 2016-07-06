@@ -10,6 +10,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.File;
 using MS.Test.Common.MsTestLib;
+using Newtonsoft.Json.Linq;
 using StorageTestLib;
 using StorageFile = Microsoft.WindowsAzure.Storage.File;
 
@@ -328,7 +329,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string copyId = null;
                 if (lang == Language.NodeJS)
                 {
-                    copyId = CommandAgent.Output[0]["copyId"] as string;
+                    copyId = ((JObject)CommandAgent.Output[0]["copy"])["id"].ToString();
                 }
 
                 NodeJSAgent.AgentConfig.ConnectionString = StorageAccount.ToString(true);

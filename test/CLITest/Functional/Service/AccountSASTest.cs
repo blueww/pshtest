@@ -30,6 +30,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void AccountSASWithFullPermission()
         {
             string sasToken = GenerateAndValidateAccountSAS(
@@ -42,16 +43,39 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void AccountSASWithRandomParameters()
         {
-            SharedAccessAccountServices randomService = (SharedAccessAccountServices)TestBase.random.Next(0, 15);
-            SharedAccessAccountResourceTypes randomResourceType = (SharedAccessAccountResourceTypes)TestBase.random.Next(0, 7);
+            SharedAccessAccountServices randomService;
+            if (lang == Language.PowerShell)
+            {
+                randomService = (SharedAccessAccountServices) TestBase.random.Next(0, 15);
+            }
+            else
+            {
+                randomService = (SharedAccessAccountServices)TestBase.random.Next(1, 15);
+            }
+
+            SharedAccessAccountResourceTypes randomResourceType;
+            if (lang == Language.PowerShell)
+            {
+                randomResourceType = (SharedAccessAccountResourceTypes) TestBase.random.Next(0, 7);
+            }
+            else
+            {
+                randomResourceType = (SharedAccessAccountResourceTypes)TestBase.random.Next(1, 7);
+            }
             string randomPermission = string.Empty;
 
             foreach (char p in AccountSASUtils.fullPermission)
             {
                 if (TestBase.random.NextDouble() >= 0.5)
                     randomPermission += p;
+            }
+
+            if (lang == Language.NodeJS && string.IsNullOrEmpty(randomPermission))
+            {
+                randomPermission = "r";
             }
             
             SharedAccessProtocol? randomProtocol = null;            
@@ -90,6 +114,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void AccountSAS_File_Container_w()
         {
             SharedAccessAccountServices service = SharedAccessAccountServices.File;
@@ -129,6 +154,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void AccountSAS_HttpsOnly()
         {
             string sasToken = GenerateAndValidateAccountSAS(
@@ -153,6 +179,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void AccountSAS_NotCurrentIP()
         {
             string sasToken = GenerateAndValidateAccountSAS(
@@ -181,6 +208,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void AccountSAS_IncludeIPRange()
         {
             string sasToken = GenerateAndValidateAccountSAS(
@@ -202,6 +230,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void AccountSAS_ExcludeIPRange()
         {
             string sasToken = GenerateAndValidateAccountSAS(
@@ -228,6 +257,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void AccountSAS_File_Container_LimitTime()
         {
             string sasToken = GenerateAndValidateAccountSAS(
@@ -241,6 +271,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
         public void AccountSAS_InvalidParameter()
         {
             SharedAccessAccountServices service = SharedAccessAccountServices.Blob | SharedAccessAccountServices.File | SharedAccessAccountServices.Queue | SharedAccessAccountServices.Table;
@@ -260,7 +291,8 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             }
             else
             {
-                ExpectedContainErrorMessage("Invalid value: x.");
+
+                ExpectedContainErrorMessage("Given  \"x\" is invalid");
             }
 
             //repeated permission - success
@@ -276,7 +308,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             }
             else
             {
-                ExpectedContainErrorMessage("Invalid iPAddressOrRange");
+                ExpectedContainErrorMessage("Invalid ip range format");
             }
             Test.Assert(!CommandAgent.NewAzureStorageAccountSAS(
                 service, resourceType, permission, sasProtocal, "123.4.5.6_125.6.7.8", null, null), "Set stored access policy with invalid iPAddressOrRange should fail");
@@ -286,7 +318,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             }
             else
             {
-                ExpectedContainErrorMessage("Invalid iPAddressOrRange");
+                ExpectedContainErrorMessage("Invalid ip range format");
             }
 
             //success: start IP > end IP
@@ -296,14 +328,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             //Start time > expire Time
             Test.Assert(!CommandAgent.NewAzureStorageAccountSAS(
                 service, resourceType, permission, sasProtocal, iPAddressOrRange, DateTime.Now.AddMinutes(5), DateTime.Now.AddMinutes(-5)), "Set stored access policy with invalid Start Time should fail");
-            if (lang == Language.PowerShell)
-            {
-                ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time.");
-            }
-            else
-            {
-                ExpectedContainErrorMessage("Invalid Time");
-            }
+            ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
         }
 
 
@@ -318,10 +343,19 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             Test.Assert(CommandAgent.NewAzureStorageAccountSAS(
                 service, resourceType, permission, protocol, iPAddressOrRange, startTime, expiryTime), "Should succeeded in generating an account sas with full permissions, services and resource types");
 
+            string sasToken;
+            if (lang == Language.PowerShell)
+            {
+                sasToken = CommandAgent.Output[0][Constants.SASTokenKey].ToString();
+            }
+            else
+            {
+                sasToken = "?" + CommandAgent.Output[0][Constants.SASTokenKeyNode];
+            }
             AccountSASUtils.ValidateAccountSAS(
-                service, resourceType, permission, protocol, iPAddressOrRange, startTime, expiryTime, CommandAgent.Output[0][Constants.SASTokenKey].ToString());
+                service, resourceType, permission, protocol, iPAddressOrRange, startTime, expiryTime, sasToken);
 
-            return CommandAgent.Output[0][Constants.SASTokenKey].ToString();
+            return sasToken;
         }
     }
 }

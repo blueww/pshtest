@@ -1,4 +1,6 @@
-﻿namespace Management.Storage.ScenarioTest.BVT
+﻿using Newtonsoft.Json.Linq;
+
+namespace Management.Storage.ScenarioTest.BVT
 {
     using System;
     using System.Collections.Generic;
@@ -185,6 +187,7 @@
         /// BVT case 5.7.1 using parameter set FileShareName
         /// </summary>
         [TestMethod]
+        [TestCategory(Tag.BVT)]
         [TestCategory(CLITag.NodeJSBVT)]
         public void ListFileTest_FileShareNameParameterSet()
         {
@@ -201,7 +204,15 @@
 
             try
             {
-                CommandAgent.GetFile(fileShare.Name, dirName);
+                if (Language.PowerShell == lang)
+                {
+                    CommandAgent.GetFile(fileShare.Name, dirName);
+                    CommandAgent.GetFile();
+                }
+                else //NodeJS
+                {
+                    CommandAgent.GetFile(fileShare.Name, dirName);
+                }
 
                 var result = CommandAgent.Invoke();
 
@@ -1002,7 +1013,7 @@
                 string copyId = null;
                 if (lang == Language.NodeJS)
                 {
-                    copyId = CommandAgent.Output[0]["copyId"] as string;
+                    copyId = ((JObject)CommandAgent.Output[0]["copy"])["id"].ToString();
                 }
 
                 Test.Assert(CommandAgent.StopAzureStorageBlobCopy(destContainerName, blob.Name, copyId, true), "Stop blob copy should succeed.");
@@ -1093,7 +1104,7 @@
                 string copyId = null;
                 if (lang == Language.NodeJS)
                 {
-                    copyId = CommandAgent.Output[0]["copyId"] as string;
+                    copyId = ((JObject)CommandAgent.Output[0]["copy"])["id"].ToString();
                 }
                 Test.Assert(CommandAgent.StopFileCopy(shareName, fileName, copyId), "Stop file copy should succeed.");
 
@@ -1108,7 +1119,7 @@
 
                 if (lang == Language.NodeJS)
                 {
-                    copyId = CommandAgent.Output[0]["copyId"] as string;
+                    copyId = ((JObject)CommandAgent.Output[0]["copy"])["id"].ToString();
                 }
                 Test.Assert(CommandAgent.StopFileCopy(file, copyId), "Stop file copy should succeed.");
 

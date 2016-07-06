@@ -42,7 +42,7 @@
         {
             DateTime? expiryTime = DateTime.Today.AddDays(10);
             DateTime? startTime = DateTime.Today.AddDays(-2);
-            string permission = "raup";
+            string permission = Utility.GenFullPermissions(Constants.ResourceType.Queue);
             string queueName = Utility.GenNameString("queue");
 
             try
@@ -141,7 +141,7 @@
                 }
                 else
                 {
-                    ExpectedContainErrorMessage("Invalid value: x. Options are: r,a,u,p");
+                    ExpectedContainErrorMessage("Given  \"x\" is invalid, supported values are: r, a, u, p");
                 }
 
                 Test.Assert(!CommandAgent.NewAzureStorageQueueStoredAccessPolicy(queue.Name, FileNamingGenerator.GenerateValidASCIIOptionValue(65), null, null, null), "Create stored access policy with invalid name length should fail");
@@ -206,7 +206,14 @@
                 Test.Assert(CommandAgent.GetAzureStorageQueueStoredAccessPolicy(queue.Name, null),
                     "Get stored access policy in queue should succeed");
                 Test.Info("Get stored access policy");
-                Assert.IsTrue(CommandAgent.Output.Count == 0);
+                if (lang == Language.PowerShell)
+                {
+                    Assert.IsTrue(CommandAgent.Output.Count == 0);
+                }
+                else
+                {
+                    Assert.IsTrue(CommandAgent.Output[0].Count == 0);
+                }
 
                 //get all policies
                 List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessQueuePolicy>();
@@ -221,7 +228,14 @@
                 Test.Assert(CommandAgent.GetAzureStorageQueueStoredAccessPolicy(queue.Name, null),
                     "Get stored access policy in table should succeed");
                 Test.Info("Get stored access policy");
-                CommandAgent.OutputValidation(comp);
+                if (lang == Language.PowerShell)
+                {
+                    CommandAgent.OutputValidation(comp);
+                }
+                else
+                {
+                    Test.Assert(comp.Count == CommandAgent.Output[0].Count, "Comparison size: {0} = {1} Output size", comp.Count, CommandAgent.Output[0].Count);
+                }
             }
             finally
             {
@@ -374,7 +388,7 @@
             DateTime? startTime1 = DateTime.Today.AddDays(-2);
             DateTime? expiryTime2 = DateTime.Today.AddDays(11);
             DateTime? startTime2 = DateTime.Today.AddDays(-1);
-            string permission = "raup";
+            string permission = Utility.GenFullPermissions(Constants.ResourceType.Queue);
             string policyName = Utility.GenNameString("p", 0);
             Utility.RawStoredAccessPolicy policy1 = new Utility.RawStoredAccessPolicy(policyName, startTime1, expiryTime1, permission);
             Utility.RawStoredAccessPolicy policy2 = new Utility.RawStoredAccessPolicy(policyName, startTime2, expiryTime2, permission);
@@ -519,7 +533,7 @@
                 }
                 else
                 {
-                    ExpectedContainErrorMessage("Invalid value: x. Options are: r,a,u,p");
+                    ExpectedContainErrorMessage("Given  \"x\" is invalid, supported values are: r, a, u, p");
                 }
 
                 string invalidName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
@@ -555,14 +569,7 @@
 
                 queueUtil.RemoveQueue(queue);
                 Test.Assert(!CommandAgent.SetAzureStorageTableStoredAccessPolicy(queue.Name, Utility.GenNameString("p", 5), null, null, null), "Set stored access policy against non-existing queue should fail");
-                if (lang == Language.PowerShell)
-                {
-                    ExpectedContainErrorMessage("does not exist");
-                }
-                else
-                {
-                    ExpectedContainErrorMessage("Reason:");
-                }
+                ExpectedContainErrorMessage("does not exist");
             }
             finally
             {

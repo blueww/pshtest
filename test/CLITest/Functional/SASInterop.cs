@@ -145,7 +145,7 @@
                     destContext = StorageAccount;
                 }
 
-                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(blobUtil.ContainerName, blobUtil.Blob.Name, blobUtil.ContainerName, copiedName, destContext),
+                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(blobUtil.ContainerName, blobUtil.Blob.Name, blobUtil.ContainerName, copiedName, destContext: destContext),
                     string.Format("Copy blob {0} in container {1} to blob {2} in container {3} should succeed",
                     blobUtil.Blob.Name, blobUtil.ContainerName, blobUtil.ContainerName, copiedName));
             }
