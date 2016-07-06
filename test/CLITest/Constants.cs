@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using MS.Test.Common.MsTestLib;
 
 namespace Management.Storage.ScenarioTest
 {
@@ -33,9 +35,9 @@ namespace Management.Storage.ScenarioTest
         };
 
         public static readonly string[] AccountTypes = { AccountType.Standard_LRS, 
-                                                           AccountType.Standard_ZRS, 
-                                                           AccountType.Standard_GRS, 
+                                                           AccountType.Standard_GRS,
                                                            AccountType.Standard_RAGRS, 
+                                                           AccountType.Standard_ZRS,  
                                                            AccountType.Premium_LRS };
 
         public struct Location
@@ -44,6 +46,7 @@ namespace Management.Storage.ScenarioTest
             public const string SouthCentralUS = "South Central US";
             public const string EastUS = "East US";
             public const string EastUS2 = "East US 2";
+            public const string EastUS2Stage = "East US 2 (Stage)";
             public const string CentralUS = "Central US";
             public const string NorthEurope = "North Europe";
             public const string WestEurope = "West Europe";
@@ -67,18 +70,20 @@ namespace Management.Storage.ScenarioTest
                                                         Location.SoutheastAsia,
                                                         Location.EastAsia };
 
-        public static readonly string[] SRPLocations = { Location.WestUS,
-                                                        Location.EastUS,
-                                                        Location.SoutheastAsia,
-                                                        Location.EastAsia,
-                                                        Location.WestEurope,
-                                                        Location.NorthEurope };
+        public static readonly string[] SRPLocations = { Location.EastUS2Stage};
+                                                        //Will add them back when E@R and XCool is enabled in product
+                                                        //{ Location.WestUS,
+                                                        //Location.EastUS,
+                                                        //Location.SoutheastAsia,
+                                                        //Location.EastAsia,
+                                                        //Location.WestEurope,
+                                                        //Location.NorthEurope };
 
         public static readonly string[] MCLocations = { MCLocation.ChinaEast,
                                                         MCLocation.ChinaNorth };
 
         /// <summary>
-        /// used for Set/Get Service Properties
+        /// used for Set/Get Service types
         /// </summary>
         public enum ServiceType
         {
@@ -88,6 +93,29 @@ namespace Management.Storage.ScenarioTest
             File,
             InvalidService
         };
+
+        /// <summary>
+        /// used for Set/Get resource types
+        /// </summary>
+        public enum ResourceType
+        {
+            Account,
+            Container,
+            Blob,
+            Queue,
+            Message,
+            Table,
+            Entity,
+            Share,
+            Directory,
+            File,
+            InvalidResource
+        };
+
+        public enum EncryptionSupportServiceEnum
+        {
+            Blob = 1
+        }
 
         /// <summary>
         /// used for Set/Get Metrics Properties
@@ -115,14 +143,52 @@ namespace Management.Storage.ScenarioTest
         public const string PAGE_BLOB_UNIT = "G_PAGE";
         public const string FILE_UNIT = "G_FILE";
 
-        public readonly static string[] ResourceModulePaths = {"ResourceManager\\AzureResourceManager\\AzureRM.Profile\\AzureRM.Profile.psd1",
-                                                    "ResourceManager\\AzureResourceManager\\Azure.Storage\\Azure.Storage.psd1",
-                                                    "ResourceManager\\AzureResourceManager\\AzureRM.Storage\\AzureRM.Storage.psd1"};
+        public readonly static string[] ResourceModulePaths;
 
-        public const string ServiceModulePath = "ServiceManagement\\Azure\\Azure.psd1";
+        public readonly static string[] ServiceModulePaths;
 
         public const int Iterations = 5; 
         
         public const int DefaultMaxWaitingTime = 900000;  // in miliseconds, increased from 600s to 900s due to AppendBlob. It should be less than the default timeout value of mstest2, which is 3600s for now.
+
+        static Constants()
+        {
+            string isPowerShellGet = Test.Data.Get("IsPowerShellGet");
+
+            if (string.IsNullOrEmpty(isPowerShellGet) || bool.Parse(isPowerShellGet))
+            {
+                ResourceModulePaths = new string[]
+                    {
+                        "AzureRM.Profile",
+                        "Azure.Storage",
+                        "AzureRM.Storage"
+                    };
+
+                ServiceModulePaths = new string[]
+                    {
+                        "AzureRM.Profile",
+                        "Azure.Storage",
+                        "Azure"
+                    };
+            }
+            else
+            {
+                string moduleFileFolder = Test.Data.Get("ModuleFileFolder");
+                if (null == moduleFileFolder)
+                {
+                    moduleFileFolder = string.Empty;
+                }
+
+                ResourceModulePaths = new string[] {
+                        Path.Combine(moduleFileFolder, "ResourceManager\\AzureResourceManager\\AzureRM.Profile\\AzureRM.Profile.psd1"),
+                        Path.Combine(moduleFileFolder, "Storage\\Azure.Storage\\Azure.Storage.psd1"),
+                        Path.Combine(moduleFileFolder, "ResourceManager\\AzureResourceManager\\AzureRM.Storage\\AzureRM.Storage.psd1") };
+
+                ServiceModulePaths = new string[] {
+                        Path.Combine(moduleFileFolder, "ResourceManager\\AzureResourceManager\\AzureRM.Profile\\AzureRM.Profile.psd1"),
+                        Path.Combine(moduleFileFolder, "Storage\\Azure.Storage\\Azure.Storage.psd1"),
+                        Path.Combine(moduleFileFolder, "ServiceManagement\\Azure\\Azure.psd1") };
+            }
+        }
     }
 }

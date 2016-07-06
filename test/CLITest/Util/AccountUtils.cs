@@ -12,6 +12,7 @@
     using MS.Test.Common.MsTestLib;
     using SRPManagement = Microsoft.Azure.Management.Storage;
     using SRPModel = Microsoft.Azure.Management.Storage.Models;
+    using Microsoft.Rest.Azure;
 
     public class AccountUtils
     {
@@ -19,26 +20,41 @@
         private static Tuple<int, int> ValidNameRange = new Tuple<int, int>((int)'a', (int)'z');
         private static Random random = new Random();
 
+        private SRPManagement.StorageManagementClient srpStorageClient;
+        private DateTime srpStorageClientLastUpdatedTime;
+
+
         public SRPManagement.StorageManagementClient SRPStorageClient
         {
-            get;
-            private set;
+            get
+            {
+                if (srpStorageClient != null && DateTime.Now - srpStorageClientLastUpdatedTime <= TimeSpan.FromMinutes(30))
+                {
+                    return srpStorageClient;
+                }
+
+                var tempSrpStorageClient = new SRPManagement.StorageManagementClient(Utility.GetTokenCredential())
+                {
+                    SubscriptionId = Test.Data.Get("AzureSubscriptionID")
+                };
+
+                Interlocked.Exchange(ref srpStorageClient, tempSrpStorageClient);
+                srpStorageClientLastUpdatedTime = DateTime.Now;
+
+                return srpStorageClient;
+            }
         }
 
-        public StorageManagementClient StorageClient
-        {
-            get;
-            private set;
-        }
+        public StorageManagementClient StorageClient { get; private set; }
 
         private Language language = Language.PowerShell;
 
         public AccountUtils(Language language, bool isResourceMode)
         {
+            this.language = language;
             if (isResourceMode)
             {
                 StorageClient = new StorageManagementClient(Utility.GetCertificateCloudCredential());
-                SRPStorageClient = new SRPManagement.StorageManagementClient(Utility.GetTokenCloudCredential());
             }
             else
             {
@@ -46,8 +62,6 @@
                 StorageClient = new StorageManagementClient(Utility.GetCertificateCloudCredential(),
                     environment.GetEndpointAsUri(AzureEnvironment.Endpoint.ServiceManagement));
             }
-
-            this.language = language;
         }
 
         public string GenerateAccountName(int nameLength = 0)
@@ -135,23 +149,47 @@
             return type;
         }
 
-        public void ValidateSRPAccount(string resourceGroupName, string accountName, string location, string accountType, Hashtable[] tags = null)
+        public void ValidateSRPAccount(string resourceGroupName, 
+            string accountName, 
+            string location,       
+            string skuName,
+            Hashtable[] tags = null,
+            Kind kind  = Kind.Storage,
+            AccessTier? accessTier = null,
+            string customDomain = null,
+            bool? useSubdomain = null,
+            Constants.EncryptionSupportServiceEnum? enableEncryptionService = null)
         {
-            SRPModel.StorageAccountGetPropertiesResponse response = this.SRPStorageClient.StorageAccounts.GetPropertiesAsync(resourceGroupName, accountName, CancellationToken.None).Result;
-            Test.Assert(response.StatusCode == HttpStatusCode.OK, string.Format("Account {0} should be created successfully.", accountName));
 
-            SRPModel.StorageAccount account = response.StorageAccount;
+            AzureOperationResponse<SRPModel.StorageAccount> response = this.SRPStorageClient.StorageAccounts.GetPropertiesWithHttpMessagesAsync(resourceGroupName, accountName).Result;
+            Test.Assert(response.Response.StatusCode == HttpStatusCode.OK, string.Format("Account {0} should be created successfully.", accountName));
+
+            SRPModel.StorageAccount account = response.Body;
             Test.Assert(accountName == account.Name, string.Format("Expected account name is {0} and actually it is {1}", accountName, account.Name));
 
-            Test.Assert(this.mapAccountType(Constants.AccountTypes[(int)account.AccountType]).Equals(accountType),
-                string.Format("Expected account type is {0} and actually it is {1}", accountType, account.AccountType));
+            Test.Assert(this.mapAccountType(Constants.AccountTypes[(int)account.Sku.Name]).Equals(skuName),
+                string.Format("Expected account type is {0} and actually it is {1}", skuName, account.Sku.Name));
 
             if (!string.IsNullOrEmpty(location))
             {
                 Test.Assert(location.Replace(" ", "").ToLower() == account.Location, string.Format("Expected location is {0} and actually it is {1}", location, account.Location));
             }
+            Test.Assert(kind == account.Kind, string.Format("Kind should match: {0} == {1}", kind, account.Kind));
+            Test.Assert(accessTier == account.AccessTier, string.Format("AccessTier should match: {0} == {1}", accessTier, account.AccessTier));
+            if (customDomain == null)
+            {
+                Test.Assert(account.CustomDomain == null, string.Format("CustomDomain should match: {0} == {1}", customDomain, account.CustomDomain));
+            }
+            else
+            {
+                Test.Assert(customDomain == account.CustomDomain.Name, string.Format("CustomDomain should match: {0} == {1}", customDomain, account.CustomDomain.Name));
 
+                // UseSubDomain is only for set, and won't be return in get
+                Test.Assert(account.CustomDomain.UseSubDomain == null, string.Format("UseSubDomain should match: {0} == {1}", customDomain, account.CustomDomain.UseSubDomain));
+            }
+    
             this.ValidateTags(tags, account.Tags);
+            ValidateServiceEncrption(account.Encryption, enableEncryptionService);
         }
         
         public void ValidateTags(Hashtable[] originTags, IDictionary<string, string> targetTags)
@@ -169,6 +207,21 @@
                     "Tag {0} should exist", sourceTag["Name"]);
                 Test.Assert(string.Equals(tagValue, sourceTag["Value"].ToString()),
                     "Tag value should be the same. Expect: {0}, actual is: {1}", sourceTag["Value"].ToString(), tagValue);
+            }
+        }
+        public void ValidateServiceEncrption(Encryption accountEncryption, Constants.EncryptionSupportServiceEnum? blobEncrptionIsEnabled)
+        {
+            if (blobEncrptionIsEnabled == null || blobEncrptionIsEnabled != Constants.EncryptionSupportServiceEnum.Blob)
+            {
+                Test.Assert(accountEncryption == null 
+                    || accountEncryption.Services == null
+                    || accountEncryption.Services.Blob == null
+                    || accountEncryption.Services.Blob.Enabled == null
+                    || accountEncryption.Services.Blob.Enabled.Value == false, "The Blob Encrption should be disabled.");
+            }
+            else
+            {
+                Test.Assert(accountEncryption.Services.Blob.Enabled.Value == true, "The Blob Encrption should be enabled.");
             }
         }
 
@@ -208,7 +261,7 @@
 
         public class CheckNameAvailabilityResponse
         {
-            public bool NameAvailable { get; set; }
+            public bool? NameAvailable { get; set; }
 
             public Reason? Reason { get; set; }
 
@@ -236,13 +289,12 @@
                 return response;
             }
 
-            public static CheckNameAvailabilityResponse Create(SRPModel.CheckNameAvailabilityResponse rawResponse)
+            public static CheckNameAvailabilityResponse Create(CheckNameAvailabilityResult rawResponse)
             {
                 CheckNameAvailabilityResponse response = new CheckNameAvailabilityResponse();
                 response.NameAvailable = rawResponse.NameAvailable;
                 response.Message = rawResponse.Message;
                 response.Reason = rawResponse.Reason;
-                response.RequestId = rawResponse.RequestId;
 
                 return response;
             }

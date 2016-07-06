@@ -25,6 +25,7 @@ using StorageTestLib;
 using StorageBlobType = Microsoft.WindowsAzure.Storage.Blob.BlobType;
 using StorageBlob = Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Shared.Protocol;
+using System.Threading.Tasks;
 
 namespace Management.Storage.ScenarioTest.Util
 {
@@ -199,10 +200,15 @@ namespace Management.Storage.ScenarioTest.Util
         /// remove specified container
         /// </summary>
         /// <param name="containerName">container name</param>
-        public void RemoveContainer(string containerName)
+        public void RemoveContainer(string containerName, string leaseId = null)
         {
             CloudBlobContainer container = client.GetContainerReference(containerName);
-            container.DeleteIfExists();
+            AccessCondition condition = new AccessCondition();
+            if (!string.IsNullOrEmpty(leaseId))
+            {
+                condition.LeaseId = leaseId;
+            }
+            container.DeleteIfExists(condition);
             Test.Info(string.Format("remove container '{0}'", containerName));
         }
 
@@ -256,6 +262,33 @@ namespace Management.Storage.ScenarioTest.Util
             using (MemoryStream ms = new MemoryStream(buffer))
             {
                 pageBlob.UploadFromStream(ms);
+            }
+
+            string md5sum = Convert.ToBase64String(Helper.GetMD5(buffer));
+            pageBlob.Properties.ContentMD5 = md5sum;
+            GenerateBlobPropertiesAndMetaData(pageBlob);
+            Test.Info(string.Format("create page blob '{0}' in container '{1}', md5 = {2}", blobName, container.Name, md5sum));
+            return pageBlob;
+        }
+
+        /// <summary>
+        /// create a new page blob with random properties and metadata
+        /// </summary>
+        /// <param name="container">CloudBlobContainer object</param>
+        /// <param name="blobName">blob name</param>
+        /// <returns>CloudBlob object</returns>
+        public async Task<CloudBlob> CreatePageBlobAsync(CloudBlobContainer container, string blobName, CancellationToken cancellationToken, bool createBigBlob = false)
+        {
+            CloudPageBlob pageBlob = container.GetPageBlobReference(blobName);
+            int size = (createBigBlob ? random.Next(102400, 204800) : random.Next(1, 10)) * PageBlobUnitSize;
+            pageBlob.Create(size);
+
+            byte[] buffer = new byte[size];
+            // fill in random data
+            random.NextBytes(buffer);
+            using (MemoryStream ms = new MemoryStream(buffer))
+            {
+                await pageBlob.UploadFromStreamAsync(ms, cancellationToken);
             }
 
             string md5sum = Convert.ToBase64String(Helper.GetMD5(buffer));
@@ -471,6 +504,21 @@ namespace Management.Storage.ScenarioTest.Util
                     return container.GetAppendBlobReference(blobName);
                 default:
                     throw new InvalidOperationException(string.Format("Invalid blob type: {0}", randomValue));
+            }
+        }
+
+        public CloudBlob GetBlobReference(CloudBlobContainer container, string blobName, StorageBlobType type, DateTimeOffset? snapshotTime = null)
+        {
+            switch (type)
+            {
+                case StorageBlobType.PageBlob:
+                    return container.GetPageBlobReference(blobName, snapshotTime);
+                case StorageBlobType.BlockBlob:
+                    return container.GetBlockBlobReference(blobName, snapshotTime);
+                case StorageBlobType.AppendBlob:
+                    return container.GetAppendBlobReference(blobName, snapshotTime);
+                default:
+                    throw new InvalidOperationException(string.Format("Invalid blob type: {0}", type));
             }
         }
 
@@ -740,10 +788,66 @@ namespace Management.Storage.ScenarioTest.Util
             CloudPageBlob pageblob = sasContainer.GetPageBlobReference(blobName);
             long blobSize = 1024 * 1024;
             pageblob.Create(blobSize);
+
+            long buffSize = 1024 * 1024;
+            byte[] buffer = new byte[buffSize];
+            random.NextBytes(buffer);
+            MemoryStream ms = new MemoryStream(buffer);
+            pageblob.UploadFromStream(ms);
+
             CloudBlob retrievedBlob = StorageExtensions.GetBlobReferenceFromServer(container, blobName);
             Test.Assert(retrievedBlob != null, "Page blob should exist on server");
             TestBase.ExpectEqual(StorageBlobType.PageBlob.ToString(), retrievedBlob.BlobType.ToString(), "blob type");
             TestBase.ExpectEqual(blobSize, retrievedBlob.Properties.Length, "blob size");
+        }
+
+        /// <summary>
+        /// Expect sas token has the Create permission for the specified container.
+        /// </summary>
+        internal void ValidateContainerCreateableWithSasToken(CloudBlobContainer container, string sastoken)
+        {
+            Test.Info("Verify container Create permission");
+            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(container.ServiceClient.Credentials.AccountName, sastoken);
+            CloudBlobClient sasBlobClient = sasAccount.CreateCloudBlobClient();
+            CloudBlobContainer sasContainer = sasBlobClient.GetContainerReference(container.Name);
+            if (!container.Exists())
+            {
+                sasContainer.Create();
+                Test.Assert(sasContainer.Exists(), "The container should  exist after Creating with sas token");
+            }
+            string blobName = Utility.GenNameString("saspageblob");
+            CloudPageBlob pageblob = sasContainer.GetPageBlobReference(blobName);
+            long blobSize = 1024 * 1024;
+            pageblob.Create(blobSize);
+            CloudBlob retrievedBlob = StorageExtensions.GetBlobReferenceFromServer(container, blobName);
+            Test.Assert(retrievedBlob != null, "Page blob should exist on server");
+            TestBase.ExpectEqual(StorageBlobType.PageBlob.ToString(), retrievedBlob.BlobType.ToString(), "blob type");
+            TestBase.ExpectEqual(blobSize, retrievedBlob.Properties.Length, "blob size");
+        }
+
+        /// <summary>
+        /// Expect sas token has the Append permission for the specified container.
+        /// </summary>
+        internal void ValidateContainerAppendableWithSasToken(CloudBlobContainer container, string sastoken)
+        {
+            Test.Info("Verify container Append permission");
+            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(container.ServiceClient.Credentials.AccountName, sastoken);
+            CloudBlobClient sasBlobClient = sasAccount.CreateCloudBlobClient();
+            CloudBlobContainer sasContainer = sasBlobClient.GetContainerReference(container.Name);
+            string blobName = Utility.GenNameString("sasAppendblob");
+            CloudAppendBlob appendblob = sasContainer.GetAppendBlobReference(blobName);
+            container.GetAppendBlobReference(blobName).CreateOrReplace();
+
+            long buffSize = 1024 * 1024;
+            byte[] buffer = new byte[buffSize];
+            random.NextBytes(buffer);
+            MemoryStream ms = new MemoryStream(buffer);
+            appendblob.AppendBlock(ms);
+
+            CloudBlob retrievedBlob = StorageExtensions.GetBlobReferenceFromServer(container, blobName);
+            Test.Assert(retrievedBlob != null, "Append blob should exist on server");
+            TestBase.ExpectEqual(StorageBlobType.AppendBlob.ToString(), retrievedBlob.BlobType.ToString(), "blob type");
+            TestBase.ExpectEqual(buffSize, retrievedBlob.Properties.Length, "blob size");
         }
 
         /// <summary>
@@ -801,6 +905,7 @@ namespace Management.Storage.ScenarioTest.Util
             random.NextBytes(buffer);
             MemoryStream ms = new MemoryStream(buffer);
             sasBlob.UploadFromStream(ms);
+            sasBlob.UploadFromStream(ms);
             cloudBlob.FetchAttributes();
             DateTimeOffset? newModifiedTime = cloudBlob.Properties.LastModified;
             //We don't have the permission to set the content-md5
@@ -813,10 +918,91 @@ namespace Management.Storage.ScenarioTest.Util
         internal void ValidateBlobDeleteableWithSasToken(CloudBlob cloudBlob, string sasToken)
         {
             Test.Info("Verify blob delete permission");
-            Test.Assert(cloudBlob.Exists(), "The blob should exist");
+            if (!cloudBlob.Exists())
+            {
+                cloudBlob = CreateRandomBlob(cloudBlob.Container, cloudBlob.Name, cloudBlob.Properties.BlobType);
+            }
             CloudBlob sasBlob = GetCloudBlobBySasToken(cloudBlob, sasToken);
             sasBlob.Delete();
             Test.Assert(!cloudBlob.Exists(), "The blob should not exist after deleting with sas token");
+        }
+
+        /// <summary>
+        /// Validate the Create permission in the sas token for the the specified blob
+        /// </summary>
+        internal void ValidateBlobCreateableWithSasToken(CloudBlob cloudBlob, string sasToken, bool useHttps = true)
+        {
+            Test.Info("Verify blob Create permission");
+            cloudBlob.DeleteIfExists();
+            CloudPageBlob pageblob;
+            if (cloudBlob.BlobType != StorageBlobType.PageBlob)
+            {
+                pageblob = cloudBlob.Parent.GetPageBlobReference(cloudBlob.Name);
+            }
+            else
+            {
+                pageblob = (CloudPageBlob)cloudBlob;
+            }
+            try
+            {
+                CloudBlob sasBlob = GetCloudBlobBySasToken((CloudBlob)pageblob, sasToken, useHttps);
+
+                ((CloudPageBlob)sasBlob).Create(512);
+                Test.Assert(pageblob.Exists(), "The blob should  exist after creating with sas token");
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                pageblob.DeleteIfExists();
+                cloudBlob = CreateRandomBlob(cloudBlob.Container, cloudBlob.Name, cloudBlob.Properties.BlobType);
+            }
+        }
+
+        /// <summary>
+        /// Validate the Append permission in the sas token for the the specified blob
+        /// </summary>
+        internal void ValidateBlobAppendableWithSasToken(CloudBlob cloudBlob, string sasToken, bool useHttps = true)
+        {
+            Test.Info("Verify blob Append permission");
+
+            long buffSize = 1024 * 1024;
+            byte[] buffer = new byte[buffSize];
+            random.NextBytes(buffer);
+            MemoryStream ms = new MemoryStream(buffer);
+            CloudAppendBlob appendblob;
+            if (cloudBlob.BlobType != StorageBlobType.AppendBlob)
+            {
+                cloudBlob.DeleteIfExists();
+                appendblob = cloudBlob.Parent.GetAppendBlobReference(cloudBlob.Name);
+            }
+            else
+            {
+                appendblob = (CloudAppendBlob)cloudBlob;
+            }
+            try
+            {
+                appendblob.CreateOrReplace();
+                CloudBlob sasBlob = GetCloudBlobBySasToken(appendblob, sasToken, useHttps);
+                DateTimeOffset? lastModifiedTime = cloudBlob.Properties.LastModified;
+                Thread.Sleep(1000); // to make sure the LMT of the blob will change
+                ((CloudAppendBlob)sasBlob).AppendBlock(ms);
+                appendblob.FetchAttributes();
+                DateTimeOffset? newModifiedTime = appendblob.Properties.LastModified;
+                //We don't have the permission to set the content-md5
+                TestBase.ExpectNotEqual(lastModifiedTime.ToString(), newModifiedTime.ToString(), "Last modified time");
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                appendblob.DeleteIfExists();
+                cloudBlob = CreateRandomBlob(cloudBlob.Container, cloudBlob.Name, cloudBlob.Properties.BlobType);
+            }
         }
 
         /// <summary>

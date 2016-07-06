@@ -12,51 +12,201 @@
 // limitations under the License.
 // ----------------------------------------------------------------------------------
 
+using Newtonsoft.Json.Linq;
+
 namespace Management.Storage.ScenarioTest
 {
     using System;
     using System.Collections;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.IO;
     using System.Linq;
-    using System.Security;
     using System.Security.Cryptography.X509Certificates;
     using System.Text;
     using System.Text.RegularExpressions;
     using System.Threading;
+    using Common;
     using Management.Storage.ScenarioTest.Util;
     using Microsoft.Azure;
-    using Microsoft.Azure.Common.Authentication;
-    using Microsoft.Azure.Common.Authentication.Factories;
     using Microsoft.Azure.Common.Authentication.Models;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
+    using Microsoft.Rest;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Auth;
     using Microsoft.WindowsAzure.Storage.Blob;
     using Microsoft.WindowsAzure.Storage.File;
+    using Microsoft.WindowsAzure.Storage.File.Protocol;
     using Microsoft.WindowsAzure.Storage.Queue;
     using Microsoft.WindowsAzure.Storage.Queue.Protocol;
     using Microsoft.WindowsAzure.Storage.Shared.Protocol;
-    using Microsoft.WindowsAzure.Storage.File.Protocol;
     using Microsoft.WindowsAzure.Storage.Table;
-    using Microsoft.Azure.Subscriptions;
     using MS.Test.Common.MsTestLib;
     using StorageTestLib;
-    using StorageBlobType = Microsoft.WindowsAzure.Storage.Blob.BlobType;
 
     internal static class Utility
     {
+        public static List<string> ContainerPermission
+        {
+            get
+            {
+                if (TestBase.lang == Language.PowerShell)
+                {
+                    return containerPermissionPS;
+                }
+                else
+                {
+                    return containerPermissionNode;
+                }
+            }
+        }
+
+        public static List<string> BlobPermission
+        {
+            get
+            {
+                if (TestBase.lang == Language.PowerShell)
+                {
+                    return blobPermissionPS;
+                }
+                else
+                {
+                    return blobPermissionNode;
+                }
+            }
+        }
+
+        public static List<string> TablePermission
+        {
+            get
+            {
+                if (TestBase.lang == Language.PowerShell)
+                {
+                    return tablePermissionPS;
+                }
+                else
+                {
+                    return tablePermissionNode;
+                }
+            }
+        }
+
+        public static List<string> QueuePermission
+        {
+            get
+            {
+                if (TestBase.lang == Language.PowerShell)
+                {
+                    return queuePermissionPS;
+                }
+                else
+                {
+                    return queuePermissionNode;
+                }
+            }
+        }
+
+        public static List<string> SharePermission
+        {
+            get
+            {
+                if (TestBase.lang == Language.PowerShell)
+                {
+                    return sharePermissionPS;
+                }
+                else
+                {
+                    return sharePermissionNode;
+                }
+            }
+        }
+
+        public static List<string> FilePermission
+        {
+            get
+            {
+                if (TestBase.lang == Language.PowerShell)
+                {
+                    return filePermissionPS;
+                }
+                else
+                {
+                    return filePermissionNode;
+                }
+            }
+        }
+
         public static List<string> LoggingOperationList = new List<string>() { "Read", "Write", "Delete" };
-        public static List<string> ContainerPermission = new List<string>() { "r", "w", "d", "l" };
-        public static List<string> BlobPermission = new List<string>() { "r", "w", "d" };
-        public static List<string> TablePermissionPS = new List<string>() { "r", "q", "a", "u", "d" };
-        public static List<string> TablePermissionNode = new List<string>() { "r", "a", "u", "d" };
-        public static List<string> QueuePermission = new List<string>() { "r", "a", "u", "p" };
-        public static List<string> SharePermission = new List<string>() { "r", "w", "d", "l" };
-        public static List<string> FilePermission = new List<string>() { "r", "w", "d" };
+
+        private static List<string> containerPermissionPS = new List<string>() { "r", "w", "d", "l", "c", "a" };
+        private static List<string> containerPermissionNode = new List<string>() { "r", "w", "d", "l" };
+        private static List<string> blobPermissionPS = new List<string>() { "r", "w", "d", "c", "a" };
+        private static List<string> blobPermissionNode = new List<string>() { "r", "w", "d" };
+        private static List<string> tablePermissionPS = new List<string>() { "r", "q", "a", "u", "d" };
+        private static List<string> tablePermissionNode = new List<string>() { "r", "a", "u", "d" };
+        private static List<string> queuePermissionPS = new List<string>() { "r", "a", "u", "p" };
+        private static List<string> queuePermissionNode = new List<string>() { "r", "a", "u", "p" };
+        private static List<string> sharePermissionPS = new List<string>() { "r", "w", "d", "l", "c" };
+        private static List<string> sharePermissionNode = new List<string>() { "r", "w", "d", "l" };
+        private static List<string> filePermissionPS = new List<string>() { "r", "w", "d", "c" };
+        private static List<string> filePermissionNode = new List<string>() { "r", "w", "d" };
 
         internal static int RetryLimit = 7;
+
+        public static string GenFullPermissions(Constants.ResourceType resoruce)
+        {
+            List<string> permissions = null;
+            if (TestBase.lang == Language.PowerShell)
+            {
+                switch (resoruce)
+                {
+                    case Constants.ResourceType.Container:
+                        permissions = containerPermissionPS;
+                        break;
+                    case Constants.ResourceType.Blob:
+                        permissions = blobPermissionPS;
+                        break;
+                    case Constants.ResourceType.Table:
+                        permissions = tablePermissionPS;
+                        permissions.Remove("r");
+                        break;
+                    case Constants.ResourceType.Queue:
+                        permissions = queuePermissionPS;
+                        break;
+                    case Constants.ResourceType.Share:
+                        permissions = sharePermissionPS;
+                        break;
+                    case Constants.ResourceType.File:
+                        permissions = filePermissionPS;
+                        break;
+                }
+            }
+            else
+            {
+                switch (resoruce)
+                {
+                    case Constants.ResourceType.Container:
+                        permissions = containerPermissionNode;
+                        break;
+                    case Constants.ResourceType.Blob:
+                        permissions = blobPermissionNode;
+                        break;
+                    case Constants.ResourceType.Table:
+                        permissions = tablePermissionNode;
+                        break;
+                    case Constants.ResourceType.Queue:
+                        permissions = queuePermissionNode;
+                        break;
+                    case Constants.ResourceType.Share:
+                        permissions = sharePermissionNode;
+                        break;
+                    case Constants.ResourceType.File:
+                        permissions = filePermissionNode;
+                        break;
+                }
+            }
+
+            return permissions != null ? string.Join("", permissions.ToArray()) : string.Empty;
+        }
+
 
         /// <summary>
         /// Generate a random string for azure object name
@@ -235,20 +385,33 @@ namespace Management.Storage.ScenarioTest
             return new CertificateCloudCredentials(Test.Data.Get("AzureSubscriptionID"), cert);
         }
 
+        public static TokenCredentials GetTokenCredential()
+        {
+            AuthenticationResult result = GetAuthenticationResult();
+            return new TokenCredentials(result.AccessToken, result.AccessTokenType);
+        }
+
         public static TokenCloudCredentials GetTokenCloudCredential()
+        {
+            AuthenticationResult result = GetAuthenticationResult();
+            return new TokenCloudCredentials(Test.Data.Get("AzureSubscriptionID"), result.AccessToken);
+        }
+
+        public static AuthenticationResult GetAuthenticationResult()
         {
             AuthenticationContext context = new AuthenticationContext(string.Format("https://login.windows.net/{0}", Test.Data.Get("AADRealm")));
             ClientCredential clientCred = new ClientCredential(Test.Data.Get("AADClient"), Test.Data.Get("AADPassword"));
             AuthenticationResult result = context.AcquireToken("https://management.core.windows.net/", clientCred);
-            return new TokenCloudCredentials(Test.Data.Get("AzureSubscriptionID"), result.AccessToken);
+            return result;
         }
+
 
         /// <summary>
         /// Generate the data for output comparison
         /// </summary> 
         public static Dictionary<string, object> GenComparisonData(StorageObjectType objType, string name)
         {
-            Dictionary<string, object> dic = new Dictionary<string, object> { 
+            Dictionary<string, object> dic = new Dictionary<string, object> {
                 {"Name", name },
                 {"Context", null}
             };
@@ -330,12 +493,12 @@ namespace Management.Storage.ScenarioTest
         {
             string result = string.Empty;
             foreach (Hashtable table in tables)
-            {    
+            {
                 if (!string.IsNullOrEmpty(result))
                 {
                     result += ";";
                 }
-                 
+
                 if (table.ContainsKey("Name") && table.ContainsKey("Value"))
                 {
                     result += table["Name"] + "=" + table["Value"];
@@ -623,7 +786,7 @@ namespace Management.Storage.ScenarioTest
                 properties = GetServiceProperties(account, serviceType);
 
                 LoggingOperations current = (LoggingOperations)Enum.Parse(typeof(LoggingOperations), loggingOperations, true);
-                if ((((properties.Logging.RetentionDays == null) && (retentionDays == -1)) || (properties.Logging.RetentionDays == retentionDays)) 
+                if ((((properties.Logging.RetentionDays == null) && (retentionDays == -1)) || (properties.Logging.RetentionDays == retentionDays))
                     && ((current == LoggingOperations.None) || current.Equals(properties.Logging.LoggingOperations)))
                 {
                     break;
@@ -714,7 +877,7 @@ namespace Management.Storage.ScenarioTest
                 case StorageObjectType.Blob:
                     return Utility.GenRandomCombination(BlobPermission);
                 case StorageObjectType.Table:
-                    return Utility.GenRandomCombination(TablePermissionNode);
+                    return Utility.GenRandomCombination(TablePermission);
                 case StorageObjectType.Queue:
                     return Utility.GenRandomCombination(QueuePermission);
 
@@ -758,16 +921,21 @@ namespace Management.Storage.ScenarioTest
                 permission2 = "aud";
                 permission3 = "ud";
             }
-            else if ((typeof(T) == typeof(SharedAccessBlobPolicy))
-                || (typeof(T) == typeof(SharedAccessFilePolicy)))
+            else if (typeof(T) == typeof(SharedAccessBlobPolicy))
             {
-                permission1 = "rwdl";
+                permission1 = Utility.GenFullPermissions(Constants.ResourceType.Container);
                 permission2 = "wdl";
                 permission3 = "dl";
             }
+            else if (typeof(T) == typeof(SharedAccessFilePolicy))
+            {
+                permission1 = Utility.GenFullPermissions(Constants.ResourceType.Share);
+                permission2 = "rwd";
+                permission3 = "rw";
+            }
             else if (typeof(T) == typeof(SharedAccessQueuePolicy))
             {
-                permission1 = "raup";
+                permission1 = Utility.GenFullPermissions(Constants.ResourceType.Queue);
                 permission2 = "aup";
                 permission3 = "up";
             }
@@ -971,7 +1139,7 @@ namespace Management.Storage.ScenarioTest
             else
             {
                 CLICopyState state = new CLICopyState();
-                string progess = agent.Output[0]["copyProgress"] as string;
+                string progess = ((JObject)agent.Output[0]["copy"])["progress"].ToString();
                 long bytesCopied = 0;
                 long totalBytes = 0;
                 if (!string.IsNullOrEmpty(progess))
@@ -982,30 +1150,32 @@ namespace Management.Storage.ScenarioTest
                 }
 
                 string time = null;
-                if (agent.Output[0].ContainsKey("copyCompletionTime"))
+                JToken completionTimeToken;
+                if(((JObject) agent.Output[0]["copy"]).TryGetValue("completionTime", out completionTimeToken))
                 {
-                    time = agent.Output[0]["copyCompletionTime"] as string;
+                    time = completionTimeToken.ToString();
                 }
 
                 DateTimeOffset completionTime = new DateTimeOffset();
                 DateTimeOffset.TryParse(time, out completionTime);
 
-                string raw = agent.Output[0]["copySource"] as string;
+                string raw = ((JObject)agent.Output[0]["copy"])["source"].ToString();
                 Uri source = new Uri(raw);
-
-                raw = agent.Output[0]["copyStatus"] as string;
+                
+                raw = ((JObject)agent.Output[0]["copy"])["status"].ToString();
                 CopyStatus status;
                 Enum.TryParse<CopyStatus>(raw, true, out status);
 
                 string statusDescription = null;
-                if (agent.Output[0].ContainsKey("copyStatusDescription"))
+                JToken copyStatusDescriptionToken;
+                if (((JObject)agent.Output[0]["copy"]).TryGetValue("statusDescription", out copyStatusDescriptionToken))
                 {
-                    statusDescription = agent.Output[0]["copyStatusDescription"] as string;
+                    statusDescription = copyStatusDescriptionToken.ToString();
                 }
 
                 state.BytesCopied = bytesCopied;
                 state.CompletionTime = completionTime;
-                state.CopyId = agent.Output[0]["copyId"] as string;
+                state.CopyId = ((JObject)agent.Output[0]["copy"])["id"].ToString();
                 state.Source = source;
                 state.Status = status;
                 state.StatusDescription = statusDescription;
@@ -1044,7 +1214,7 @@ namespace Management.Storage.ScenarioTest
                 if (Enum.TryParse<T>(output[key] as string, true, out result))
                 {
                     return result;
-                } 
+                }
                 else
                 {
                     int value = 0;
@@ -1056,6 +1226,17 @@ namespace Management.Storage.ScenarioTest
             }
 
             return (T?)null;
+        }
+
+        public static string GenerateAccountSAS(SharedAccessAccountPolicy policy)
+        {
+            CloudStorageAccount account = null;
+            if (CloudStorageAccount.TryParse(Test.Data.Get("StorageConnectionString"), out account))
+            {
+                return account.GetSharedAccessSignature(policy);
+            }
+
+            return string.Empty;
         }
 
         /// <summary>
@@ -1118,6 +1299,12 @@ namespace Management.Storage.ScenarioTest
                     case Permission.List:
                         policy.Permissions |= SharedAccessBlobPermissions.List;
                         break;
+                    case Permission.Add:
+                        policy.Permissions |= SharedAccessBlobPermissions.Add;
+                        break;
+                    case Permission.Create:
+                        policy.Permissions |= SharedAccessBlobPermissions.Create;
+                        break;
                     default:
                         throw new Exception("Unknown Permission Type!");
                 }
@@ -1149,6 +1336,9 @@ namespace Management.Storage.ScenarioTest
                         break;
                     case Permission.List:
                         policy.Permissions |= SharedAccessFilePermissions.List;
+                        break;
+                    case Permission.Create:
+                        policy.Permissions |= SharedAccessFilePermissions.Create;
                         break;
                     default:
                         throw new Exception("Unknown Permission Type!");
@@ -1333,6 +1523,10 @@ namespace Management.Storage.ScenarioTest
             /// Query permission
             /// </summary>
             public const char Query = 'q';
+            /// <summary>
+            /// Create permission
+            /// </summary>
+            public const char Create = 'c';
         }
 
         public class RawStoredAccessPolicy

@@ -13,6 +13,7 @@ using StorageTestLib;
 using Microsoft.WindowsAzure.Storage;
 using Management.Storage.ScenarioTest.Util;
 using System.Threading;
+using Newtonsoft.Json.Linq;
 
 namespace Management.Storage.ScenarioTest.Functional.CloudFile
 {
@@ -525,7 +526,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
                 else
                 {
-                    ExpectedContainErrorMessage("The specifed resource name contains invalid characters");
+                    ExpectedContainErrorMessage("File or directory path is too long");
                 }
 
                 // To invalid dest file name
@@ -817,7 +818,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string copyId = null;
                 if (lang == Language.NodeJS)
                 {
-                    copyId = CommandAgent.Output[0]["copyId"] as string;
+                    copyId = ((JObject)CommandAgent.Output[0]["copy"])["id"].ToString();
                 }
 
                 Test.Assert(CommandAgent.StopFileCopy(destShareName, filePath, copyId), "Stop copying on deepest file path file should succeed.");

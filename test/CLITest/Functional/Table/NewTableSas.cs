@@ -20,7 +20,7 @@
         public static void NewTableSasClassInit(TestContext testContext)
         {
             TestBase.TestClassInitialize(testContext);
-            TablePermission = (lang == Language.PowerShell ? Utility.TablePermissionPS : Utility.TablePermissionNode);
+            TablePermission = Utility.TablePermission;
         }
 
         [ClassCleanup()]
@@ -70,6 +70,10 @@
 
             //Full permission
             tablePermission = "raud";
+            GenerateSasTokenAndValidate(tablePermission);
+
+            //Full permission with q
+            tablePermission = lang == Language.PowerShell ? "raudq" : "raud";
             GenerateSasTokenAndValidate(tablePermission);
 
             //Random combination
@@ -666,28 +670,31 @@
         internal void ValidateLimitedSasPermission(CloudTable table,
             string limitedPermission, string sasToken)
         {
-            try
+            foreach (char permission in limitedPermission.ToLower())
             {
-                ValidateSasToken(table, limitedPermission, sasToken);
-                Test.Error("sastoken '{0}' should not contain the permission {1}", limitedPermission);
-            }
-            catch (StorageException e)
-            {
-                Test.Info(e.Message);
-                IsPermissionStorageException(e);
+                try
+                {
+                    ValidateSasToken(table, permission.ToString(), sasToken);
+                    Test.Error("sastoken '{0}' should not contain the permission {1}", sasToken, permission.ToString());
+                }
+                catch (StorageException e)
+                {
+                    Test.Info(e.Message);
+                    IsPermissionStorageException(e);
+                }
             }
         }
 
         internal bool IsPermissionStorageException(StorageException e)
         {
-            if (403 == e.RequestInformation.HttpStatusCode || 404 == e.RequestInformation.HttpStatusCode)
+            if (403 == e.RequestInformation.HttpStatusCode)
             {
                 Test.Info("Limited permission sas token should not access storage objects. {0}", e.RequestInformation.HttpStatusMessage);
                 return true;
             }
             else
             {
-                Test.Error("Limited permission sas token should return 403 or 404, but actually it's {0} {1}",
+                Test.Error("Limited permission sas token should return 403, but actually it's {0} {1}",
                     e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage);
                 return false;
             }

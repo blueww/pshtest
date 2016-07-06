@@ -36,6 +36,7 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 using System.Text.RegularExpressions;
 using Microsoft.WindowsAzure.Commands.Storage.Model.ResourceModel;
+using Microsoft.Azure.Management.Storage.Models;
 
 namespace Management.Storage.ScenarioTest
 {
@@ -57,7 +58,7 @@ namespace Management.Storage.ScenarioTest
                 {"GetBlobContentWithNotExistsContainer", "Can not find blob '{0}' in container '{1}'"},
                 {"RemoveBlobWithLease", "There is currently a lease on the blob and no lease ID was specified in the request"},
                 {"SetBlobContentWithInvalidBlobType", "The blob type is invalid for this operation"},
-                {"SetPageBlobWithInvalidFileSize", "Page blob length must be multiple of 512"}, 
+                {"SetPageBlobWithInvalidFileSize", "Page blob length must be multiple of 512"},
                 {"CreateExistingContainer", "Container '{0}' already exists"},
                 {"CreateInvalidContainer", "Container name format is incorrect"},
                 {"RemoveNonExistingContainer", "Can not find container '{0}'"},
@@ -78,6 +79,53 @@ namespace Management.Storage.ScenarioTest
                 {"CreateInvalidQueue", "Queue name format is incorrect"},
                 {"GetNonExistingQueue", "Queue {0} doesn't exist"},
                 {"RemoveNonExistingQueue", "Can not find queue '{0}'"},
+                {"RemoveNonExistingBlobSnapshot", "Can not find snapshot '{0}' of blob '{1}' in container '{2}'"},
+                {"RemoveBlobSnapshotWithInvalidOption", "The deleteSnapshots option cannot be included when deleting a specific snapshot using the snapshotId option"},
+                {"SnapshotNonExistingBlob", "Blob {0} in Container {1} doesn't exist"},
+                {"SnapshotLeaseBlobWithWrongLeaseID", "The lease ID specified did not match the lease ID for the blob"},
+                {"LeaseOnNonExistingContainer", "The specified blob does not exist"}, // TODO: Server returns "blob" for now, we should change when server fixes it
+                {"LeaseOnNonExistingBlob", "The specified blob does not exist"},
+                {"LeaseOnLeasedContainer", "There is already a lease present"},
+                {"LeaseOnLeasedBlob", "There is already a lease present"},
+                {"LeaseContainerWithInvalidDuration", "The value for one of the HTTP headers is not in the correct format"},
+                {"LeaseBlobWithInvalidDuration", "The value for one of the HTTP headers is not in the correct format"},
+                {"LeaseContainerWithInvalidID", "Given string \"{0}\" is not valid UUID"},
+                {"LeaseBlobWithInvalidID", "Given string \"{0}\" is not valid UUID"},
+                {"LeaseWithoutEnoughPermission", "This request is not authorized to perform this operation"},
+                {"RenewLeaseOnNonExistingContainer", "The specified blob does not exist"}, // TODO: Server returns "blob" for now, we should change when server fixes it
+                {"RenewLeaseOnNonExistingBlob", "The specified blob does not exist"},
+                {"RenewNotLeasedContainer", "The lease ID specified did not match the lease ID for the container"},
+                {"RenewNotLeasedBlob", "The lease ID specified did not match the lease ID for the blob"},
+                {"RenewWithInvalidLeaseID", "Given string \"{0}\" is not valid UUID"},
+                {"RenewWithUnmatchLeaseID", "The lease ID specified did not match the lease ID for the "}, 
+                {"RenewWithoutEnoughPermission", "This request is not authorized to perform this operation using this permission"},
+                {"ChangeLeaseOnNonExistingContainer", "The specified blob does not exist"},
+                {"ChangeLeaseOnNonExistingBlob", "The specified blob does not exist"},
+                {"ChangeWithInvalidLeaseID", "Given string \"{0}\" is not valid UUID"},
+                {"ChangeWithUnmatchLeaseID", "The lease ID specified did not match the lease ID for the "},
+                {"ChangeWithInvalidProposedLeaseID", "Given string \"{0}\" is not valid UUID"},
+                {"ChangeWithoutEnoughPermission", "This request is not authorized to perform this operation using this permission"},  
+                {"ReleaseContainerLease", "A lease ID was specified, but the lease for the container has expired"},
+                {"ReleaseBlobLease", "A lease ID was specified, but the lease for the blob has expired"},
+                {"LeaseAfterReleaseLease", "A lease ID was specified, but the lease for the container has expired"},
+                {"ReleaseLeaseOnNonExistingContainer", "The specified blob does not exist"},
+                {"ReleaseLeaseOnNonExistingBlob", "The specified blob does not exist"},
+                {"ReleaseNotLeasedContainer", "The lease ID specified did not match the lease ID for the container"},
+                {"ReleaseNotLeasedBlob", "The lease ID specified did not match the lease ID for the blob"},
+                {"ReleaseWithInvalidLeaseID", "Given string \"{0}\" is not valid UUID"},
+                {"ReleaseWithUnmatchLeaseID", "The lease ID specified did not match the lease ID for the "},
+                {"ReleaseWithoutEnoughPermission", "This request is not authorized to perform this operation using this permission"},
+                {"BreakContainerLease", "PreconditionFailed"},
+                {"BreakBlobLease", "PreconditionFailed"},
+                {"BreakContainerLeaseAndAcquireAgain", "There is already a lease present"},
+                {"BreakBlobLeaseAndAcquireAgain", "There is already a lease present"},
+                {"BreakLeaseOnNonExistingContainer", "The specified blob does not exist"},
+                {"BreakLeaseOnNonExistingBlob", "The specified blob does not exist"},
+                {"BreakNotLeasedContainer", "There is currently no lease on the container"},
+                {"BreakNotLeasedBlob", "There is currently no lease on the blob"},
+                {"BreakContainerLeaseWithInvalidDuration", "The value for one of the HTTP headers is not in the correct format"},
+                {"BreakBlobLeaseWithInvalidDuration", "The value for one of the HTTP headers is not in the correct format"},
+                {"BreakLeaseWithoutEnoughPermission", "This request is not authorized to perform this operation"},
         };
         private static readonly Regex ColorIndicatorRegex = new Regex("\x1b\\[[0-9]+m");
 
@@ -100,6 +148,7 @@ namespace Management.Storage.ScenarioTest
         internal static void SetProcessInfo(Process p, string category, string argument)
         {
             p.StartInfo.UseShellExecute = false;
+            p.StartInfo.CreateNoWindow = true;
             p.StartInfo.RedirectStandardOutput = true;
             p.StartInfo.RedirectStandardError = true;
             p.StartInfo.StandardOutputEncoding = Encoding.UTF8;
@@ -154,7 +203,7 @@ namespace Management.Storage.ScenarioTest
             }
             else
             {
-                argument = argument.Replace(DOUBLE_SPACE, "\"'  '\"");
+                argument = argument.Replace(DOUBLE_SPACE, "'\"  \"'");
             }
 
             p.StartInfo.Arguments += string.Format(" azure {0} {1} --json", category, argument);
@@ -275,7 +324,15 @@ namespace Management.Storage.ScenarioTest
 
                 string errFile = "azure.err";
                 Test.Info(string.Format("Error details in {0}:", errFile));
-                Test.Info(FileUtil.ReadFileToText(errFile));
+                try
+                {
+                    Test.Info(FileUtil.ReadFileToText(errFile));
+                }
+                catch (Exception e)
+                {
+                    Test.Info(string.Format("Load details in azure.err error: %s"), e.Message);
+                }
+
             }
 
             return bSuccess;
@@ -473,7 +530,7 @@ namespace Management.Storage.ScenarioTest
                 else
                 {
                     // Double space to indicate the empty string which is a constrain on CLI
-                    return command + string.Format(" {0} \"  \" ", optionName);
+                    return command + string.Format(" {0} {1} ", optionName, DOUBLE_SPACE);
                 }
             }
 
@@ -630,22 +687,93 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(command, needAccountParam: false);
         }
 
-        public override bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string type, string location, Hashtable[] tags = null)
+        public override bool CreateSRPAzureStorageAccount(
+            string resourceGroupName, 
+            string accountName, 
+            string skuName, 
+            string location, 
+            Hashtable[] tags = null, 
+            Kind? kind = null, 
+            Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, 
+            AccessTier? accessTier = null, 
+            string customDomain = null, 
+            bool? useSubdomain = null)
         {
             string command = string.Format("account create {0}", accountName);
             command = appendStringOption(command, "--resource-group", resourceGroupName);
             command = appendStringOption(command, "--location", location, true);
-            command = appendStringOption(command, "--type", type);
+            command = appendStringOption(command, "--sku-name", skuName);
+            if (kind == null)
+            {
+                command = appendStringOption(command, "--kind", Kind.Storage.ToString());
+            }
+            else
+            {
+                command = appendStringOption(command, "--kind", kind.Value.ToString());
+            }
             command = appendHashOption(command, "--tags", tags);
+            if (accessTier != null)
+            {
+                command = appendStringOption(command, "--access-tier", accessTier.ToString());
+            }
+            if (enableEncryptionService != null)
+            {
+                command = appendStringOption(command, "--enable-encryption-service", enableEncryptionService.ToString());
+            }
+            if (!string.IsNullOrEmpty(customDomain))
+            {
+                command = appendStringOption(command, "--custom-domain", customDomain);
+            }
+            if (useSubdomain.HasValue && useSubdomain.Value)
+            {
+                command = appendBoolOption(command, "--subdomain");
+            }
 
             return RunNodeJSProcess(command, needAccountParam: false);
         }
 
-        public override bool SetSRPAzureStorageAccount(string resourceGroupName, string accountName, string type)
+        public override bool SetSRPAzureStorageAccount(
+            string resourceGroupName, 
+            string accountName, 
+            string skuName = null, 
+            Hashtable[] tags = null, 
+            Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, 
+            Constants.EncryptionSupportServiceEnum? disableEncryptionService = null, 
+            AccessTier? accessTier = null, 
+            string customDomain = null, 
+            bool? useSubdomain = null)
         {
             string command = string.Format("account set {0}", accountName);
             command = appendStringOption(command, "--resource-group", resourceGroupName);
-            command = appendStringOption(command, "--type", type);
+            command = appendStringOption(command, "--sku-name", skuName);
+            command = appendHashOption(command, "--tags", tags);
+            if (enableEncryptionService != null)
+            {
+                command = appendStringOption(command, "--enable-encryption-service", enableEncryptionService.ToString());
+            }
+            if (disableEncryptionService != null)
+            {
+                command = appendStringOption(command, "--disable-encryption-service", disableEncryptionService.ToString());
+            }
+            if (accessTier != null)
+            {
+                command = appendStringOption(command, "--access-tier", accessTier.ToString());
+            }
+            if (customDomain != null)
+            {
+                if (!string.IsNullOrEmpty(customDomain))
+                {
+                    command = appendStringOption(command, "--custom-domain", customDomain, quoted: true);
+                }
+                else
+                {
+                    command = appendStringOption(command, "--custom-domain", "  ", quoted: true);
+                }
+            }
+            if (useSubdomain.HasValue && useSubdomain.Value)
+            {
+                command = appendBoolOption(command, "--subdomain");
+            }
 
             return RunNodeJSProcess(command, needAccountParam: false);
         }
@@ -728,9 +856,17 @@ namespace Management.Storage.ScenarioTest
         }
 
         // this command is only for nodejs
-        public bool ShowAzureStorageContainer(string containerName)
+        public bool ShowAzureStorageContainer(string containerName, string leaseId = null)
         {
-            return RunNodeJSProcess(string.Format("container show \"{0}\"", containerName));
+            string command = "container show";
+            command = appendStringOption(command, "--container", containerName, quoted: true);
+
+            if (!string.IsNullOrEmpty(leaseId))
+            {
+                command = appendStringOption(command, "--lease ", leaseId);
+            }
+
+            return RunNodeJSProcess(command);
         }
 
         public override bool GetAzureStorageContainerByPrefix(string prefix)
@@ -738,9 +874,18 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess("container list " + prefix);
         }
 
-        public override bool SetAzureStorageContainerACL(string containerName, BlobContainerPublicAccessType publicAccess, bool passThru = true)
+        public override bool SetAzureStorageContainerACL(string containerName, BlobContainerPublicAccessType publicAccess, string leaseId = null, bool passThru = true)
         {
-            return RunNodeJSProcess(string.Format("container set \"{0}\" --permission {1}", containerName, publicAccess));
+            string command = "container set";
+            command = appendStringOption(command, "--container", containerName, quoted: true);
+            command = appendStringOption(command, "--permission", publicAccess.ToString());
+
+            if (!string.IsNullOrEmpty(leaseId))
+            {
+                command = appendStringOption(command, "--lease ", leaseId);
+            }
+
+            return RunNodeJSProcess(command);
         }
 
         public override bool SetAzureStorageContainerACL(string[] containerNames, BlobContainerPublicAccessType publicAccess, bool passThru = true)
@@ -748,9 +893,17 @@ namespace Management.Storage.ScenarioTest
             return BatchOperation(MethodBase.GetCurrentMethod().Name, containerNames, publicAccess, passThru);
         }
 
-        public override bool RemoveAzureStorageContainer(string containerName, bool force = true)
+        public override bool RemoveAzureStorageContainer(string containerName, string leaseId = null, bool force = true)
         {
-            return RunNodeJSProcess(string.Format("container delete \"{0}\"", containerName), force);
+            string command = "container delete";
+            command = appendStringOption(command, "--container", containerName, quoted: true);
+
+            if (!string.IsNullOrEmpty(leaseId))
+            {
+                command = appendStringOption(command, "--lease ", leaseId);
+            }
+
+            return RunNodeJSProcess(command, force);
         }
 
         public override bool RemoveAzureStorageContainer(string[] containerNames, bool force = true)
@@ -922,9 +1075,18 @@ namespace Management.Storage.ScenarioTest
         }
 
         // this command is nodejs specific
-        public bool ShowAzureStorageBlob(string blobName, string containerName)
+        public bool ShowAzureStorageBlob(string blobName, string containerName, string leaseId = null)
         {
-            return RunNodeJSProcess(string.Format("blob show \"{0}\" \"{1}\"", containerName, blobName));
+            string command = "blob show";
+            command = appendStringOption(command, "--container", containerName, quoted: true);
+            command = appendStringOption(command, "--blob", blobName, quoted: true);
+
+            if (!string.IsNullOrEmpty(leaseId))
+            {
+                command = appendStringOption(command, "--lease ", leaseId);
+            }
+
+            return RunNodeJSProcess(command);
         }
 
         public override bool GetAzureStorageBlobByPrefix(string prefix, string containerName)
@@ -932,10 +1094,34 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(string.Format("blob list \"{0}\" {1}", containerName, prefix));
         }
 
-        public override bool RemoveAzureStorageBlob(string blobName, string containerName, bool onlySnapshot = false, bool force = true)
+        public override bool RemoveAzureStorageBlob(string blobName, string containerName, string snapshotId= "", string leaseId = null, bool? onlySnapshot = null, bool force = true)
         {
-            // need to add onlySnapshot to the parameter list later (in V1, we won't support this functionality)
-            return RunNodeJSProcess(string.Format("blob delete \"{0}\" \"{1}\"", containerName, blobName), force);
+            string command = "blob delete";
+            command = appendStringOption(command, "", containerName, quoted: true);
+            command = appendStringOption(command, "", blobName, quoted: true);
+            if (!string.IsNullOrEmpty(snapshotId))
+            {
+                command = appendStringOption(command, "--snapshot", snapshotId, quoted: true);
+            }
+            if (onlySnapshot.HasValue)
+            {
+                if (onlySnapshot.Value)
+                {
+                    command = appendStringOption(command, "--delete-snapshots", "only");
+                }
+                else
+                {
+                    command = appendStringOption(command, "--delete-snapshots", "include");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(leaseId))
+            {
+                command = appendStringOption(command, "--lease ", leaseId);
+            }
+
+
+            return RunNodeJSProcess(command, force);
         }
 
         public override bool NewAzureStorageTable(string tableName)
@@ -997,7 +1183,7 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(command, force);
         }
 
-        public override bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        public override bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, string sourceLease = null, string destLease = null, object destContext = null, bool force = true)
         {
             string command = "blob copy start";
             command = appendStringOption(command, "--source-container", srcContainerName, quoted: true);
@@ -1005,6 +1191,16 @@ namespace Management.Storage.ScenarioTest
             command = appendStringOption(command, "--dest-container", destContainerName, quoted: true);
             command = appendStringOption(command, "--dest-blob", destBlobName, quoted: true);
             command = appendAccountOption(command, destContext, suffix: true, isSource: false);
+
+            if (!string.IsNullOrEmpty(sourceLease))
+            {
+                command = appendStringOption(command, "--source-lease ", sourceLease);
+            }
+
+            if (!string.IsNullOrEmpty(destLease))
+            {
+                command = appendStringOption(command, "--dest-lease ", destLease);
+            }
 
             return RunNodeJSProcess(command, force);
         }
@@ -1080,6 +1276,144 @@ namespace Management.Storage.ScenarioTest
         {
             AssertMandatoryParameter("--copy-id", copyId);
             return RunNodeJSProcess(string.Format("blob copy stop \"{0}\" \"{1}\" \"{2}\"", containerName, blobName, copyId));
+        }
+
+        public override bool SnapshotAzureStorageBlob(string containerName, string blobName, string leaseId = null)
+        {
+            string command = "blob snapshot";
+            command = appendStringOption(command, "--container", containerName, quoted: true);
+            command = appendStringOption(command, "--blob ", blobName, quoted: true);
+            if (!string.IsNullOrEmpty(leaseId))
+            {
+                command = appendStringOption(command, "--lease ", leaseId);
+            }
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override bool AcquireLease(string containerName, string blobName, string proposedLeaseId = null, int duration = -1)
+        {
+            string command;
+            if (string.IsNullOrEmpty(blobName))
+            {
+                command = "container lease acquire";
+            }
+            else
+            {
+                command = "blob lease acquire";
+                command = appendStringOption(command, "--blob ", blobName, quoted: true);
+            }
+
+            command = appendStringOption(command, "--container", containerName, quoted: true);
+
+            if (!string.IsNullOrEmpty(proposedLeaseId))
+            {
+                command = appendStringOption(command, "--proposed-id", proposedLeaseId);
+            }
+
+            if (duration != -1)
+            {
+                command = appendStringOption(command, "--duration", duration.ToString());
+            }
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override bool RenewLease(string containerName, string blobName, string leaseId)
+        {
+            string command;
+            if (string.IsNullOrEmpty(blobName))
+            {
+                command = "container lease renew";
+            }
+            else
+            {
+                command = "blob lease renew";
+                command = appendStringOption(command, "--blob ", blobName, quoted: true);
+            }
+
+            command = appendStringOption(command, "--container", containerName, quoted: true);
+
+            if (!string.IsNullOrEmpty(leaseId))
+            {
+                command = appendStringOption(command, "--lease", leaseId);
+            }
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override bool ChangeLease(string containerName, string blobName, string leaseId, string proposedLeaseId)
+        {
+            string command;
+            if (string.IsNullOrEmpty(blobName))
+            {
+                command = "container lease change";
+            }
+            else
+            {
+                command = "blob lease change";
+                command = appendStringOption(command, "--blob ", blobName, quoted: true);
+            }
+
+            command = appendStringOption(command, "--container", containerName, quoted: true);
+
+            if (!string.IsNullOrEmpty(leaseId))
+            {
+                command = appendStringOption(command, "--lease", leaseId);
+            }
+
+            if (!string.IsNullOrEmpty(proposedLeaseId))
+            {
+                command = appendStringOption(command, "--proposed-id", proposedLeaseId);
+            }
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override bool ReleaseLease(string containerName, string blobName, string leaseId)
+        {
+            string command;
+            if (string.IsNullOrEmpty(blobName))
+            {
+                command = "container lease release";
+            }
+            else
+            {
+                command = "blob lease release";
+                command = appendStringOption(command, "--blob ", blobName, quoted: true);
+            }
+
+            command = appendStringOption(command, "--container", containerName, quoted: true);
+
+            if (!string.IsNullOrEmpty(leaseId))
+            {
+                command = appendStringOption(command, "--lease", leaseId);
+            }
+
+            return RunNodeJSProcess(command);
+        }
+
+        public override bool BreakLease(string containerName, string blobName, int duration = 0)
+        {
+            string command;
+            if (string.IsNullOrEmpty(blobName))
+            {
+                command = "container lease break";
+            }
+            else
+            {
+                command = "blob lease break";
+                command = appendStringOption(command, "--blob ", blobName, quoted: true);
+            }
+
+            command = appendStringOption(command, "--container", containerName, quoted: true);
+
+            if (duration > 0)
+            {
+                command = appendStringOption(command, "--duration", duration.ToString());
+            }
+
+            return RunNodeJSProcess(command);
         }
 
         public override bool StartFileCopyFromBlob(string containerName, string blobName, string shareName, string filePath, object destContext, bool force = true)
@@ -1329,7 +1663,7 @@ namespace Management.Storage.ScenarioTest
                                 break;
                             case "ApproximateMessageCount":
                                 {
-                                    var key = ((JObject)(dic["metadata"]))["approximatemessagecount"].ToString();
+                                    var key = ((JObject)(dic["metadata"]))["approximateMessageCount"].ToString();
                                     int? message = comp[0]["ApproximateMessageCount"] as int?;
                                     int value;
                                     if (message != null && Int32.TryParse(key, out value))
@@ -1449,7 +1783,7 @@ namespace Management.Storage.ScenarioTest
                         break;
 
                     case "RemoveAzureStorageContainer":
-                        ret = RemoveAzureStorageContainer(name, (bool)args[0]);
+                        ret = RemoveAzureStorageContainer(name, force: (bool)args[0]);
                         break;
 
                     case "GetAzureStorageContainer":
@@ -1457,7 +1791,7 @@ namespace Management.Storage.ScenarioTest
                         break;
 
                     case "SetAzureStorageContainerACL":
-                        ret = SetAzureStorageContainerACL(name, (BlobContainerPublicAccessType)args[0], (bool)args[1]);
+                        ret = SetAzureStorageContainerACL(name, (BlobContainerPublicAccessType)args[0], passThru: (bool)args[1]);
                         break;
 
                     case "UploadLocalFiles":
@@ -1779,12 +2113,12 @@ namespace Management.Storage.ScenarioTest
 
         public override void RemoveDirectory(CloudFileShare fileShare, string directoryName, bool confirm = false)
         {
-            this.RemoveDirectory(fileShare.Name, directoryName, confirm);
+            this.RemoveDirectory(fileShare.Name, directoryName, confirm: confirm);
         }
 
         public override void RemoveDirectory(CloudFileDirectory directory, string path, bool confirm = false)
         {
-            this.RemoveDirectory(directory.Share.Name, CloudFileUtil.GetFullPath(directory) + "/" + path, confirm);
+            this.RemoveDirectory(directory.Share.Name, CloudFileUtil.GetFullPath(directory) + "/" + path, confirm: confirm);
         }
 
         public override void RemoveDirectory(string fileShareName, string directoryName, object contextObject = null, bool confirm = false)
@@ -1799,17 +2133,17 @@ namespace Management.Storage.ScenarioTest
 
         public override void RemoveFile(CloudFileShare fileShare, string fileName, bool confirm = false)
         {
-            this.RemoveFile(fileShare.Name, fileName, confirm);
+            this.RemoveFile(fileShare.Name, fileName, confirm: confirm);
         }
 
         public override void RemoveFile(CloudFileDirectory directory, string fileName, bool confirm = false)
         {
-            this.RemoveFile(directory.Share.Name, CloudFileUtil.GetFullPath(directory) + "/" + fileName, confirm);
+            this.RemoveFile(directory.Share.Name, CloudFileUtil.GetFullPath(directory) + "/" + fileName, confirm: confirm);
         }
 
         public override void RemoveFile(CloudFile file, bool confirm = false)
         {
-            this.RemoveFile(file.Share.Name, CloudFileUtil.GetFullPath(file), confirm);
+            this.RemoveFile(file.Share.Name, CloudFileUtil.GetFullPath(file), confirm: confirm);
         }
 
         public override void RemoveFile(string fileShareName, string fileName, object contextObject = null, bool confirm = false)
@@ -1841,6 +2175,10 @@ namespace Management.Storage.ScenarioTest
         public override void GetFile(CloudFileDirectory directory, string path = null)
         {
             this.GetFile(directory.Share.Name, directory.Name + '/' + path);
+        }
+        public override void GetFile()
+        {
+            throw new NotImplementedException();
         }
 
         public override void DownloadFile(CloudFile file, string destination, bool overwrite = false)
@@ -2379,7 +2717,7 @@ namespace Management.Storage.ScenarioTest
         {
             string command = string.Format("container sas create {0}", container);
 
-            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy);
+            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy, protocol, iPAddressOrRange);
 
             return RunNodeJSProcess(command);
         }
@@ -2389,7 +2727,7 @@ namespace Management.Storage.ScenarioTest
         {
             string command = string.Format("blob sas create {0} \"{1}\"", container, blob);
 
-            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy);
+            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy, protocol, iPAddressOrRange);
 
             return RunNodeJSProcess(command);
         }
@@ -2399,7 +2737,7 @@ namespace Management.Storage.ScenarioTest
         {
             string command = string.Format("share sas create {0}", shareName);
 
-            command = GetGeneralSASCmd(command, permissions, startTime, expiryTime, policyName);
+            command = GetGeneralSASCmd(command, permissions, startTime, expiryTime, policyName, protocol, iPAddressOrRange);
 
             return RunNodeJSProcess(command);
         }
@@ -2409,7 +2747,7 @@ namespace Management.Storage.ScenarioTest
         {
             string command = string.Format("file sas create {0} {1}", shareName, filePath);
 
-            command = GetGeneralSASCmd(command, permissions, startTime, expiryTime, policyName);
+            command = GetGeneralSASCmd(command, permissions, startTime, expiryTime, policyName, protocol, iPAddressOrRange);
 
             return RunNodeJSProcess(command);
         }
@@ -2425,7 +2763,7 @@ namespace Management.Storage.ScenarioTest
         {
             string command = string.Format("table sas create {0}", name);
 
-            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy);
+            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy, protocol, iPAddressOrRange);
 
             if (!string.IsNullOrEmpty(startpk))
             {
@@ -2453,7 +2791,7 @@ namespace Management.Storage.ScenarioTest
         {
             string command = string.Format("queue sas create {0}", name);
 
-            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy);
+            command = GetGeneralSASCmd(command, permission, startTime, expiryTime, policy, protocol, iPAddressOrRange);
 
             return RunNodeJSProcess(command);
         }
@@ -2461,7 +2799,36 @@ namespace Management.Storage.ScenarioTest
         public override bool NewAzureStorageAccountSAS(SharedAccessAccountServices service, SharedAccessAccountResourceTypes resourceType, string permission, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null,
             DateTime? startTime = null, DateTime? expiryTime = null)
         {
-            throw new NotImplementedException();
+            string command = string.Format("account sas create");
+
+            command = appendStringOption(command, "--services", SharedAccessAccountPolicy.ServicesToString(service));
+            command = appendStringOption(command, "--resource-types ", SharedAccessAccountPolicy.ResourceTypesToString(resourceType));
+            command = appendStringOption(command, "--permissions", permission);
+
+            command = appendDateTimeOption(command, "--start", startTime);
+            if (expiryTime.HasValue)
+            {
+                command = appendDateTimeOption(command, "--expiry", expiryTime);
+            }
+            else
+            {
+                // Default value to 1 hour later from now.
+                // Normally we should not add this kind of logic in the agent like "default value" to make sure we can cover the negative case.
+                // Why we do this is because PowerShellAgent has this logic and the existing positive test cases won't pass the expiry parameter explicitly and rely on the default value logic. 
+                // Besides that, the negative case can only be covered manually because if we don't pass the expiry parameter, the command will hang there - waiting for input as the xPlat doesn't support pipeline now.
+                command = appendDateTimeOption(command, "--expiry", DateTime.UtcNow.AddHours(1));
+            }
+
+            if (protocol.HasValue)
+            {
+                command = appendStringOption(command, "--protocol", protocol.Value.ToString());
+            }
+            if (!string.IsNullOrEmpty(iPAddressOrRange))
+            {
+                command = appendStringOption(command, "--ip-range", iPAddressOrRange);
+            }
+
+            return RunNodeJSProcess(command);
         }
 
         public override string GetBlobSasFromCmd(string containerName, string blobName, string policy, string permission,
@@ -2605,7 +2972,7 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        internal string GetGeneralSASCmd(string command, string permission, DateTime? startTime, DateTime? expiryTime, string policy)
+        internal string GetGeneralSASCmd(string command, string permission, DateTime? startTime, DateTime? expiryTime, string policy, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             if (string.IsNullOrEmpty(policy))
             {
@@ -2634,6 +3001,14 @@ namespace Management.Storage.ScenarioTest
             }
 
             command = appendDateTimeOption(command, "--start", startTime);
+            if (protocol.HasValue)
+            {
+                command = appendStringOption(command, "--protocol", protocol.Value.ToString());
+            }
+            if (!string.IsNullOrEmpty(iPAddressOrRange))
+            {
+                command = appendStringOption(command, "--ip-range", iPAddressOrRange);
+            }
 
             return command;
         }

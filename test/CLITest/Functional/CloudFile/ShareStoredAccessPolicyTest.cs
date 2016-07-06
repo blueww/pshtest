@@ -42,7 +42,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         {
             DateTime? expiryTime = DateTime.Today.AddDays(10);
             DateTime? startTime = DateTime.Today.AddDays(-2);
-            string permission = "rwdl";
+            string permission = Utility.GenFullPermissions(Constants.ResourceType.Share);
             string shareName = Utility.GenNameString("share");
 
             try
@@ -147,7 +147,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
                 else
                 {
-                    ExpectedContainErrorMessage("Invalid value: x. Options are: r,w,d,l");
+                    ExpectedContainErrorMessage("Given  \"x\" is invalid, supported values are: r, c, w, d, l");
                 }
 
                 string longPolicyName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
@@ -223,7 +223,14 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 Test.Assert(CommandAgent.GetAzureStorageShareStoredAccessPolicy(shareName, null),
                     "Get stored access policy in share should succeed");
                 Test.Info("Get stored access policy");
-                Assert.IsTrue(CommandAgent.Output.Count == 0);
+                if (lang == Language.PowerShell)
+                {
+                    Assert.IsTrue(CommandAgent.Output.Count == 0);
+                }
+                else
+                {
+                    Assert.IsTrue(CommandAgent.Output[0].Count == 0);
+                }
 
                 //get all policies
                 List<Utility.RawStoredAccessPolicy> samplePolicies = Utility.SetUpStoredAccessPolicyData<SharedAccessFilePolicy>();
@@ -238,7 +245,14 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 Test.Assert(CommandAgent.GetAzureStorageShareStoredAccessPolicy(shareName, null),
                     "Get stored access policy in share should succeed");
                 Test.Info("Get stored access policy");
-                CommandAgent.OutputValidation(comp);
+                if (lang == Language.PowerShell)
+                {
+                    CommandAgent.OutputValidation(comp);
+                }
+                else
+                {
+                    Test.Assert(comp.Count == CommandAgent.Output[0].Count, "Comparison size: {0} = {1} Output size", comp.Count, CommandAgent.Output[0].Count);
+                }
             }
             finally
             {
@@ -397,7 +411,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             DateTime? startTime1 = DateTime.Today.AddDays(-2);
             DateTime? expiryTime2 = DateTime.Today.AddDays(11);
             DateTime? startTime2 = DateTime.Today.AddDays(-1);
-            string permission = "rwdl";
+            string permission = Utility.GenFullPermissions(Constants.ResourceType.Share);
             string policyName = Utility.GenNameString("p", 0);
             Utility.RawStoredAccessPolicy policy1 = new Utility.RawStoredAccessPolicy(policyName, startTime1, expiryTime1, permission);
             Utility.RawStoredAccessPolicy policy2 = new Utility.RawStoredAccessPolicy(policyName, startTime2, expiryTime2, permission);
@@ -545,7 +559,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
                 else
                 {
-                    errorMsg = "Invalid value: x. Options are: r,w,d,l";
+                    errorMsg = "Given  \"x\" is invalid, supported values are: r, c, w, d, l";
                 }
 
                 ExpectedContainErrorMessage(errorMsg);
@@ -777,6 +791,14 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             //Share list permission
             sharePermission = "l";
             GenerateSasTokenAndValidate(sharePermission);
+
+            // TODO: Enable it when xplat supports the permissions
+            if (lang == Language.PowerShell)
+            {
+                //Share create permission
+                sharePermission = "c";
+                GenerateSasTokenAndValidate(sharePermission);
+            }
 
             //Random combination
             sharePermission = Utility.GenRandomCombination(Utility.SharePermission);
@@ -1014,7 +1036,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             {
                 //Share read permission
                 string sharePermission = "r";
-                string limitedPermission = "wdl";
+                string limitedPermission = lang == Language.PowerShell ? "wdlc" : "wdl";
                 string sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
                 ValidateLimitedSasPermission(share, limitedPermission, sastoken);
 
@@ -1026,15 +1048,25 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 //Share delete permission
                 sharePermission = "d";
-                limitedPermission = "rwl";
+                limitedPermission = lang == Language.PowerShell ?  "rwlc" : "rwl";
                 sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
                 ValidateLimitedSasPermission(share, limitedPermission, sastoken);
 
                 //Share list permission
                 sharePermission = "l";
-                limitedPermission = "rwd";
+                limitedPermission = lang == Language.PowerShell ? "rwdc" : "rwd";
                 sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
                 ValidateLimitedSasPermission(share, limitedPermission, sastoken);
+
+                // TODO: Enable it when xplat supports the permissions
+                if (lang == Language.PowerShell)
+                {
+                    //Share create permission
+                    sharePermission = "c";
+                    limitedPermission = "rwdl";
+                    sastoken = CommandAgent.GetAzureStorageShareSasFromCmd(shareName, string.Empty, sharePermission);
+                    ValidateLimitedSasPermission(share, limitedPermission, sastoken);
+                }
             }
             finally
             {
@@ -1139,6 +1171,14 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             //File delete permission
             permission = "d";
             GenerateFileSasTokenAndValidate(permission);
+
+            // TODO: Enable it when xplat supports the permissions
+            if (lang == Language.PowerShell)
+            {
+                //File create permission
+                permission = "c";
+                GenerateFileSasTokenAndValidate(permission);
+            }
             
             //Random combination
             permission = Utility.GenRandomCombination(Utility.FilePermission);
@@ -1332,7 +1372,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 DateTime start = DateTime.UtcNow;
                 DateTime end = start.AddHours(1.0);
-                Test.Assert(!CommandAgent.NewAzureStorageFileSAS(shareName, fileName, string.Empty, "l", end, start),
+                Test.Assert(!CommandAgent.NewAzureStorageFileSAS(shareName, fileName, string.Empty, "r", end, start),
                         "Generate file sas token with invalid should fail");
                 ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
             }
@@ -1394,7 +1434,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 //File read permission
                 string permissions = "r";
-                string limitedPermission = "wd";
+                string limitedPermission = "wdc";
                 string sastoken = CommandAgent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions);
                 ValidateFileLimitedSasPermission(file, limitedPermission, sastoken);
 
@@ -1406,7 +1446,13 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 //File delete permission
                 permissions = "d";
-                limitedPermission = "rw";
+                limitedPermission = "rwc";
+                sastoken = CommandAgent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions);
+                ValidateLimitedSasPermission(share, limitedPermission, sastoken);
+
+                //File create permission
+                permissions = "c";
+                limitedPermission = "rwd";
                 sastoken = CommandAgent.GetAzureStorageFileSasFromCmd(shareName, fileName, string.Empty, permissions);
                 ValidateLimitedSasPermission(share, limitedPermission, sastoken);
             }
@@ -1700,6 +1746,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     case 'd':
                         fileUtil.ValidateFileDeleteableWithSasToken(file, sasToken);
                         break;
+                    case 'c':
+                        fileUtil.ValidateFileCreateableWithSasToken(file, sasToken);
+                        break;
                 }
             }
         }
@@ -1722,6 +1771,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     case 'l':
                         fileUtil.ValidateShareListableWithSasToken(share, sasToken);
                         break;
+                    case 'c':
+                        fileUtil.ValidateShareCreateableWithSasToken(share, sasToken);
+                        break;
                 }
             }
         }
@@ -1729,22 +1781,25 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         private void ValidateFileLimitedSasPermission(StorageFile.CloudFile file,
             string limitedPermission, string sasToken)
         {
-            try
+            foreach (char permission in limitedPermission.ToLower())
             {
-                ValidateFileSasToken(file, limitedPermission, sasToken);
-                Test.Error("sastoken '{0}' should not contain the permission {1}", limitedPermission);
-            }
-            catch (StorageException e)
-            {
-                Test.Info(e.Message);
-                if (403 == e.RequestInformation.HttpStatusCode || 404 == e.RequestInformation.HttpStatusCode)
+                try
                 {
-                    Test.Info("Limited permission sas token should not access storage objects. {0}", e.RequestInformation.HttpStatusMessage);
+                    ValidateFileSasToken(file, permission.ToString(), sasToken);
+                    Test.Error("sastoken '{0}' should not contain the permission {1}", sasToken, permission.ToString());
                 }
-                else
+                catch (StorageException e)
                 {
-                    Test.Error("Limited permission sas token should return 403 or 404, but actually it's {0} {1}",
-                        e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage);
+                    Test.Info(e.Message);
+                    if (403 == e.RequestInformation.HttpStatusCode)
+                    {
+                        Test.Info("Limited permission sas token should not access storage objects. {0}", e.RequestInformation.HttpStatusMessage);
+                    }
+                    else
+                    {
+                        Test.Error("Limited permission sas token should return 403, but actually it's {0} {1}",
+                            e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage);
+                    }
                 }
             }
         }
@@ -1752,22 +1807,25 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
         private void ValidateLimitedSasPermission(CloudFileShare share,
             string limitedPermission, string sasToken)
         {
-            try
+            foreach (char permission in limitedPermission.ToLower())
             {
-                ValidateSasToken(share, limitedPermission, sasToken);
-                Test.Error("sastoken '{0}' should not contain the permission {1}", limitedPermission);
-            }
-            catch (StorageException e)
-            {
-                Test.Info(e.Message);
-                if (403 == e.RequestInformation.HttpStatusCode || 404 == e.RequestInformation.HttpStatusCode)
+                try
                 {
-                    Test.Info("Limited permission sas token should not access storage objects. {0}", e.RequestInformation.HttpStatusMessage);
+                    ValidateSasToken(share, permission.ToString(), sasToken);
+                    Test.Error("sastoken '{0}' should not contain the permission {1}", sasToken, permission.ToString());
                 }
-                else
+                catch (StorageException e)
                 {
-                    Test.Error("Limited permission sas token should return 403 or 404, but actually it's {0} {1}",
-                        e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage);
+                    Test.Info(e.Message);
+                    if (403 == e.RequestInformation.HttpStatusCode)
+                    {
+                        Test.Info("Limited permission sas token should not access storage objects. {0}", e.RequestInformation.HttpStatusMessage);
+                    }
+                    else
+                    {
+                        Test.Error("Limited permission sas token should return 403, but actually it's {0} {1}",
+                            e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage);
+                    }
                 }
             }
         }

@@ -666,7 +666,11 @@
             string sasFileName = Utility.GenNameString("sasFile");
             CloudFile sasFile = sasShare.GetRootDirectoryReference().GetFileReference(sasFileName);
             long fileSize = 1024 * 1024;
+            byte[] buffer = new byte[fileSize];
+            new Random().NextBytes(buffer);
+            MemoryStream ms = new MemoryStream(buffer);
             sasFile.Create(fileSize);
+            sasFile.UploadFromStream(ms);
             CloudFile retrievedFile = share.GetRootDirectoryReference().GetFileReference(sasFileName);
             retrievedFile.FetchAttributes();
             TestBase.ExpectEqual(fileSize, retrievedFile.Properties.Length, "blob size");
@@ -722,6 +726,31 @@
             TestBase.ExpectEqual(fileCount, retrievedFileCount, "File count");
         }
 
+        public void ValidateShareCreateableWithSasToken(CloudFileShare share, string sastoken)
+        {
+            Test.Info("Verify share create permission");
+            string fileName = Utility.GenNameString("file");
+            string dirName = Utility.GenNameString("dir");
+            int fileLength = 10;
+
+            CloudStorageAccount sasAccount = TestBase.GetStorageAccountWithSasToken(share.ServiceClient.Credentials.AccountName, sastoken);
+            CloudFileShare sasShare = sasAccount.CreateCloudFileClient().GetShareReference(share.Name);
+            if (!share.Exists())
+            {
+                sasShare.Create();
+                Test.Assert(sasShare.Exists(), "The share should  exist after Creating with sas token");
+            }
+            CloudFileDirectory dir = share.GetRootDirectoryReference().GetDirectoryReference(dirName);
+            CloudFileDirectory sasDir = sasShare.GetRootDirectoryReference().GetDirectoryReference(dirName);
+            sasDir.Create();
+            Test.Assert(dir.Exists(), "The directory should  exist after Creating with sas token");
+            CloudFile file = dir.GetFileReference(fileName);
+            CloudFile sasFile = sasDir.GetFileReference(fileName);
+            sasFile.Create(fileLength);
+            Test.Assert(file.Exists(), "The file should  exist after Creating with sas token");
+            TestBase.ExpectEqual(fileLength, file.Properties.Length, "File Lenth should match.");
+        }        
+
         /// <summary>
         /// Validate the read permission in the sas token for the the specified file
         /// </summary>
@@ -775,6 +804,21 @@
             CloudFile sasFile = new CloudFile(file.Uri, new StorageCredentials(sasToken));
             sasFile.Delete();
             Test.Assert(!file.Exists(), "The file should not exist after deleting with sas token");
+        }
+
+        /// <summary>
+        /// Validate the Create permission in the sas token for the the specified file
+        /// </summary>
+        internal void ValidateFileCreateableWithSasToken(CloudFile file, string sasToken)
+        {
+            Test.Info("Verify file Create permission");
+            file.DeleteIfExists();
+            CloudFile sasFile = new CloudFile(file.Uri, new StorageCredentials(sasToken));
+            int fileLength = 10;
+            sasFile.Create(fileLength);
+            file.FetchAttributes();
+            Test.Assert(file.Exists(), "The file should  exist after Creating with sas token");
+            TestBase.ExpectEqual(fileLength, file.Properties.Length, "File Lenth should match.");
         }
     }
 }
