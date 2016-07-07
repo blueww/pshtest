@@ -27,7 +27,7 @@ namespace Management.Storage.ScenarioTest
     using Common;
     using Management.Storage.ScenarioTest.Util;
     using Microsoft.Azure;
-    using Microsoft.Azure.Common.Authentication.Models;
+    using Microsoft.Azure.Commands.Common.Authentication.Models;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
     using Microsoft.Rest;
     using Microsoft.WindowsAzure.Storage;
