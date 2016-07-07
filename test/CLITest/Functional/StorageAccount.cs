@@ -22,7 +22,7 @@ namespace Management.Storage.ScenarioTest
     using System.Threading;
     using Management.Storage.ScenarioTest.Common;
     using Management.Storage.ScenarioTest.Util;
-    using Microsoft.Azure.Common.Authentication.Models;
+    using Microsoft.Azure.Commands.Common.Authentication.Models;
     using Microsoft.Azure.Management.Storage;
     using Microsoft.Azure.Management.Storage.Models;
     using Microsoft.Rest.Azure;

@@ -5,14 +5,13 @@
     using System.Collections.Generic;
     using System.Net;
     using System.Threading;
-    using Microsoft.Azure.Common.Authentication;
-    using Microsoft.Azure.Common.Authentication.Models;
+    using Microsoft.Azure.Commands.Common.Authentication.Models;
     using Microsoft.Azure.Management.Storage.Models;
+    using Microsoft.Rest.Azure;
     using Microsoft.WindowsAzure.Management.Storage;
     using MS.Test.Common.MsTestLib;
     using SRPManagement = Microsoft.Azure.Management.Storage;
     using SRPModel = Microsoft.Azure.Management.Storage.Models;
-    using Microsoft.Rest.Azure;
 
     public class AccountUtils
     {
