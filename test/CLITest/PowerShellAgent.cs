@@ -1418,10 +1418,6 @@ namespace Management.Storage.ScenarioTest
             ps.AddCommand("Remove-AzureStorageTableStoredAccessPolicy");
             ps.BindParameter("Table", tableName);
             ps.BindParameter("Policy", policyName);
-            if (Force)
-            {
-                ps.BindParameter("Force");
-            }
 
             return InvokeStoragePowerShell(ps);
         }
@@ -1484,10 +1480,6 @@ namespace Management.Storage.ScenarioTest
             ps.AddCommand("Remove-AzureStorageQueueStoredAccessPolicy");
             ps.BindParameter("Queue", queueName);
             ps.BindParameter("Policy", policyName);
-            if (Force)
-            {
-                ps.BindParameter("Force");
-            }
 
             return InvokeStoragePowerShell(ps);
         }
@@ -1551,10 +1543,6 @@ namespace Management.Storage.ScenarioTest
             ps.AddCommand("Remove-AzureStorageContainerStoredAccessPolicy");
             ps.BindParameter("Container", containerName);
             ps.BindParameter("Policy", policyName);
-            if (Force)
-            {
-                ps.BindParameter("Force");
-            }
 
             return InvokeStoragePowerShell(ps);
         }
@@ -3387,11 +3375,6 @@ namespace Management.Storage.ScenarioTest
             this.shell.BindParameter("ShareName", shareName);
             this.shell.BindParameter("Policy", policyName);
 
-            if (!confirm)
-            {
-                this.shell.AddParameter("Confirm", false);
-            }
-
             return InvokeStoragePowerShell(this.shell);
         }
 
@@ -3886,6 +3869,7 @@ namespace Management.Storage.ScenarioTest
                 ps.AddParameter("CustomDomainName", customDomain);
             }
             ps.BindParameter("UseSubDomain", useSubdomain);
+            ps.AddParameter("Force");
 
             return InvokePowerShellWithoutContext(ps);
         }
@@ -3898,6 +3882,7 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
             ps.BindParameter("Tags", tags);
+            ps.AddParameter("Force");
 
             return InvokePowerShellWithoutContext(ps);
         }
@@ -3911,6 +3896,7 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("Name", accountName);
             ps.BindParameter("CustomDomainName", customDomain, true);
             ps.BindParameter("UseSubDomain", useSubdomain);
+            ps.AddParameter("Force");
 
             return InvokePowerShellWithoutContext(ps);
         }
@@ -3922,6 +3908,7 @@ namespace Management.Storage.ScenarioTest
             ps.AddCommand("Remove-AzureRmStorageAccount");
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
+            ps.AddParameter("Force");
 
             return InvokePowerShellWithoutContext(ps);
         }
