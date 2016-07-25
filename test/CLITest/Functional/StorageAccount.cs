@@ -22,7 +22,7 @@ namespace Management.Storage.ScenarioTest
     using System.Threading;
     using Management.Storage.ScenarioTest.Common;
     using Management.Storage.ScenarioTest.Util;
-    using Microsoft.Azure.Common.Authentication.Models;
+    using Microsoft.Azure.Commands.Common.Authentication.Models;
     using Microsoft.Azure.Management.Storage;
     using Microsoft.Azure.Management.Storage.Models;
     using Microsoft.Rest.Azure;
@@ -928,7 +928,7 @@ namespace Management.Storage.ScenarioTest
                     Test.Assert(!CommandAgent.CreateAzureStorageAccount(accountName, subscriptionId, label, description, location, affinityGroup, accountType),
                         string.Format("Creating an existing stoarge account {0} in location {1} should fail", accountName, location));
 
-                    string errorFormat = lang == Language.PowerShell ? "A storage account named '{0}' already exists in the subscription" : "The storage account named \"{0}\" is already taken or not valid";
+                    string errorFormat = lang == Language.PowerShell ? "A storage account named '{0}' already exists in the subscription" : "A storage account named '{0}' already exists in the subscription";
 
                     ExpectedContainErrorMessage(string.Format(errorFormat, accountName));
                 }

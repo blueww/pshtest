@@ -213,8 +213,10 @@
             CommandAgent.Clear();
             CommandAgent.DownloadFile(this.fileShare.GetRootDirectoryReference(), cloudFileName, localFilePath2, true);
             result = CommandAgent.Invoke();
-            CommandAgent.AssertNoError();
-            Test.Assert(File.Exists(localFilePath2), "File should exist after uploaded.");
+            if (UtilBase.AgentOSType == OSType.Windows)
+            {
+                Test.Assert(File.Exists(localFilePath2), "File should exist after uploaded.");
+            }
             Test.Assert(FileUtil.GetFileContentMD5(localFilePath) == FileUtil.GetFileContentMD5(localFilePath2), "The download file MD5 {0} should match Uploaded File MD5 {1}.", FileUtil.GetFileContentMD5(localFilePath2), FileUtil.GetFileContentMD5(localFilePath));
         }
 

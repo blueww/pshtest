@@ -443,8 +443,7 @@ namespace Management.Storage.ScenarioTest.BVT
             {
                 foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
                 {
-                    if ((serviceType == Constants.ServiceType.InvalidService)
-                        || (serviceType == Constants.ServiceType.File && Language.NodeJS == lang))
+                    if (serviceType == Constants.ServiceType.InvalidService)
                     {
                         continue;
                     }
@@ -516,8 +515,7 @@ namespace Management.Storage.ScenarioTest.BVT
 
             foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
             {
-                if ((serviceType == Constants.ServiceType.InvalidService)
-                    || (serviceType == Constants.ServiceType.File && Language.NodeJS == lang))
+                if (serviceType == Constants.ServiceType.InvalidService)
                 {
                     continue;
                 }
@@ -1425,6 +1423,7 @@ namespace Management.Storage.ScenarioTest.BVT
 
         [TestMethod]
         [TestCategory(Tag.BVT)]
+        [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(PsTag.NewAccountSas)]
         public void NewAccountSasTest()
         {
