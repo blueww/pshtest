@@ -5,14 +5,13 @@
     using System.Collections.Generic;
     using System.Net;
     using System.Threading;
-    using Microsoft.Azure.Common.Authentication;
-    using Microsoft.Azure.Common.Authentication.Models;
+    using Microsoft.Azure.Commands.Common.Authentication.Models;
     using Microsoft.Azure.Management.Storage.Models;
+    using Microsoft.Rest.Azure;
     using Microsoft.WindowsAzure.Management.Storage;
     using MS.Test.Common.MsTestLib;
     using SRPManagement = Microsoft.Azure.Management.Storage;
     using SRPModel = Microsoft.Azure.Management.Storage.Models;
-    using Microsoft.Rest.Azure;
 
     public class AccountUtils
     {
@@ -20,28 +19,41 @@
         private static Tuple<int, int> ValidNameRange = new Tuple<int, int>((int)'a', (int)'z');
         private static Random random = new Random();
 
+        private SRPManagement.StorageManagementClient srpStorageClient;
+        private DateTime srpStorageClientLastUpdatedTime;
+
+
         public SRPManagement.StorageManagementClient SRPStorageClient
         {
-            get;
-            private set;
+            get
+            {
+                if (srpStorageClient != null && DateTime.Now - srpStorageClientLastUpdatedTime <= TimeSpan.FromMinutes(30))
+                {
+                    return srpStorageClient;
+                }
+
+                var tempSrpStorageClient = new SRPManagement.StorageManagementClient(Utility.GetTokenCredential())
+                {
+                    SubscriptionId = Test.Data.Get("AzureSubscriptionID")
+                };
+
+                Interlocked.Exchange(ref srpStorageClient, tempSrpStorageClient);
+                srpStorageClientLastUpdatedTime = DateTime.Now;
+
+                return srpStorageClient;
+            }
         }
 
-        public StorageManagementClient StorageClient
-        {
-            get;
-            private set;
-        }
+        public StorageManagementClient StorageClient { get; private set; }
 
         private Language language = Language.PowerShell;
 
         public AccountUtils(Language language, bool isResourceMode)
         {
+            this.language = language;
             if (isResourceMode)
             {
                 StorageClient = new StorageManagementClient(Utility.GetCertificateCloudCredential());
-
-                SRPStorageClient = new SRPManagement.StorageManagementClient(Utility.GetTokenCredential());
-                SRPStorageClient.SubscriptionId = Test.Data.Get("AzureSubscriptionID");
             }
             else
             {
@@ -49,8 +61,6 @@
                 StorageClient = new StorageManagementClient(Utility.GetCertificateCloudCredential(),
                     environment.GetEndpointAsUri(AzureEnvironment.Endpoint.ServiceManagement));
             }
-
-            this.language = language;
         }
 
         public string GenerateAccountName(int nameLength = 0)

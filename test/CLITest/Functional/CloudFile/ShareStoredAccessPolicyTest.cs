@@ -147,7 +147,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
                 else
                 {
-                    ExpectedContainErrorMessage("Given  \"x\" is invalid, supported values are: r, w, d, l");
+                    ExpectedContainErrorMessage("Given  \"x\" is invalid, supported values are: r, c, w, d, l");
                 }
 
                 string longPolicyName = FileNamingGenerator.GenerateValidASCIIOptionValue(65);
@@ -559,7 +559,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
                 else
                 {
-                    errorMsg = "Given  \"x\" is invalid, supported values are: r, w, d, l";
+                    errorMsg = "Given  \"x\" is invalid, supported values are: r, c, w, d, l";
                 }
 
                 ExpectedContainErrorMessage(errorMsg);
@@ -1372,7 +1372,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 DateTime start = DateTime.UtcNow;
                 DateTime end = start.AddHours(1.0);
-                Test.Assert(!CommandAgent.NewAzureStorageFileSAS(shareName, fileName, string.Empty, "l", end, start),
+                Test.Assert(!CommandAgent.NewAzureStorageFileSAS(shareName, fileName, string.Empty, "r", end, start),
                         "Generate file sas token with invalid should fail");
                 ExpectedContainErrorMessage("The expiry time of the specified access policy should be greater than start time");
             }

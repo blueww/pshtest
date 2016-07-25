@@ -53,12 +53,8 @@
                 (metricsType, retentionDays, metricsLevel) => Utility.WaitForMetricsPropertyTakingEffect(StorageAccount, ServiceType.Table, metricsType, retentionDays, metricsLevel));
 
             //File service
-            // TODO: Currently xPlat doesn't support file metrics operations. Need to update the test case accordingly once we decide to support it in xPlat
-            if (lang != Language.NodeJS)
-            {
-                GenericEnableDisableServiceMetrics(ServiceType.File,
-                    (metricsType, retentionDays, metricsLevel) => Utility.WaitForMetricsPropertyTakingEffect(StorageAccount, ServiceType.File, metricsType, retentionDays, metricsLevel));
-            }
+            GenericEnableDisableServiceMetrics(ServiceType.File,
+                (metricsType, retentionDays, metricsLevel) => Utility.WaitForMetricsPropertyTakingEffect(StorageAccount, ServiceType.File, metricsType, retentionDays, metricsLevel));
         }
 
         internal void GenericEnableDisableServiceMetrics(ServiceType serviceType, GetMetricsProperty<ServiceProperties> getServiceProperties)
@@ -110,12 +106,8 @@
                 (metricsType, retentionDays, metricsLevel) => Utility.WaitForMetricsPropertyTakingEffect(StorageAccount, ServiceType.Table, metricsType, retentionDays, metricsLevel));
 
             //File service
-            // TODO: Currently xPlat doesn't support file metrics operations. Need to update the test case accordingly once we decide to support it in xPlat
-            if (lang != Language.NodeJS)
-            {
-                GenericSetMetricsOperation(ServiceType.File,
-                    (metricsType, retentionDays, metricsLevel) => Utility.WaitForMetricsPropertyTakingEffect(StorageAccount, ServiceType.File, metricsType, retentionDays, metricsLevel));
-            }
+            GenericSetMetricsOperation(ServiceType.File,
+            (metricsType, retentionDays, metricsLevel) => Utility.WaitForMetricsPropertyTakingEffect(StorageAccount, ServiceType.File, metricsType, retentionDays, metricsLevel));
         }
 
         internal void GenericSetMetricsOperation(ServiceType serviceType, GetMetricsProperty<ServiceProperties> getServiceProperties)
@@ -164,11 +156,7 @@
             GenericSetInvalidMetricsOperation(ServiceType.Table, () => tableClient.GetServiceProperties());
 
             //File service
-            // TODO: Currently xPlat doesn't support file metrics operations. Need to update the test case accordingly once we decide to support it in xPlat
-            if (lang != Language.NodeJS)
-            {
-                GenericSetInvalidMetricsOperation(ServiceType.File, () => Utility.GetServiceProperties(StorageAccount, ServiceType.File));
-            }
+            GenericSetInvalidMetricsOperation(ServiceType.File, () => Utility.GetServiceProperties(StorageAccount, ServiceType.File));
         }
 
         internal void GenericSetInvalidMetricsOperation(ServiceType serviceType, Func<ServiceProperties> getServiceProperties)
@@ -220,11 +208,7 @@
             GenericSetMetricsRetentionDays(ServiceType.Table, () => tableClient.GetServiceProperties());
 
             //File service
-            // TODO: Currently xPlat doesn't support file metrics operations. Need to update the test case accordingly once we decide to support it in xPlat
-            if (lang != Language.NodeJS)
-            {
-                GenericSetMetricsRetentionDays(ServiceType.File, () => Utility.GetServiceProperties(StorageAccount, ServiceType.File));
-            }
+            GenericSetMetricsRetentionDays(ServiceType.File, () => Utility.GetServiceProperties(StorageAccount, ServiceType.File));
         }
 
         internal void GenericSetMetricsRetentionDays(ServiceType serviceType, Func<ServiceProperties> getServiceProperties)

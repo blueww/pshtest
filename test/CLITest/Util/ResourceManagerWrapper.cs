@@ -1,6 +1,5 @@
 ﻿namespace Management.Storage.ScenarioTest.Util
 {
-    using Microsoft.Azure.Common.Authentication;
     using Microsoft.Azure.Management.Resources;
     using Microsoft.Azure.Management.Resources.Models;
 

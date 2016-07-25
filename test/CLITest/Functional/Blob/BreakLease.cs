@@ -866,7 +866,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 CloudBlob blob = blobUtil.CreateRandomBlob(container, blobName);
 
-                Test.Assert(CommandAgent.AcquireLease(containerName, null, duration: 30), Utility.GenComparisonData("Acquire Container Lease", true));
+                Test.Assert(CommandAgent.AcquireLease(containerName, null, duration: 60), Utility.GenComparisonData("Acquire Container Lease", true));
 
                 if (lang == Language.NodeJS)
                 {
