@@ -494,14 +494,14 @@ namespace Management.Storage.ScenarioTest
             string result = string.Empty;
             foreach (Hashtable table in tables)
             {
-                if (!string.IsNullOrEmpty(result))
+                foreach (var key in table.Keys)
                 {
-                    result += ";";
-                }
+                    if (!string.IsNullOrEmpty(result))
+                    {
+                        result += ";";
+                    }
 
-                if (table.ContainsKey("Name") && table.ContainsKey("Value"))
-                {
-                    result += table["Name"] + "=" + table["Value"];
+                    result += key.ToString() + "=" + table[key].ToString();
                 }
             }
 
