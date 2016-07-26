@@ -793,13 +793,13 @@ namespace Management.Storage.ScenarioTest
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
             string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
             string affinityGroup = null;
-            Hashtable[] tags = new Hashtable[random.Next(1, 5)];
 
-            for (int i = 0; i < tags.Length; ++i)
+            Hashtable[] tags = new Hashtable[1];
+            tags[0] = new Hashtable();
+            int tagLength = random.Next(1, 5);
+            for (int i = 0; i < tagLength; ++i)
             {
-                tags[i] = new Hashtable();
-                tags[i].Add("Name", Utility.GenNameString("Name"));
-                tags[i].Add("Value", Utility.GenNameString("Value"));
+                tags[0].Add(Utility.GenNameString("Name"), Utility.GenNameString("Value"));
             }
 
             CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType, tags, null, Kind.BlobStorage, Constants.EncryptionSupportServiceEnum.Blob, AccessTier.Cool);
@@ -1085,8 +1085,7 @@ namespace Management.Storage.ScenarioTest
                 accountName = accountUtils.GenerateAccountName();
                 tags = new Hashtable[1];
                 tags[0] = new Hashtable();
-                tags[0].Add("Name", Utility.GenNameString("Name"));
-                tags[0].Add("Value", "");
+                tags[0].Add(Utility.GenNameString("Name"), "");
                 CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), tags);
             }
         }
@@ -1106,8 +1105,7 @@ namespace Management.Storage.ScenarioTest
 
                 Hashtable[] tags = new Hashtable[1];
                 tags[0] = new Hashtable();
-                tags[0].Add("Name", "");
-                tags[0].Add("Value", Utility.GenNameString("Value"));
+                tags[0].Add("", Utility.GenNameString("Value"));
                 CreateAndValidateAccountWithInvalidTags(accountName, location, accountUtils.mapAccountType(accountType), tags);
                 if (lang == Language.PowerShell)
                 {
@@ -1120,8 +1118,7 @@ namespace Management.Storage.ScenarioTest
 
                 accountName = accountUtils.GenerateAccountName();
                 tags[0] = new Hashtable();
-                tags[0].Add("Name", Utility.GenNameString("Name", random.Next(125, 500)));
-                tags[0].Add("Value", Utility.GenNameString("Value"));
+                tags[0].Add(Utility.GenNameString("Name", random.Next(125, 500)), Utility.GenNameString("Value"));
                 CreateAndValidateAccountWithInvalidTags(accountName, location, accountUtils.mapAccountType(accountType), tags);
 
                 if (lang == Language.PowerShell)
@@ -1135,46 +1132,47 @@ namespace Management.Storage.ScenarioTest
 
                 accountName = accountUtils.GenerateAccountName();
                 tags[0] = new Hashtable();
-                tags[0].Add("Name", Utility.GenNameString("Name"));
-                tags[0].Add("Value", Utility.GenNameString("Value", random.Next(253, 500)));
+                string tagValue = Utility.GenNameString("Value", random.Next(253, 500));
+                tags[0].Add(Utility.GenNameString("Name"), tagValue);
                 CreateAndValidateAccountWithInvalidTags(accountName, location, accountUtils.mapAccountType(accountType), tags);
 
                 if (lang == Language.PowerShell)
                 {
                     ExpectedContainErrorMessage(string.Format("Tag value too large.  Following tag value '{0}' exceeded the maximum length. Maximum allowed length for tag value - '256' characters.",
-                        tags[0]["Value"].ToString()));
+                        tagValue));
                 }
                 else
                 {
                     ExpectedContainErrorMessage(string.Format("Tag value too large.  Following tag value '{0}' exceeded the maximum length. Maximum allowed length for tag value - '256' characters.",
-                        tags[0]["Value"].ToString()));
+                        tagValue));
                 }
 
                 accountName = accountUtils.GenerateAccountName();
-                tags = new Hashtable[random.Next(16, 50)];
-                for (int i = 0; i < tags.Length; ++i)
+                tags = new Hashtable[1];
+                tags[0] = new Hashtable();
+                int tagLength = random.Next(16, 50);
+                for (int i = 0; i < tagLength; ++i)
                 {
-                    tags[i] = new Hashtable();
-                    tags[i].Add("Name", Utility.GenNameString("Name"));
-                    tags[i].Add("Value", Utility.GenNameString("Value"));
+                    tags[0].Add(Utility.GenNameString("Name"), Utility.GenNameString("Value"));
                 }
+
+
                 CreateAndValidateAccountWithInvalidTags(accountName, location, accountUtils.mapAccountType(accountType), tags);
 
                 if (lang == Language.PowerShell)
                 {
                     ExpectedContainErrorMessage(string.Format("Too many tags on the resource/resource group. Requested tag count - '{0}'. Maximum number of tags allowed - '15'.",
-                       tags.Length));
+                       tagLength));
                 }
                 else
                 {
                     ExpectedContainErrorMessage(string.Format("Too many tags on the resource/resource group. Requested tag count - '{0}'. Maximum number of tags allowed - '15'.",
-                       tags.Length));
+                       tagLength));
                 }
             }
         }
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -1645,8 +1643,7 @@ namespace Management.Storage.ScenarioTest
 
                     tags = new Hashtable[1];
                     tags[0] = new Hashtable();
-                    tags[0].Add("Name", Utility.GenNameString("Value"));
-                    tags[0].Add("Value", "");
+                    tags[0].Add(Utility.GenNameString("Value"), "");
 
                     Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
                         "Set tags of account {0} in reource group {1} should succeed", accountName, resourceGroupName);
@@ -1693,8 +1690,7 @@ namespace Management.Storage.ScenarioTest
 
                     Hashtable[] tags = new Hashtable[1];
                     tags[0] = new Hashtable();
-                    tags[0].Add("Name", "");
-                    tags[0].Add("Value", Utility.GenNameString("Value"));
+                    tags[0].Add("", Utility.GenNameString("Value"));
 
                     Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
                         "Set tags of account {0} in reource group {1} should fail", accountName, resourceGroupName);
@@ -1708,8 +1704,7 @@ namespace Management.Storage.ScenarioTest
                     }
 
                     tags[0] = new Hashtable();
-                    tags[0].Add("Name", Utility.GenNameString("Name", random.Next(125, 500)));
-                    tags[0].Add("Value", Utility.GenNameString("Value"));
+                    tags[0].Add(Utility.GenNameString("Name", random.Next(125, 500)), Utility.GenNameString("Value"));
                     Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
                         "Set tags of account {0} in reource group {1} should fail", accountName, resourceGroupName);
                     if (lang == Language.PowerShell)
@@ -1722,39 +1717,39 @@ namespace Management.Storage.ScenarioTest
                     }
 
                     tags[0] = new Hashtable();
-                    tags[0].Add("Name", Utility.GenNameString("Name"));
-                    tags[0].Add("Value", Utility.GenNameString("Value", random.Next(253, 500)));
+                    string tagValue = Utility.GenNameString("Value", random.Next(253, 500));
+                    tags[0].Add(Utility.GenNameString("Name"), tagValue);
+
                     Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
                         "Set tags of account {0} in reource group {1} should fail", accountName, resourceGroupName);
                     if (lang == Language.PowerShell)
                     {
                         ExpectedContainErrorMessage(string.Format("Tag value too large.  Following tag value '{0}' exceeded the maximum length. Maximum allowed length for tag value - '256' characters.",
-                            tags[0]["Value"].ToString()));
+                            tagValue));
                     }
                     else
                     {
                         ExpectedContainErrorMessage(string.Format("Tag value too large.  Following tag value '{0}' exceeded the maximum length. Maximum allowed length for tag value - '256' characters.",
-                            tags[0]["Value"].ToString()));
+                            tagValue));
                     }
 
-                    tags = new Hashtable[random.Next(16, 50)];
-                    for (int i = 0; i < tags.Length; ++i)
+                    int tagsLength = random.Next(16, 50);
+                    tags[0] = new Hashtable();
+                    for (int i = 0; i < tagsLength; ++i)
                     {
-                        tags[i] = new Hashtable();
-                        tags[i].Add("Name", Utility.GenNameString("Name"));
-                        tags[i].Add("Value", Utility.GenNameString("Value"));
+                        tags[0].Add(Utility.GenNameString("Name"), Utility.GenNameString("Value"));
                     }
                     Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
                         "Set tags of account {0} in reource group {1} should fail", accountName, resourceGroupName);
                     if (lang == Language.PowerShell)
                     {
                         ExpectedContainErrorMessage(string.Format("Too many tags on the resource/resource group. Requested tag count - '{0}'. Maximum number of tags allowed - '15'.",
-                           tags.Length));
+                           tagsLength));
                     }
                     else
                     {
                         ExpectedContainErrorMessage(string.Format("Too many tags on the resource/resource group. Requested tag count - '{0}'. Maximum number of tags allowed - '15'.",
-                           tags.Length));
+                           tagsLength));
                     }
                 }
                 finally
@@ -1765,7 +1760,6 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -3318,13 +3312,13 @@ namespace Management.Storage.ScenarioTest
 
             int maxTagCount = duplicatedName ? 16 : 15;
             int count = (caseTest || duplicatedName) ? Math.Min(maxTagCount, 2 * unicodeNameChars.Count) : unicodeNameChars.Count;
-            Hashtable[] tags = new Hashtable[count];
+
+            Hashtable[] tags = new Hashtable[(caseTest || duplicatedName) ? 2 : 1];
+            tags[0] = new Hashtable();
 
             for (int i = 0; i < unicodeNameChars.Count; ++i)
             {
-                tags[i] = new Hashtable();
-                tags[i].Add("Name", unicodeNameChars[i]);
-                tags[i].Add("Value", unicodeValueChars[i]);
+                tags[0].Add(unicodeNameChars[i], unicodeValueChars[i]);
 
                 Test.Info("Tag Name: '{0}'  Tag Value: '{1}'", unicodeNameChars[i], unicodeValueChars[i]);
             }
@@ -3333,7 +3327,7 @@ namespace Management.Storage.ScenarioTest
             {
                 for (int j = unicodeNameChars.Count; j < count; j++)
                 {
-                    tags[j] = new Hashtable();
+                    tags[1] = new Hashtable();
                     string name = string.Empty;
 
                     foreach (char ch in unicodeNameChars[j - unicodeNameChars.Count])
@@ -3348,8 +3342,7 @@ namespace Management.Storage.ScenarioTest
                             name += s.ToUpperInvariant();
                         }
                     }
-                    tags[j].Add("Name", name);
-                    tags[j].Add("Value", unicodeValueChars[j - unicodeNameChars.Count]);
+                    tags[1].Add(name, unicodeValueChars[j - unicodeNameChars.Count]);
 
                     Test.Info("Tag Name for word case: '{0}'  Tag Value: '{1}'", name, unicodeValueChars[j - unicodeNameChars.Count]);
                 }

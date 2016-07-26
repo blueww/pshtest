@@ -199,13 +199,13 @@
                 return;
             }
 
-            foreach (var sourceTag in originTags)
+            foreach (var sourceTag in originTags[0].Keys)
             {
                 string tagValue = null;
-                Test.Assert(targetTags.TryGetValue(sourceTag["Name"].ToString(), out tagValue),
-                    "Tag {0} should exist", sourceTag["Name"]);
-                Test.Assert(string.Equals(tagValue, sourceTag["Value"].ToString()),
-                    "Tag value should be the same. Expect: {0}, actual is: {1}", sourceTag["Value"].ToString(), tagValue);
+                Test.Assert(targetTags.TryGetValue(sourceTag.ToString(), out tagValue),
+                    "Tag {0} should exist", sourceTag);
+                Test.Assert(string.Equals(tagValue, originTags[0][sourceTag].ToString()),
+                    "Tag value should be the same. Expect: {0}, actual is: {1}", originTags[0][sourceTag].ToString(), tagValue);
             }
         }
         public void ValidateServiceEncrption(Encryption accountEncryption, Constants.EncryptionSupportServiceEnum? blobEncrptionIsEnabled)
