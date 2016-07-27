@@ -64,7 +64,7 @@ namespace Management.Storage.ScenarioTest.Functional.Table
         }
 
         /// <summary>
-        /// Remove an table without force parameter should confirm this operation
+        /// Remove empty table without force parameter should success
         /// </summary>
         [TestMethod()]
         [TestCategory(Tag.Function)]
@@ -76,9 +76,8 @@ namespace Management.Storage.ScenarioTest.Functional.Table
 
             try
             {
-                Test.Assert(!CommandAgent.RemoveAzureStorageTable(table.Name, false), "remove an table without force should throw a confirmation exception");
-                ExpectedContainErrorMessage(ConfirmExceptionMessage);
-                Test.Assert(table.Exists(), "the table should exist");
+                Test.Assert(CommandAgent.RemoveAzureStorageTable(table.Name, false), "Remove empty table without force parameter should success");
+                Test.Assert(!table.Exists(), "the table should not exist");
             }
             finally
             {

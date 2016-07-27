@@ -305,6 +305,7 @@ namespace Management.Storage.ScenarioTest
             // create table if not exists
             CloudTable table = StorageAccount.CreateCloudTableClient().GetTableReference(TABLE_NAME);
             table.CreateIfNotExists();
+            tableUtil.InsertEntityToTable(table);
 
             try
             {

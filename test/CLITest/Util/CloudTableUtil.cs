@@ -262,5 +262,22 @@ namespace Management.Storage.ScenarioTest.Util
             CloudTable sasTable = sasClient.GetTableReference(table.Name);
             return sasTable;
         }
+
+        /// <summary>
+        /// Insert Entity to the specified table
+        /// </summary>
+        internal void InsertEntityToTable(CloudTable table)
+        {
+            DynamicTableEntity entity = new DynamicTableEntity();
+            string pk = Utility.GenNameString("pk");
+            string rk = Utility.GenNameString("rk");
+            string key = Utility.GenNameString("key");
+            string value = Utility.GenNameString("value");
+            entity.PartitionKey = pk;
+            entity.RowKey = rk;
+            entity.Properties.Add(key, new EntityProperty(value));
+            TableOperation insertOp = TableOperation.Insert(entity);
+            table.Execute(insertOp);
+        }
     }
 }
