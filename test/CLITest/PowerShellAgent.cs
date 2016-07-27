@@ -3826,7 +3826,7 @@ namespace Management.Storage.ScenarioTest
             }
             ps.BindParameter("Location", location);
             ps.BindParameter("Kind", kind);
-            ps.BindParameter("Tags", (tags == null && tags.Length >= 1) ? null : tags[0]);
+            ps.BindParameter("Tags", (tags == null || tags.Length == 0) ? null : tags[0]);
             ps.BindParameter("AccessTier", accessTier);
             ps.BindParameter("EnableEncryptionService", enableEncryptionService);
             ps.BindParameter("CustomDomainName", customDomain);
@@ -3863,7 +3863,7 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("AccessTier", accessTier);
             ps.BindParameter("EnableEncryptionService", enableEncryptionService);
             ps.BindParameter("DisableEncryptionService", disableEncryptionService);
-            ps.BindParameter("Tags", (tags == null && tags.Length >= 1) ? null : tags[0]);
+            ps.BindParameter("Tags", (tags == null || tags.Length == 0) ? null : tags[0]);
             if (customDomain != null)
             {
                 ps.AddParameter("CustomDomainName", customDomain);
@@ -3881,7 +3881,7 @@ namespace Management.Storage.ScenarioTest
             ps.AddCommand("Set-AzureRmStorageAccount");
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
-            ps.BindParameter("Tags", (tags == null && tags.Length >= 1) ? null : tags[0]);
+            ps.BindParameter("Tags", (tags == null || tags.Length == 0) ? null : tags[0]);
             ps.AddParameter("Force");
 
             return InvokePowerShellWithoutContext(ps);
