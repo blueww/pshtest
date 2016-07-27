@@ -1654,7 +1654,8 @@ namespace Management.Storage.ScenarioTest
                     targetTags = GetTagsFromOutput();
                     accountUtils.ValidateTags(tags, targetTags);
 
-                    tags = new Hashtable[0];
+                    tags = new Hashtable[1];
+                    tags[0] = new Hashtable();
                     Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, null, tags),
                         "Set tags of account {0} in reource group {1} should succeed", accountName, resourceGroupName);
 
