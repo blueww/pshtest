@@ -453,6 +453,7 @@ namespace Management.Storage.ScenarioTest
             CloudBlobClient blobClient = StorageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference(CONTAINER_NAME);
             container.CreateIfNotExists();
+            blobUtil.CreateRandomBlob(container);
 
             try
             {
