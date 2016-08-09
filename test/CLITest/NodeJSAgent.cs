@@ -523,7 +523,7 @@ namespace Management.Storage.ScenarioTest
         {
             if (tags != null)
             {
-                if (tags.Length > 0)
+                if (tags.Length > 0 && tags[0] != null && tags[0].Keys.Count > 0)
                 {
                     return command + string.Format(" {0} {1} ", optionName, Utility.ConvertTables(tags));
                 }
