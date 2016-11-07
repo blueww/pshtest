@@ -8,8 +8,9 @@ if [%PRODUCT%] == [xPlat] GOTO :xPlat
 if [%PRODUCT%] == [PSH] GOTO :PSH
 
 :PSH
-cd PowerShell\tools
-powershell -File BuildInstaller.ps1
+cd PowerShell
+msbuild  build.proj  /t:Clean
+msbuild build.proj  /t:Build
 IF %ERRORLEVEL% NEQ 0 Exit /B %ERRORLEVEL%
 cd ..\..
 powershell -NonInteractive -NoLogo -NoProfile -File PublishModules.ps1
