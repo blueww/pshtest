@@ -9,10 +9,10 @@ if [%PRODUCT%] == [PSH] GOTO :PSH
 
 :PSH
 cd PowerShell
-msbuild  build.proj  /t:Clean
-msbuild build.proj  /t:Build
+msbuild build.proj /t:Clean
+msbuild build.proj /t:Build
 IF %ERRORLEVEL% NEQ 0 Exit /B %ERRORLEVEL%
-cd ..\..
+cd ..
 powershell -NonInteractive -NoLogo -NoProfile -File PublishModules.ps1
 IF %ERRORLEVEL% NEQ 0 Exit /B %ERRORLEVEL%
 
