@@ -70,14 +70,15 @@ namespace Management.Storage.ScenarioTest
                                                         Location.SoutheastAsia,
                                                         Location.EastAsia };
 
-        public static readonly string[] SRPLocations = { Location.EastUS2Stage};
-                                                        //Will add them back when E@R and XCool is enabled in product
-                                                        //{ Location.WestUS,
-                                                        //Location.EastUS,
-                                                        //Location.SoutheastAsia,
-                                                        //Location.EastAsia,
-                                                        //Location.WestEurope,
-                                                        //Location.NorthEurope };
+        public static readonly string[] SRPLocations = { Location.WestUS,
+                                                        Location.EastUS,
+                                                        Location.SoutheastAsia,
+                                                        Location.EastAsia,
+                                                        Location.WestEurope,
+                                                        Location.NorthEurope };
+
+                                                        //{ Location.EastUS2Stage};
+                                                        //E@R and XCool is already enabled in product, switch it back to PROD locations
 
         public static readonly string[] MCLocations = { MCLocation.ChinaEast,
                                                         MCLocation.ChinaNorth };
