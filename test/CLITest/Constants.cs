@@ -70,12 +70,13 @@ namespace Management.Storage.ScenarioTest
                                                         Location.SoutheastAsia,
                                                         Location.EastAsia };
 
-        public static readonly string[] SRPLocations = { Location.WestUS,
-                                                        Location.EastUS,
-                                                        Location.SoutheastAsia,
-                                                        Location.EastAsia,
-                                                        Location.WestEurope,
-                                                        Location.NorthEurope };
+        public static readonly string[] SRPLocations = { //Location.WestUS,
+                                                        //Location.EastUS,
+                                                        //Location.SoutheastAsia,
+                                                        Location.EastAsia }; //File E@R only enabled on eastasia now, will switch it back when it's available on all regions
+                                                        //Location.WestEurope,
+                                                        //Location.NorthEurope };
+                                                        
 
                                                         //{ Location.EastUS2Stage};
                                                         //E@R and XCool is already enabled in product, switch it back to PROD locations
@@ -113,9 +114,12 @@ namespace Management.Storage.ScenarioTest
             InvalidResource
         };
 
+        [Flags]
         public enum EncryptionSupportServiceEnum
         {
-            Blob = 1
+            None = 0,
+            Blob = 1,
+            File = 2
         }
 
         /// <summary>
