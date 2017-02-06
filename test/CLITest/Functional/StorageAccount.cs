@@ -802,7 +802,7 @@ namespace Management.Storage.ScenarioTest
                 tags[0].Add(Utility.GenNameString("Name"), Utility.GenNameString("Value"));
             }
 
-            CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType, tags, null, Kind.BlobStorage, Constants.EncryptionSupportServiceEnum.Blob, AccessTier.Cool);
+            CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType, tags, null, Kind.BlobStorage, Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, AccessTier.Cool);
         }
 
         [TestMethod]
@@ -1226,14 +1226,16 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
-        public void FTAccount114_CreateAccount_BlobEncryption()
+        public void FTAccount114_CreateAccount_BlobFileEncryption()
         {
             if (isResourceMode)
             {
                 string accountType = Constants.AccountType.Standard_GRS;
                 string accountName = accountUtils.GenerateAccountName();
                 string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
-                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), null, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                Constants.EncryptionSupportServiceEnum enableEncryptionServices = (Constants.EncryptionSupportServiceEnum)random.Next(1, 4);
+
+                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), null, enableEncryptionService: enableEncryptionServices);
             }
         }
 
@@ -1848,13 +1850,13 @@ namespace Management.Storage.ScenarioTest
 
                     //Set Cutomer Domain to ""
                     useSubdomain = GetRandomNullableBool();
-                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroup, accountName, customDomain: "", useSubdomain: useSubdomain), "Set custom domain should succeed.");
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, null, Kind.Storage, null, customDomain: null, useSubdomain: useSubdomain, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroup, accountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File, customDomain: "", useSubdomain: useSubdomain), "Set custom domain should succeed.");
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, null, Kind.Storage, null, customDomain: null, useSubdomain: useSubdomain, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File);
 
                     //Set Cutomer Domain to valid domain
                     useSubdomain = GetRandomNullableBool();
                     Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroup, accountName, customDomain: customDomainName, useSubdomain: useSubdomain, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob), "Set custom domain should succeed.");
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, null, Kind.Storage, null, customDomain: customDomainName, useSubdomain: useSubdomain);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, null, Kind.Storage, null, customDomain: customDomainName, useSubdomain: useSubdomain, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File);
 
                     Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroup, accountName), "Get storage account should succeed.");
 
@@ -1938,12 +1940,12 @@ namespace Management.Storage.ScenarioTest
 
                 try
                 {
-                    CreateNewSRPAccount(accountName, location, skuName, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                    CreateNewSRPAccount(accountName, location, skuName, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File | Constants.EncryptionSupportServiceEnum.Blob);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File | Constants.EncryptionSupportServiceEnum.Blob);
 
                     WaitForAccountAvailableToSet();
 
-                    SetSRPAccount(accountName, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                    SetSRPAccount(accountName, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File);
                     accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: origianlTags, enableEncryptionService: null);
 
                     WaitForAccountAvailableToSet();
@@ -1975,14 +1977,14 @@ namespace Management.Storage.ScenarioTest
 
                 try
                 {
-                    CreateNewSRPAccount(accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                    CreateNewSRPAccount(accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File);
 
                     WaitForAccountAvailableToSet();
 
                     //TODO: The customer domain not set.
-                    SetSRPAccount(accountName, newSkuName, newTags, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, accessTier: AccessTier.Hot);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Hot, enableEncryptionService: null);
+                    SetSRPAccount(accountName, newSkuName, newTags, disableEncryptionService: Constants.EncryptionSupportServiceEnum.File, accessTier: AccessTier.Hot);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Hot, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
                 }
                 finally
                 {
@@ -2008,30 +2010,30 @@ namespace Management.Storage.ScenarioTest
 
                 try
                 {
-                    CreateNewSRPAccount(accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                    CreateNewSRPAccount(accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File| Constants.EncryptionSupportServiceEnum.Blob);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File | Constants.EncryptionSupportServiceEnum.Blob);
 
                     WaitForAccountAvailableToSet();
 
                     //Set Tags
                     SetSRPAccount(accountName, tags: newTags);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File | Constants.EncryptionSupportServiceEnum.Blob);
 
                     //Set SkuName
                     SetSRPAccount(accountName, newSkuName);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File | Constants.EncryptionSupportServiceEnum.Blob);
 
                     //Set DisableEncryptionService
                     SetSRPAccount(accountName, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: null);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File);
 
                     //Set EnableEncryptionService
                     SetSRPAccount(accountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File);
 
                     //Set AccessTier
                     SetSRPAccount(accountName, accessTier: AccessTier.Hot);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Hot, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Hot, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File);
 
                     //TODO: The customer domain not set.
                 }
@@ -2792,8 +2794,8 @@ namespace Management.Storage.ScenarioTest
         private void GetAzureStorageUsage_Test()
         {
             Test.Assert(CommandAgent.GetAzureStorageUsage(), "Get azure storage usage should succeeded.");
-            var usages = accountUtils.SRPStorageClient.Usage.List().Value;
-            ValidateGetUsageOutput(usages);
+            var usages = accountUtils.SRPStorageClient.Usage.List();
+            ValidateGetUsageOutput(new List<SRPModel.Usage>(usages));
         }
 
         private void CreateAndValidateAccountWithInvalidTags(string accountName, string location, string accountType, Hashtable[] tags)

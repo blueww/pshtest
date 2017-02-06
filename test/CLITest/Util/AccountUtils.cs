@@ -208,19 +208,41 @@
                     "Tag value should be the same. Expect: {0}, actual is: {1}", originTags[0][sourceTag].ToString(), tagValue);
             }
         }
-        public void ValidateServiceEncrption(Encryption accountEncryption, Constants.EncryptionSupportServiceEnum? blobEncrptionIsEnabled)
+        public void ValidateServiceEncrption(Encryption accountEncryption, Constants.EncryptionSupportServiceEnum? enableEncryptionService)
         {
-            if (blobEncrptionIsEnabled == null || blobEncrptionIsEnabled != Constants.EncryptionSupportServiceEnum.Blob)
+            if (enableEncryptionService == null || enableEncryptionService == Constants.EncryptionSupportServiceEnum.None)
             {
-                Test.Assert(accountEncryption == null 
+                Test.Assert(accountEncryption == null
                     || accountEncryption.Services == null
-                    || accountEncryption.Services.Blob == null
-                    || accountEncryption.Services.Blob.Enabled == null
-                    || accountEncryption.Services.Blob.Enabled.Value == false, "The Blob Encrption should be disabled.");
+                    || (accountEncryption.Services.Blob == null && accountEncryption.Services.File == null)
+                    || (accountEncryption.Services.Blob.Enabled == null && accountEncryption.Services.File.Enabled == null)
+                    || (accountEncryption.Services.Blob.Enabled.Value == false && accountEncryption.Services.File.Enabled.Value == false), "The Blob and File Encrption should both be disabled.");
             }
             else
             {
-                Test.Assert(accountEncryption.Services.Blob.Enabled.Value == true, "The Blob Encrption should be enabled.");
+                //Check Blob Encryption
+                if ((enableEncryptionService & Constants.EncryptionSupportServiceEnum.Blob) == Constants.EncryptionSupportServiceEnum.Blob)
+                {
+                    Test.Assert(accountEncryption.Services.Blob.Enabled.Value == true, "The Blob Encrption should be enabled.");
+                }
+                else
+                {
+                    Test.Assert(accountEncryption.Services.Blob == null
+                        || accountEncryption.Services.Blob.Enabled == null
+                        || accountEncryption.Services.Blob.Enabled.Value == false, "The Blob Encrption should be disabled.");
+                }
+
+                //Check File Encryption
+                if ((enableEncryptionService & Constants.EncryptionSupportServiceEnum.File) == Constants.EncryptionSupportServiceEnum.File)
+                {
+                    Test.Assert(accountEncryption.Services.File.Enabled.Value == true, "The File Encrption should be enabled.");
+                }
+                else
+                {
+                    Test.Assert(accountEncryption.Services.File == null
+                        || accountEncryption.Services.File.Enabled == null
+                        || accountEncryption.Services.File.Enabled.Value == false, "The File Encrption should be disabled.");
+                }
             }
         }
 
