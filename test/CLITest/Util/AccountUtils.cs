@@ -70,10 +70,10 @@
             while (true)
             {
                 name = GenerateAvailableAccountName(nameLength);
-                if (StorageClient.StorageAccounts.CheckNameAvailability(name).IsAvailable)
-                {
+                //if (StorageClient.StorageAccounts.CheckNameAvailability(name).IsAvailable)
+                //{
                     break;
-                }
+                //}
             };
 
             return  name;
