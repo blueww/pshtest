@@ -1104,7 +1104,71 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps);
         }
 
-        public override bool GetAzureStorageBlobCopyState(string containerName, string blobName, bool waitForComplete)
+        public override bool StartAzureStorageBlobIncrementalCopy(string sourceUri, string destContainerName, string destBlobName, object destContext = null)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            ps.AddCommand("Start-AzureStorageBlobIncrementalCopy");
+            ps.BindParameter("SrcUri", sourceUri);
+            ps.BindParameter("DestContainer", destContainerName);
+            ps.BindParameter("DestBlob", destBlobName);
+            ps.BindParameter("DestContext", destContext);
+
+            //Don't use context parameter for this cmdlet
+            bool savedParameter = UseContextParam;
+            UseContextParam = false;
+            bool executeState = InvokeStoragePowerShell(ps);
+            UseContextParam = savedParameter;
+            return executeState;
+        }
+        public override bool StartAzureStorageBlobIncrementalCopy(string srcContainerName, string srcBlobName, DateTimeOffset? SnapshotTime, string destContainerName, string destBlobName, object destContext = null)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            ps.AddCommand("Start-AzureStorageBlobIncrementalCopy");
+            ps.BindParameter("SrcContainer", srcContainerName);
+            ps.BindParameter("SrcBlob", srcBlobName);
+            ps.BindParameter("SrcBlobSnapshotTime", SnapshotTime);
+            ps.BindParameter("DestContainer", destContainerName);
+            ps.BindParameter("DestBlob", destBlobName);
+            ps.BindParameter("DestContext", destContext);
+
+            return InvokeStoragePowerShell(ps);
+        }
+        public override bool StartAzureStorageBlobIncrementalCopy(CloudBlobContainer srcContainer, string srcBlobName, DateTimeOffset? SnapshotTime, string destContainerName, string destBlobName, object destContext = null)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            ps.AddCommand("Start-AzureStorageBlobIncrementalCopy");
+            ps.BindParameter("CloudBlobContainer", srcContainer);
+            ps.BindParameter("SrcBlob", srcBlobName);
+            ps.BindParameter("SrcBlobSnapshotTime", SnapshotTime);
+            ps.BindParameter("DestContainer", destContainerName);
+            ps.BindParameter("DestBlob", destBlobName);
+            ps.BindParameter("DestContext", destContext);
+
+            return InvokeStoragePowerShell(ps);
+        }
+        public override bool StartAzureStorageBlobIncrementalCopy(CloudPageBlob srcBlob, string destContainerName, string destBlobName, object destContext = null)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            ps.AddCommand("Start-AzureStorageBlobIncrementalCopy");
+            ps.BindParameter("CloudBlob", srcBlob);
+            ps.BindParameter("DestContainer", destContainerName);
+            ps.BindParameter("DestBlob", destBlobName);
+            ps.BindParameter("DestContext", destContext);
+
+            return InvokeStoragePowerShell(ps);
+        }
+        public override bool StartAzureStorageBlobIncrementalCopy(CloudPageBlob srcBlob, CloudPageBlob destBlob, object destContext = null)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            ps.AddCommand("Start-AzureStorageBlobIncrementalCopy");
+            ps.BindParameter("CloudBlob", srcBlob);
+            ps.BindParameter("DestCloudBlob", destBlob);
+            ps.BindParameter("DestContext", destContext);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+    public override bool GetAzureStorageBlobCopyState(string containerName, string blobName, bool waitForComplete)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);

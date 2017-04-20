@@ -3177,5 +3177,29 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(command);
         }
 
+        public override bool StartAzureStorageBlobIncrementalCopy(string sourceUri, string destContainerName, string destBlobName, object destContext = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartAzureStorageBlobIncrementalCopy(string srcContainerName, string srcBlobName, DateTimeOffset? SnapshotTime, string destContainerName, string destBlobName, object destContext = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartAzureStorageBlobIncrementalCopy(CloudBlobContainer srcContainer, string srcBlobName, DateTimeOffset? SnapshotTime, string destContainerName, string destBlobName, object destContext = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartAzureStorageBlobIncrementalCopy(CloudPageBlob srcBlob, string destContainerName, string destBlobName, object destContext = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool StartAzureStorageBlobIncrementalCopy(CloudPageBlob srcBlob, CloudPageBlob destBlob, object destContext = null)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

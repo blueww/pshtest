@@ -604,7 +604,7 @@
                 if (AgentOSType == OSType.Windows)
                 {
                     file.Create(FileUtil.GetFileSize(source));
-                    file.UploadFromFile(source, FileMode.Open, options: options);
+                    file.UploadFromFile(source, options: options);
                 }
             }
 
