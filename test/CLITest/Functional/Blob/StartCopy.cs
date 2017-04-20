@@ -24,6 +24,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json.Linq;
+using System.Globalization;
+<<<<<<< Updated upstream
+=======
+using System.IO;
+>>>>>>> Stashed changes
 
 namespace Management.Storage.ScenarioTest.Functional.Blob
 {
@@ -468,6 +473,173 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 blobUtil.RemoveContainer(container);
                 FileUtil.RemoveFile(filePath);
+            }
+        }
+
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.StartCopyBlob)]
+        public void StartIncrementalCopy()
+        {
+            CloudBlobContainer container = blobUtil.CreateContainer();
+            CloudBlobContainer destContainer = blobUtil.CreateContainer();
+            string srcBlobName = Utility.GenNameString("src");
+            CloudBlob srcBlob = blobUtil.CreateRandomBlob(container, srcBlobName, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            CloudBlob snapshot1 = srcBlob.Snapshot();
+            CloudBlob snapshot2 = srcBlob.Snapshot();
+            CloudBlob snapshot3 = srcBlob.Snapshot();
+            
+            //Update source blob
+            byte[] buffer = new byte[1024 * 1024];
+            random.NextBytes(buffer);
+            MemoryStream ms = new MemoryStream(buffer);
+            srcBlob.UploadFromStream(ms);
+
+            CloudBlob snapshot4 = srcBlob.Snapshot();
+            CloudBlob snapshot5 = srcBlob.Snapshot();
+            CloudBlob snapshot6 = srcBlob.Snapshot();
+
+            string destBlobName = Utility.GenNameString("dest");
+            CloudPageBlob destBlob = destContainer.GetPageBlobReference(destBlobName);
+
+            try
+            {
+                int i = 1;
+                Test.Assert(CommandAgent.StartAzureStorageBlobIncrementalCopy(container.GetPageBlobReference(snapshot1.Name, snapshot1.SnapshotTime), destContainer.Name, destBlob.Name), "copy snapshot1 should success");
+                Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(destBlob, PowerShellAgent.Context, true), "Get copy status for snapshot1 should success");
+                int blobCount = destContainer.ListBlobs(destBlobName, true, blobListingDetails: BlobListingDetails.Snapshots).Count();
+                Test.Assert(blobCount == ++i, string.Format("After IncrementalCopy, blob count: {0} = {1}.", blobCount, i));
+              
+                Test.Assert(CommandAgent.StartAzureStorageBlobIncrementalCopy(container.GetPageBlobReference(snapshot2.Name, snapshot2.SnapshotTime), destBlob), "copy snapshot2 should success");
+                Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(destBlob, PowerShellAgent.Context, true), "Get copy status for snapshot2 should success");
+                blobCount = destContainer.ListBlobs(destBlobName, true, blobListingDetails: BlobListingDetails.Snapshots).Count();
+                Test.Assert(blobCount == ++i, string.Format("After IncrementalCopy, blob count: {0} = {1}.", blobCount, i));
+
+                Test.Assert(CommandAgent.StartAzureStorageBlobIncrementalCopy(container, srcBlobName, snapshot3.SnapshotTime, destContainer.Name, destBlobName), "copy snapshot3 should success");
+                Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(destBlob, PowerShellAgent.Context, true), "Get copy status for snapshot3 should success");
+                blobCount = destContainer.ListBlobs(destBlobName, true, blobListingDetails: BlobListingDetails.Snapshots).Count();
+                Test.Assert(blobCount == ++i, string.Format("After IncrementalCopy, blob count: {0} = {1}.", blobCount, i));
+
+                Test.Assert(CommandAgent.StartAzureStorageBlobIncrementalCopy(container.Name, srcBlobName, snapshot4.SnapshotTime, destContainer.Name, destBlobName), "copy snapshot4 should success");
+                Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(destBlob, PowerShellAgent.Context, true), "Get copy status for snapshot4 should success");
+                blobCount = destContainer.ListBlobs(destBlobName, true, blobListingDetails: BlobListingDetails.Snapshots).Count();
+                Test.Assert(blobCount == ++i, string.Format("After IncrementalCopy, blob count: {0} = {1}.", blobCount, i));
+
+                Test.Assert(CommandAgent.StartAzureStorageBlobIncrementalCopy(snapshot5.SnapshotQualifiedUri.ToString(), destContainer.Name, destBlobName, PowerShellAgent.Context), "copy snapshot5 should success");
+                Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(destBlob, PowerShellAgent.Context, true), "Get copy status for snapshot5 should success");
+                blobCount = destContainer.ListBlobs(destBlobName, true, blobListingDetails: BlobListingDetails.Snapshots).Count();
+                Test.Assert(blobCount == ++i, string.Format("After IncrementalCopy, blob count: {0} = {1}.", blobCount, i));
+
+                SharedAccessBlobPolicy bp = new SharedAccessBlobPolicy();
+                bp.Permissions = SharedAccessBlobPermissions.Read;
+                bp.SharedAccessExpiryTime = DateTime.Now.AddDays(1);
+                string sasToken = snapshot6.GetSharedAccessSignature(bp);
+
+                Test.Assert(CommandAgent.StartAzureStorageBlobIncrementalCopy(string.Format(CultureInfo.InvariantCulture, "{0}&{1}", snapshot6.SnapshotQualifiedUri.AbsoluteUri, sasToken.Substring(1)), destContainer.Name, destBlobName, PowerShellAgent.Context), "copy snapshot6 should success");
+                Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(destBlob, PowerShellAgent.Context, true), "Get copy status for snapshot6 should success");
+                blobCount = destContainer.ListBlobs(destBlobName, true, blobListingDetails: BlobListingDetails.Snapshots).Count();
+                Test.Assert(blobCount == ++i, string.Format("After IncrementalCopy, blob count: {0} = {1}.", blobCount, i));
+
+            }
+            finally
+            {
+                blobUtil.RemoveContainer(container);
+                blobUtil.RemoveContainer(destContainer);
+            }
+        }
+
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.StartCopyBlob)]
+        public void StartIncrementalCopy_DefaultDestBlobName()
+        {
+            CloudBlobContainer container = blobUtil.CreateContainer();
+            CloudBlobContainer destContainer = blobUtil.CreateContainer();
+            string srcBlobName = Utility.GenNameString("src");
+            CloudBlob srcBlob = blobUtil.CreateRandomBlob(container, srcBlobName, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            CloudBlob snapshot1 = srcBlob.Snapshot();
+            CloudBlob snapshot2 = srcBlob.Snapshot();
+            CloudBlob snapshot3 = srcBlob.Snapshot();
+
+            string destBlobName = srcBlobName;
+            CloudPageBlob destBlob = destContainer.GetPageBlobReference(destBlobName);
+
+            try
+            {
+                int i = 1;
+                Test.Assert(CommandAgent.StartAzureStorageBlobIncrementalCopy(container.GetPageBlobReference(snapshot1.Name, snapshot1.SnapshotTime), destContainer.Name, null), "copy snapshot1 should success");
+                Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(destBlob, PowerShellAgent.Context, true), "Get copy status for snapshot1 should success");
+                int blobCount = destContainer.ListBlobs(destBlobName, true, blobListingDetails: BlobListingDetails.Snapshots).Count();
+                Test.Assert(blobCount == ++i, string.Format("After IncrementalCopy, blob count: {0} = {1}.", blobCount, i));
+
+                Test.Assert(CommandAgent.StartAzureStorageBlobIncrementalCopy(container, srcBlobName, snapshot2.SnapshotTime, destContainer.Name, null), "copy snapshot2 should success");
+                Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(destBlob, PowerShellAgent.Context, true), "Get copy status for snapshot2 should success");
+                blobCount = destContainer.ListBlobs(destBlobName, true, blobListingDetails: BlobListingDetails.Snapshots).Count();
+                Test.Assert(blobCount == ++i, string.Format("After IncrementalCopy, blob count: {0} = {1}.", blobCount, i));
+
+                Test.Assert(CommandAgent.StartAzureStorageBlobIncrementalCopy(container.Name, srcBlobName, snapshot3.SnapshotTime, destContainer.Name, null), "copy snapshot3 should success");
+                Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(destBlob, PowerShellAgent.Context, true), "Get copy status for snapshot3 should success");
+                blobCount = destContainer.ListBlobs(destBlobName, true, blobListingDetails: BlobListingDetails.Snapshots).Count();
+                Test.Assert(blobCount == ++i, string.Format("After IncrementalCopy, blob count: {0} = {1}.", blobCount, i));
+
+            }
+            finally
+            {
+                blobUtil.RemoveContainer(container);
+                blobUtil.RemoveContainer(destContainer);
+            }
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.StartCopyBlob)]
+        public void StartIncrementalCopy_Negtive()
+        {
+            CloudBlobContainer container = blobUtil.CreateContainer();
+            CloudBlobContainer destContainer = blobUtil.CreateContainer();
+            string srcBlobName = Utility.GenNameString("src");
+            CloudBlob srcBlob = blobUtil.CreateRandomBlob(container, srcBlobName, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            CloudBlob snapshot1 = srcBlob.Snapshot();
+            CloudBlob snapshot2 = srcBlob.Snapshot();
+            CloudBlob snapshot3 = srcBlob.Snapshot();
+
+            string destBlockBlobName = Utility.GenNameString("destblock");
+            CloudBlob destBlockBlob = blobUtil.CreateRandomBlob(destContainer, destBlockBlobName, Microsoft.WindowsAzure.Storage.Blob.BlobType.BlockBlob);
+
+            string destPageBlobName = Utility.GenNameString("destpage");
+            CloudBlob destPageBlob = blobUtil.CreateRandomBlob(destContainer, destPageBlobName, Microsoft.WindowsAzure.Storage.Blob.BlobType.PageBlob);
+            
+            Validator validator = ExpectedContainErrorMessage;
+
+            try
+            {
+                //source not snapshot
+                Test.Assert(!CommandAgent.StartAzureStorageBlobIncrementalCopy(container.GetPageBlobReference(srcBlobName), destContainer.Name, null), "Start Incremental copy should failed with source not snapshot.");
+                validator("The source for incremental copy request must be a snapshot.");
+
+                //Dest is Block
+                Test.Assert(!CommandAgent.StartAzureStorageBlobIncrementalCopy(container, srcBlobName, snapshot2.SnapshotTime, destContainer.Name, destBlockBlobName), "Start Incremental copy should failed with dest is block blob.");
+                validator("The specified operation is not allowed on an incremental copy blob.");
+
+                //Dest is Page not created with Incremental Copy
+                Test.Assert(!CommandAgent.StartAzureStorageBlobIncrementalCopy(container, srcBlobName, snapshot2.SnapshotTime, destContainer.Name, destPageBlobName), "Start Incremental copy should failed with dest is existing Page blob.");
+                validator("The specified operation is not allowed on an incremental copy blob.");
+
+                //copy early snapshot than latest copied
+                Test.Assert(CommandAgent.StartAzureStorageBlobIncrementalCopy(container, srcBlobName, snapshot2.SnapshotTime, destContainer.Name, null), "copy snapshot2 should success");
+                Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(destContainer.Name, srcBlobName, true), "Get copy status for snapshot2 should success");
+                Test.Assert(!CommandAgent.StartAzureStorageBlobIncrementalCopy(container, srcBlobName, snapshot1.SnapshotTime, destContainer.Name, null), "Start Incremental copy should failed with copy early snapshot than latest copied.");
+                validator("The specified snapshot is earlier than the last snapshot copied into the incremental copy blob.");
+            }
+            finally
+            {
+                blobUtil.RemoveContainer(container);
+                blobUtil.RemoveContainer(destContainer);
             }
         }
 
