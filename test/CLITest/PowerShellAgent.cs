@@ -3809,7 +3809,8 @@ namespace Management.Storage.ScenarioTest
             Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, 
             AccessTier? accessTier = null, 
             string customDomain = null, 
-            bool? useSubdomain = null)
+            bool? useSubdomain = null,
+            bool? enableHttpsTrafficOnly = null)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
@@ -3829,6 +3830,10 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("Tags", (tags == null || tags.Length == 0) ? null : tags[0]);
             ps.BindParameter("AccessTier", accessTier);
             ps.BindParameter("EnableEncryptionService", enableEncryptionService);
+            if (enableHttpsTrafficOnly != null)
+            {
+                ps.BindParameter("EnableHttpsTrafficOnly", enableHttpsTrafficOnly.Value);
+            }
             ps.BindParameter("CustomDomainName", customDomain);
             ps.BindParameter("UseSubdomain", useSubdomain);
 
@@ -3845,7 +3850,8 @@ namespace Management.Storage.ScenarioTest
             Constants.EncryptionSupportServiceEnum? disableEncryptionService = null,
             AccessTier? accessTier = null,
             string customDomain = null,
-            bool? useSubdomain = null)
+            bool? useSubdomain = null, 
+            bool? enableHttpsTrafficOnly = null)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
@@ -3869,6 +3875,15 @@ namespace Management.Storage.ScenarioTest
                 ps.AddParameter("CustomDomainName", customDomain);
             }
             ps.BindParameter("UseSubDomain", useSubdomain);
+            if (enableHttpsTrafficOnly != null)
+            {
+                ps.AddParameter("EnableHttpsTrafficOnly", enableHttpsTrafficOnly.Value);
+                //ps.BindParameter("EnableHttpsTrafficOnly", enableHttpsTrafficOnly.Value);
+            }
+            else
+            {
+                Test.Info("EnableHttpsTrafficOnly is null.");
+            }
             ps.AddParameter("Force");
 
             return InvokePowerShellWithoutContext(ps);
