@@ -697,7 +697,8 @@ namespace Management.Storage.ScenarioTest
             Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, 
             AccessTier? accessTier = null, 
             string customDomain = null, 
-            bool? useSubdomain = null)
+            bool? useSubdomain = null,
+            bool? enableHttpsTrafficOnly = null)
         {
             string command = string.Format("account create {0}", accountName);
             command = appendStringOption(command, "--resource-group", resourceGroupName);
@@ -741,7 +742,8 @@ namespace Management.Storage.ScenarioTest
             Constants.EncryptionSupportServiceEnum? disableEncryptionService = null, 
             AccessTier? accessTier = null, 
             string customDomain = null, 
-            bool? useSubdomain = null)
+            bool? useSubdomain = null,
+            bool? enableHttpsTrafficOnly = null)
         {
             string command = string.Format("account set {0}", accountName);
             command = appendStringOption(command, "--resource-group", resourceGroupName);

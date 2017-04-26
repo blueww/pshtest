@@ -157,7 +157,8 @@
             AccessTier? accessTier = null,
             string customDomain = null,
             bool? useSubdomain = null,
-            Constants.EncryptionSupportServiceEnum? enableEncryptionService = null)
+            Constants.EncryptionSupportServiceEnum? enableEncryptionService = null,
+            bool? enableHttpsTrafficOnly = null)
         {
 
             AzureOperationResponse<SRPModel.StorageAccount> response = this.SRPStorageClient.StorageAccounts.GetPropertiesWithHttpMessagesAsync(resourceGroupName, accountName).Result;
@@ -185,6 +186,10 @@
 
                 // UseSubDomain is only for set, and won't be return in get
                 Test.Assert(account.CustomDomain.UseSubDomain == null, string.Format("UseSubDomain should match: {0} == {1}", customDomain, account.CustomDomain.UseSubDomain));
+            }
+            if (enableHttpsTrafficOnly != null)
+            {
+                Test.Assert(enableHttpsTrafficOnly == account.EnableHttpsTrafficOnly, string.Format("EnableHttpsTrafficOnly should match: {0} == {1}", enableHttpsTrafficOnly, account.EnableHttpsTrafficOnly));
             }
     
             this.ValidateTags(tags, account.Tags);

@@ -1940,18 +1940,18 @@ namespace Management.Storage.ScenarioTest
 
                 try
                 {
-                    CreateNewSRPAccount(accountName, location, skuName, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File | Constants.EncryptionSupportServiceEnum.Blob);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File | Constants.EncryptionSupportServiceEnum.Blob);
+                    CreateNewSRPAccount(accountName, location, skuName, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File | Constants.EncryptionSupportServiceEnum.Blob, enableHttpsTrafficOnly: true);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File | Constants.EncryptionSupportServiceEnum.Blob, enableHttpsTrafficOnly: true);
 
-                    WaitForAccountAvailableToSet();
+                    //WaitForAccountAvailableToSet();
 
-                    SetSRPAccount(accountName, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: origianlTags, enableEncryptionService: null);
+                    SetSRPAccount(accountName, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, enableHttpsTrafficOnly: false);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: origianlTags, enableEncryptionService: null, enableHttpsTrafficOnly: false);
 
-                    WaitForAccountAvailableToSet();
+                    //WaitForAccountAvailableToSet();
 
                     SetSRPAccount(accountName, tags: newTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: newTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: newTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, enableHttpsTrafficOnly: false);
                 }
                 finally
                 {
@@ -1978,13 +1978,13 @@ namespace Management.Storage.ScenarioTest
                 try
                 {
                     CreateNewSRPAccount(accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, enableHttpsTrafficOnly: false);
 
                     WaitForAccountAvailableToSet();
 
                     //TODO: The customer domain not set.
-                    SetSRPAccount(accountName, newSkuName, newTags, disableEncryptionService: Constants.EncryptionSupportServiceEnum.File, accessTier: AccessTier.Hot);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Hot, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                    SetSRPAccount(accountName, newSkuName, newTags, disableEncryptionService: Constants.EncryptionSupportServiceEnum.File, accessTier: AccessTier.Hot, enableHttpsTrafficOnly: true);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Hot, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, enableHttpsTrafficOnly: true);
                 }
                 finally
                 {
@@ -3083,7 +3083,8 @@ namespace Management.Storage.ScenarioTest
             Constants.EncryptionSupportServiceEnum? enableEncryptionService = null,
             AccessTier? accessTier = null,
             string customDomain = null,
-            bool? useSubdomain = null)
+            bool? useSubdomain = null,
+            bool? enableHttpsTrafficOnly = null)
         {
             try
             {
@@ -3099,7 +3100,7 @@ namespace Management.Storage.ScenarioTest
             bool accountCreated = false;
             while (!accountCreated && DateTime.Now.CompareTo(startTime.AddMinutes(15)) < 0)
             {
-                if (CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, skuName, location, tags, kind, enableEncryptionService, accessTier, customDomain, useSubdomain))
+                if (CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, skuName, location, tags, kind, enableEncryptionService, accessTier, customDomain, useSubdomain, enableHttpsTrafficOnly))
                 {
                     accountCreated = true;
                 }
@@ -3118,14 +3119,15 @@ namespace Management.Storage.ScenarioTest
             Constants.EncryptionSupportServiceEnum? disableEncryptionService = null,
             AccessTier? accessTier = null,
             string customDomain = null,
-            bool? useSubdomain = null)
+            bool? useSubdomain = null,
+            bool? enableHttpsTrafficOnly = null)
         {
             AzureOperationResponse<SRPModel.StorageAccount> response = accountUtils.SRPStorageClient.StorageAccounts.GetPropertiesWithHttpMessagesAsync(resourceGroupName, accountName).Result;
             Test.Assert(response.Response.StatusCode == HttpStatusCode.OK, string.Format("Account {0} should be created successfully.", accountName));
 
-            Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, skuName, tags, enableEncryptionService, disableEncryptionService, accessTier, customDomain, useSubdomain),
-                string.Format("Setting storage account {0} in resource group {1} should succeed: SkuName:{2}; Tags: {3}; enableEncryptionService: {4}; disableEncryptionService: {5}, accessTier: {6}, customDomain: {7}; useSubdomain: {8}",
-                accountName, resourceGroupName, skuName, tags, enableEncryptionService, disableEncryptionService, accessTier, customDomain, useSubdomain));
+            Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, skuName, tags, enableEncryptionService, disableEncryptionService, accessTier, customDomain, useSubdomain, enableHttpsTrafficOnly: enableHttpsTrafficOnly),
+                string.Format("Setting storage account {0} in resource group {1} should succeed: SkuName:{2}; Tags: {3}; enableEncryptionService: {4}; disableEncryptionService: {5}, accessTier: {6}, customDomain: {7}; useSubdomain: {8}; enableHttpsTrafficOnly: {9}",
+                accountName, resourceGroupName, skuName, tags, enableEncryptionService, disableEncryptionService, accessTier, customDomain, useSubdomain, enableHttpsTrafficOnly));
         }
 
         private void DeleteSRPAccount(string accountName)
