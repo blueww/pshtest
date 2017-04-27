@@ -83,7 +83,7 @@ namespace Management.Storage.ScenarioTest
                 {"RemoveBlobSnapshotWithInvalidOption", "The deleteSnapshots option cannot be included when deleting a specific snapshot using the snapshotId option"},
                 {"SnapshotNonExistingBlob", "Blob {0} in Container {1} doesn't exist"},
                 {"SnapshotLeaseBlobWithWrongLeaseID", "The lease ID specified did not match the lease ID for the blob"},
-                {"LeaseOnNonExistingContainer", "The specified blob does not exist"}, // TODO: Server returns "blob" for now, we should change when server fixes it
+                {"LeaseOnNonExistingContainer", "The specified container does not exist"},
                 {"LeaseOnNonExistingBlob", "The specified blob does not exist"},
                 {"LeaseOnLeasedContainer", "There is already a lease present"},
                 {"LeaseOnLeasedBlob", "There is already a lease present"},
@@ -92,14 +92,14 @@ namespace Management.Storage.ScenarioTest
                 {"LeaseContainerWithInvalidID", "Given string \"{0}\" is not valid UUID"},
                 {"LeaseBlobWithInvalidID", "Given string \"{0}\" is not valid UUID"},
                 {"LeaseWithoutEnoughPermission", "This request is not authorized to perform this operation"},
-                {"RenewLeaseOnNonExistingContainer", "The specified blob does not exist"}, // TODO: Server returns "blob" for now, we should change when server fixes it
+                {"RenewLeaseOnNonExistingContainer", "The specified container does not exist"},
                 {"RenewLeaseOnNonExistingBlob", "The specified blob does not exist"},
                 {"RenewNotLeasedContainer", "The lease ID specified did not match the lease ID for the container"},
                 {"RenewNotLeasedBlob", "The lease ID specified did not match the lease ID for the blob"},
                 {"RenewWithInvalidLeaseID", "Given string \"{0}\" is not valid UUID"},
                 {"RenewWithUnmatchLeaseID", "The lease ID specified did not match the lease ID for the "}, 
                 {"RenewWithoutEnoughPermission", "This request is not authorized to perform this operation using this permission"},
-                {"ChangeLeaseOnNonExistingContainer", "The specified blob does not exist"},
+                {"ChangeLeaseOnNonExistingContainer", "The specified container does not exist"},
                 {"ChangeLeaseOnNonExistingBlob", "The specified blob does not exist"},
                 {"ChangeWithInvalidLeaseID", "Given string \"{0}\" is not valid UUID"},
                 {"ChangeWithUnmatchLeaseID", "The lease ID specified did not match the lease ID for the "},
@@ -108,7 +108,7 @@ namespace Management.Storage.ScenarioTest
                 {"ReleaseContainerLease", "A lease ID was specified, but the lease for the container has expired"},
                 {"ReleaseBlobLease", "A lease ID was specified, but the lease for the blob has expired"},
                 {"LeaseAfterReleaseLease", "A lease ID was specified, but the lease for the container has expired"},
-                {"ReleaseLeaseOnNonExistingContainer", "The specified blob does not exist"},
+                {"ReleaseLeaseOnNonExistingContainer", "The specified container does not exist"},
                 {"ReleaseLeaseOnNonExistingBlob", "The specified blob does not exist"},
                 {"ReleaseNotLeasedContainer", "The lease ID specified did not match the lease ID for the container"},
                 {"ReleaseNotLeasedBlob", "The lease ID specified did not match the lease ID for the blob"},
@@ -119,7 +119,7 @@ namespace Management.Storage.ScenarioTest
                 {"BreakBlobLease", "PreconditionFailed"},
                 {"BreakContainerLeaseAndAcquireAgain", "There is already a lease present"},
                 {"BreakBlobLeaseAndAcquireAgain", "There is already a lease present"},
-                {"BreakLeaseOnNonExistingContainer", "The specified blob does not exist"},
+                {"BreakLeaseOnNonExistingContainer", "The specified container does not exist"},
                 {"BreakLeaseOnNonExistingBlob", "The specified blob does not exist"},
                 {"BreakNotLeasedContainer", "There is currently no lease on the container"},
                 {"BreakNotLeasedBlob", "There is currently no lease on the blob"},
@@ -719,7 +719,7 @@ namespace Management.Storage.ScenarioTest
             }
             if (enableEncryptionService != null)
             {
-                command = appendStringOption(command, "--enable-encryption-service", enableEncryptionService.ToString());
+                command = appendStringOption(command, "--enable-encryption-service", enableEncryptionService.ToString().Replace(" ", string.Empty));
             }
             if (!string.IsNullOrEmpty(customDomain))
             {
