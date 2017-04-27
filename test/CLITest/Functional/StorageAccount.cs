@@ -168,14 +168,6 @@ namespace Management.Storage.ScenarioTest
             // Act
             nodeAgent.ShowAzureStorageAccountConnectionString("-h");
             result = nodeAgent.Output[0].Count > 0;
-            foreach (var item in nodeAgent.Output[0])
-            {
-                if (!item.Key.Contains("help"))
-                {
-                    result = false;
-                    break;
-                }
-            }
 
             // Assert
             Test.Assert(result, Utility.GenComparisonData("azure storage account connectionstring show -h", true));
