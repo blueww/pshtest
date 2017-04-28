@@ -271,14 +271,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 string destFileName = Utility.GenNameString("destfile");
                 Test.Assert(!CommandAgent.StartFileCopyFromFile(sourceShareName, sourceFile.Name, destShareName, destFileName, destContext), "Copy to file with invalid sas token credential should fail.");
 
-                if (lang == Language.NodeJS)
-                {
-                    ExpectedContainErrorMessage("The specified resource does not exist");
-                }
-                else
-                {
-                    ExpectedContainErrorMessage("This request is not authorized to perform this operation using this permission.");
-                }
+                ExpectedContainErrorMessage("This request is not authorized to perform this operation using this permission.");
             }
             finally
             {
