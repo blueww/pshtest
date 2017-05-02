@@ -25,10 +25,7 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
-<<<<<<< Updated upstream
-=======
 using System.IO;
->>>>>>> Stashed changes
 
 namespace Management.Storage.ScenarioTest.Functional.Blob
 {
