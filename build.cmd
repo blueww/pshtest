@@ -10,7 +10,7 @@ if [%PRODUCT%] == [PSH] GOTO :PSH
 :PSH
 cd PowerShell
 # Comment the Build Clean step to avoid the build failure issue in IotHub.Test. Will add it back after OneSDK team fix the issue
-# msbuild build.proj /t:Clean
+msbuild build.proj /t:Clean
 msbuild build.proj /t:Build
 IF %ERRORLEVEL% NEQ 0 Exit /B %ERRORLEVEL%
 cd ..
