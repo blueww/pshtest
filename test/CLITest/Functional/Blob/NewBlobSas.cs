@@ -467,8 +467,8 @@
                     }
                     else
                     {
-                        Test.Error("Limited permission sas token should return 403, but actually it's {0} {1}",
-                            e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage);
+                        Test.Error("Limited permission sas token should return 403, but actually it's {0} {1} {2}",
+                            e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage, e.ToString());
                     }
                 }
             }
