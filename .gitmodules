@@ -1,6 +1,6 @@
 [submodule "azcopy"]
 	path = azcopy
-	url = https://github.com/wastoresh/azure-storage-azcopy-pr.git
+	url = https://github.com/wastore/azure-storage-azcopy-pr.git
 [submodule "PowerShell"]
 	path = PowerShell
 	url = https://github.com/wastoresh/azure-powershell.git
