@@ -487,13 +487,6 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             CloudBlob snapshot1 = srcBlob.Snapshot();
             CloudBlob snapshot2 = srcBlob.Snapshot();
             CloudBlob snapshot3 = srcBlob.Snapshot();
-            
-            //Update source blob
-            byte[] buffer = new byte[1024 * 1024];
-            random.NextBytes(buffer);
-            MemoryStream ms = new MemoryStream(buffer);
-            srcBlob.UploadFromStream(ms);
-
             CloudBlob snapshot4 = srcBlob.Snapshot();
             CloudBlob snapshot5 = srcBlob.Snapshot();
             CloudBlob snapshot6 = srcBlob.Snapshot();
