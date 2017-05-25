@@ -150,15 +150,21 @@
 
         public void ValidateSRPAccount(string resourceGroupName, 
             string accountName, 
-            string location,       
-            string skuName,
+            string location = null,       
+            string skuName = null,
             Hashtable[] tags = null,
             Kind kind  = Kind.Storage,
             AccessTier? accessTier = null,
             string customDomain = null,
             bool? useSubdomain = null,
             Constants.EncryptionSupportServiceEnum? enableEncryptionService = null,
-            bool? enableHttpsTrafficOnly = null)
+            bool? enableHttpsTrafficOnly = null,
+            bool AssignIdentity = false,
+            bool StorageEncryption = false,
+            bool keyvaultEncryption = false,
+            string keyName = null,
+            string keyVersion = null,
+            string keyVaultUri = null)
         {
 
             AzureOperationResponse<SRPModel.StorageAccount> response = this.SRPStorageClient.StorageAccounts.GetPropertiesWithHttpMessagesAsync(resourceGroupName, accountName).Result;
@@ -166,10 +172,11 @@
 
             SRPModel.StorageAccount account = response.Body;
             Test.Assert(accountName == account.Name, string.Format("Expected account name is {0} and actually it is {1}", accountName, account.Name));
-
-            Test.Assert(this.mapAccountType(Constants.AccountTypes[(int)account.Sku.Name]).Equals(skuName),
+            if (!string.IsNullOrEmpty(skuName))
+            {
+                Test.Assert(this.mapAccountType(Constants.AccountTypes[(int)account.Sku.Name]).Equals(skuName),
                 string.Format("Expected account type is {0} and actually it is {1}", skuName, account.Sku.Name));
-
+            }
             if (!string.IsNullOrEmpty(location))
             {
                 Test.Assert(location.Replace(" ", "").ToLower() == account.Location, string.Format("Expected location is {0} and actually it is {1}", location, account.Location));
@@ -185,15 +192,24 @@
                 Test.Assert(customDomain == account.CustomDomain.Name, string.Format("CustomDomain should match: {0} == {1}", customDomain, account.CustomDomain.Name));
 
                 // UseSubDomain is only for set, and won't be return in get
-                Test.Assert(account.CustomDomain.UseSubDomain == null, string.Format("UseSubDomain should match: {0} == {1}", customDomain, account.CustomDomain.UseSubDomain));
+                Test.Assert(account.CustomDomain.UseSubDomain == null, string.Format("UseSubDomain should match: {0} == {1}", null, account.CustomDomain.UseSubDomain));
             }
             if (enableHttpsTrafficOnly != null)
             {
                 Test.Assert(enableHttpsTrafficOnly == account.EnableHttpsTrafficOnly, string.Format("EnableHttpsTrafficOnly should match: {0} == {1}", enableHttpsTrafficOnly, account.EnableHttpsTrafficOnly));
             }
+            if(AssignIdentity)
+            {
+                Test.Assert(account.Identity != null, string.Format("IdentityType should not be null: {0}, {1}", account.Identity.PrincipalId, account.Identity.TenantId));
+            }
     
             this.ValidateTags(tags, account.Tags);
-            ValidateServiceEncrption(account.Encryption, enableEncryptionService);
+            ValidateServiceEncrption(account.Encryption, enableEncryptionService,
+            StorageEncryption,
+            keyvaultEncryption,
+            keyName,
+            keyVersion,
+            keyVaultUri);
         }
         
         public void ValidateTags(Hashtable[] originTags, IDictionary<string, string> targetTags)
@@ -213,7 +229,13 @@
                     "Tag value should be the same. Expect: {0}, actual is: {1}", originTags[0][sourceTag].ToString(), tagValue);
             }
         }
-        public void ValidateServiceEncrption(Encryption accountEncryption, Constants.EncryptionSupportServiceEnum? enableEncryptionService)
+        public void ValidateServiceEncrption(Encryption accountEncryption, 
+            Constants.EncryptionSupportServiceEnum? enableEncryptionService,
+            bool StorageEncryption = false,
+            bool keyvaultEncryption = false,
+            string keyName = null,
+            string keyVersion = null,
+            string keyVaultUri = null)
         {
             if (enableEncryptionService == null || enableEncryptionService == Constants.EncryptionSupportServiceEnum.None)
             {
@@ -247,6 +269,18 @@
                     Test.Assert(accountEncryption.Services.File == null
                         || accountEncryption.Services.File.Enabled == null
                         || accountEncryption.Services.File.Enabled.Value == false, "The File Encrption should be disabled.");
+                }
+            }
+            if (StorageEncryption || keyvaultEncryption || keyName != null)
+            {
+                if (StorageEncryption)
+                    Test.Assert(accountEncryption == null || accountEncryption.KeySource == "Microsoft.Storage", "{0} = {1}", accountEncryption == null? null : accountEncryption.KeySource, "Microsoft.Storage");
+                else
+                {
+                    Test.Assert(accountEncryption.KeySource == "Microsoft.Keyvault", "{0} = {1}", accountEncryption.KeySource, "Microsoft.Keyvault");
+                    Test.Assert(accountEncryption.KeyVaultProperties.KeyName == keyName, "{0} = {1}", accountEncryption.KeyVaultProperties.KeyName, keyName);
+                    Test.Assert(accountEncryption.KeyVaultProperties.KeyVersion == keyVersion, "{0} = {1}", accountEncryption.KeyVaultProperties.KeyVersion, keyVersion);
+                    Test.Assert(accountEncryption.KeyVaultProperties.KeyVaultUri == keyVaultUri, "{0} = {1}", accountEncryption.KeyVaultProperties.KeyVaultUri, keyVaultUri);
                 }
             }
         }

@@ -63,11 +63,11 @@ namespace Management.Storage.ScenarioTest
                 {"CreateExistingTable", "Table '{0}' already exists."},
                 {"CreateInvalidTable", "Table name '{0}' is invalid."},
                 {"GetNonExistingTable", "Can not find table '{0}'."},
-                {"RemoveNonExistingTable", "Can not find table '{0}'."},   
-                {"CreateExistingQueue", "Queue '{0}' already exists."},   
-                {"CreateInvalidQueue", "Queue name '{0}' is invalid."},    
-                {"GetNonExistingQueue", "Can not find queue '{0}'."},  
-                {"RemoveNonExistingQueue", "Can not find queue '{0}'."}, 
+                {"RemoveNonExistingTable", "Can not find table '{0}'."},
+                {"CreateExistingQueue", "Queue '{0}' already exists."},
+                {"CreateInvalidQueue", "Queue name '{0}' is invalid."},
+                {"GetNonExistingQueue", "Can not find queue '{0}'."},
+                {"RemoveNonExistingQueue", "Can not find queue '{0}'."},
         };
 
         internal delegate void ParseCollectionFunc(Collection<PSObject> Values);
@@ -929,7 +929,7 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps, null, ParseBlobCollection);
         }
 
-        public override bool RemoveAzureStorageBlob(string BlobName, string ContainerName, string snapshotId = "", string leaseId = null, bool ? onlySnapshot = null, bool force = true)
+        public override bool RemoveAzureStorageBlob(string BlobName, string ContainerName, string snapshotId = "", string leaseId = null, bool? onlySnapshot = null, bool force = true)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
@@ -1168,7 +1168,7 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps);
         }
 
-    public override bool GetAzureStorageBlobCopyState(string containerName, string blobName, bool waitForComplete)
+        public override bool GetAzureStorageBlobCopyState(string containerName, string blobName, bool waitForComplete)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
@@ -2394,7 +2394,7 @@ namespace Management.Storage.ScenarioTest
         private bool InvokePowerShellWithoutContext(PowerShell ps, ParseCollectionFunc parseFunc = null)
         {
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
-            
+
             _Output.Clear();
 
             //TODO We should add a time out for this invoke. Bad news, powershell don't support buildin time out for invoking.
@@ -3864,17 +3864,18 @@ namespace Management.Storage.ScenarioTest
             return !ps.HadErrors;
         }
 
-        public override bool CreateSRPAzureStorageAccount(string resourceGroupName, 
-            string accountName, 
-            string skuName, 
-            string location, 
-            Hashtable[] tags = null, 
+        public override bool CreateSRPAzureStorageAccount(string resourceGroupName,
+            string accountName,
+            string skuName,
+            string location,
+            Hashtable[] tags = null,
             Kind? kind = null,
-            Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, 
-            AccessTier? accessTier = null, 
-            string customDomain = null, 
+            Constants.EncryptionSupportServiceEnum? enableEncryptionService = null,
+            AccessTier? accessTier = null,
+            string customDomain = null,
             bool? useSubdomain = null,
-            bool? enableHttpsTrafficOnly = null)
+            bool? enableHttpsTrafficOnly = null,
+            bool AssignIdentity = false)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
@@ -3900,22 +3901,28 @@ namespace Management.Storage.ScenarioTest
             }
             ps.BindParameter("CustomDomainName", customDomain);
             ps.BindParameter("UseSubdomain", useSubdomain);
+            if (AssignIdentity)
+            {
+                ps.AddParameter("AssignIdentity");
+            }
 
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
 
             return InvokePowerShellWithoutContext(ps);
         }
 
-        public override bool SetSRPAzureStorageAccount(string resourceGroupName, 
-            string accountName, 
+        public override bool SetSRPAzureStorageAccount(string resourceGroupName,
+            string accountName,
             string skuName = null,
             Hashtable[] tags = null,
             Constants.EncryptionSupportServiceEnum? enableEncryptionService = null,
             Constants.EncryptionSupportServiceEnum? disableEncryptionService = null,
             AccessTier? accessTier = null,
             string customDomain = null,
-            bool? useSubdomain = null, 
-            bool? enableHttpsTrafficOnly = null)
+            bool? useSubdomain = null,
+            bool? enableHttpsTrafficOnly = null,
+            bool AssignIdentity = false,
+            bool StorageEncryption = false)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
@@ -3942,13 +3949,91 @@ namespace Management.Storage.ScenarioTest
             if (enableHttpsTrafficOnly != null)
             {
                 ps.AddParameter("EnableHttpsTrafficOnly", enableHttpsTrafficOnly.Value);
-                //ps.BindParameter("EnableHttpsTrafficOnly", enableHttpsTrafficOnly.Value);
             }
             else
             {
                 Test.Info("EnableHttpsTrafficOnly is null.");
             }
             ps.AddParameter("Force");
+            if (AssignIdentity)
+            {
+                ps.AddParameter("AssignIdentity");
+            }
+            if (StorageEncryption)
+            {
+                ps.AddParameter("StorageEncryption");
+            }
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool SetSRPAzureStorageAccountKeyVault(string resourceGroupName,
+            string accountName,
+            string skuName = null,
+            Hashtable[] tags = null,
+            Constants.EncryptionSupportServiceEnum? enableEncryptionService = null,
+            Constants.EncryptionSupportServiceEnum? disableEncryptionService = null,
+            AccessTier? accessTier = null,
+            string customDomain = null,
+            bool? useSubdomain = null,
+            bool? enableHttpsTrafficOnly = null,
+            bool AssignIdentity = false,
+            bool keyvaultEncryption = false,
+            string keyName = null,
+            string keyVersion = null,
+            string keyVaultUri = null)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Set-AzureRmStorageAccount");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("Name", accountName);
+            if (new Random().Next() % 2 == 0)
+            {
+                ps.BindParameter("SkuName", skuName);
+            }
+            else
+            {
+                ps.BindParameter("Type", skuName);
+            }
+            ps.BindParameter("AccessTier", accessTier);
+            ps.BindParameter("EnableEncryptionService", enableEncryptionService);
+            ps.BindParameter("DisableEncryptionService", disableEncryptionService);
+            ps.BindParameter("Tags", (tags == null || tags.Length == 0) ? null : tags[0]);
+            if (customDomain != null)
+            {
+                ps.AddParameter("CustomDomainName", customDomain);
+            }
+            ps.BindParameter("UseSubDomain", useSubdomain);
+            if (enableHttpsTrafficOnly != null)
+            {
+                ps.AddParameter("EnableHttpsTrafficOnly", enableHttpsTrafficOnly.Value);
+            }
+            else
+            {
+                Test.Info("EnableHttpsTrafficOnly is null.");
+            }
+            ps.AddParameter("Force");
+            if (AssignIdentity)
+            {
+                ps.AddParameter("AssignIdentity");
+            }
+            if (keyvaultEncryption)
+            {
+                ps.AddParameter("KeyvaultEncryption");
+            }
+            if (keyName != null)
+            {
+                ps.BindParameter("KeyName", keyName);
+            }
+            if (keyVersion != null)
+            {
+                ps.BindParameter("KeyVersion", keyVersion);
+            }
+            if (keyVaultUri != null)
+            {
+                ps.BindParameter("keyVaultUri", keyVaultUri);
+            }
 
             return InvokePowerShellWithoutContext(ps);
         }
@@ -4043,7 +4128,7 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = GetPowerShellInstance();
             ps.AddCommand("Get-AzureRMStorageAccountNameAvailability");
             ps.BindParameter("Name", accountName, true);
-            
+
             return InvokePowerShellWithoutContext(ps);
         }
 

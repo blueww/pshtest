@@ -698,7 +698,8 @@ namespace Management.Storage.ScenarioTest
             AccessTier? accessTier = null, 
             string customDomain = null, 
             bool? useSubdomain = null,
-            bool? enableHttpsTrafficOnly = null)
+            bool? enableHttpsTrafficOnly = null,
+            bool AssignIdentity = false)
         {
             string command = string.Format("account create {0}", accountName);
             command = appendStringOption(command, "--resource-group", resourceGroupName);
@@ -743,7 +744,9 @@ namespace Management.Storage.ScenarioTest
             AccessTier? accessTier = null, 
             string customDomain = null, 
             bool? useSubdomain = null,
-            bool? enableHttpsTrafficOnly = null)
+            bool? enableHttpsTrafficOnly = null,
+            bool AssignIdentity = false,
+            bool StorageEncryption = false)
         {
             string command = string.Format("account set {0}", accountName);
             command = appendStringOption(command, "--resource-group", resourceGroupName);
@@ -3198,6 +3201,11 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override bool StartAzureStorageBlobIncrementalCopy(CloudPageBlob srcBlob, CloudPageBlob destBlob, object destContext = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool SetSRPAzureStorageAccountKeyVault(string resourceGroupName, string accountName, string skuName = null, Hashtable[] tags = null, Constants.EncryptionSupportServiceEnum? enableEncryptionService = default(Constants.EncryptionSupportServiceEnum?), Constants.EncryptionSupportServiceEnum? disableEncryptionService = default(Constants.EncryptionSupportServiceEnum?), AccessTier? accessTier = default(AccessTier?), string customDomain = null, bool? useSubdomain = default(bool?), bool? enableHttpsTrafficOnly = default(bool?), bool AssignIdentity = false, bool keyvaultEncryption = false, string keyName = null, string keyVersion = null, string keyVaultUri = null)
         {
             throw new NotImplementedException();
         }
