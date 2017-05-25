@@ -50,12 +50,19 @@
   <SecondaryStorageAccountKey></SecondaryStorageAccountKey>
   <SecondaryStorageEndPoint>core.windows.net</SecondaryStorageEndPoint>
   <StorageAccountNameInOtherSubscription>xtestragrsxsmb1</StorageAccountNameInOtherSubscription>
-    
+
   <!-- Following setting are for custom domain setting test cases-->
   <CustomDomainAccountResourceGroup></CustomDomainAccountResourceGroup>
   <CustomDomainAccountName></CustomDomainAccountName>
   <CustomDomainAccountKey></CustomDomainAccountKey>
   <CustomDomain></CustomDomain>
+  
+  <!-- Following setting are for CMK test cases-->
+  <CMKAccountResourceGroup>weicmk4</CMKAccountResourceGroup>
+  <CMKAccountName>weicmk4</CMKAccountName>
+  <CMKKeyName>weikey4</CMKKeyName>
+  <CMKKeyVersion>e76488bb22b148318fdb41c60863db66</CMKKeyVersion>
+  <CMKKeyvaultUri>https://weikeyvaultcmk4.vault.azure.net/</CMKKeyvaultUri>
     
   <!-- Mooncake subscription -->
   <MooncakeSubscriptionName>Azure Storage DM</MooncakeSubscriptionName>
@@ -97,4 +104,6 @@
   <UploadPerfContainerPrefix>cliperftestupload</UploadPerfContainerPrefix>
   <DownloadPerfContainerPrefix>cliperftest</DownloadPerfContainerPrefix> <!--make sure containers with this prefix has expected data for download. Otherwise specify GenerateDataBeforeDownload to True -->
   <GenerateDataBeforeDownload>true</GenerateDataBeforeDownload>
+
+
 </TestConfig>
