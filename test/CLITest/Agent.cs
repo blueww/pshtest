@@ -111,9 +111,11 @@ namespace Management.Storage.ScenarioTest
         #endregion
 
         #region SRPAccount
-        public abstract bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string skuName, string location, Hashtable[] tags = null, Kind? kind = null, Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, AccessTier? accessTier = null, string customDomain = null, bool? useSubdomain = null, bool? enableHttpsTrafficOnly = null);
+        public abstract bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string skuName, string location, Hashtable[] tags = null, Kind? kind = null, Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, AccessTier? accessTier = null, string customDomain = null, bool? useSubdomain = null, bool? enableHttpsTrafficOnly = null, bool AssignIdentity = false);
 
-        public abstract bool SetSRPAzureStorageAccount(string resourceGroupName, string accountName, string skuName = null, Hashtable[] tags = null, Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, Constants.EncryptionSupportServiceEnum? disableEncryptionService = null, AccessTier? accessTier = null, string customDomain = null, bool? useSubdomain = null, bool? enableHttpsTrafficOnly = null);
+        public abstract bool SetSRPAzureStorageAccount(string resourceGroupName, string accountName, string skuName = null, Hashtable[] tags = null, Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, Constants.EncryptionSupportServiceEnum? disableEncryptionService = null, AccessTier? accessTier = null, string customDomain = null, bool? useSubdomain = null, bool? enableHttpsTrafficOnly = null, bool AssignIdentity = false, bool StorageEncryption = false);
+
+        public abstract bool SetSRPAzureStorageAccountKeyVault(string resourceGroupName, string accountName, string skuName = null, Hashtable[] tags = null, Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, Constants.EncryptionSupportServiceEnum? disableEncryptionService = null, AccessTier? accessTier = null, string customDomain = null, bool? useSubdomain = null, bool? enableHttpsTrafficOnly = null, bool AssignIdentity = false, bool keyvaultEncryption = false, string keyName = null, string keyVersion = null, string keyVaultUri = null);
 
         public abstract bool SetSRPAzureStorageAccountTags(string resourceGroupName, string accountName, Hashtable[] tags);
 

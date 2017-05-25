@@ -46,6 +46,7 @@ namespace Management.Storage.ScenarioTest
             public const string SouthCentralUS = "South Central US";
             public const string EastUS = "East US";
             public const string EastUS2 = "East US 2";
+            public const string EastUS2EUAP = "EastUS2EUAP";
             public const string EastUS2Stage = "East US 2 (Stage)";
             public const string CentralUS = "Central US";
             public const string NorthEurope = "North Europe";
