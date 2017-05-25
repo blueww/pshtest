@@ -1975,8 +1975,8 @@ namespace Management.Storage.ScenarioTest
                     WaitForAccountAvailableToSet();
 
                     //TODO: The customer domain not set.
-                    SetSRPAccount(accountName, newSkuName, newTags, disableEncryptionService: Constants.EncryptionSupportServiceEnum.File, accessTier: AccessTier.Hot, enableHttpsTrafficOnly: true);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Hot, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, enableHttpsTrafficOnly: true);
+                    SetSRPAccount(accountName, newSkuName, newTags, disableEncryptionService: Constants.EncryptionSupportServiceEnum.File, accessTier: AccessTier.Hot, enableHttpsTrafficOnly: true, AssignIdentity: true, StorageEncryption: true);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Hot, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, enableHttpsTrafficOnly: true, AssignIdentity: true, StorageEncryption: true);
                 }
                 finally
                 {
@@ -2783,6 +2783,230 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void SetAccount_MicrosoftStorageKeySource()
+        {
+            if (isResourceMode)
+            {
+                try
+                {
+                    SetSRPAccount(accountNameForConnectionStringTest, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, StorageEncryption: true);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountNameForConnectionStringTest, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, StorageEncryption: true);
+
+                }
+                catch (Exception e)
+                {
+                    Test.Assert(false, "Test Keysource failed: " + e.ToString());
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void SetAccount_MicrosoftKevaultKeySource()
+        {
+            if (isResourceMode)
+            {
+                try
+                {
+                    string cMKResourceGroup = Test.Data.Get("CMKAccountResourceGroup");
+                    string cMKAccountName = Test.Data.Get("CMKAccountName");
+                    string cMKKeyName = Test.Data.Get("CMKKeyName");
+                    string cMKKeyVersion = Test.Data.Get("CMKKeyVersion");
+                    string cMKKeyvaultUri = Test.Data.Get("CMKKeyvaultUri");
+
+                    //Set to Microsoft.Storage
+                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(cMKResourceGroup, cMKAccountName,
+                        disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, 
+                        StorageEncryption: true),
+                        "Set Keysource to MicrosoftStorage should succeed.");
+                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.None, StorageEncryption: true);
+
+                    //Set to Keyvault + Blob/File Enable
+                    Test.Assert(CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
+                        enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File,
+                        keyvaultEncryption: true,
+                        keyName: cMKKeyName, 
+                        keyVersion: cMKKeyVersion,
+                        keyVaultUri: cMKKeyvaultUri),
+                        "Set Keysource to MicrosoftKeyvault should succeed.");
+                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, 
+                        enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File,
+                        keyvaultEncryption: true,
+                        keyName: cMKKeyName,
+                        keyVersion: cMKKeyVersion,
+                        keyVaultUri: cMKKeyvaultUri);
+
+                    //Set to Microsoft.Storage + Blob Enable
+                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(cMKResourceGroup, cMKAccountName,
+                        disableEncryptionService: Constants.EncryptionSupportServiceEnum.File,
+                        StorageEncryption: true),
+                        "Set Keysource to MicrosoftStorage should succeed.");
+                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, StorageEncryption: true);
+
+                    //Set to Microsoft.Keyvault + Blob/File Enable, not set keyvaultEncryption, but it will automatic set to true when set KeyName
+                    Test.Assert(CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
+                        enableEncryptionService: Constants.EncryptionSupportServiceEnum.File,
+                        keyName: cMKKeyName,
+                        keyVersion: cMKKeyVersion,
+                        keyVaultUri: cMKKeyvaultUri),
+                        "Set Keysource to MicrosoftKeyvault should succeed.");
+                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File,
+                        keyvaultEncryption: true,
+                        keyName: cMKKeyName,
+                        keyVersion: cMKKeyVersion,
+                        keyVaultUri: cMKKeyvaultUri);
+                }
+                catch (Exception e)
+                {
+                    Test.Assert(false, "Test Keysource failed: " + e.ToString());
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void SetAccount_KeySource_Negitive()
+        {
+            if (isResourceMode)
+            {
+                try
+                {
+                    string cMKResourceGroup = Test.Data.Get("CMKAccountResourceGroup");
+                    string cMKAccountName = Test.Data.Get("CMKAccountName");
+                    string cMKKeyName = Test.Data.Get("CMKKeyName");
+                    string cMKKeyVersion = Test.Data.Get("CMKKeyVersion");
+                    string cMKKeyvaultUri = Test.Data.Get("CMKKeyvaultUri");
+
+                    //Set to Keyvault + Blob/File Enable
+                    Test.Assert(CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
+                        enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File,
+                        keyvaultEncryption: true,
+                        keyName: cMKKeyName,
+                        keyVersion: cMKKeyVersion,
+                        keyVaultUri: cMKKeyvaultUri),
+                        "Set Keysource to MicrosoftKeyvault should succeed.");
+                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, 
+                        enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, 
+                        keyvaultEncryption: true,
+                        keyName: cMKKeyName,
+                        keyVersion: cMKKeyVersion,
+                        keyVaultUri: cMKKeyvaultUri);
+
+                    //Set to Disable Blob/File Encryption will fail when use KeyVault
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
+                        disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File,
+                        keyvaultEncryption: true,
+                        keyName: cMKKeyName,
+                        keyVersion: cMKKeyVersion,
+                        keyVaultUri: cMKKeyvaultUri),
+                        "Disable B&F faile when Keysource is MicrosoftKeyvault.");
+                    ExpectedContainErrorMessage("KeySource must be set to 'Microsoft.Storage' before disabling encryption.");
+
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
+                        disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob,
+                        keyvaultEncryption: true,
+                        keyName: cMKKeyName,
+                        keyVersion: cMKKeyVersion,
+                        keyVaultUri: cMKKeyvaultUri),
+                        "Disable B faile when Keysource is MicrosoftKeyvault.");
+                    ExpectedContainErrorMessage("KeySource must be set to 'Microsoft.Storage' before disabling encryption.");
+
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
+                        disableEncryptionService: Constants.EncryptionSupportServiceEnum.File,
+                        enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob,
+                        keyvaultEncryption: true,
+                        keyName: cMKKeyName,
+                        keyVersion: cMKKeyVersion,
+                        keyVaultUri: cMKKeyvaultUri),
+                        "Disable F, enable B faile when Keysource is MicrosoftKeyvault.");
+                    ExpectedContainErrorMessage("KeySource must be set to 'Microsoft.Storage' before disabling encryption.");
+
+                    //Only Set Keysource
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(cMKResourceGroup, cMKAccountName,
+                        StorageEncryption: true),
+                        "Set Only Keysource to MicrosoftStorage should Fail.");
+                    ExpectedContainErrorMessage("The encryption service is missing from the request.");
+
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
+                        keyvaultEncryption: true,
+                        keyName: cMKKeyName,
+                        keyVersion: cMKKeyVersion,
+                        keyVaultUri: cMKKeyvaultUri),
+                        "Set Only Keysource to MicrosoftKeyvault should Fail.");
+                    ExpectedContainErrorMessage("The encryption service is missing from the request.");
+
+                    //Set only Keyname or KeyVersion or KeyvaultUri
+
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
+                        keyvaultEncryption: true,
+                        keyName: cMKKeyName),
+                        "Set Only keyName to MicrosoftKeyvault should Fail.");
+                    ExpectedContainErrorMessage("Cannot process command because of one or more missing mandatory parameters: KeyVersion KeyVaultUri.");
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
+                        keyvaultEncryption: true,
+                        keyVersion: cMKKeyVersion),
+                        "Set Only keyName to MicrosoftKeyvault should Fail.");
+                    ExpectedContainErrorMessage("Cannot process command because of one or more missing mandatory parameters: KeyName KeyVaultUri.");
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
+                        keyvaultEncryption: true,
+                        keyVaultUri: cMKKeyvaultUri),
+                        "Set Only keyName to MicrosoftKeyvault should Fail.");
+                    ExpectedContainErrorMessage("Cannot process command because of one or more missing mandatory parameters: KeyName KeyVersion.");
+
+
+                }
+                catch (Exception e)
+                {
+                    Test.Assert(false, "Test Keysource failed: " + e.ToString());
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void SetAccount_IdentityType()
+        {
+            if (isResourceMode)
+            {
+                try
+                {
+                    string cMKResourceGroup = Test.Data.Get("CMKAccountResourceGroup");
+                    string cMKAccountName = Test.Data.Get("CMKAccountName");
+
+                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(cMKResourceGroup, cMKAccountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob| Constants.EncryptionSupportServiceEnum.File, AssignIdentity: true), "Set IdentityType should succeed.");
+                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, AssignIdentity: true);
+                }
+                catch (Exception e)
+                {
+                    Test.Assert(false, "Test set identityType failed: " + e.ToString());
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void NewAccount_IdentityType()
+        {
+            if (isResourceMode)
+            {
+                try
+                {
+                    string accountName = accountUtils.GenerateAccountName();
+                    string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
+                    string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
+                    
+                    CreateNewSRPAccount(accountName, location, accountType, AssignIdentity: true);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, AssignIdentity: true);
+                }
+                catch (Exception e)
+                {
+                    Test.Assert(false, "Test set identityType failed: " + e.ToString());
+                }
+            }
+        }
+
         private void GetAzureStorageUsage_Test()
         {
             Test.Assert(CommandAgent.GetAzureStorageUsage(), "Get azure storage usage should succeeded.");
@@ -2828,14 +3052,15 @@ namespace Management.Storage.ScenarioTest
             Constants.EncryptionSupportServiceEnum? enableEncryptionService = null,
             AccessTier? accessTier = null,
             string customDomain = null,
-            bool? useSubdomain = null)
+            bool? useSubdomain = null,
+            string identifyType = null)
         {
             try
             {
                 if (isResourceMode)
                 {
-                    CreateNewSRPAccount(accountName, location, accountType, tags, kind, enableEncryptionService, accessTier, customDomain, useSubdomain);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, tags, kind, accessTier, customDomain, useSubdomain, enableEncryptionService);
+                    CreateNewSRPAccount(accountName, location, accountType, tags, kind, enableEncryptionService, accessTier, customDomain, useSubdomain, AssignIdentity: true);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, tags, kind, accessTier, customDomain, useSubdomain, enableEncryptionService, AssignIdentity: true);
                 }
                 else
                 {
@@ -3076,7 +3301,8 @@ namespace Management.Storage.ScenarioTest
             AccessTier? accessTier = null,
             string customDomain = null,
             bool? useSubdomain = null,
-            bool? enableHttpsTrafficOnly = null)
+            bool? enableHttpsTrafficOnly = null,
+            bool AssignIdentity = false)
         {
             try
             {
@@ -3092,7 +3318,7 @@ namespace Management.Storage.ScenarioTest
             bool accountCreated = false;
             while (!accountCreated && DateTime.Now.CompareTo(startTime.AddMinutes(15)) < 0)
             {
-                if (CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, skuName, location, tags, kind, enableEncryptionService, accessTier, customDomain, useSubdomain, enableHttpsTrafficOnly))
+                if (CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, skuName, location, tags, kind, enableEncryptionService, accessTier, customDomain, useSubdomain, enableHttpsTrafficOnly, AssignIdentity))
                 {
                     accountCreated = true;
                 }
@@ -3112,14 +3338,29 @@ namespace Management.Storage.ScenarioTest
             AccessTier? accessTier = null,
             string customDomain = null,
             bool? useSubdomain = null,
-            bool? enableHttpsTrafficOnly = null)
+            bool? enableHttpsTrafficOnly = null,
+            bool AssignIdentity = false, 
+            bool StorageEncryption = false, 
+            bool keyvaultEncryption = false, 
+            string keyName = null, 
+            string keyVersion = null, 
+            string keyVaultUri = null)
         {
             AzureOperationResponse<SRPModel.StorageAccount> response = accountUtils.SRPStorageClient.StorageAccounts.GetPropertiesWithHttpMessagesAsync(resourceGroupName, accountName).Result;
             Test.Assert(response.Response.StatusCode == HttpStatusCode.OK, string.Format("Account {0} should be created successfully.", accountName));
 
-            Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, skuName, tags, enableEncryptionService, disableEncryptionService, accessTier, customDomain, useSubdomain, enableHttpsTrafficOnly: enableHttpsTrafficOnly),
-                string.Format("Setting storage account {0} in resource group {1} should succeed: SkuName:{2}; Tags: {3}; enableEncryptionService: {4}; disableEncryptionService: {5}, accessTier: {6}, customDomain: {7}; useSubdomain: {8}; enableHttpsTrafficOnly: {9}",
-                accountName, resourceGroupName, skuName, tags, enableEncryptionService, disableEncryptionService, accessTier, customDomain, useSubdomain, enableHttpsTrafficOnly));
+            if (keyvaultEncryption == true || keyName != null || keyVersion != null || keyVaultUri != null)
+            {
+                Test.Assert(CommandAgent.SetSRPAzureStorageAccountKeyVault(resourceGroupName, accountName, skuName, tags, enableEncryptionService, disableEncryptionService, accessTier, customDomain, useSubdomain, enableHttpsTrafficOnly: enableHttpsTrafficOnly, AssignIdentity: AssignIdentity, keyvaultEncryption: keyvaultEncryption, keyName: keyName, keyVersion: keyVersion, keyVaultUri: keyVaultUri),
+                    string.Format("Setting storage account {0} in resource group {1} should succeed: SkuName:{2}; Tags: {3}; enableEncryptionService: {4}; disableEncryptionService: {5}, accessTier: {6}, customDomain: {7}; useSubdomain: {8}; enableHttpsTrafficOnly: {9}; AssignIdentity: {10}; keyvaultEncryption: {11}; keyname: {12}; keyversion: {13}; keyvaultUri: {14}",
+                    accountName, resourceGroupName, skuName, tags, enableEncryptionService, disableEncryptionService, accessTier, customDomain, useSubdomain, enableHttpsTrafficOnly, AssignIdentity, keyvaultEncryption, keyName, keyVersion, keyVaultUri));
+            }
+            else
+            {
+                Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, skuName, tags, enableEncryptionService, disableEncryptionService, accessTier, customDomain, useSubdomain, enableHttpsTrafficOnly: enableHttpsTrafficOnly, AssignIdentity: AssignIdentity, StorageEncryption: StorageEncryption),
+                    string.Format("Setting storage account {0} in resource group {1} should succeed: SkuName:{2}; Tags: {3}; enableEncryptionService: {4}; disableEncryptionService: {5}, accessTier: {6}, customDomain: {7}; useSubdomain: {8}; enableHttpsTrafficOnly: {9}; AssignIdentity: {10}; StorageEncryption: {11}",
+                    accountName, resourceGroupName, skuName, tags, enableEncryptionService, disableEncryptionService, accessTier, customDomain, useSubdomain, enableHttpsTrafficOnly, AssignIdentity, StorageEncryption));
+            }
         }
 
         private void DeleteSRPAccount(string accountName)
