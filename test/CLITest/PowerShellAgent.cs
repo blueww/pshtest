@@ -35,6 +35,7 @@ using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 using Microsoft.WindowsAzure.Storage.Table;
 using MS.Test.Common.MsTestLib;
+using Microsoft.Azure.Commands.Management.Storage.Models;
 
 namespace Management.Storage.ScenarioTest
 {
