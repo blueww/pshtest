@@ -26,6 +26,7 @@ using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 using Microsoft.WindowsAzure.Storage.Table;
 using MS.Test.Common.MsTestLib;
+using Microsoft.Azure.Commands.Management.Storage.Models;
 
 namespace Management.Storage.ScenarioTest
 {
@@ -111,11 +112,11 @@ namespace Management.Storage.ScenarioTest
         #endregion
 
         #region SRPAccount
-        public abstract bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string skuName, string location, Hashtable[] tags = null, Kind? kind = null, Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, AccessTier? accessTier = null, string customDomain = null, bool? useSubdomain = null, bool? enableHttpsTrafficOnly = null, bool AssignIdentity = false);
+        public abstract bool CreateSRPAzureStorageAccount(string resourceGroupName, string accountName, string skuName, string location, Hashtable[] tags = null, Kind? kind = null, Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, AccessTier? accessTier = null, string customDomain = null, bool? useSubdomain = null, bool? enableHttpsTrafficOnly = null, bool AssignIdentity = false, PSNetworkRuleSet networkAcl = null);
 
-        public abstract bool SetSRPAzureStorageAccount(string resourceGroupName, string accountName, string skuName = null, Hashtable[] tags = null, Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, Constants.EncryptionSupportServiceEnum? disableEncryptionService = null, AccessTier? accessTier = null, string customDomain = null, bool? useSubdomain = null, bool? enableHttpsTrafficOnly = null, bool AssignIdentity = false, bool StorageEncryption = false);
+        public abstract bool SetSRPAzureStorageAccount(string resourceGroupName, string accountName, string skuName = null, Hashtable[] tags = null, Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, Constants.EncryptionSupportServiceEnum? disableEncryptionService = null, AccessTier? accessTier = null, string customDomain = null, bool? useSubdomain = null, bool? enableHttpsTrafficOnly = null, bool AssignIdentity = false, bool StorageEncryption = false, PSNetworkRuleSet networkAcl = null);
 
-        public abstract bool SetSRPAzureStorageAccountKeyVault(string resourceGroupName, string accountName, string skuName = null, Hashtable[] tags = null, Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, Constants.EncryptionSupportServiceEnum? disableEncryptionService = null, AccessTier? accessTier = null, string customDomain = null, bool? useSubdomain = null, bool? enableHttpsTrafficOnly = null, bool AssignIdentity = false, bool keyvaultEncryption = false, string keyName = null, string keyVersion = null, string keyVaultUri = null);
+        public abstract bool SetSRPAzureStorageAccountKeyVault(string resourceGroupName, string accountName, string skuName = null, Hashtable[] tags = null, Constants.EncryptionSupportServiceEnum? enableEncryptionService = null, Constants.EncryptionSupportServiceEnum? disableEncryptionService = null, AccessTier? accessTier = null, string customDomain = null, bool? useSubdomain = null, bool? enableHttpsTrafficOnly = null, bool AssignIdentity = false, bool keyvaultEncryption = false, string keyName = null, string keyVersion = null, string keyVaultUri = null, PSNetworkRuleSet networkAcl = null);
 
         public abstract bool SetSRPAzureStorageAccountTags(string resourceGroupName, string accountName, Hashtable[] tags);
 
@@ -130,6 +131,17 @@ namespace Management.Storage.ScenarioTest
         public abstract bool RenewSRPAzureStorageAccountKeys(string resourceGroupName, string accountName, Constants.AccountKeyType type);
 
         public abstract bool CheckNameAvailability(string accountName);
+
+        public abstract bool UpdateSRPAzureStorageAccountNetworkAcl(string resourceGroupName, string accountName, PSNetWorkRuleBypassEnum? bypass = null, PSNetWorkRuleDefaultActionEnum? defaultAction = null, PSIpRule[] ipRules = null, PSVirtualNetworkRule[] networkRules = null);
+
+        public abstract bool GetSRPAzureStorageAccountNetworkAcl(string resourceGroupName, string accountName);
+        public abstract bool AddSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, string[] ruleId, bool isIPRule = true);
+        public abstract bool AddSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, PSIpRule[] iprule);
+        public abstract bool AddSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, PSVirtualNetworkRule[] networkRule);
+        public abstract bool RemoveSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, string[] ruleId, bool isIPRule = true);
+        public abstract bool RemoveSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, PSIpRule[] iprule);
+        public abstract bool RemoveSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, PSVirtualNetworkRule[] networkRule);
+
         #endregion
 
         public abstract bool GetAzureStorageUsage();
