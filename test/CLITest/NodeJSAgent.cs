@@ -37,6 +37,7 @@ using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 using System.Text.RegularExpressions;
 using Microsoft.WindowsAzure.Commands.Storage.Model.ResourceModel;
 using Microsoft.Azure.Management.Storage.Models;
+using Microsoft.Azure.Commands.Management.Storage.Models;
 
 namespace Management.Storage.ScenarioTest
 {
@@ -699,7 +700,8 @@ namespace Management.Storage.ScenarioTest
             string customDomain = null, 
             bool? useSubdomain = null,
             bool? enableHttpsTrafficOnly = null,
-            bool AssignIdentity = false)
+            bool AssignIdentity = false,
+            PSNetworkRuleSet networkAcl = null)
         {
             string command = string.Format("account create {0}", accountName);
             command = appendStringOption(command, "--resource-group", resourceGroupName);
@@ -746,7 +748,8 @@ namespace Management.Storage.ScenarioTest
             bool? useSubdomain = null,
             bool? enableHttpsTrafficOnly = null,
             bool AssignIdentity = false,
-            bool StorageEncryption = false)
+            bool StorageEncryption = false,
+            PSNetworkRuleSet networkAcl = null)
         {
             string command = string.Format("account set {0}", accountName);
             command = appendStringOption(command, "--resource-group", resourceGroupName);
@@ -3180,17 +3183,31 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(command);
         }
 
+
         public override bool StartAzureStorageBlobIncrementalCopy(string sourceUri, string destContainerName, string destBlobName, object destContext = null)
         {
             throw new NotImplementedException();
         }
 
+        public override bool UpdateSRPAzureStorageAccountNetworkAcl(string resourceGroupName, string accountName, PSNetWorkRuleBypassEnum? bypass = default(PSNetWorkRuleBypassEnum?), PSNetWorkRuleDefaultActionEnum? defaultAction = default(PSNetWorkRuleDefaultActionEnum?), PSIpRule[] ipRules = null, PSVirtualNetworkRule[] networkRules = null)
+        {
+            throw new NotImplementedException();
+        }
         public override bool StartAzureStorageBlobIncrementalCopy(string srcContainerName, string srcBlobName, DateTimeOffset? SnapshotTime, string destContainerName, string destBlobName, object destContext = null)
         {
             throw new NotImplementedException();
         }
 
+        public override bool GetSRPAzureStorageAccountNetworkAcl(string resourceGroupName, string accountName)
+        {
+            throw new NotImplementedException();
+        }
         public override bool StartAzureStorageBlobIncrementalCopy(CloudBlobContainer srcContainer, string srcBlobName, DateTimeOffset? SnapshotTime, string destContainerName, string destBlobName, object destContext = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool AddSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, string[] ruleId, bool isIPRule = true)
         {
             throw new NotImplementedException();
         }
@@ -3200,12 +3217,37 @@ namespace Management.Storage.ScenarioTest
             throw new NotImplementedException();
         }
 
+        public override bool AddSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, PSIpRule[] iprule)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool StartAzureStorageBlobIncrementalCopy(CloudPageBlob srcBlob, CloudPageBlob destBlob, object destContext = null)
         {
             throw new NotImplementedException();
         }
 
-        public override bool SetSRPAzureStorageAccountKeyVault(string resourceGroupName, string accountName, string skuName = null, Hashtable[] tags = null, Constants.EncryptionSupportServiceEnum? enableEncryptionService = default(Constants.EncryptionSupportServiceEnum?), Constants.EncryptionSupportServiceEnum? disableEncryptionService = default(Constants.EncryptionSupportServiceEnum?), AccessTier? accessTier = default(AccessTier?), string customDomain = null, bool? useSubdomain = default(bool?), bool? enableHttpsTrafficOnly = default(bool?), bool AssignIdentity = false, bool keyvaultEncryption = false, string keyName = null, string keyVersion = null, string keyVaultUri = null)
+        public override bool AddSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, PSVirtualNetworkRule[] networkRule)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool SetSRPAzureStorageAccountKeyVault(string resourceGroupName, string accountName, string skuName = null, Hashtable[] tags = null, Constants.EncryptionSupportServiceEnum? enableEncryptionService = default(Constants.EncryptionSupportServiceEnum?), Constants.EncryptionSupportServiceEnum? disableEncryptionService = default(Constants.EncryptionSupportServiceEnum?), AccessTier? accessTier = default(AccessTier?), string customDomain = null, bool? useSubdomain = default(bool?), bool? enableHttpsTrafficOnly = default(bool?), bool AssignIdentity = false, bool keyvaultEncryption = false, string keyName = null, string keyVersion = null, string keyVaultUri = null, PSNetworkRuleSet networkAcl = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool RemoveSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, string[] ruleId, bool isIPRule = true)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool RemoveSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, PSIpRule[] iprule)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool RemoveSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, PSVirtualNetworkRule[] networkRule)
         {
             throw new NotImplementedException();
         }

@@ -57,7 +57,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Azure.Management.Storage, Version=6.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Azure.Management.Storage.6.4.0-preview\lib\net452\Microsoft.Azure.Management.Storage.dll</HintPath>
+      <HintPath>..\packages\Microsoft.Azure.Management.Storage.6.5.0-preview\lib\net452\Microsoft.Azure.Management.Storage.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Azure.ResourceManager, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Azure.Management.Resources.2.19.0-preview\lib\net40\Microsoft.Azure.ResourceManager.dll</HintPath>
@@ -108,6 +108,10 @@
     <Reference Include="Microsoft.WindowsAzure.Commands.Storage, Version=1.0.4.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\PowerShell\src\Package\$(Configuration)\Storage\Azure.Storage\Microsoft.WindowsAzure.Commands.Storage.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Azure.Commands.Management.Storage.dll, Version=1.0.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\PowerShell\src\Package\$(Configuration)\ResourceManager\AzureResourceManager\AzureRM.Storage\Microsoft.Azure.Commands.Management.Storage.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -268,6 +272,7 @@
     <Compile Include="Functional\Queue\QueueStoredAccessPolicy.cs" />
     <Compile Include="Functional\Service\AccountSASTest.cs" />
     <Compile Include="Functional\Service\ServiceCORSRule.cs" />
+    <Compile Include="Functional\NetworkACL.cs" />
     <Compile Include="Functional\StorageAccount.cs" />
     <Compile Include="Functional\Table\TableStoredAccessPolicy.cs" />
     <Compile Include="IExecutionError.cs" />

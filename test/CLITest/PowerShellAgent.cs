@@ -2374,6 +2374,29 @@ namespace Management.Storage.ScenarioTest
         }
 
         /// <summary>
+        /// Invoke PowerShell Script
+        /// </summary>
+        /// <param name="script">the script to run</param>
+        /// <returns>running result</returns>
+        public bool InvokePSScript(string script)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            ps.AddScript(script);
+
+            Test.Info("run PS Script: " + script);
+
+            ps.Invoke();
+            
+            ParseErrorMessages(ps);
+
+            foreach(string s in ErrorMessages)
+            {
+                Console.WriteLine(s);
+            }
+            return !ps.HadErrors;
+        }
+
+        /// <summary>
         /// Common function for invoke powershell cmdlet
         /// </summary>
         /// <param name="parseFunc">if it's not null, then it will use this specific function to parse values</param>
@@ -3876,7 +3899,8 @@ namespace Management.Storage.ScenarioTest
             string customDomain = null,
             bool? useSubdomain = null,
             bool? enableHttpsTrafficOnly = null,
-            bool AssignIdentity = false)
+            bool AssignIdentity = false, 
+            PSNetworkRuleSet networkAcl = null)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
@@ -3906,6 +3930,7 @@ namespace Management.Storage.ScenarioTest
             {
                 ps.AddParameter("AssignIdentity");
             }
+            ps.BindParameter("NetworkRule", networkAcl);
 
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
 
@@ -3923,7 +3948,8 @@ namespace Management.Storage.ScenarioTest
             bool? useSubdomain = null,
             bool? enableHttpsTrafficOnly = null,
             bool AssignIdentity = false,
-            bool StorageEncryption = false)
+            bool StorageEncryption = false,
+            PSNetworkRuleSet networkAcl = null)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
@@ -3964,6 +3990,7 @@ namespace Management.Storage.ScenarioTest
             {
                 ps.AddParameter("StorageEncryption");
             }
+            ps.BindParameter("NetworkRule", networkAcl);
 
             return InvokePowerShellWithoutContext(ps);
         }
@@ -3982,7 +4009,8 @@ namespace Management.Storage.ScenarioTest
             bool keyvaultEncryption = false,
             string keyName = null,
             string keyVersion = null,
-            string keyVaultUri = null)
+            string keyVaultUri = null, 
+            PSNetworkRuleSet networkAcl = null)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
@@ -4035,6 +4063,7 @@ namespace Management.Storage.ScenarioTest
             {
                 ps.BindParameter("keyVaultUri", keyVaultUri);
             }
+            ps.BindParameter("NetworkACL", networkAcl);
 
             return InvokePowerShellWithoutContext(ps);
         }
@@ -4137,6 +4166,156 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             ps.AddCommand("Get-AzureRMStorageUsage");
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool UpdateSRPAzureStorageAccountNetworkAcl(string resourceGroupName, 
+            string accountName, 
+            PSNetWorkRuleBypassEnum? bypass = null,
+            PSNetWorkRuleDefaultActionEnum? defaultAction = null, 
+            PSIpRule[] ipRules = null, 
+            PSVirtualNetworkRule[] networkRules = null)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Update-AzureRmStorageAccountNetworkRuleSet");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("Name", accountName);
+
+            if (bypass != null)
+            {
+                ps.BindParameter("Bypass", bypass.Value);
+            }
+            if (defaultAction != null)
+            {
+                ps.BindParameter("DefaultAction", defaultAction.Value);
+            }
+            if (ipRules != null)
+            {
+                if (ipRules.Length == 0 && new Random().Next()%2 == 0)
+                {
+                    ps.BindParameter("IpRule", null, true);
+                }
+                else
+                {
+                    ps.BindParameter("IpRule", ipRules);
+                }
+            }
+            if (networkRules != null)
+            {
+                if (networkRules.Length == 0 && new Random().Next() % 2 == 0)
+                {
+                    ps.BindParameter("VirtualNetworkRule", null, true);
+                }
+                else
+                {
+                    ps.BindParameter("VirtualNetworkRule", networkRules);
+                }
+            }
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool GetSRPAzureStorageAccountNetworkAcl(string resourceGroupName, string accountName)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Get-AzureRmStorageAccountNetworkRuleSet");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("Name", accountName);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool AddSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, string[] ruleId, bool isIPRule = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Add-AzureRmStorageAccountNetworkRule");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("Name", accountName);
+
+            if (isIPRule)
+            {
+                ps.BindParameter("IPAddressOrRange", ruleId);
+            }
+            else
+            {
+                ps.BindParameter("VirtualNetworkResourceId", ruleId);
+            }       
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool AddSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, PSIpRule[] iprule)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Add-AzureRmStorageAccountNetworkRule");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("Name", accountName);
+
+            ps.BindParameter("IpRule", iprule);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool AddSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, PSVirtualNetworkRule[] networkRule)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Add-AzureRmStorageAccountNetworkRule");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("Name", accountName);
+
+            ps.BindParameter("VirtualNetworkRule", networkRule);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool RemoveSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, string[] ruleId, bool isIPRule = true)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Remove-AzureRmStorageAccountNetworkRule");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("Name", accountName);
+
+            if (isIPRule)
+            {
+                ps.BindParameter("IPAddressOrRange", ruleId);
+            }
+            else
+            {
+                ps.BindParameter("VirtualNetworkResourceId", ruleId);
+            }
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool RemoveSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, PSIpRule[] iprule)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Remove-AzureRmStorageAccountNetworkRule");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("Name", accountName);
+
+            ps.BindParameter("IpRule", iprule);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool RemoveSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, PSVirtualNetworkRule[] networkRule)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Remove-AzureRmStorageAccountNetworkRule");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("Name", accountName);
+
+            ps.BindParameter("VirtualNetworkRule", networkRule);
 
             return InvokePowerShellWithoutContext(ps);
         }

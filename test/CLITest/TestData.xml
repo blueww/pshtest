@@ -79,6 +79,22 @@
   <TempDir>.\Data\temp\</TempDir>
   <SpecialChars>~!@#$%^&amp;*()_+[]'</SpecialChars>
   <EnvContextKey>AZURE_STORAGE_CONNECTION_STRING</EnvContextKey>
+
+  <TestClass name="Management.Storage.ScenarioTest.NetworkACLTest">
+    <allowedNetworkRules>
+      <!--Created before test with: New-AzureRmVirtualNetwork -ResourceGroupName $group -Location $location -AddressPrefix 10.0.0.0/24 -Name $vnetName
+      Get-AzureRmVirtualNetwork -ResourceGroupName $group -Name $vnetName | Add-AzureRmVirtualNetworkSubnetConfig -Name "subnet1" -AddressPrefix "10.0.0.16/28" -ServiceTunnel "Microsoft.Storage" | Set-AzureRmVirtualNetwork-->
+      /subscriptions/ce4a7590-4722-4bcf-a2c6-e473e9f11778/resourceGroups/weitry/providers/Microsoft.Network/virtualNetworks/vnettry1/subnets/subnet1,
+      /subscriptions/ce4a7590-4722-4bcf-a2c6-e473e9f11778/resourceGroups/weitry/providers/Microsoft.Network/virtualNetworks/vnettry1/subnets/subnet2,
+      /subscriptions/ce4a7590-4722-4bcf-a2c6-e473e9f11778/resourceGroups/weitry/providers/Microsoft.Network/virtualNetworks/vnettry1/subnets/subnet3,
+      /subscriptions/ce4a7590-4722-4bcf-a2c6-e473e9f11778/resourceGroups/weitry/providers/Microsoft.Network/virtualNetworks/vnettry1/subnets/subnet4,
+      /subscriptions/ce4a7590-4722-4bcf-a2c6-e473e9f11778/resourceGroups/weitry/providers/Microsoft.Network/virtualNetworks/vnettry1/subnets/subnet5,
+      /subscriptions/ce4a7590-4722-4bcf-a2c6-e473e9f11778/resourceGroups/weitry/providers/Microsoft.Network/virtualNetworks/vnettry1/subnets/subnet6,
+      /subscriptions/ce4a7590-4722-4bcf-a2c6-e473e9f11778/resourceGroups/weitry/providers/Microsoft.Network/virtualNetworks/vnettry1/subnets/subnet7,
+      /subscriptions/ce4a7590-4722-4bcf-a2c6-e473e9f11778/resourceGroups/weitry/providers/Microsoft.Network/virtualNetworks/vnettry1/subnets/subnet8,
+    </allowedNetworkRules>
+  </TestClass>
+  
   <!--
   <TestClass name="Management.Storage.ScenarioTest.CLIPerf_OneBlob">
     <containerName>perf</containerName>
