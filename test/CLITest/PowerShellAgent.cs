@@ -3930,7 +3930,7 @@ namespace Management.Storage.ScenarioTest
             {
                 ps.AddParameter("AssignIdentity");
             }
-            ps.BindParameter("NetworkRule", networkAcl);
+            ps.BindParameter("NetworkRuleSet", networkAcl);
 
             Test.Info(CmdletLogFormat, MethodBase.GetCurrentMethod().Name, GetCommandLine(ps));
 
@@ -3990,7 +3990,7 @@ namespace Management.Storage.ScenarioTest
             {
                 ps.AddParameter("StorageEncryption");
             }
-            ps.BindParameter("NetworkRule", networkAcl);
+            ps.BindParameter("NetworkRuleSet", networkAcl);
 
             return InvokePowerShellWithoutContext(ps);
         }
@@ -4063,7 +4063,7 @@ namespace Management.Storage.ScenarioTest
             {
                 ps.BindParameter("keyVaultUri", keyVaultUri);
             }
-            ps.BindParameter("NetworkACL", networkAcl);
+            ps.BindParameter("NetworkRuleSet", networkAcl);
 
             return InvokePowerShellWithoutContext(ps);
         }
