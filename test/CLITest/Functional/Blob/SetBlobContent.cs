@@ -25,6 +25,7 @@ using MS.Test.Common.MsTestLib;
 using StorageTestLib;
 using BlobType = Microsoft.WindowsAzure.Storage.Blob.BlobType;
 using StorageBlob = Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage;
 
 namespace Management.Storage.ScenarioTest.Functional.Blob
 {
@@ -478,6 +479,137 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             finally
             {
                 blobUtil.RemoveContainer(container.Name);
+                FileUtil.RemoveFile(filePath);
+            }
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.SetBlobContent)]
+        public void UploadCopyBlobWithPremiumPageBlobTier()
+        {
+            string xIOStorageConnectionString = Test.Data.Get("XIOStorageConnectionString");
+            PowerShellAgent.SetStorageContext(xIOStorageConnectionString);
+
+            string filePath = FileUtil.GenerateOneTempTestFile();
+            CloudBlobClient xIOBlobClient = CloudStorageAccount.Parse(xIOStorageConnectionString).CreateCloudBlobClient();
+            CloudBlobContainer container = xIOBlobClient.GetContainerReference(Utility.GenNameString("container"));
+            container.CreateIfNotExists();
+           
+            string blobName = Utility.GenNameString("blob");
+            string blobName2 = Utility.GenNameString("blob");
+            string blobName3 = Utility.GenNameString("blob");
+
+            try
+            {
+                //Create local file
+                string localMD5 = FileUtil.GetFileContentMD5(filePath);
+
+                //upload
+                Test.Assert(CommandAgent.SetAzureStorageBlobContent(filePath, container.Name, StorageBlob.BlobType.PageBlob, blobName, true, premiumPageBlobTier: PremiumPageBlobTier.P20), "upload a blob name with premiumPageBlobTier should succeed");
+                CloudPageBlob blob = container.GetPageBlobReference(blobName);
+                blob.FetchAttributes();
+
+                ////The check MD5 code are comment, and add code to set contentMD5 since a bug in server that set blob tier will clear contentMD5. Will revert it when the bug fixed.
+                //ExpectEqual(localMD5, blob.Properties.ContentMD5, "content md5");
+                blob.Properties.ContentMD5 = localMD5;
+                blob.SetProperties();
+
+                Test.Assert(PremiumPageBlobTier.P20 == blob.Properties.PremiumPageBlobTier, "PremiumPageBlobTier shoud match: {0} == {1}", PremiumPageBlobTier.P20, blob.Properties.PremiumPageBlobTier);
+
+                //Copy 1
+                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(container.Name, blobName, container.Name, blobName2, premiumPageBlobTier: PremiumPageBlobTier.P30), "upload a blob name with premiumPageBlobTier should succeed");
+                blob = container.GetPageBlobReference(blobName2);
+                blob.FetchAttributes();
+
+                ExpectEqual(localMD5, blob.Properties.ContentMD5, "content md5");
+                Test.Assert(PremiumPageBlobTier.P30 == blob.Properties.PremiumPageBlobTier, "PremiumPageBlobTier shoud match: {0} == {1}", PremiumPageBlobTier.P30, blob.Properties.PremiumPageBlobTier);
+
+                //Copy 2
+                Test.Assert(CommandAgent.StartAzureStorageBlobCopy(blob, container.Name, blobName3, premiumPageBlobTier: PremiumPageBlobTier.P4), "upload a blob name with premiumPageBlobTier should succeed");
+                blob = container.GetPageBlobReference(blobName3);
+                blob.FetchAttributes();
+
+                ExpectEqual(localMD5, blob.Properties.ContentMD5, "content md5");
+                Test.Assert(PremiumPageBlobTier.P4 == blob.Properties.PremiumPageBlobTier, "PremiumPageBlobTier shoud match: {0} == {1}", PremiumPageBlobTier.P4, blob.Properties.PremiumPageBlobTier);
+            }
+            finally
+            {
+                string StorageConnectionString = Test.Data.Get("StorageConnectionString");
+                PowerShellAgent.SetStorageContext(StorageConnectionString);
+                container.DeleteIfExists();
+                FileUtil.RemoveFile(filePath);
+            }
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.SetBlobContent)]
+        public void UploadCopyBlobWithPremiumPageBlobTier_Block()
+        {
+            string filePath = FileUtil.GenerateOneTempTestFile();
+            CloudBlobContainer container = blobUtil.CreateContainer();
+            string blobName = Utility.GenNameString("blob");
+            string blobName2 = Utility.GenNameString("blob");
+            string exceptionMessage = "System.ArgumentOutOfRangeException: PremiumPageBlobTier can only be set to Page Blob.";
+
+            try
+            {
+                //Create local file
+                string localMD5 = FileUtil.GetFileContentMD5(filePath);
+
+                //upload block fail with premiumPageBlobTier
+                Test.Assert(!CommandAgent.SetAzureStorageBlobContent(filePath, container.Name, StorageBlob.BlobType.BlockBlob, blobName, true, premiumPageBlobTier: PremiumPageBlobTier.P20), "upload a block blob with premiumPageBlobTier should Fail.");
+                ExpectedContainErrorMessage(exceptionMessage);
+
+                //upload block success without premiumPageBlobTier
+                Test.Assert(CommandAgent.SetAzureStorageBlobContent(filePath, container.Name, StorageBlob.BlobType.BlockBlob, blobName, true), "upload a block blob should success.");
+
+                //Copy block fail with premiumPageBlobTier
+                Test.Assert(!CommandAgent.StartAzureStorageBlobCopy(container.Name, blobName, container.Name, blobName2, premiumPageBlobTier: PremiumPageBlobTier.P30), "Copy a block blob with premiumPageBlobTier should fail.");
+                ExpectedContainErrorMessage(exceptionMessage);
+            }
+            finally
+            {
+                container.DeleteIfExists();
+                FileUtil.RemoveFile(filePath);
+            }
+        }
+
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.SetBlobContent)]
+        public void UploadCopyBlobWithPremiumPageBlobTier_NotXIOPage()
+        {
+            string filePath = FileUtil.GenerateOneTempTestFile();
+            CloudBlobContainer container = blobUtil.CreateContainer();
+            string blobName = Utility.GenNameString("blob");
+            string blobName2 = Utility.GenNameString("blob");
+            string exceptionMessage = "";
+
+            try
+            {
+                //Create local file
+                string localMD5 = FileUtil.GetFileContentMD5(filePath);
+
+                //upload block fail with premiumPageBlobTier
+                Test.Assert(!CommandAgent.SetAzureStorageBlobContent(filePath, container.Name, StorageBlob.BlobType.PageBlob, blobName, true, premiumPageBlobTier: PremiumPageBlobTier.P20), "upload a none XIO Page blob with premiumPageBlobTier should Fail.");
+                ExpectedContainErrorMessage(exceptionMessage);
+
+                //upload block success without premiumPageBlobTier
+                Test.Assert(CommandAgent.SetAzureStorageBlobContent(filePath, container.Name, StorageBlob.BlobType.PageBlob, blobName, true), "upload a none XIO Page  should success.");
+
+                //// There's a server bug, currently Copy none XIO Page blob with premiumPageBlobTier wil success.
+                ////Copy block fail with premiumPageBlobTier
+                //Test.Assert(!CommandAgent.StartAzureStorageBlobCopy(container.Name, blobName, container.Name, blobName2, premiumPageBlobTier: PremiumPageBlobTier.P30), "Copy a none XIO Page  with premiumPageBlobTier should fail.");
+                //ExpectedContainErrorMessage(exceptionMessage);
+            }
+            finally
+            {
+                container.DeleteIfExists();
                 FileUtil.RemoveFile(filePath);
             }
         }
