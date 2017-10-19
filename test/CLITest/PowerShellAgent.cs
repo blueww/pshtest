@@ -798,7 +798,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override bool SetAzureStorageBlobContent(string FileName, string ContainerName, BlobType Type, string BlobName = "",
-            bool Force = true, int ConcurrentCount = -1, Hashtable properties = null, Hashtable metadata = null)
+            bool Force = true, int ConcurrentCount = -1, Hashtable properties = null, Hashtable metadata = null, PremiumPageBlobTier? premiumPageBlobTier = null)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
@@ -827,6 +827,10 @@ namespace Management.Storage.ScenarioTest
             if (ConcurrentCount != -1)
             {
                 ps.BindParameter("ConcurrentTaskCount", ConcurrentCount);
+            }
+            if (premiumPageBlobTier != null)
+            {
+                ps.BindParameter("PremiumPageBlobTier", premiumPageBlobTier.Value);
             }
 
             return InvokeStoragePowerShell(ps, null, ParseBlobCollection);
@@ -1030,7 +1034,7 @@ namespace Management.Storage.ScenarioTest
             return executeState;
         }
 
-        public override bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, string sourceLease = null, string destLease = null, object destContext = null, bool force = true)
+        public override bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, string sourceLease = null, string destLease = null, object destContext = null, bool force = true, PremiumPageBlobTier? premiumPageBlobTier = null)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
@@ -1041,11 +1045,15 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("Force", force);
             ps.BindParameter("DestBlob", destBlobName);
             ps.BindParameter("DestContext", destContext);
+            if (premiumPageBlobTier != null)
+            {
+                ps.BindParameter("PremiumPageBlobTier", premiumPageBlobTier.Value);
+            }
 
             return InvokeStoragePowerShell(ps);
         }
 
-        public override bool StartAzureStorageBlobCopy(CloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        public override bool StartAzureStorageBlobCopy(CloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true, PremiumPageBlobTier? premiumPageBlobTier = null)
         {
             PowerShell ps = GetPowerShellInstance();
             ps.AddCommand("Start-CopyAzureStorageBlob");
@@ -1054,6 +1062,10 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("Force", force);
             ps.BindParameter("DestBlob", destBlobName);
             ps.BindParameter("DestContext", destContext);
+            if (premiumPageBlobTier != null)
+            {
+                ps.BindParameter("PremiumPageBlobTier", premiumPageBlobTier.Value);
+            }
 
             return InvokeStoragePowerShell(ps);
         }
@@ -2920,6 +2932,33 @@ namespace Management.Storage.ScenarioTest
                 else if (propertyInfo.Name.Equals("Share") && (isFile || isFileDirectory))
                 {
                     bResult = CompareEntity(o1, o2);
+                }
+                else if (propertyInfo.Name.Equals("PremiumPageBlobTier"))
+                {
+                    bResult = CompareEntity(o1, o2);
+                    if ((o2 == null && o1 != null && ((PremiumPageBlobTier?)o1).Value == PremiumPageBlobTier.Unknown)
+                        || (o1 == null && o2 != null && ((PremiumPageBlobTier?)o2).Value == PremiumPageBlobTier.Unknown))
+                    {
+                        bResult = true;
+                    }
+                }
+                else if (propertyInfo.Name.Equals("StandardBlobTier"))
+                {
+                    bResult = CompareEntity(o1, o2);
+                    if ((o2 == null && o1 != null && ((StandardBlobTier?)o1).Value == StandardBlobTier.Unknown)
+                        || (o1 == null && o2 != null && ((StandardBlobTier?)o2).Value == StandardBlobTier.Unknown))
+                    {
+                        bResult = true;
+                    }
+                }
+                else if (propertyInfo.Name.Equals("BlobTierInferred"))
+                {
+                    bResult = CompareEntity(o1, o2);
+                    if ((o2 == null && o1 != null && (bool)o1 == false)
+                        || (o1 == null && o2 != null && (bool)o2 == false))
+                    {
+                        bResult = true;
+                    }
                 }
                 else
                 {

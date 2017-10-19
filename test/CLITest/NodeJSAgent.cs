@@ -969,7 +969,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override bool SetAzureStorageBlobContent(string fileName, string containerName, BlobType type, string blobName = "",
-            bool force = true, int concurrentCount = -1, Hashtable properties = null, Hashtable metadata = null)
+            bool force = true, int concurrentCount = -1, Hashtable properties = null, Hashtable metadata = null, PremiumPageBlobTier? premiumPageBlobTier = null)
         {
             if (AgentOSType != OSType.Windows)
             {
@@ -1191,7 +1191,7 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(command, force);
         }
 
-        public override bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, string sourceLease = null, string destLease = null, object destContext = null, bool force = true)
+        public override bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, string sourceLease = null, string destLease = null, object destContext = null, bool force = true, PremiumPageBlobTier? premiumPageBlobTier = null)
         {
             string command = "blob copy start";
             command = appendStringOption(command, "--source-container", srcContainerName, quoted: true);
@@ -1213,7 +1213,7 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(command, force);
         }
 
-        public override bool StartAzureStorageBlobCopy(CloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true)
+        public override bool StartAzureStorageBlobCopy(CloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true, PremiumPageBlobTier? premiumPageBlobTier = null)
         {
             string command = "blob copy start";
             command = appendStringOption(command, "", srcBlob.SnapshotQualifiedUri.AbsoluteUri, quoted: true);

@@ -50,6 +50,8 @@
   <SecondaryStorageAccountKey></SecondaryStorageAccountKey>
   <SecondaryStorageEndPoint>core.windows.net</SecondaryStorageEndPoint>
   <StorageAccountNameInOtherSubscription>xtestragrsxsmb1</StorageAccountNameInOtherSubscription>
+  <XIOStorageConnectionString>DefaultEndpointsProtocol=http;AccountName=weixio;AccountKey=zBhYB9pv87JC1T5dgQ13aosFdPsudGsyokvhKuD5fXgWh094+4bUuHOfLGk5+EVH4BofIBZPD0Ja13BDjDWBzg==</XIOStorageConnectionString>
+  
 
   <!-- Following setting are for custom domain setting test cases-->
   <CustomDomainAccountResourceGroup></CustomDomainAccountResourceGroup>

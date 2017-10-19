@@ -198,7 +198,7 @@ namespace Management.Storage.ScenarioTest
         ///         -1 means use the default value
         /// </summary>
         public abstract bool SetAzureStorageBlobContent(string FileName, string ContainerName, BlobType Type, string BlobName = "",
-            bool Force = true, int ConcurrentCount = -1, Hashtable properties = null, Hashtable metadata = null);
+            bool Force = true, int ConcurrentCount = -1, Hashtable properties = null, Hashtable metadata = null, PremiumPageBlobTier? premiumPageBlobTier = null);
         public abstract bool GetAzureStorageBlobContent(string Blob, string FileName, string ContainerName,
             bool Force = true, int ConcurrentCount = -1, bool CheckMd5 = false);
         public abstract bool GetAzureStorageBlob(string BlobName, string ContainerName);
@@ -207,8 +207,8 @@ namespace Management.Storage.ScenarioTest
         public abstract bool RemoveAzureStorageBlob(string BlobName, string ContainerName, string snapshotId = "", string leaseId = null, bool ? onlySnapshot = null, bool force = true);
 
         public abstract bool StartAzureStorageBlobCopy(string sourceUri, string destContainerName, string destBlobName, object destContext, bool force = true);
-        public abstract bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, string sourceLease = null, string destLease = null, object destContext = null, bool force = true);
-        public abstract bool StartAzureStorageBlobCopy(CloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true);
+        public abstract bool StartAzureStorageBlobCopy(string srcContainerName, string srcBlobName, string destContainerName, string destBlobName, string sourceLease = null, string destLease = null, object destContext = null, bool force = true, PremiumPageBlobTier? premiumPageBlobTier = null);
+        public abstract bool StartAzureStorageBlobCopy(CloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true, PremiumPageBlobTier? premiumPageBlobTier = null);
 
         public abstract bool StartAzureStorageBlobCopyFromFile(string srcShareName, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true);
         public abstract bool StartAzureStorageBlobCopy(CloudFileShare srcShare, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true);
