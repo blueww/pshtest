@@ -89,7 +89,7 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(directoryList.Count == 0, "{0} leftover items in directory list.", directoryList.Count);
         }
 
-        public void AssertCloudFileContainer(object containerObj, string fileShareName, int expectedUsage = 0)
+        public void AssertCloudFileContainer(object containerObj, string fileShareName, int expectedUsage = 0, DateTimeOffset? snapshotTime = null)
         {
             var containerObject = containerObj as Dictionary<string, object>;
             Test.Assert(containerObject != null, "Output object should be an instance of Dictionary<string, object> class.");
@@ -172,6 +172,11 @@ namespace Management.Storage.ScenarioTest
             {
                 Test.Assert(expectingList.Remove(item), assertMessage, item);
             }
+        }
+
+        public void AssertCloudFileContainersExist(string fileShareName, List<DateTimeOffset> snapshotTimes = null)
+        {
+            throw new NotImplementedException();
         }
     }
 }

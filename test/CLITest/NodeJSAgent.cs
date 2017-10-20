@@ -2080,7 +2080,7 @@ namespace Management.Storage.ScenarioTest
             throw new NotImplementedException();
         }
 
-        public override void GetFileShareByName(string fileShareName)
+        public override void GetFileShareByName(string fileShareName, DateTimeOffset? snapshotTime = null)
         {
             this.RunNodeJSProcess(string.Format("share show \"{0}\"", fileShareName));
         }
@@ -2090,7 +2090,7 @@ namespace Management.Storage.ScenarioTest
             this.RunNodeJSProcess(string.Format("share list \"{0}\"", prefix));
         }
 
-        public override void RemoveFileShareByName(string fileShareName, bool passThru = false, object contextObject = null, bool confirm = false)
+        public override void RemoveFileShareByName(string fileShareName, bool passThru = false, object contextObject = null, bool confirm = false, bool includeAllSnapshot = false)
         {
             string command = "share delete";
             command = appendStringOption(command, "", fileShareName);

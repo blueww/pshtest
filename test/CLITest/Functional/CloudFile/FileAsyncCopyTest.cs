@@ -978,6 +978,103 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             }
         }
 
+
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        public void RestoreFileFromShareSnapshot_File()
+        {
+            string shareName = CloudFileUtil.GenerateUniqueFileShareName();
+            string dirName = CloudFileUtil.GenerateUniqueDirectoryName();
+            string fileName = CloudFileUtil.GenerateUniqueFileName();
+
+            try
+            {
+                CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+                CloudFileDirectory dir = fileUtil.EnsureDirectoryExists(share, dirName);
+                Microsoft.WindowsAzure.Storage.File.CloudFile file = fileUtil.CreateFile(dir, fileName);
+                CloudFileShare shareSnapshot2 = share.Snapshot();
+                file.Delete();
+
+                //Copy File content
+                string StorageConnectionString = Test.Data.Get("StorageConnectionString");
+                Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",($ctx = New-AzureStorageContext -ConnectionString \"{0}\"); (Get-AzureStorageShare -Name {1} -SnapshotTime \"{2}\" -Context $ctx) | Get-AzureStorageFile | Get-AzureStorageFile | Start-AzureStorageFileCopy -DestShareName {3} -DestFilePath {4} -DestContext $ctx",
+                    StorageConnectionString,
+                    shareName,
+                    shareSnapshot2.SnapshotTime.Value,
+                    shareName,
+                    dirName + "\\" + fileName)),
+                    string.Format("Copy File {0} from share snapshot {1}, {2} should success.", dirName + "\\" + fileName, shareName, shareSnapshot2.SnapshotTime.Value));
+
+                //validate MD5
+                Microsoft.WindowsAzure.Storage.File.CloudFile file1 = shareSnapshot2.GetRootDirectoryReference().GetDirectoryReference(dirName).GetFileReference(fileName);
+                Microsoft.WindowsAzure.Storage.File.CloudFile file2 = share.GetRootDirectoryReference().GetDirectoryReference(dirName).GetFileReference(fileName);
+                file1.FetchAttributes();
+                file2.FetchAttributes();
+                Test.Assert(file1.Properties.ContentMD5 == file1.Properties.ContentMD5, "Expected MD5: {0}, real MD5: {1}", file1.Properties.ContentMD5, file1.Properties.ContentMD5);
+            }
+            finally
+            {
+                try
+                {
+                    fileUtil.DeleteFileShareIfExists(shareName);
+                }
+                catch (Exception e)
+                {
+                    Test.Warn("Unexpected exception when cleanup file share {0}: {1}", shareName, e);
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        public void RestoreFileFromShareSnapshot_Share()
+        {
+            string shareName = CloudFileUtil.GenerateUniqueFileShareName();
+            string dirName = CloudFileUtil.GenerateUniqueDirectoryName();
+            string fileName = CloudFileUtil.GenerateUniqueFileName();
+
+            try
+            {
+                CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+                CloudFileDirectory dir = fileUtil.EnsureDirectoryExists(share, dirName);
+                Microsoft.WindowsAzure.Storage.File.CloudFile file = fileUtil.CreateFile(dir, fileName);
+                CloudFileShare shareSnapshot2 = share.Snapshot();
+                file.Delete();
+
+                //Copy File 
+                string StorageConnectionString = Test.Data.Get("StorageConnectionString");
+                Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",($ctx = New-AzureStorageContext -ConnectionString \"{0}\"); $share =(Get-AzureStorageShare -Name {1} -SnapshotTime \"{2}\" -Context $ctx); Start-AzureStorageFileCopy -SrcShare $share -SrcFilePath {4} -DestShareName {3} -DestFilePath {4} -DestContext $ctx",
+                    StorageConnectionString,
+                    shareName,
+                    shareSnapshot2.SnapshotTime.Value,
+                    shareName,
+                    dirName + "\\" + fileName)),
+                    string.Format("Copy File {0} from share snapshot {1}, {2} should success.", dirName + "\\" + fileName, shareName, shareSnapshot2.SnapshotTime.Value));
+
+                //validate MD5
+                Microsoft.WindowsAzure.Storage.File.CloudFile file1 = shareSnapshot2.GetRootDirectoryReference().GetDirectoryReference(dirName).GetFileReference(fileName);
+                Microsoft.WindowsAzure.Storage.File.CloudFile file2 = share.GetRootDirectoryReference().GetDirectoryReference(dirName).GetFileReference(fileName);
+                file1.FetchAttributes();
+                file2.FetchAttributes();
+                Test.Assert(file1.Properties.ContentMD5 == file1.Properties.ContentMD5, "Expected MD5: {0}, real MD5: {1}", file1.Properties.ContentMD5, file1.Properties.ContentMD5);
+            }
+            finally
+            {
+                try
+                {
+                    fileUtil.DeleteFileShareIfExists(shareName);
+                }
+                catch (Exception e)
+                {
+                    Test.Warn("Unexpected exception when cleanup file share {0}: {1}", shareName, e);
+                }
+            }
+        }
+
+
         private void GetStateOnPendingCopy(string bigFileUri)
         {
             string shareName = Utility.GenNameString("share");

@@ -28,7 +28,9 @@ namespace Management.Storage.ScenarioTest
 
         void AssertFileListItems(IEnumerable<CloudFile> files, IEnumerable<CloudFileDirectory> directories);
 
-        void AssertCloudFileContainer(object containerObj, string fileShareName, int expectedUsage = 0);
+        void AssertCloudFileContainer(object containerObj, string fileShareName, int expectedUsage = 0, DateTimeOffset? snapshotTime = null);
+
+        void AssertCloudFileContainersExist(string fileShareName, List<DateTimeOffset> snapshotTimes = null);
 
         void AssertCloudFileContainer(object containerObj, List<string> fileShareNames, bool failIfNotInGivenList = true);
 

@@ -590,6 +590,98 @@
                 destinationMD5);
         }
 
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        public void DownloadFileFromShareSnapshot_share()
+        {
+            string shareName = CloudFileUtil.GenerateUniqueFileShareName();
+            string fileName = CloudFileUtil.GenerateUniqueFileName();
+
+            try
+            {
+                CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+                CloudFileShare shareSnapshot1 = share.Snapshot();
+                CloudFile file = fileUtil.CreateFile(share, fileName);
+                CloudFileShare shareSnapshot2 = share.Snapshot();
+                file.Delete();
+                
+                //Get File content
+                string StorageConnectionString = Test.Data.Get("StorageConnectionString");
+                Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(New-AzureStorageContext -ConnectionString \"{4}\") | Get-AzureStorageShare -Name {0} -SnapshotTime \"{1}\" | Get-AzureStorageFileContent -Path {2} -Destination {3} -Force", 
+                    shareName, 
+                    shareSnapshot2.SnapshotTime.Value, 
+                    fileName, 
+                    fileName, 
+                    StorageConnectionString)),
+                    string.Format("Download File {0} from share snapshot {1}, {2} should success.", fileName, shareName, shareSnapshot2.SnapshotTime.Value));
+
+                //validate MD5
+                CloudFile file2 = shareSnapshot2.GetRootDirectoryReference().GetFileReference(fileName);
+                file2.FetchAttributes();
+                Test.Assert(file2.Properties.ContentMD5 == FileUtil.GetFileContentMD5(fileName), "Expected MD5: {0}, real MD5: {1}", file2.Properties.ContentMD5, FileUtil.GetFileContentMD5(fileName));
+            }
+            finally
+            {
+                try
+                {
+                    fileUtil.DeleteFileShareIfExists(shareName);
+                }
+                catch (Exception e)
+                {
+                    Test.Warn("Unexpected exception when cleanup file share {0}: {1}", shareName, e);
+                }
+            }            
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.File)]
+        public void DownloadFileFromShareSnapshot_dir()
+        {
+            string shareName = CloudFileUtil.GenerateUniqueFileShareName();
+            string dirName = CloudFileUtil.GenerateUniqueDirectoryName();
+            string fileName = CloudFileUtil.GenerateUniqueFileName();
+
+            try
+            {
+                CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+                CloudFileShare shareSnapshot1 = share.Snapshot();
+                CloudFileDirectory dir = fileUtil.EnsureDirectoryExists(share, dirName);
+                CloudFile file = fileUtil.CreateFile(dir, fileName);
+                CloudFileShare shareSnapshot2 = share.Snapshot();
+                file.Delete();
+                dir.Delete();
+
+                //Get File content
+                string StorageConnectionString = Test.Data.Get("StorageConnectionString");
+                Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(New-AzureStorageContext -ConnectionString \"{5}\" | Get-AzureStorageShare -Name {0} -SnapshotTime \"{1}\").GetRootDirectoryReference().GetDirectoryReference(\"{4}\") | Get-AzureStorageFileContent -Path {2} -Destination {3} -Force",
+                    shareName,
+                    shareSnapshot2.SnapshotTime.Value,
+                    fileName,
+                    fileName,
+                    dirName,
+                    StorageConnectionString)),
+                    string.Format("Download File {0} from share snapshot {1}, {2} should success.", dirName + "\\" + fileName, shareName, shareSnapshot2.SnapshotTime.Value));
+
+                //validate MD5
+                CloudFile file2 = shareSnapshot2.GetRootDirectoryReference().GetDirectoryReference(dirName).GetFileReference(fileName);
+                file2.FetchAttributes();
+                Test.Assert(file2.Properties.ContentMD5 == FileUtil.GetFileContentMD5(fileName), "Expected MD5: {0}, real MD5: {1}", file2.Properties.ContentMD5, FileUtil.GetFileContentMD5(fileName));
+            }
+            finally
+            {
+                try
+                {
+                    fileUtil.DeleteFileShareIfExists(shareName);
+                }
+                catch (Exception e)
+                {
+                    Test.Warn("Unexpected exception when cleanup file share {0}: {1}", shareName, e);
+                }
+            }
+        }
+
         private void UploadAndDownloadFileInternal(CloudFile sourceFile, string md5Checksum, Action<string> getContentAction, Func<string> getDestination = null, bool assertNoError = true)
         {
             var destination = getDestination == null ? Path.Combine(Test.Data.Get("TempDir"), CloudFileUtil.GenerateUniqueFileName()) : getDestination();

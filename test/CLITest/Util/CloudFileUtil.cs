@@ -191,7 +191,7 @@
         public void DeleteFileShareIfExists(string fileShareName)
         {
             var share = this.client.GetShareReference(fileShareName);
-            share.DeleteIfExists();
+            share.DeleteIfExists(DeleteShareSnapshotsOption.IncludeSnapshots, null, null, null);
         }
 
         public void DeleteDirectoryIfExists(CloudFileShare fileShare, string directoryName)
