@@ -36,6 +36,7 @@ using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 using Microsoft.WindowsAzure.Storage.Table;
 using MS.Test.Common.MsTestLib;
 using Microsoft.Azure.Commands.Management.Storage.Models;
+using System.IO;
 
 namespace Management.Storage.ScenarioTest
 {
@@ -3157,10 +3158,14 @@ namespace Management.Storage.ScenarioTest
             this.shell.AddParameter("Process", ScriptBlock.Create(string.Format(CultureInfo.InvariantCulture, "Remove-AzureStorageFile -ShareName {0} -Path $_ -Context $context -Confirm:$false", fileShareName)));
         }
 
-        public override void GetFileShareByName(string fileShareName)
+        public override void GetFileShareByName(string fileShareName, DateTimeOffset? snapshotTime = null)
         {
             this.shell.AddCommand("Get-AzureStorageShare");
-            this.shell.AddParameter("Name", fileShareName);
+            if (!string.IsNullOrEmpty(fileShareName))
+            {
+                this.shell.AddParameter("Name", fileShareName);
+            }
+            this.shell.BindParameter("SnapshotTime", snapshotTime);
             this.shell.AddParameter("Context", PowerShellAgent.Context);
         }
 
@@ -3171,10 +3176,14 @@ namespace Management.Storage.ScenarioTest
             this.shell.AddParameter("Context", PowerShellAgent.Context);
         }
 
-        public override void RemoveFileShareByName(string fileShareName, bool passThru = false, object contextObject = null, bool confirm = false)
+        public override void RemoveFileShareByName(string fileShareName, bool passThru = false, object contextObject = null, bool confirm = false, bool includeAllSnapshot = false)
         {
             this.shell.AddCommand("Remove-AzureStorageShare");
             this.shell.AddParameter("Name", fileShareName);
+            if (includeAllSnapshot)
+            {
+                this.shell.AddParameter("IncludeAllSnapshot");
+            }
             this.shell.AddParameter("Context", contextObject ?? PowerShellAgent.Context);
 
             if (!confirm)

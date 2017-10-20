@@ -24,6 +24,8 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
     using Management.Storage.ScenarioTest.Util;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using StorageTestLib;
+    using Microsoft.WindowsAzure.Storage.File;
+    using MS.Test.Common.MsTestLib;
 
     [TestClass]
     public class RemoveAzureStorageFileShareTest : TestBase
@@ -196,6 +198,125 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
 
                 stream.Dispose();
+                fileUtil.DeleteFileShareIfExists(fileShareName);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(PsTag.File)]
+        [TestCategory(Tag.Function)]
+        public void RemoveEmptyFileShareTest()
+        {
+            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
+            CloudFileShare share = fileUtil.EnsureFileShareExists(fileShareName);
+
+            try
+            {
+                CommandAgent.RemoveFileShareByName(fileShareName, confirm: true);
+                var result = CommandAgent.Invoke();
+
+                CommandAgent.AssertNoError();
+                result.AssertNoResult();
+                Test.Assert(!share.Exists(), "The share should be removed.");
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(fileShareName);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(PsTag.File)]
+        [TestCategory(Tag.Function)]
+        public void RemoveEmptyFileShareAndSnapshotTest()
+        {
+            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
+            CloudFileShare share = fileUtil.EnsureFileShareExists(fileShareName);
+            CloudFileShare shareSnapshot1 = share.Snapshot();
+
+            try
+            {
+                CommandAgent.RemoveFileShareByName(fileShareName, confirm: true, includeAllSnapshot: true);
+                var result = CommandAgent.Invoke();
+
+                CommandAgent.AssertNoError();
+                result.AssertNoResult();
+                Test.Assert(!share.Exists(), "The share should be removed.");
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(fileShareName);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(PsTag.File)]
+        [TestCategory(Tag.Function)]
+        public void RemoveFileShareWithSnapshotTest_NotSetIncludeAllSnapshot_Force()
+        {
+            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
+            CloudFileShare share = fileUtil.EnsureFileShareExists(fileShareName);
+            CloudFileShare shareSnapshot1 = share.Snapshot();
+
+            try
+            {
+                CommandAgent.RemoveFileShareByName(fileShareName, includeAllSnapshot: false);
+                var result = CommandAgent.Invoke();
+
+                CommandAgent.AssertNoError();
+                result.AssertNoResult();
+                Test.Assert(!share.Exists(), "The share should be removed.");
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(fileShareName);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(PsTag.File)]
+        [TestCategory(Tag.Function)]
+        public void RemoveNotEmptyFileShareWithSnapshotTest_Force()
+        {
+            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
+            CloudFileShare share = fileUtil.EnsureFileShareExists(fileShareName);
+            CloudFileShare shareSnapshot1 = share.Snapshot();
+            fileUtil.CreateFile(share, CloudFileUtil.GenerateUniqueFileName());
+
+            try
+            {
+                CommandAgent.RemoveFileShareByName(fileShareName, includeAllSnapshot: false);
+                var result = CommandAgent.Invoke();
+
+                CommandAgent.AssertNoError();
+                result.AssertNoResult();
+                Test.Assert(!share.Exists(), "The share should be removed.");
+            }
+            finally
+            {
+                fileUtil.DeleteFileShareIfExists(fileShareName);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(PsTag.File)]
+        [TestCategory(Tag.Function)]
+        public void RemoveFileShareWithSnapshotTest_NotSetIncludeAllSnapshot()
+        {
+            string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
+            CloudFileShare share = fileUtil.EnsureFileShareExists(fileShareName);
+            CloudFileShare shareSnapshot1 = share.Snapshot();
+
+            try
+            {
+                CommandAgent.RemoveFileShareByName(fileShareName, confirm: true, includeAllSnapshot: false);
+                var result = CommandAgent.Invoke();
+
+                CommandAgent.AssertErrors(record => record.AssertError("HostException"));
+                Test.Assert(share.Exists(), "The share should not be removed.");
+            }
+            finally
+            {
                 fileUtil.DeleteFileShareIfExists(fileShareName);
             }
         }

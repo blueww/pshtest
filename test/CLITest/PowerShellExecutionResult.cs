@@ -95,11 +95,15 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(directoryList.Count == 0, "{0} leftover items in directory list.", directoryList.Count);
         }
 
-        public void AssertCloudFileContainer(object containerObj, string fileShareName, int expectedUsage = 0)
+        public void AssertCloudFileContainer(object containerObj, string fileShareName, int expectedUsage = 0, DateTimeOffset? snapshotTime = null)
         {
             var containerObject = ((PSObject)containerObj).ImmediateBaseObject as CloudFileShare;
             Test.Assert(containerObject != null, "Output object should be an instance of CloudFileShare.");
             Test.Assert(containerObject.Name.Equals(fileShareName, StringComparison.OrdinalIgnoreCase), "Name of the container object should match the given parameter. Expected: {0}, Actual: {1}", fileShareName, containerObject.Name);
+            if (snapshotTime != null)
+            {
+                Test.Assert(containerObject.SnapshotTime.Value.CompareTo(snapshotTime.Value) == 0, "SnapshotTime of the Share object should match the given parameter. Expected: {0}, Actual: {1}", snapshotTime, containerObject.SnapshotTime);
+            }
         }
 
         public void AssertCloudFileContainer(object containerObj, List<string> fileShareNames, bool failIfNotInGivenList = true)
@@ -157,6 +161,51 @@ namespace Management.Storage.ScenarioTest
             CloudFile matchingFile = files.FirstOrDefault(file => CloudFileUtil.GetFullPath(file).Equals(fileObjectFullName, StringComparison.OrdinalIgnoreCase));
             Test.Assert(matchingFile != null, "Output CloudFile object {0} was not found in the expecting list.", fileObjectFullName);
             files.Remove(matchingFile);
+        }
+
+        public void AssertCloudFileContainersExist(string fileShareName, List<DateTimeOffset> snapshotTimes = null)
+        {
+            Dictionary<DateTimeOffset?, bool> snapshotTimesExist = new Dictionary<DateTimeOffset?, bool>();
+
+            foreach (DateTimeOffset time in snapshotTimes)
+            {
+                snapshotTimesExist.Add(time, false);
+            }
+
+            bool baseExist = false;
+
+            foreach (var psObject in this.result)
+            {
+                var containerObject = ((PSObject)psObject).ImmediateBaseObject as CloudFileShare;
+                if (containerObject == null)
+                {
+                    Test.Assert(containerObject != null, "Output object should be an instance of CloudFileShare.");
+                }
+                if (containerObject.Name.Equals(fileShareName, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (containerObject.SnapshotTime == null)
+                    {
+                        baseExist = true;
+                    }
+                    else
+                    {
+                        foreach (DateTimeOffset time in snapshotTimes)
+                        {
+                            if (containerObject.SnapshotTime.Value.CompareTo(time) == 0)
+                            {
+                                snapshotTimesExist[time] = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            Test.Assert(baseExist, string.Format("The base FileShare {0} should exist in the get Share result.", fileShareName));
+            foreach (DateTimeOffset time in snapshotTimes)
+            {
+                Test.Assert(snapshotTimesExist[time], string.Format("The FileShare {0} with snapshotTime {1} should exist in the get Share result.", fileShareName, time));
+            }
+
         }
     }
 }

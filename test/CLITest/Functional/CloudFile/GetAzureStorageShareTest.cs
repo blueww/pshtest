@@ -9,6 +9,7 @@
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using MS.Test.Common.MsTestLib;
     using StorageTestLib;
+    using Microsoft.WindowsAzure.Storage.File;
 
     [TestClass]
     public class GetAzureStorageShareTest : TestBase
@@ -237,6 +238,144 @@
             for (int i = 0; i < numberOfShares; i++)
             {
                 yield return string.Concat(prefix, CloudFileUtil.GenerateUniqueFileShareName());
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(PsTag.File)]
+        [TestCategory(Tag.Function)]
+        public void GetShareSnapshot_ExistTime()
+        {
+            string shareName = CloudFileUtil.GenerateUniqueFileShareName();
+
+            try
+            {
+                CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+                CloudFileShare shareSnapshot1 = share.Snapshot();
+
+
+                CommandAgent.GetFileShareByName(shareName, shareSnapshot1.SnapshotTime.Value);
+                var result = CommandAgent.Invoke();
+                result.AssertObjectCollection(obj => result.AssertCloudFileContainer(obj, shareName, snapshotTime: shareSnapshot1.SnapshotTime.Value), 1);
+            }
+            finally
+            {
+                try
+                {
+                    fileUtil.DeleteFileShareIfExists(shareName);
+                }
+                catch (Exception e)
+                {
+                    Test.Warn("Unexpected exception when cleanup file share {0}: {1}", shareName, e);
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(PsTag.File)]
+        [TestCategory(Tag.Function)]
+        public void GetShareSnapshot_notExistTime()
+        {
+            string shareName = CloudFileUtil.GenerateUniqueFileShareName();
+
+            try
+            {
+                CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+                CloudFileShare shareSnapshot1 = share.Snapshot();
+
+                CommandAgent.GetFileShareByName(shareName, DateTime.Now.AddDays(-1));
+                var result = CommandAgent.Invoke();
+
+
+                CommandAgent.AssertErrors(record => record.AssertError(AssertUtil.ResourceNotFoundFullQualifiedErrorId));
+                result.AssertNoResult();
+            }
+            finally
+            {
+                try
+                {
+                    fileUtil.DeleteFileShareIfExists(shareName);
+                }
+                catch (Exception e)
+                {
+                    Test.Warn("Unexpected exception when cleanup file share {0}: {1}", shareName, e);
+                }
+            }
+        }
+
+
+        [TestMethod]
+        [TestCategory(PsTag.File)]
+        [TestCategory(Tag.Function)]
+        public void GetShareSnapshot_Prefix_CheckIncludeSnapshot()
+        {
+            string shareName = CloudFileUtil.GenerateUniqueFileShareName();
+            string fileName = CloudFileUtil.GenerateUniqueFileName();
+
+            try
+            {
+                CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+                CloudFileShare shareSnapshot1 = share.Snapshot();
+                fileUtil.CreateFile(share, fileName);
+                CloudFileShare shareSnapshot2 = share.Snapshot();
+
+                CommandAgent.GetFileShareByPrefix(shareName);
+                var result = CommandAgent.Invoke();
+
+                List<DateTimeOffset> snapshotTimes = new List<DateTimeOffset>();
+                snapshotTimes.Add(shareSnapshot1.SnapshotTime.Value);
+                snapshotTimes.Add(shareSnapshot2.SnapshotTime.Value);
+
+                result.AssertCloudFileContainersExist(shareName, snapshotTimes);
+            }
+            finally
+            {
+                try
+                {
+                    fileUtil.DeleteFileShareIfExists(shareName);
+                }
+                catch (Exception e)
+                {
+                    Test.Warn("Unexpected exception when cleanup file share {0}: {1}", shareName, e);
+                }
+            }
+        }
+
+
+        [TestMethod]
+        [TestCategory(PsTag.File)]
+        [TestCategory(Tag.Function)]
+        public void GetShareSnapshot_CheckIncludeSnapshot()
+        {
+            string shareName = CloudFileUtil.GenerateUniqueFileShareName();
+            string fileName = CloudFileUtil.GenerateUniqueFileName();
+
+            try
+            {
+                CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
+                CloudFileShare shareSnapshot1 = share.Snapshot();
+                fileUtil.CreateFile(share, fileName);
+                CloudFileShare shareSnapshot2 = share.Snapshot();
+
+                CommandAgent.GetFileShareByName("");
+                var result = CommandAgent.Invoke();
+
+                List<DateTimeOffset> snapshotTimes = new List<DateTimeOffset>();
+                snapshotTimes.Add(shareSnapshot1.SnapshotTime.Value);
+                snapshotTimes.Add(shareSnapshot2.SnapshotTime.Value);
+
+                result.AssertCloudFileContainersExist(shareName, snapshotTimes);
+            }
+            finally
+            {
+                try
+                {
+                    fileUtil.DeleteFileShareIfExists(shareName);
+                }
+                catch (Exception e)
+                {
+                    Test.Warn("Unexpected exception when cleanup file share {0}: {1}", shareName, e);
+                }
             }
         }
     }

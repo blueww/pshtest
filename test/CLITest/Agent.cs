@@ -418,11 +418,11 @@ namespace Management.Storage.ScenarioTest
 
         public abstract void RemoveFilesFromPipeline(string fileShareName);
 
-        public abstract void GetFileShareByName(string fileShareName);
+        public abstract void GetFileShareByName(string fileShareName, DateTimeOffset? snapshotTime = null);
 
         public abstract void GetFileShareByPrefix(string prefix);
 
-        public abstract void RemoveFileShareByName(string fileShareName, bool passThru = false, object contextObject = null, bool confirm = false);
+        public abstract void RemoveFileShareByName(string fileShareName, bool passThru = false, object contextObject = null, bool confirm = false, bool includeAllSnapshot = false);
 
         public abstract void NewDirectory(CloudFileShare fileShare, string directoryName);
 
