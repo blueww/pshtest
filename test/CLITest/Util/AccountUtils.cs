@@ -157,7 +157,7 @@
             AccessTier? accessTier = null,
             string customDomain = null,
             bool? useSubdomain = null,
-            Constants.EncryptionSupportServiceEnum? enableEncryptionService = null,
+            Constants.EncryptionSupportServiceEnum enableEncryptionService = Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File,
             bool? enableHttpsTrafficOnly = null,
             bool AssignIdentity = false,
             bool StorageEncryption = false,
@@ -230,14 +230,14 @@
             }
         }
         public void ValidateServiceEncrption(Encryption accountEncryption, 
-            Constants.EncryptionSupportServiceEnum? enableEncryptionService,
+            Constants.EncryptionSupportServiceEnum enableEncryptionService,
             bool StorageEncryption = false,
             bool keyvaultEncryption = false,
             string keyName = null,
             string keyVersion = null,
             string keyVaultUri = null)
         {
-            if (enableEncryptionService == null || enableEncryptionService == Constants.EncryptionSupportServiceEnum.None)
+            if (enableEncryptionService == Constants.EncryptionSupportServiceEnum.None)
             {
                 Test.Assert(accountEncryption == null
                     || accountEncryption.Services == null

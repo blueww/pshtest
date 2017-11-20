@@ -1838,7 +1838,7 @@ namespace Management.Storage.ScenarioTest
                 {
                     //Create account with Cutomer Domain
                     CreateNewSRPAccount(accountName, location, accountType, null, Kind.Storage, Constants.EncryptionSupportServiceEnum.Blob, null, customDomainName, useSubdomain);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, null, Kind.Storage, null, customDomainName, useSubdomain, Constants.EncryptionSupportServiceEnum.Blob);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, null, Kind.Storage, null, customDomainName, useSubdomain);
 
                     //Set Cutomer Domain to ""
                     useSubdomain = GetRandomNullableBool();
@@ -1938,7 +1938,7 @@ namespace Management.Storage.ScenarioTest
                     //WaitForAccountAvailableToSet();
 
                     SetSRPAccount(accountName, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, enableHttpsTrafficOnly: false);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: origianlTags, enableEncryptionService: null, enableHttpsTrafficOnly: false);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.None, enableHttpsTrafficOnly: false);
 
                     //WaitForAccountAvailableToSet();
 
@@ -2792,7 +2792,7 @@ namespace Management.Storage.ScenarioTest
                 try
                 {
                     SetSRPAccount(accountNameForConnectionStringTest, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, StorageEncryption: true);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountNameForConnectionStringTest, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, StorageEncryption: true);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountNameForConnectionStringTest, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, StorageEncryption: true);
 
                 }
                 catch (Exception e)
@@ -3060,7 +3060,7 @@ namespace Management.Storage.ScenarioTest
                 if (isResourceMode)
                 {
                     CreateNewSRPAccount(accountName, location, accountType, tags, kind, enableEncryptionService, accessTier, customDomain, useSubdomain, AssignIdentity: true);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, tags, kind, accessTier, customDomain, useSubdomain, enableEncryptionService, AssignIdentity: true);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, tags, kind, accessTier, customDomain, useSubdomain, Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, AssignIdentity: true);
                 }
                 else
                 {
