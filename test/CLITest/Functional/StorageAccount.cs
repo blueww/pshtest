@@ -1937,12 +1937,12 @@ namespace Management.Storage.ScenarioTest
 
                     //WaitForAccountAvailableToSet();
 
-                    SetSRPAccount(accountName, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, enableHttpsTrafficOnly: false);
+                    SetSRPAccount(accountName, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, StorageEncryption: true, enableHttpsTrafficOnly: false);
                     accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.None, enableHttpsTrafficOnly: false);
 
                     //WaitForAccountAvailableToSet();
 
-                    SetSRPAccount(accountName, tags: newTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                    SetSRPAccount(accountName, tags: newTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, StorageEncryption: true);
                     accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: newTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, enableHttpsTrafficOnly: false);
                 }
                 finally
@@ -1970,7 +1970,7 @@ namespace Management.Storage.ScenarioTest
                 try
                 {
                     CreateNewSRPAccount(accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, enableHttpsTrafficOnly: false);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, originalSkuName, kind: Kind.BlobStorage, accessTier: AccessTier.Cool, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File);
 
                     WaitForAccountAvailableToSet();
 

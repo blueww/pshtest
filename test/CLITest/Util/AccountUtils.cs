@@ -216,7 +216,7 @@
         {
             if (null == originTags || 0 == originTags.Length)
             {
-                Test.Assert(0 == targetTags.Count, "Should be no tags got set.");
+                Test.Assert(targetTags == null || 0 == targetTags.Count, "Should be no tags got set.");
                 return;
             }
 
