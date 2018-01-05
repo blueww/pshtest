@@ -749,7 +749,8 @@ namespace Management.Storage.ScenarioTest
             bool? enableHttpsTrafficOnly = null,
             bool AssignIdentity = false,
             bool StorageEncryption = false,
-            PSNetworkRuleSet networkAcl = null)
+            PSNetworkRuleSet networkAcl = null, 
+            Kind? kind = null)
         {
             string command = string.Format("account set {0}", accountName);
             command = appendStringOption(command, "--resource-group", resourceGroupName);

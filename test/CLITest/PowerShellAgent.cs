@@ -3997,7 +3997,8 @@ namespace Management.Storage.ScenarioTest
             bool? enableHttpsTrafficOnly = null,
             bool AssignIdentity = false,
             bool StorageEncryption = false,
-            PSNetworkRuleSet networkAcl = null)
+            PSNetworkRuleSet networkAcl = null,
+            Kind? kind = null)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
@@ -4037,6 +4038,10 @@ namespace Management.Storage.ScenarioTest
             if (StorageEncryption)
             {
                 ps.AddParameter("StorageEncryption");
+            }
+            if (kind == Kind.StorageV2)
+            {
+                ps.AddParameter("UpgradeToStorageV2");
             }
             ps.BindParameter("NetworkRuleSet", networkAcl);
 

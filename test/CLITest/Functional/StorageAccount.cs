@@ -814,7 +814,7 @@ namespace Management.Storage.ScenarioTest
             foreach (var location in locationsArray)
             {
                 string accountName = accountUtils.GenerateAccountName();
-                CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType, null);
+                CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountType, null, null, kind: GetRandomAccountKind());
             }
         }
 
@@ -835,7 +835,7 @@ namespace Management.Storage.ScenarioTest
                 try
                 {
                     AffinityGroupOperationsExtensions.Create(managementClient.AffinityGroups, new AffinityGroupCreateParameters(affinityGroup, "AffinityGroupLabel", location));
-                    CreateAndValidateAccount(accountName, label, description, isResourceMode ? location : null, affinityGroup, accountType, null);
+                    CreateAndValidateAccount(accountName, label, description, isResourceMode ? location : null, affinityGroup, accountType, null, kind: GetRandomAccountKind());
                 }
                 finally
                 {
@@ -875,7 +875,7 @@ namespace Management.Storage.ScenarioTest
 
                 string accountName = accountUtils.GenerateAccountName();
                 string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
-                CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountUtils.mapAccountType(accountType), null);
+                CreateAndValidateAccount(accountName, label, description, location, affinityGroup, accountUtils.mapAccountType(accountType), null, kind: GetRandomAccountKind());
             }
         }
 
@@ -894,7 +894,7 @@ namespace Management.Storage.ScenarioTest
             {
                 if (isResourceMode)
                 {
-                    CreateNewSRPAccount(accountName, location, accountType);
+                    CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
                     Test.Assert(!CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
                         string.Format("Creating an storage account {0} in location {1} with the same properties with an existing account should fail.", accountName, location));
 
@@ -951,7 +951,7 @@ namespace Management.Storage.ScenarioTest
                 {
                     AffinityGroupOperationsExtensions.Create(managementClient.AffinityGroups, new AffinityGroupCreateParameters(affinityGroup, "AffinityGroupLabel", groupLocation));
                 }
-                CreateAndValidateAccount(accountName, label, description, accoutLocation, affinityGroup, accountType, null);
+                CreateAndValidateAccount(accountName, label, description, accoutLocation, affinityGroup, accountType, null, kind: GetRandomAccountKind());
             }
             finally
             {
@@ -1068,17 +1068,17 @@ namespace Management.Storage.ScenarioTest
                 string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
 
                 Hashtable[] tags = this.GetUnicodeTags();
-                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), tags);
+                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), tags, kind: GetRandomAccountKind());
 
                 accountName = accountUtils.GenerateAccountName();
                 tags = new Hashtable[0];
-                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), tags);
+                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), tags, kind: GetRandomAccountKind());
 
                 accountName = accountUtils.GenerateAccountName();
                 tags = new Hashtable[1];
                 tags[0] = new Hashtable();
                 tags[0].Add(Utility.GenNameString("Name"), "");
-                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), tags);
+                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), tags, kind: GetRandomAccountKind());
             }
         }
 
@@ -1227,7 +1227,7 @@ namespace Management.Storage.ScenarioTest
                 string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
                 Constants.EncryptionSupportServiceEnum enableEncryptionServices = (Constants.EncryptionSupportServiceEnum)random.Next(1, 4);
 
-                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), null, enableEncryptionService: enableEncryptionServices);
+                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), null, enableEncryptionService: enableEncryptionServices, kind: GetRandomAccountKind());
             }
         }
 
@@ -1386,7 +1386,7 @@ namespace Management.Storage.ScenarioTest
             {
                 if (isResourceMode)
                 {
-                    CreateNewSRPAccount(accountName, location, accountType);
+                    CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
                 }
                 else
                 {
@@ -1470,7 +1470,7 @@ namespace Management.Storage.ScenarioTest
             string label = "StorageAccountLabel";
             string description = "Storage Account Test Set Type";
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Premium_LRS);
-            string location = accountUtils.GenerateAccountLocation(accountType, false, isMooncake);
+            string location = Constants.Location.WestUS;
             string affinityGroup = null;
 
             try
@@ -1566,7 +1566,7 @@ namespace Management.Storage.ScenarioTest
 
             if (isResourceMode)
             {
-                this.CreateNewSRPAccount(accountName, location, accountType);
+                this.CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
             }
             else
             {
@@ -1618,9 +1618,9 @@ namespace Management.Storage.ScenarioTest
                 try
                 {
                     string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
-                    string location = Constants.Location.EastAsia;
+                    string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
 
-                    this.CreateNewSRPAccount(accountName, location, accountType);
+                    this.CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
 
                     WaitForAccountAvailableToSet();
 
@@ -1679,9 +1679,9 @@ namespace Management.Storage.ScenarioTest
                 try
                 {
                     string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
-                    string location = Constants.Location.EastAsia;
+                    string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
 
-                    this.CreateNewSRPAccount(accountName, location, accountType);
+                    this.CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
 
                     Hashtable[] tags = new Hashtable[1];
                     tags[0] = new Hashtable();
@@ -1768,7 +1768,7 @@ namespace Management.Storage.ScenarioTest
                     string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
                     string location = Constants.Location.EastAsia;
 
-                    this.CreateNewSRPAccount(accountName, location, accountType);
+                    this.CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
 
                     WaitForAccountAvailableToSet();
 
@@ -1834,20 +1834,21 @@ namespace Management.Storage.ScenarioTest
                 string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
                 string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
                 bool? useSubdomain = GetRandomNullableBool();
+                Kind kind = GetRandomAccountKind();
                 try
                 {
                     //Create account with Cutomer Domain
-                    CreateNewSRPAccount(accountName, location, accountType, null, Kind.Storage, Constants.EncryptionSupportServiceEnum.Blob, null, customDomainName, useSubdomain);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, null, Kind.Storage, null, customDomainName, useSubdomain);
+                    CreateNewSRPAccount(accountName, location, accountType, null, kind, Constants.EncryptionSupportServiceEnum.Blob, null, customDomainName, useSubdomain);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, null, kind, null, customDomainName, useSubdomain);
 
                     //Set Cutomer Domain to ""
                     useSubdomain = GetRandomNullableBool();
-                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroup, accountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File, customDomain: "", useSubdomain: useSubdomain), "Set custom domain should succeed.");
+                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroup, accountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File, StorageEncryption: true, customDomain: "", useSubdomain: useSubdomain), "Set custom domain should succeed.");
                     accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, null, Kind.Storage, null, customDomain: null, useSubdomain: useSubdomain, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File);
 
                     //Set Cutomer Domain to valid domain
                     useSubdomain = GetRandomNullableBool();
-                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroup, accountName, customDomain: customDomainName, useSubdomain: useSubdomain, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob), "Set custom domain should succeed.");
+                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroup, accountName, customDomain: customDomainName, useSubdomain: useSubdomain, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, StorageEncryption: true), "Set custom domain should succeed.");
                     accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, null, Kind.Storage, null, customDomain: customDomainName, useSubdomain: useSubdomain, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File);
 
                     Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroup, accountName), "Get storage account should succeed.");
@@ -1929,21 +1930,22 @@ namespace Management.Storage.ScenarioTest
                 string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(skuName), isResourceMode, isMooncake);
                 Hashtable[] origianlTags = this.GetUnicodeTags();
                 Hashtable[] newTags = this.GetUnicodeTags();
+                Kind kind = GetRandomAccountKind();
 
                 try
                 {
-                    CreateNewSRPAccount(accountName, location, skuName, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File | Constants.EncryptionSupportServiceEnum.Blob, enableHttpsTrafficOnly: true);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File | Constants.EncryptionSupportServiceEnum.Blob, enableHttpsTrafficOnly: true);
+                    CreateNewSRPAccount(accountName, location, skuName, tags: origianlTags, kind: kind, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File | Constants.EncryptionSupportServiceEnum.Blob, enableHttpsTrafficOnly: true);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, kind: kind, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File | Constants.EncryptionSupportServiceEnum.Blob, enableHttpsTrafficOnly: true);
 
                     //WaitForAccountAvailableToSet();
 
                     SetSRPAccount(accountName, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, StorageEncryption: true, enableHttpsTrafficOnly: false);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.None, enableHttpsTrafficOnly: false);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, kind: kind, tags: origianlTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.None, enableHttpsTrafficOnly: false);
 
                     //WaitForAccountAvailableToSet();
 
-                    SetSRPAccount(accountName, tags: newTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, StorageEncryption: true);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, tags: newTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, enableHttpsTrafficOnly: false);
+                    SetSRPAccount(accountName, tags: newTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, kind: kind, tags: newTags, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, StorageEncryption: true, enableHttpsTrafficOnly: false);
                 }
                 finally
                 {
@@ -1963,7 +1965,7 @@ namespace Management.Storage.ScenarioTest
                 string originalSkuName = accountUtils.mapAccountType(Constants.AccountType.Standard_RAGRS);
                 string newSkuName = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
                 string accountName = accountUtils.GenerateAccountName();
-                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(originalSkuName), isResourceMode, isMooncake);
+                string location = Constants.Location.WestUS;
                 Hashtable[] origianlTags = this.GetUnicodeTags();
                 Hashtable[] newTags = this.GetUnicodeTags();
 
@@ -1996,7 +1998,7 @@ namespace Management.Storage.ScenarioTest
                 string originalSkuName = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
                 string newSkuName = accountUtils.mapAccountType(Constants.AccountType.Standard_RAGRS);
                 string accountName = accountUtils.GenerateAccountName();
-                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(originalSkuName), isResourceMode, isMooncake);
+                string location = Constants.Location.WestUS;
                 Hashtable[] origianlTags = this.GetUnicodeTags();
                 Hashtable[] newTags = this.GetUnicodeTags();
 
@@ -2027,6 +2029,10 @@ namespace Management.Storage.ScenarioTest
                     SetSRPAccount(accountName, accessTier: AccessTier.Hot);
                     accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Hot, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File);
 
+                    //Set AccessTier
+                    SetSRPAccount(accountName, kind: Kind.StorageV2);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.StorageV2, accessTier: AccessTier.Hot, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File);
+
                     //TODO: The customer domain not set.
                 }
                 finally
@@ -2047,6 +2053,7 @@ namespace Management.Storage.ScenarioTest
                 string skuName = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
                 string accountName = accountUtils.GenerateAccountName();
                 string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(skuName), isResourceMode, isMooncake);
+
 
                 try
                 {
@@ -2081,11 +2088,12 @@ namespace Management.Storage.ScenarioTest
                 string skuName = accountUtils.mapAccountType(Constants.AccountType.Standard_LRS);
                 string accountName = accountUtils.GenerateAccountName();
                 string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(skuName), isResourceMode, isMooncake);
+                Kind kind = GetRandomAccountKind();
 
                 try
                 {
-                    CreateNewSRPAccount(accountName, location, skuName);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName);
+                    CreateNewSRPAccount(accountName, location, skuName, kind: kind);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, skuName, kind: kind);
 
                     WaitForAccountAvailableToSet();
 
@@ -2119,7 +2127,7 @@ namespace Management.Storage.ScenarioTest
             {
                 if (isResourceMode)
                 {
-                    CreateNewSRPAccount(accountName, location, accountType);
+                    CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
                     Test.Assert(CommandAgent.DeleteSRPAzureStorageAccount(resourceGroupName, accountName),
                         string.Format("Deleting stoarge account {0} in resource group {1} should succeed", accountName, resourceGroupName));
                 }
@@ -2192,7 +2200,7 @@ namespace Management.Storage.ScenarioTest
             {
                 if (isResourceMode)
                 {
-                    CreateNewSRPAccount(accountName, location, accountType);
+                    CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
                     Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroupName, accountName),
                         string.Format("Showing stoarge account {0} in resource group {1} should succeed", accountName, resourceGroupName));
                 }
@@ -2236,7 +2244,7 @@ namespace Management.Storage.ScenarioTest
 
                     if (isResourceMode)
                     {
-                        CreateNewSRPAccount(accountName, location, accountType);
+                        CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
                     }
                     else
                     {
@@ -2304,7 +2312,7 @@ namespace Management.Storage.ScenarioTest
                 {
                     string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode, isMooncake));
                     string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode, isMooncake);
-                    CreateNewSRPAccount(accountName, location, accountType);
+                    CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
                     Test.Assert(!CommandAgent.ShowSRPAzureStorageAccount(nonExsitingGroupName, accountName),
                         string.Format("Showing the existing stoarge account {0} in non-existing resource group {1} should fail", accountName, nonExsitingGroupName));
                 }
@@ -2330,7 +2338,7 @@ namespace Management.Storage.ScenarioTest
             {
                 if (isResourceMode)
                 {
-                    CreateNewSRPAccount(accountName, location, accountType);
+                    CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
                     Test.Assert(CommandAgent.ShowSRPAzureStorageAccountKeys(resourceGroupName, accountName),
                         string.Format("Showing keys of the stoarge account {0} in resource group {1} should succeed", accountName, resourceGroupName));
                 }
@@ -2394,7 +2402,7 @@ namespace Management.Storage.ScenarioTest
             {
                 if (isResourceMode)
                 {
-                    CreateNewSRPAccount(accountName, location, accountType);
+                    CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
                     Test.Assert(CommandAgent.RenewSRPAzureStorageAccountKeys(resourceGroupName, accountName, Constants.AccountKeyType.Primary),
                         string.Format("Renewing the primary key of the stoarge account {0} in resource group {1} should succeed", accountName, resourceGroupName));
                     Test.Assert(CommandAgent.RenewSRPAzureStorageAccountKeys(resourceGroupName, accountName, Constants.AccountKeyType.Secondary),
@@ -2458,7 +2466,7 @@ namespace Management.Storage.ScenarioTest
 
                 if (isResourceMode)
                 {
-                    CreateNewSRPAccount(accountName, location, accountType);
+                    CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
 
                     Test.Assert(!CommandAgent.RenewSRPAzureStorageAccountKeys(resourceGroupName, accountName, Constants.AccountKeyType.Invalid),
                         string.Format("Renewing an invalid key type of the stoarge account {0} in resource group {1} should fail", accountName, resourceGroupName));
@@ -2495,7 +2503,7 @@ namespace Management.Storage.ScenarioTest
 
                 try
                 {
-                    CreateNewSRPAccount(accountName, location, accountType);
+                    CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
 
                     Test.Assert(CommandAgent.CheckNameAvailability(accountName), "Check name availability should succeed.");
                     AccountUtils.CheckNameAvailabilityResponse accountNameAvailability = null;
@@ -2637,7 +2645,7 @@ namespace Management.Storage.ScenarioTest
                     {
                         string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
                         string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
-                        CreateNewSRPAccount(accountName, location, accountType);
+                        CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
                     }
 
                     Test.Assert(CommandAgent.CheckNameAvailability(accountName), "Check name availability should succeed.");
@@ -2752,7 +2760,7 @@ namespace Management.Storage.ScenarioTest
                         string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode, isMooncake));
                         string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode, isMooncake);
 
-                        CreateNewSRPAccount(accountName, location, accountType);
+                        CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
                         accountCount--;
                     }
 
@@ -2819,9 +2827,9 @@ namespace Management.Storage.ScenarioTest
                     //Set to Microsoft.Storage
                     Test.Assert(CommandAgent.SetSRPAzureStorageAccount(cMKResourceGroup, cMKAccountName,
                         disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, 
-                        StorageEncryption: true),
+                        StorageEncryption: true, kind: Kind.StorageV2),
                         "Set Keysource to MicrosoftStorage should succeed.");
-                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.None, StorageEncryption: true);
+                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, kind: Kind.StorageV2, enableEncryptionService: Constants.EncryptionSupportServiceEnum.None, StorageEncryption: true);
 
                     //Set to Keyvault + Blob/File Enable
                     Test.Assert(CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
@@ -2832,7 +2840,8 @@ namespace Management.Storage.ScenarioTest
                         keyVaultUri: cMKKeyvaultUri),
                         "Set Keysource to MicrosoftKeyvault should succeed.");
                     accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, 
-                        enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File,
+                        enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, 
+                        kind: Kind.StorageV2,
                         keyvaultEncryption: true,
                         keyName: cMKKeyName,
                         keyVersion: cMKKeyVersion,
@@ -2843,7 +2852,7 @@ namespace Management.Storage.ScenarioTest
                         disableEncryptionService: Constants.EncryptionSupportServiceEnum.File,
                         StorageEncryption: true),
                         "Set Keysource to MicrosoftStorage should succeed.");
-                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, StorageEncryption: true);
+                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, kind: Kind.StorageV2, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, StorageEncryption: true);
 
                     //Set to Microsoft.Keyvault + Blob/File Enable, not set keyvaultEncryption, but it will automatic set to true when set KeyName
                     Test.Assert(CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
@@ -2852,7 +2861,7 @@ namespace Management.Storage.ScenarioTest
                         keyVersion: cMKKeyVersion,
                         keyVaultUri: cMKKeyvaultUri),
                         "Set Keysource to MicrosoftKeyvault should succeed.");
-                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File,
+                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, kind: Kind.StorageV2, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File,
                         keyvaultEncryption: true,
                         keyName: cMKKeyName,
                         keyVersion: cMKKeyVersion,
@@ -2975,8 +2984,8 @@ namespace Management.Storage.ScenarioTest
                     string cMKResourceGroup = Test.Data.Get("CMKAccountResourceGroup");
                     string cMKAccountName = Test.Data.Get("CMKAccountName");
 
-                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(cMKResourceGroup, cMKAccountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob| Constants.EncryptionSupportServiceEnum.File, AssignIdentity: true), "Set IdentityType should succeed.");
-                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, AssignIdentity: true);
+                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(cMKResourceGroup, cMKAccountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob| Constants.EncryptionSupportServiceEnum.File, AssignIdentity: true, kind: Kind.StorageV2), "Set IdentityType should succeed.");
+                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, AssignIdentity: true, kind: Kind.StorageV2);
                 }
                 catch (Exception e)
                 {
@@ -2995,14 +3004,44 @@ namespace Management.Storage.ScenarioTest
                 {
                     string accountName = accountUtils.GenerateAccountName();
                     string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
-                    string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
-                    
-                    CreateNewSRPAccount(accountName, location, accountType, AssignIdentity: true);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, AssignIdentity: true);
+                    string location = Constants.Location.WestUS;
+                    Kind kind = GetRandomAccountKind();
+
+                    CreateNewSRPAccount(accountName, location, accountType, kind: kind, AssignIdentity: true);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, kind: kind, AssignIdentity: true);
                 }
                 catch (Exception e)
                 {
                     Test.Assert(false, "Test set identityType failed: " + e.ToString());
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void NewSetAccount_EncryptionNone()
+        {
+            if (isResourceMode)
+            {
+                try
+                {
+                    string accountName = accountUtils.GenerateAccountName();
+                    string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
+                    string location = Constants.Location.WestUS;
+
+                    CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind(), enableEncryptionService: Constants.EncryptionSupportServiceEnum.None);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType);
+
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.None), "Set EnableEcryption as None should success.");
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType);
+
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, disableEncryptionService: Constants.EncryptionSupportServiceEnum.None), "Set DisableEcryption as None should success.");
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType);
+
+                }
+                catch (Exception e)
+                {
+                    Test.Assert(false, "Test set Encryption as none failed: " + e.ToString());
                 }
             }
         }
@@ -3059,8 +3098,8 @@ namespace Management.Storage.ScenarioTest
             {
                 if (isResourceMode)
                 {
-                    CreateNewSRPAccount(accountName, location, accountType, tags, kind, enableEncryptionService, accessTier, customDomain, useSubdomain, AssignIdentity: true);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, tags, kind, accessTier, customDomain, useSubdomain, Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, AssignIdentity: true);
+                    CreateNewSRPAccount(accountName, location, accountType, tags, kind, enableEncryptionService, accessTier, customDomain, useSubdomain, AssignIdentity: false);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, tags, kind, accessTier, customDomain, useSubdomain, Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, AssignIdentity: false);
                 }
                 else
                 {
@@ -3316,7 +3355,8 @@ namespace Management.Storage.ScenarioTest
 
             DateTime startTime = DateTime.Now;
             bool accountCreated = false;
-            while (!accountCreated && DateTime.Now.CompareTo(startTime.AddMinutes(15)) < 0)
+            bool isConflictError = true;
+            while (!accountCreated && DateTime.Now.CompareTo(startTime.AddMinutes(15)) < 0 && isConflictError)
             {
                 if (CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, skuName, location, tags, kind, enableEncryptionService, accessTier, customDomain, useSubdomain, enableHttpsTrafficOnly, AssignIdentity))
                 {
@@ -3324,6 +3364,7 @@ namespace Management.Storage.ScenarioTest
                 }
                 else
                 {
+                    isConflictError = CommandAgent.ErrorMessages[0].Contains("Conflict");
                     Thread.Sleep(10000);
                 }
             }
@@ -3344,7 +3385,8 @@ namespace Management.Storage.ScenarioTest
             bool keyvaultEncryption = false, 
             string keyName = null, 
             string keyVersion = null, 
-            string keyVaultUri = null)
+            string keyVaultUri = null,
+            Kind? kind = null)
         {
             AzureOperationResponse<SRPModel.StorageAccount> response = accountUtils.SRPStorageClient.StorageAccounts.GetPropertiesWithHttpMessagesAsync(resourceGroupName, accountName).Result;
             Test.Assert(response.Response.StatusCode == HttpStatusCode.OK, string.Format("Account {0} should be created successfully.", accountName));
@@ -3357,7 +3399,7 @@ namespace Management.Storage.ScenarioTest
             }
             else
             {
-                Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, skuName, tags, enableEncryptionService, disableEncryptionService, accessTier, customDomain, useSubdomain, enableHttpsTrafficOnly: enableHttpsTrafficOnly, AssignIdentity: AssignIdentity, StorageEncryption: StorageEncryption),
+                Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, skuName, tags, enableEncryptionService, disableEncryptionService, accessTier, customDomain, useSubdomain, enableHttpsTrafficOnly: enableHttpsTrafficOnly, AssignIdentity: AssignIdentity, StorageEncryption: StorageEncryption, kind: kind),
                     string.Format("Setting storage account {0} in resource group {1} should succeed: SkuName:{2}; Tags: {3}; enableEncryptionService: {4}; disableEncryptionService: {5}, accessTier: {6}, customDomain: {7}; useSubdomain: {8}; enableHttpsTrafficOnly: {9}; AssignIdentity: {10}; StorageEncryption: {11}",
                     accountName, resourceGroupName, skuName, tags, enableEncryptionService, disableEncryptionService, accessTier, customDomain, useSubdomain, enableHttpsTrafficOnly, AssignIdentity, StorageEncryption));
             }
@@ -3667,6 +3709,18 @@ namespace Management.Storage.ScenarioTest
                 case 2:
                 default:
                     return true;
+            }
+        }
+
+        public Kind GetRandomAccountKind()
+        {
+            switch (random.Next(0, 2))
+            {
+                case 0:
+                    return Kind.StorageV2;
+                case 1:
+                default:
+                    return Kind.StorageV2;
             }
         }
 
