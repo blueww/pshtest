@@ -3252,5 +3252,15 @@ namespace Management.Storage.ScenarioTest
         {
             throw new NotImplementedException();
         }
+
+        public override bool GetAzureStorageServiceProperties(Constants.ServiceType serviceType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool UpdateAzureStorageServiceProperties(Constants.ServiceType serviceType, string DefaultServiceVersion)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

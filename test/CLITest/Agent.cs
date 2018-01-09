@@ -281,6 +281,8 @@ namespace Management.Storage.ScenarioTest
         public abstract bool SetAzureStorageCORSRules(Constants.ServiceType serviceType, PSCorsRule[] corsRules);
         public abstract bool GetAzureStorageCORSRules(Constants.ServiceType serviceType);
         public abstract bool RemoveAzureStorageCORSRules(Constants.ServiceType serviceType);
+        public abstract bool GetAzureStorageServiceProperties(Constants.ServiceType serviceType);
+        public abstract bool UpdateAzureStorageServiceProperties(Constants.ServiceType serviceType, string DefaultServiceVersion);
         #endregion
 
         #region SAS token APIs

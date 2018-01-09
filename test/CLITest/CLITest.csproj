@@ -267,6 +267,7 @@
     <Compile Include="Functional\InvalidCredentialCases.cs" />
     <Compile Include="Functional\Queue\QueueStoredAccessPolicy.cs" />
     <Compile Include="Functional\Service\AccountSASTest.cs" />
+    <Compile Include="Functional\Service\ServiceProperties.cs" />
     <Compile Include="Functional\Service\ServiceCORSRule.cs" />
     <Compile Include="Functional\NetworkACL.cs" />
     <Compile Include="Functional\StorageAccount.cs" />

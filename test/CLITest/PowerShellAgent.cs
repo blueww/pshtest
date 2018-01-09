@@ -1362,6 +1362,27 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps);
         }
 
+        public override bool GetAzureStorageServiceProperties(Constants.ServiceType serviceType)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Get-AzureStorageServiceProperty");
+            ps.BindParameter("ServiceType", serviceType.ToString());
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool UpdateAzureStorageServiceProperties(Constants.ServiceType serviceType, string DefaultServiceVersion)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Update-AzureStorageServiceProperty");
+            ps.BindParameter("ServiceType", serviceType.ToString());
+            ps.BindParameter("DefaultServiceVersion", DefaultServiceVersion);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
         ///-------------------------------------
         /// SAS token APIs
         ///-------------------------------------
