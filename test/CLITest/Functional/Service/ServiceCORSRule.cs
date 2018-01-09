@@ -49,7 +49,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
                 {
                     PSCorsRule[] corsRules = CORSRuleUtil.GetRandomValidCORSRules(random.Next(1, 5));
 
-                    ServiceProperties serviceProperties = new ServiceProperties();
+                    Microsoft.WindowsAzure.Storage.Shared.Protocol.ServiceProperties serviceProperties = new Microsoft.WindowsAzure.Storage.Shared.Protocol.ServiceProperties();
                     serviceProperties.Clean();
                     serviceProperties.Cors = new CorsProperties();
 
@@ -648,9 +648,9 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             }
         }
 
-        private static void ClearCorsRules(Constants.ServiceType serviceType)
+        public static void ClearCorsRules(Constants.ServiceType serviceType)
         {
-            ServiceProperties serviceProperties = new ServiceProperties();
+            Microsoft.WindowsAzure.Storage.Shared.Protocol.ServiceProperties serviceProperties = new Microsoft.WindowsAzure.Storage.Shared.Protocol.ServiceProperties();
             serviceProperties.Clean();
             serviceProperties.Cors = new CorsProperties();
             serviceProperties.Cors.CorsRules.Clear();
@@ -658,7 +658,7 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             SetSerivceProperties(serviceType, serviceProperties);
         }
 
-        private static void SetSerivceProperties(Constants.ServiceType serviceType, ServiceProperties serviceProperties)
+        public static void SetSerivceProperties(Constants.ServiceType serviceType, Microsoft.WindowsAzure.Storage.Shared.Protocol.ServiceProperties serviceProperties)
         {
             switch (serviceType)
             {
