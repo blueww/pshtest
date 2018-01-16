@@ -558,5 +558,193 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 blobUtil.RemoveContainer(containerName);
             }
         }
+
+        /// <summary>
+        /// get blob which is soft-deleted
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.GetBlob)]
+        [TestCategory(CLITag.GetBlob)]
+        public void GetSoftDeletedBlob()
+        {
+            string containerName = Utility.GenNameString("container");
+            string BlobName = Utility.GenNameString("blob");
+            int retentionDays = 7;
+
+            CloudBlobContainer container = blobUtil.CreateContainer(containerName);
+
+            try
+            {
+                // 1. Create and soft delete a blob
+                CloudBlob blockBlob1 = blobUtil.CreateBlockBlob(container, BlobName);
+                Test.Assert(CommandAgent.EnableAzureStorageDeleteRetentionPolicy(retentionDays), "EnableAzureStorageDeleteRetentionPolicy with retentionDays {0} should success.", retentionDays);
+                Test.Assert(CommandAgent.RemoveAzureStorageBlob(BlobName, containerName), "Remove Blob {0} should success", BlobName);
+
+                //retrive without IncludeDelete, get 0 blob
+                Test.Assert(!CommandAgent.GetAzureStorageBlob(BlobName, containerName), "Get Blob {0} without IncludeDelete should fail", BlobName);
+                ExpectedContainErrorMessage(string.Format("Can not find blob '{0}' in container '{1}'", BlobName, containerName));
+                Test.Assert(CommandAgent.Output.Count == 0, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 0, CommandAgent.Output.Count));
+
+                //retrive with IncludeDelete, get 1 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(BlobName, containerName, IncludeDeleted: true), "Get Blob {0} with IncludeDelete should success", BlobName);
+                Test.Assert(CommandAgent.Output.Count == 1, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 1, CommandAgent.Output.Count));
+
+                // 2. Create blob again
+                CloudBlob blockBlob2 = blobUtil.CreateBlockBlob(container, BlobName);
+
+                //retrive without IncludeDelete, get 1 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(BlobName, containerName), "Get Blob {0} without IncludeDelete should success", BlobName);
+                Test.Assert(CommandAgent.Output.Count == 1, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 1, CommandAgent.Output.Count));
+
+                //retrive with IncludeDelete, get 2 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(BlobName, containerName, IncludeDeleted: true), "Get Blob {0} with IncludeDelete should success", BlobName);
+                Test.Assert(CommandAgent.Output.Count == 2, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 2, CommandAgent.Output.Count));
+
+                //3. soft delete the blob again
+                Test.Assert(CommandAgent.RemoveAzureStorageBlob(BlobName, containerName), "Remove Blob {0} should success", BlobName);
+
+                //retrive without IncludeDelete, get 0 blob
+                Test.Assert(!CommandAgent.GetAzureStorageBlob(BlobName, containerName), "Get Blob {0} without IncludeDelete should fail", BlobName);
+                ExpectedContainErrorMessage(string.Format("Can not find blob '{0}' in container '{1}'", BlobName, containerName));
+                Test.Assert(CommandAgent.Output.Count == 0, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 0, CommandAgent.Output.Count));
+
+                //retrive with IncludeDelete, get 2 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(BlobName, containerName, IncludeDeleted: true), "Get Blob {0} with IncludeDelete should success", BlobName);
+                Test.Assert(CommandAgent.Output.Count == 2, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 2, CommandAgent.Output.Count));
+
+                // 4. Undelete blob
+                blockBlob1.Undelete();
+
+                //retrive without IncludeDelete, get 1 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(BlobName, containerName), "Get Blob {0} without IncludeDelete should success", BlobName);
+                Test.Assert(CommandAgent.Output.Count == 1, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 1, CommandAgent.Output.Count));
+
+                //retrive with IncludeDelete, get 2 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(BlobName, containerName, IncludeDeleted: true), "Get Blob {0} with IncludeDelete should success", BlobName);
+                Test.Assert(CommandAgent.Output.Count == 2, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 2, CommandAgent.Output.Count));
+
+                // 5. Create blob again, and snapshot
+                CloudBlob blockBlob3 = blobUtil.CreateBlockBlob(container, BlobName);
+                CloudBlob snapshot = blockBlob3.Snapshot();
+
+                //retrive without IncludeDelete, get 1 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(BlobName, containerName), "Get Blob {0} without IncludeDelete should success", BlobName);
+                Test.Assert(CommandAgent.Output.Count == 1, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 1, CommandAgent.Output.Count));
+
+                //retrive with IncludeDelete, get 4 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(BlobName, containerName, IncludeDeleted: true), "Get Blob {0} with IncludeDelete should success", BlobName);
+                Test.Assert(CommandAgent.Output.Count == 4, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 4, CommandAgent.Output.Count));
+
+                //6. DeleteSnapshot
+                snapshot.Delete();
+
+                //retrive without IncludeDelete, get 1 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(BlobName, containerName), "Get Blob {0} without IncludeDelete should success", BlobName);
+                Test.Assert(CommandAgent.Output.Count == 1, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 1, CommandAgent.Output.Count));
+
+                //retrive with IncludeDelete, get 4 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(BlobName, containerName, IncludeDeleted: true), "Get Blob {0} with IncludeDelete should success", BlobName);
+                Test.Assert(CommandAgent.Output.Count == 4, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 4, CommandAgent.Output.Count));
+            }
+            finally
+            {
+                blobUtil.RemoveContainer(containerName);
+                CommandAgent.DisableAzureStorageDeleteRetentionPolicy();
+            }
+        }
+
+
+
+        /// <summary>
+        /// List blob which is soft-deleted
+        /// </summary>
+        [TestMethod()]
+        [TestCategory(Tag.Function)]
+        [TestCategory(PsTag.Blob)]
+        [TestCategory(PsTag.GetBlob)]
+        [TestCategory(CLITag.GetBlob)]
+        public void ListSoftDeletedBlob()
+        {
+            string containerName = Utility.GenNameString("container");
+            string BlobName1 = Utility.GenNameString("blob1");
+            string BlobName2 = Utility.GenNameString("blob2");
+            int retentionDays = 30;
+
+            CloudBlobContainer container = blobUtil.CreateContainer(containerName);
+
+            try
+            {
+                //Create and soft delete a blob
+                CloudBlob blockBlob1 = blobUtil.CreateBlockBlob(container, BlobName1);
+                CloudBlob blockBlob2 = blobUtil.CreateBlockBlob(container, BlobName2);
+                Test.Assert(CommandAgent.EnableAzureStorageDeleteRetentionPolicy(retentionDays), "EnableAzureStorageDeleteRetentionPolicy with retentionDays {0} should success.", retentionDays);
+                Test.Assert(CommandAgent.RemoveAzureStorageBlob(BlobName1, containerName), "Remove Blob {0} should success", BlobName1);
+                Test.Assert(CommandAgent.RemoveAzureStorageBlob(BlobName2, containerName), "Remove Blob {0} should success", blockBlob2);
+
+                //retrive without IncludeDelete, get 0 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(null, containerName), "Get Blob without IncludeDelete should success");
+                Test.Assert(CommandAgent.Output.Count == 0, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 0, CommandAgent.Output.Count));
+
+                //retrive with IncludeDelete, get 2 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(null, containerName, IncludeDeleted: true), "Get Blob with IncludeDelete should success");
+                Test.Assert(CommandAgent.Output.Count == 2, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 2, CommandAgent.Output.Count));
+
+                // Create blob again
+                CloudBlob blockBlob1_2 = blobUtil.CreateBlockBlob(container, BlobName1);
+                CloudBlob blockBlob2_2 = blobUtil.CreateBlockBlob(container, BlobName2);
+
+                //retrive without IncludeDelete, get 2 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(null, containerName), "Get Blob without IncludeDelete should success");
+                Test.Assert(CommandAgent.Output.Count == 2, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 2, CommandAgent.Output.Count));
+
+                //retrive with IncludeDelete, get 4 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(null, containerName, IncludeDeleted: true), "Get Blob with IncludeDelete should success");
+                Test.Assert(CommandAgent.Output.Count == 4, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 4, CommandAgent.Output.Count));
+
+                //soft delete the blob again by overwrite
+                CloudBlob blockBlob1_3 = blobUtil.CreateBlockBlob(container, BlobName1);
+                CloudBlob blockBlob2_3 = blobUtil.CreateBlockBlob(container, BlobName2);
+
+                //retrive without IncludeDelete, get 2 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(null, containerName), "Get Blob without IncludeDelete should success");
+                Test.Assert(CommandAgent.Output.Count == 2, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 2, CommandAgent.Output.Count));
+
+                //retrive with IncludeDelete, get 6 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(null, containerName, IncludeDeleted: true), "Get Blob with IncludeDelete should success");
+                Test.Assert(CommandAgent.Output.Count == 6, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 6, CommandAgent.Output.Count));
+
+                //snapshot the blob, and delete a snapshot
+                CloudBlob snapshot1 = blockBlob1_3.Snapshot();
+                CloudBlob snapshot2 = blockBlob1_3.Snapshot();
+                snapshot1.Delete();
+
+                //retrive without IncludeDelete, get 3 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(null, containerName), "Get Blob without IncludeDelete should success");
+                Test.Assert(CommandAgent.Output.Count == 3, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 3, CommandAgent.Output.Count));
+
+                //retrive with IncludeDelete, get 6 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(null, containerName, IncludeDeleted: true), "Get Blob with IncludeDelete should success");
+                Test.Assert(CommandAgent.Output.Count == 8, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 8, CommandAgent.Output.Count));
+
+                //Undelete blob and snapshot
+                snapshot1.Undelete();
+                blockBlob1.Undelete();
+
+                //retrive without IncludeDelete, get 6 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(null, containerName), "Get Blob without IncludeDelete should success");
+                Test.Assert(CommandAgent.Output.Count == 6, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 6, CommandAgent.Output.Count));
+
+                //retrive with IncludeDelete, get 7 blob
+                Test.Assert(CommandAgent.GetAzureStorageBlob(null, containerName, IncludeDeleted: true), "Get Blob with IncludeDelete should success");
+                Test.Assert(CommandAgent.Output.Count == 8, String.Format("Expect to retrieve {0} blobs, but retrieved {1} blobs", 8, CommandAgent.Output.Count));
+            }
+            finally
+            {
+                blobUtil.RemoveContainer(containerName);
+                CommandAgent.DisableAzureStorageDeleteRetentionPolicy();
+            }
+        }
     }
 }
