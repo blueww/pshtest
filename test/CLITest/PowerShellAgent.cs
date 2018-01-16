@@ -913,13 +913,14 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps, null, ParseBlobCollection);
         }
 
-        public override bool GetAzureStorageBlob(string BlobName, string ContainerName)
+        public override bool GetAzureStorageBlob(string BlobName, string ContainerName, bool IncludeDeleted = false)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
             ps.AddCommand("Get-AzureStorageBlob");
             ps.BindParameter("Blob", BlobName);
             ps.BindParameter("Container", ContainerName);
+            ps.BindParameter("IncludeDeleted", IncludeDeleted);
 
             return InvokeStoragePowerShell(ps, null, ParseBlobCollection);
         }
@@ -1383,11 +1384,33 @@ namespace Management.Storage.ScenarioTest
             return InvokeStoragePowerShell(ps);
         }
 
+
+        public override bool DisableAzureStorageDeleteRetentionPolicy(bool PassThru = false)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Disable-AzureStorageDeleteRetentionPolicy");
+            ps.BindParameter("PassThru", PassThru);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool EnableAzureStorageDeleteRetentionPolicy(int RetentionDays, bool PassThru = false)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Enable-AzureStorageDeleteRetentionPolicy");
+            ps.BindParameter("RetentionDays", RetentionDays);
+            ps.BindParameter("PassThru", PassThru);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
         ///-------------------------------------
         /// SAS token APIs
         ///-------------------------------------
         public override bool NewAzureStorageContainerSAS(string container, string policy, string permission,
-            DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
+                DateTime? startTime = null, DateTime? expiryTime = null, bool fullUri = false, SharedAccessProtocol? protocol = null, string iPAddressOrRange = null)
         {
             PowerShell ps = GetPowerShellInstance();
 
@@ -2982,6 +3005,11 @@ namespace Management.Storage.ScenarioTest
                         bResult = true;
                     }
                 }
+                else if (propertyInfo.Name.Equals("IsServerEncrypted"))
+                {
+                    // IsServerEncrypted is control by server, not by user input.
+                    bResult = true;
+                }                
                 else
                 {
                     if (o1 == null)

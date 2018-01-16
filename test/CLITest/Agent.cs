@@ -201,7 +201,7 @@ namespace Management.Storage.ScenarioTest
             bool Force = true, int ConcurrentCount = -1, Hashtable properties = null, Hashtable metadata = null, PremiumPageBlobTier? premiumPageBlobTier = null);
         public abstract bool GetAzureStorageBlobContent(string Blob, string FileName, string ContainerName,
             bool Force = true, int ConcurrentCount = -1, bool CheckMd5 = false);
-        public abstract bool GetAzureStorageBlob(string BlobName, string ContainerName);
+        public abstract bool GetAzureStorageBlob(string BlobName, string ContainerName, bool IncludeDeleted = false);
         public abstract bool GetAzureStorageBlobByPrefix(string Prefix, string ContainerName);
 
         public abstract bool RemoveAzureStorageBlob(string BlobName, string ContainerName, string snapshotId = "", string leaseId = null, bool ? onlySnapshot = null, bool force = true);
@@ -283,6 +283,8 @@ namespace Management.Storage.ScenarioTest
         public abstract bool RemoveAzureStorageCORSRules(Constants.ServiceType serviceType);
         public abstract bool GetAzureStorageServiceProperties(Constants.ServiceType serviceType);
         public abstract bool UpdateAzureStorageServiceProperties(Constants.ServiceType serviceType, string DefaultServiceVersion);
+        public abstract bool DisableAzureStorageDeleteRetentionPolicy(bool PassThru = false);
+        public abstract bool EnableAzureStorageDeleteRetentionPolicy(int RetentionDays, bool PassThru = false);
         #endregion
 
         #region SAS token APIs

@@ -68,7 +68,8 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             serviceProperties.Logging = new LoggingProperties("1.0");
             serviceProperties.Logging.LoggingOperations = LoggingOperations.All;
             serviceProperties.Logging.RetentionDays = 5;
-            
+
+
             foreach (string servicetype in ValidServiceType)
             {
                 Constants.ServiceType service = Constants.ServiceType.Blob;
@@ -76,6 +77,10 @@ namespace Management.Storage.ScenarioTest.Functional.Service
                 if (service == Constants.ServiceType.Blob) //only Blob support default service version
                 {
                     serviceProperties.DefaultServiceVersion = "2017-04-17";
+
+                    serviceProperties.DeleteRetentionPolicy = new DeleteRetentionPolicy();
+                    serviceProperties.DeleteRetentionPolicy.Enabled = true;
+                    serviceProperties.DeleteRetentionPolicy.RetentionDays = 10;
                 }
 
                 //Set Service Properties with XSCL API
@@ -102,9 +107,15 @@ namespace Management.Storage.ScenarioTest.Functional.Service
                 ExpectEqual(serviceProperties.MinuteMetrics.MetricsLevel.ToString(), properties.MinuteMetrics.MetricsLevel.ToString(), "MinuteMetrics MetricsLevel");
                 ExpectEqual(serviceProperties.MinuteMetrics.RetentionDays.Value, properties.MinuteMetrics.RetentionDays.Value, "MinuteMetrics RetentionDays");
 
+
                 if (service == Constants.ServiceType.Blob)
                 {
                     ExpectEqual(serviceProperties.DefaultServiceVersion, properties.DefaultServiceVersion, "DefaultServiceVersion");
+
+                    ExpectEqual(serviceProperties.DeleteRetentionPolicy.Enabled.ToString(), properties.DeleteRetentionPolicy.Enabled.ToString(), "DeleteRetentionPolicy Enabled");
+                    ExpectEqual(serviceProperties.DeleteRetentionPolicy.RetentionDays.Value, properties.DeleteRetentionPolicy.RetentionDays.Value, "DeleteRetentionPolicy RetentionDays");
+
+                    serviceProperties.DeleteRetentionPolicy = null;
                     serviceProperties.DefaultServiceVersion = null;
                 }
             }
@@ -167,6 +178,64 @@ namespace Management.Storage.ScenarioTest.Functional.Service
 
             Test.Assert(!CommandAgent.UpdateAzureStorageServiceProperties(service, DefaultServiceVersion), "SetAzureStorageServiceProperties with service {0} defaultserviceversion {1} should fail.", service, DefaultServiceVersion);
             ExpectedContainErrorMessage("XML specified is not syntactically valid.");
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void Enable_DisableAzureStorageServiceDeleteRetentionPolicy()
+        {
+            int[] validRetentionDays = {1, 10, 365};
+
+            foreach (int retentionDays in validRetentionDays)
+            {
+                //Enable DeleteRetentionPolicy
+                Test.Assert(CommandAgent.EnableAzureStorageDeleteRetentionPolicy(retentionDays), "EnableAzureStorageDeleteRetentionPolicy with retentionDays {0} should success.", retentionDays);
+                PSSeriviceProperties properties = GetServicePropertiesFromPSH(Constants.ServiceType.Blob);
+
+                Test.Assert(properties.DeleteRetentionPolicy.Enabled, "DeleteRetentionPolicy Enabled should be enabled.");
+                ExpectEqual(retentionDays, properties.DeleteRetentionPolicy.RetentionDays.Value, "retentionDays");
+                
+                //Disable DeleteRetentionPolicy
+                Test.Assert(CommandAgent.DisableAzureStorageDeleteRetentionPolicy(PassThru: true), "DisableAzureStorageDeleteRetentionPolicy should success.");
+                properties = GetServicePropertiesFromPSH(Constants.ServiceType.Blob);
+
+                Test.Assert(!properties.DeleteRetentionPolicy.Enabled, "DeleteRetentionPolicy Enabled should be disabled.");
+                Test.Assert(properties.DeleteRetentionPolicy.RetentionDays == null, "DeleteRetentionPolicy RetentionDays should be null.");
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void EnableAzureStorageServiceDeleteRetentionPolicy_invalidRetentionDays()
+        {
+            int[] invalidRetentionDays = { -1, 0, 366 };
+
+            foreach (int retentionDays in invalidRetentionDays)
+            {
+                Test.Assert(!CommandAgent.EnableAzureStorageDeleteRetentionPolicy(retentionDays), "EnableAzureStorageDeleteRetentionPolicy with retentionDays {0} should success.", retentionDays);
+                ExpectedContainErrorMessage("RetentionDays must be greater than 0 and less than or equal to 365 days.");
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void AzureStorageServiceDeleteRetentionPolicy_PassThru()
+        {
+            int retentionDays = 7;
+
+            //Enable DeleteRetentionPolicy
+            Test.Assert(CommandAgent.EnableAzureStorageDeleteRetentionPolicy(retentionDays, PassThru: true), "EnableAzureStorageDeleteRetentionPolicy with retentionDays {0} should success.", retentionDays);
+            PSDeleteRetentionPolicy policy = CommandAgent.Output[0][PowerShellAgent.BaseObject] as PSDeleteRetentionPolicy;
+
+            Test.Assert(policy.Enabled, "DeleteRetentionPolicy Enabled should be enabled.");
+            ExpectEqual(retentionDays, policy.RetentionDays.Value, "retentionDays");
+
+            //Disable DeleteRetentionPolicy
+            Test.Assert(CommandAgent.DisableAzureStorageDeleteRetentionPolicy(PassThru: true), "DisableAzureStorageDeleteRetentionPolicy should success.");
+            policy = CommandAgent.Output[0][PowerShellAgent.BaseObject] as PSDeleteRetentionPolicy;
+
+            Test.Assert(!policy.Enabled, "DeleteRetentionPolicy Enabled should be disabled.");
+            Test.Assert(policy.RetentionDays == null, "DeleteRetentionPolicy RetentionDays should be null.");
         }
 
         private PSSeriviceProperties GetServicePropertiesFromPSH(Constants.ServiceType service)

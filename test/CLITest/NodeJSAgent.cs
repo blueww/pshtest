@@ -1071,7 +1071,7 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        public override bool GetAzureStorageBlob(string blobName, string containerName)
+        public override bool GetAzureStorageBlob(string blobName, string containerName, bool IncludeDeleted = false)
         {
             if (string.IsNullOrEmpty(blobName) || (blobName.Contains("*") || blobName.Contains("?")))
             {
@@ -3259,6 +3259,16 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override bool UpdateAzureStorageServiceProperties(Constants.ServiceType serviceType, string DefaultServiceVersion)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool DisableAzureStorageDeleteRetentionPolicy(bool PassThru = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool EnableAzureStorageDeleteRetentionPolicy(int RetentionDays, bool PassThru = false)
         {
             throw new NotImplementedException();
         }
