@@ -113,7 +113,7 @@ namespace Management.Storage.ScenarioTest
         #endregion
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
+        [TestCategory(Tag.Function_SRP)]
         public void UpdateNetworkAcl_AllParameters()
         {
             if (isResourceMode)
@@ -126,7 +126,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
+        [TestCategory(Tag.Function_SRP)]
         public void UpdateNetworkAcl_SingleParameters_Bypass()
         {
             if (isResourceMode)
@@ -144,7 +144,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
+        [TestCategory(Tag.Function_SRP)]
         public void UpdateNetworkAcl_SingleParameters_DefaultAction()
         {
             if (isResourceMode)
@@ -158,7 +158,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
+        [TestCategory(Tag.Function_SRP)]
         public void UpdateNetworkAcl_SingleParameters_IpRules()
         {
             if (isResourceMode)
@@ -173,7 +173,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
+        [TestCategory(Tag.Function_SRP)]
         public void UpdateNetworkAcl_SingleParameters_NetworkRules()
         {
             if (isResourceMode)
@@ -195,7 +195,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
+        [TestCategory(Tag.Function_SRP)]
         public void UpdateNetworkAcl_NoParameters()
         {
             if (isResourceMode)
@@ -207,7 +207,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
+        [TestCategory(Tag.Function_SRP)]
         public void GetNetworkAcl_NewAccount()
         {
             if (isResourceMode)
@@ -219,7 +219,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
+        [TestCategory(Tag.Function_SRP)]
         public void GetNetworkAcl_PipeLine()
         {
             if (isResourceMode)
@@ -292,7 +292,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
+        [TestCategory(Tag.Function_SRP)]
         public void Add_Remove_SingleNetworkAclRule()
         {
             if (isResourceMode)
@@ -322,7 +322,7 @@ namespace Management.Storage.ScenarioTest
 
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
+        [TestCategory(Tag.Function_SRP)]
         public void Add_Remove_MultipleNetworkAclRule_IPRule()
         {
             if (isResourceMode)
@@ -348,7 +348,7 @@ namespace Management.Storage.ScenarioTest
 
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
+        [TestCategory(Tag.Function_SRP)]
         public void Add_Remove_MultipleNetworkAclRule_NetworkRule()
         {
             if (isResourceMode)
@@ -380,7 +380,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
+        [TestCategory(Tag.Function_SRP)]
         public void Add_Remove_EmptyNetworkAclRule()
         {
             if (isResourceMode)
@@ -427,7 +427,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
+        [TestCategory(Tag.Function_SRP)]
         public void Add_Duplicated_NetworkAclRule()
         {
             if (isResourceMode)
@@ -473,7 +473,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
+        [TestCategory(Tag.Function_SRP)]
         public void Add_Exsiting_NetworkAclRule()
         {
             if (isResourceMode)
@@ -520,7 +520,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
+        [TestCategory(Tag.Function_SRP)]
         public void Remove_Duplicated_NetworkAclRule()
         {
             if (isResourceMode)
@@ -572,7 +572,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
+        [TestCategory(Tag.Function_SRP)]
         public void Remove_NotExsiting_NetworkAclRule()
         {
             if (isResourceMode)
@@ -628,7 +628,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
+        [TestCategory(Tag.Function_SRP)]
         public void SetAccountWithNetworkAcl()
         {
             if (isResourceMode)
@@ -658,7 +658,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
-        [TestCategory(Tag.Function)]
+        [TestCategory(Tag.Function_SRP)]
         public void NewAccountWithNetworkAcl()
         {
             if (isResourceMode)

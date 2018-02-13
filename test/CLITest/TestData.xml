@@ -73,8 +73,8 @@
   <MooncakeStorageAccountKey>FjUfNl1KiJttbXlsdkMzBTC7WagvrRM9/g6UPBuy0ypCpAbYTL6/KA+dI/7gyoWvLFYmah3IviUP1jykOHHOlA==</MooncakeStorageAccountKey>
 
   <NodeWorkingDirectory>.</NodeWorkingDirectory>
-  <BigBlobUri>http://xdmtestsea.blob.core.windows.net/public/Fedora-18-x86_64-Live-Desktop.iso?sv=2015-04-05&amp;sr=b&amp;sig=ePSHATzQ7xI3RghkWFrRu0Fx7UqRoQmxKZrB4BbcaV4%3D&amp;se=2017-12-31T16%3A00%3A00Z&amp;sp=r</BigBlobUri>
-  <BigAzureFileUri>https://xdmtestsea.file.core.windows.net/public/Fedora-18-x86_64-Live-Desktop.iso?sv=2015-04-05&amp;sr=f&amp;sig=bNtv9v4%2FhcrkwAihmWqgQ7A%2BqT8uIqdNcUdvDc4gxW4%3D&amp;se=2017-12-31T16%3A00%3A00Z&amp;sp=rl</BigAzureFileUri>
+  <BigBlobUri>http://xdmtestsea.blob.core.windows.net/public/Fedora-18-x86_64-Live-Desktop.iso?sv=2017-04-17&amp;sr=b&amp;sig=fdgRDOh2PDyeo8o7Vuh%2FfUJPOFwXgp8LQtp%2BitE6kUc%3D&amp;se=2020-12-30T16%3A00%3A00Z&amp;sp=r</BigBlobUri>
+  <BigAzureFileUri>https://xdmtestsea.file.core.windows.net/public/Fedora-18-x86_64-Live-Desktop.iso?sv=2017-04-17&amp;sr=f&amp;sig=kCPCbiz8kLXDkQghvaIdZDL%2BGvXgOgXrGRe0DeFqMTc%3D&amp;se=2020-12-30T16%3A00%3A00Z&amp;sp=rl</BigAzureFileUri>
   <HttpsCopyHosts>core.windows.net</HttpsCopyHosts>
   <DownloadDir>.\Data\download\</DownloadDir>
   <UploadDir>.\Data\upload\</UploadDir>

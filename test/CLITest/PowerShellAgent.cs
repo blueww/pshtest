@@ -3988,7 +3988,7 @@ namespace Management.Storage.ScenarioTest
             ps.BindParameter("Kind", kind);
             ps.BindParameter("Tags", (tags == null || tags.Length == 0) ? null : tags[0]);
             ps.BindParameter("AccessTier", accessTier);
-            ps.BindParameter("EnableEncryptionService", enableEncryptionService);
+            //ps.BindParameter("EnableEncryptionService", enableEncryptionService);
             if (enableHttpsTrafficOnly != null)
             {
                 ps.BindParameter("EnableHttpsTrafficOnly", enableHttpsTrafficOnly.Value);
@@ -4035,8 +4035,8 @@ namespace Management.Storage.ScenarioTest
                 ps.BindParameter("Type", skuName);
             }
             ps.BindParameter("AccessTier", accessTier);
-            ps.BindParameter("EnableEncryptionService", enableEncryptionService);
-            ps.BindParameter("DisableEncryptionService", disableEncryptionService);
+            //ps.BindParameter("EnableEncryptionService", enableEncryptionService);
+            //ps.BindParameter("DisableEncryptionService", disableEncryptionService);
             ps.BindParameter("Tags", (tags == null || tags.Length == 0) ? null : tags[0]);
             if (customDomain != null)
             {
@@ -4100,8 +4100,8 @@ namespace Management.Storage.ScenarioTest
                 ps.BindParameter("Type", skuName);
             }
             ps.BindParameter("AccessTier", accessTier);
-            ps.BindParameter("EnableEncryptionService", enableEncryptionService);
-            ps.BindParameter("DisableEncryptionService", disableEncryptionService);
+            //ps.BindParameter("EnableEncryptionService", enableEncryptionService);
+            //ps.BindParameter("DisableEncryptionService", disableEncryptionService);
             ps.BindParameter("Tags", (tags == null || tags.Length == 0) ? null : tags[0]);
             if (customDomain != null)
             {

@@ -70,6 +70,7 @@ namespace Management.Storage.ScenarioTest
         [ClassInitialize()]
         public static void StorageAccountTestInit(TestContext testContext)
         {
+            Thread.Sleep(10000);
             TestBase.TestClassInitialize(testContext);
 
             NodeJSAgent.AgentConfig.UseEnvVar = false;

@@ -237,40 +237,42 @@
             string keyVersion = null,
             string keyVaultUri = null)
         {
-            if (enableEncryptionService == Constants.EncryptionSupportServiceEnum.None)
-            {
-                Test.Assert(accountEncryption == null
-                    || accountEncryption.Services == null
-                    || (accountEncryption.Services.Blob == null && accountEncryption.Services.File == null)
-                    || (accountEncryption.Services.Blob.Enabled == null && accountEncryption.Services.File.Enabled == null)
-                    || (accountEncryption.Services.Blob.Enabled.Value == false && accountEncryption.Services.File.Enabled.Value == false), "The Blob and File Encrption should both be disabled.");
-            }
-            else
-            {
-                //Check Blob Encryption
-                if ((enableEncryptionService & Constants.EncryptionSupportServiceEnum.Blob) == Constants.EncryptionSupportServiceEnum.Blob)
-                {
-                    Test.Assert(accountEncryption.Services.Blob.Enabled.Value == true, "The Blob Encrption should be enabled.");
-                }
-                else
-                {
-                    Test.Assert(accountEncryption.Services.Blob == null
-                        || accountEncryption.Services.Blob.Enabled == null
-                        || accountEncryption.Services.Blob.Enabled.Value == false, "The Blob Encrption should be disabled.");
-                }
+            Test.Assert(accountEncryption.Services.Blob.Enabled.Value == true, "The Blob Encrption should be enabled.");
+            Test.Assert(accountEncryption.Services.File.Enabled.Value == true, "The File Encrption should be enabled.");
+            //if (enableEncryptionService == Constants.EncryptionSupportServiceEnum.None)
+            //{
+            //    Test.Assert(accountEncryption == null
+            //        || accountEncryption.Services == null
+            //        || (accountEncryption.Services.Blob == null && accountEncryption.Services.File == null)
+            //        || (accountEncryption.Services.Blob.Enabled == null && accountEncryption.Services.File.Enabled == null)
+            //        || (accountEncryption.Services.Blob.Enabled.Value == false && accountEncryption.Services.File.Enabled.Value == false), "The Blob and File Encrption should both be disabled.");
+            //}
+            //else
+            //{
+            //    //Check Blob Encryption
+            //    if ((enableEncryptionService & Constants.EncryptionSupportServiceEnum.Blob) == Constants.EncryptionSupportServiceEnum.Blob)
+            //    {
+            //        Test.Assert(accountEncryption.Services.Blob.Enabled.Value == true, "The Blob Encrption should be enabled.");
+            //    }
+            //    else
+            //    {
+            //        Test.Assert(accountEncryption.Services.Blob == null
+            //            || accountEncryption.Services.Blob.Enabled == null
+            //            || accountEncryption.Services.Blob.Enabled.Value == false, "The Blob Encrption should be disabled.");
+            //    }
 
-                //Check File Encryption
-                if ((enableEncryptionService & Constants.EncryptionSupportServiceEnum.File) == Constants.EncryptionSupportServiceEnum.File)
-                {
-                    Test.Assert(accountEncryption.Services.File.Enabled.Value == true, "The File Encrption should be enabled.");
-                }
-                else
-                {
-                    Test.Assert(accountEncryption.Services.File == null
-                        || accountEncryption.Services.File.Enabled == null
-                        || accountEncryption.Services.File.Enabled.Value == false, "The File Encrption should be disabled.");
-                }
-            }
+            //    //Check File Encryption
+            //    if ((enableEncryptionService & Constants.EncryptionSupportServiceEnum.File) == Constants.EncryptionSupportServiceEnum.File)
+            //    {
+            //        Test.Assert(accountEncryption.Services.File.Enabled.Value == true, "The File Encrption should be enabled.");
+            //    }
+            //    else
+            //    {
+            //        Test.Assert(accountEncryption.Services.File == null
+            //            || accountEncryption.Services.File.Enabled == null
+            //            || accountEncryption.Services.File.Enabled.Value == false, "The File Encrption should be disabled.");
+            //    }
+            //}
             if (StorageEncryption || keyvaultEncryption || keyName != null)
             {
                 if (StorageEncryption)
