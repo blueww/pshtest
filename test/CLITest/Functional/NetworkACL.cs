@@ -15,26 +15,16 @@
 namespace Management.Storage.ScenarioTest
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
-    using System.Net;
-    using System.Reflection;
     using System.Threading;
     using Management.Storage.ScenarioTest.Common;
     using Management.Storage.ScenarioTest.Util;
     using Microsoft.Azure.Commands.Common.Authentication.Models;
     using Microsoft.Azure.Management.Storage;
-    using Microsoft.Azure.Management.Storage.Models;
-    using Microsoft.Rest.Azure;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Microsoft.WindowsAzure.Management;
-    using Microsoft.WindowsAzure.Management.Models;
     using Microsoft.WindowsAzure.Management.Storage;
-    using Microsoft.WindowsAzure.Management.Storage.Models;
-    using Microsoft.WindowsAzure.Storage.Auth;
-    using Microsoft.WindowsAzure.Storage.Blob;
     using MS.Test.Common.MsTestLib;
-    using Newtonsoft.Json.Linq;
     using StorageTestLib;
     using SRPModel = Microsoft.Azure.Management.Storage.Models;
     using Microsoft.Azure.Commands.Management.Storage.Models;

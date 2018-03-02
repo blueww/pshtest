@@ -182,7 +182,14 @@
                 Test.Assert(location.Replace(" ", "").ToLower() == account.Location, string.Format("Expected location is {0} and actually it is {1}", location, account.Location));
             }
             Test.Assert(kind == account.Kind, string.Format("Kind should match: {0} == {1}", kind, account.Kind));
+
+            //for StorageV2 account, will have default accesstier as cool
+            if (kind == Kind.StorageV2 && accessTier == null)
+            {
+                accessTier = AccessTier.Cool;
+            }
             Test.Assert(accessTier == account.AccessTier || (account.Kind == Kind.StorageV2 && account.AccessTier == AccessTier.Hot), string.Format("AccessTier should match: {0} == {1}", accessTier, account.AccessTier));
+
             if (customDomain == null)
             {
                 Test.Assert(account.CustomDomain == null, string.Format("CustomDomain should match: {0} == {1}", customDomain, account.CustomDomain));

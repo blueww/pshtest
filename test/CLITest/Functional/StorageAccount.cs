@@ -78,6 +78,7 @@ namespace Management.Storage.ScenarioTest
             AzureEnvironment environment = Utility.GetTargetEnvironment();
             managementClient = new ManagementClient(Utility.GetCertificateCloudCredential(),
                     environment.GetEndpointAsUri(AzureEnvironment.Endpoint.ServiceManagement));
+            managementClient = new ManagementClient(Utility.GetCertificateCloudCredential(),new Uri("https://management.rdfetest.dnsdemo4.com/"));
 
             accountUtils = new AccountUtils(lang, isResourceMode);
 
@@ -1845,12 +1846,12 @@ namespace Management.Storage.ScenarioTest
                     //Set Cutomer Domain to ""
                     useSubdomain = GetRandomNullableBool();
                     Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroup, accountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File, StorageEncryption: true, customDomain: "", useSubdomain: useSubdomain), "Set custom domain should succeed.");
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, null, Kind.Storage, null, customDomain: null, useSubdomain: useSubdomain, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, null, kind, null, customDomain: null, useSubdomain: useSubdomain, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File);
 
                     //Set Cutomer Domain to valid domain
                     useSubdomain = GetRandomNullableBool();
                     Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroup, accountName, customDomain: customDomainName, useSubdomain: useSubdomain, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, StorageEncryption: true), "Set custom domain should succeed.");
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, null, Kind.Storage, null, customDomain: customDomainName, useSubdomain: useSubdomain, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, null, kind, null, customDomain: customDomainName, useSubdomain: useSubdomain, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File);
 
                     Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroup, accountName), "Get storage account should succeed.");
 
@@ -2017,15 +2018,7 @@ namespace Management.Storage.ScenarioTest
                     //Set SkuName
                     SetSRPAccount(accountName, newSkuName);
                     accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File | Constants.EncryptionSupportServiceEnum.Blob);
-
-                    //Set DisableEncryptionService
-                    SetSRPAccount(accountName, disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: Constants.EncryptionSupportServiceEnum.File);
-
-                    //Set EnableEncryptionService
-                    SetSRPAccount(accountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Cool, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File);
-
+                    
                     //Set AccessTier
                     SetSRPAccount(accountName, accessTier: AccessTier.Hot);
                     accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, newSkuName, newTags, Kind.BlobStorage, accessTier: AccessTier.Hot, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File);
@@ -2827,14 +2820,12 @@ namespace Management.Storage.ScenarioTest
 
                     //Set to Microsoft.Storage
                     Test.Assert(CommandAgent.SetSRPAzureStorageAccount(cMKResourceGroup, cMKAccountName,
-                        disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, 
                         StorageEncryption: true, kind: Kind.StorageV2),
                         "Set Keysource to MicrosoftStorage should succeed.");
-                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, kind: Kind.StorageV2, enableEncryptionService: Constants.EncryptionSupportServiceEnum.None, StorageEncryption: true);
+                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, kind: Kind.StorageV2, accessTier: AccessTier.Cool, enableEncryptionService: Constants.EncryptionSupportServiceEnum.None, StorageEncryption: true);
 
                     //Set to Keyvault + Blob/File Enable
                     Test.Assert(CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
-                        enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File,
                         keyvaultEncryption: true,
                         keyName: cMKKeyName, 
                         keyVersion: cMKKeyVersion,
@@ -2842,7 +2833,8 @@ namespace Management.Storage.ScenarioTest
                         "Set Keysource to MicrosoftKeyvault should succeed.");
                     accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, 
                         enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, 
-                        kind: Kind.StorageV2,
+                        kind: Kind.StorageV2, 
+                        accessTier: AccessTier.Cool,
                         keyvaultEncryption: true,
                         keyName: cMKKeyName,
                         keyVersion: cMKKeyVersion,
@@ -2850,19 +2842,17 @@ namespace Management.Storage.ScenarioTest
 
                     //Set to Microsoft.Storage + Blob Enable
                     Test.Assert(CommandAgent.SetSRPAzureStorageAccount(cMKResourceGroup, cMKAccountName,
-                        disableEncryptionService: Constants.EncryptionSupportServiceEnum.File,
                         StorageEncryption: true),
                         "Set Keysource to MicrosoftStorage should succeed.");
-                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, kind: Kind.StorageV2, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, StorageEncryption: true);
+                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, kind: Kind.StorageV2, StorageEncryption: true);
 
                     //Set to Microsoft.Keyvault + Blob/File Enable, not set keyvaultEncryption, but it will automatic set to true when set KeyName
                     Test.Assert(CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
-                        enableEncryptionService: Constants.EncryptionSupportServiceEnum.File,
                         keyName: cMKKeyName,
                         keyVersion: cMKKeyVersion,
                         keyVaultUri: cMKKeyvaultUri),
                         "Set Keysource to MicrosoftKeyvault should succeed.");
-                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, kind: Kind.StorageV2, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File,
+                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, kind: Kind.StorageV2, accessTier: AccessTier.Cool, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File,
                         keyvaultEncryption: true,
                         keyName: cMKKeyName,
                         keyVersion: cMKKeyVersion,
@@ -2889,6 +2879,13 @@ namespace Management.Storage.ScenarioTest
                     string cMKKeyVersion = Test.Data.Get("CMKKeyVersion");
                     string cMKKeyvaultUri = Test.Data.Get("CMKKeyvaultUri");
 
+                    //Set to Microsoft.Storage
+                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(cMKResourceGroup, cMKAccountName,
+                        StorageEncryption: true, kind: Kind.StorageV2),
+                        "Set Keysource to MicrosoftStorage should succeed.");
+                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, kind: Kind.StorageV2, accessTier: AccessTier.Cool, StorageEncryption: true);
+
+
                     //Set to Keyvault + Blob/File Enable
                     Test.Assert(CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
                         enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File,
@@ -2898,57 +2895,14 @@ namespace Management.Storage.ScenarioTest
                         keyVaultUri: cMKKeyvaultUri),
                         "Set Keysource to MicrosoftKeyvault should succeed.");
                     accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, 
+                        kind: Kind.StorageV2,
                         enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, 
                         keyvaultEncryption: true,
                         keyName: cMKKeyName,
                         keyVersion: cMKKeyVersion,
-                        keyVaultUri: cMKKeyvaultUri);
-
-                    //Set to Disable Blob/File Encryption will fail when use KeyVault
-                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
-                        disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File,
-                        keyvaultEncryption: true,
-                        keyName: cMKKeyName,
-                        keyVersion: cMKKeyVersion,
-                        keyVaultUri: cMKKeyvaultUri),
-                        "Disable B&F faile when Keysource is MicrosoftKeyvault.");
-                    ExpectedContainErrorMessage("KeySource must be set to 'Microsoft.Storage' before disabling encryption.");
-
-                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
-                        disableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob,
-                        keyvaultEncryption: true,
-                        keyName: cMKKeyName,
-                        keyVersion: cMKKeyVersion,
-                        keyVaultUri: cMKKeyvaultUri),
-                        "Disable B faile when Keysource is MicrosoftKeyvault.");
-                    ExpectedContainErrorMessage("KeySource must be set to 'Microsoft.Storage' before disabling encryption.");
-
-                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
-                        disableEncryptionService: Constants.EncryptionSupportServiceEnum.File,
-                        enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob,
-                        keyvaultEncryption: true,
-                        keyName: cMKKeyName,
-                        keyVersion: cMKKeyVersion,
-                        keyVaultUri: cMKKeyvaultUri),
-                        "Disable F, enable B faile when Keysource is MicrosoftKeyvault.");
-                    ExpectedContainErrorMessage("KeySource must be set to 'Microsoft.Storage' before disabling encryption.");
-
-                    //Only Set Keysource
-                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(cMKResourceGroup, cMKAccountName,
-                        StorageEncryption: true),
-                        "Set Only Keysource to MicrosoftStorage should Fail.");
-                    ExpectedContainErrorMessage("The encryption service is missing from the request.");
-
-                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
-                        keyvaultEncryption: true,
-                        keyName: cMKKeyName,
-                        keyVersion: cMKKeyVersion,
-                        keyVaultUri: cMKKeyvaultUri),
-                        "Set Only Keysource to MicrosoftKeyvault should Fail.");
-                    ExpectedContainErrorMessage("The encryption service is missing from the request.");
+                        keyVaultUri: cMKKeyvaultUri);     
 
                     //Set only Keyname or KeyVersion or KeyvaultUri
-
                     Test.Assert(!CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
                         keyvaultEncryption: true,
                         keyName: cMKKeyName),
@@ -2986,7 +2940,7 @@ namespace Management.Storage.ScenarioTest
                     string cMKAccountName = Test.Data.Get("CMKAccountName");
 
                     Test.Assert(CommandAgent.SetSRPAzureStorageAccount(cMKResourceGroup, cMKAccountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob| Constants.EncryptionSupportServiceEnum.File, AssignIdentity: true, kind: Kind.StorageV2), "Set IdentityType should succeed.");
-                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, AssignIdentity: true, kind: Kind.StorageV2);
+                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, AssignIdentity: true, kind: Kind.StorageV2, accessTier: AccessTier.Cool);
                 }
                 catch (Exception e)
                 {
@@ -3029,14 +2983,15 @@ namespace Management.Storage.ScenarioTest
                     string accountName = accountUtils.GenerateAccountName();
                     string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
                     string location = Constants.Location.WestUS;
+                    Kind kind = Kind.Storage;
 
-                    CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind(), enableEncryptionService: Constants.EncryptionSupportServiceEnum.None);
+                    CreateNewSRPAccount(accountName, location, accountType, kind: kind, enableEncryptionService: Constants.EncryptionSupportServiceEnum.None);
                     accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType);
 
-                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.None), "Set EnableEcryption as None should success.");
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, kind: kind, enableEncryptionService: Constants.EncryptionSupportServiceEnum.None), "Set EnableEcryption as None should success.");
                     accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType);
 
-                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, disableEncryptionService: Constants.EncryptionSupportServiceEnum.None), "Set DisableEcryption as None should success.");
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, kind: kind, disableEncryptionService: Constants.EncryptionSupportServiceEnum.None), "Set DisableEcryption as None should success.");
                     accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType);
 
                 }
