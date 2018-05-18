@@ -144,7 +144,7 @@ namespace Management.Storage.ScenarioTest
 
         #endregion
 
-        public abstract bool GetAzureStorageUsage();
+        public abstract bool GetAzureStorageUsage(string Location = null);
 
         #region Container
         /// <summary>

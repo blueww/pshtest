@@ -2746,7 +2746,7 @@ namespace Management.Storage.ScenarioTest
 
                 try
                 {
-                    int accountCount = random.Next(1, 5);
+                    int accountCount = random.Next(0, 2);
 
                     while (accountCount > 0)
                     {
@@ -2766,6 +2766,59 @@ namespace Management.Storage.ScenarioTest
                     }
 
                     GetAzureStorageUsage_Test();
+                }
+                finally
+                {
+                    foreach (var accountName in accountNames)
+                    {
+                        DeleteAccountWrapper(accountName);
+                    }
+                }
+            }
+            else
+            {
+                if (lang == Language.NodeJS)
+                {
+                    Test.Assert(!CommandAgent.GetAzureStorageUsage(), "Get azure storage usage should fail.");
+                    ExpectedContainErrorMessage("'usage' is not an azure command. See 'azure help'.");
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        [TestCategory(CLITag.NodeJSFT)]
+        [TestCategory(CLITag.NodeJSResourceAccount)]
+        public void FTAccount701_GetAzureStorageLocationUsage()
+        {
+            if (isResourceMode)
+            {
+                string location = "eastus2(stage)";
+                GetAzureStorageUsage_Test(location);
+
+                List<string> accountNames = new List<string>();
+
+                try
+                {
+                    int accountCount = random.Next(0, 2);
+
+                    while (accountCount > 0)
+                    {
+                        string accountName = accountUtils.GenerateAccountName();
+                        string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode, isMooncake));
+
+                        CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
+                        accountCount--;
+                    }
+
+                    GetAzureStorageUsage_Test(location);
+
+                    foreach (var accountName in accountNames)
+                    {
+                        DeleteAccountWrapper(accountName);
+                    }
+
+                    GetAzureStorageUsage_Test(location);
                 }
                 finally
                 {
@@ -3002,10 +3055,11 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        private void GetAzureStorageUsage_Test()
+        private void GetAzureStorageUsage_Test(string Location = null)
         {
-            Test.Assert(CommandAgent.GetAzureStorageUsage(), "Get azure storage usage should succeeded.");
-            var usages = accountUtils.SRPStorageClient.Usage.List();
+            Test.Assert(CommandAgent.GetAzureStorageUsage(Location), "Get azure storage usage should succeeded.");
+            var usages = Location == null ? accountUtils.SRPStorageClient.Usage.List() : accountUtils.SRPStorageClient.Usage.ListByLocation(Location);
+
             ValidateGetUsageOutput(new List<SRPModel.Usage>(usages));
         }
 
