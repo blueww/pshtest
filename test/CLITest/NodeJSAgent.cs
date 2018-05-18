@@ -842,7 +842,7 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(command, needAccountParam: false);
         }
 
-        public override bool GetAzureStorageUsage()
+        public override bool GetAzureStorageUsage(string Location = null)
         {
             string command = string.Format("account usage show");
 

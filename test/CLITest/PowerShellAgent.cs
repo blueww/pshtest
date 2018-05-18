@@ -329,6 +329,33 @@ public static void SetLocalStorageContext()
             Test.Info("Set PowerShell Storage Context using Anonymous storage account, Cmdline: {0}", GetCommandLine(ps));
             SetStorageContext(ps);
         }
+        
+        /// <summary>
+        /// Create a stroage context with Oauth, Must log in with Login-AzureRMAccount  before run this
+        /// </summary>
+        /// <param name="StorageAccountName"></param>
+        /// <param name="useHttps"></param>
+        /// <param name="endPoint"></param>
+        public static void SetOAuthStorageContext(string StorageAccountName, bool useHttps, string endPoint = "")
+        {
+            PowerShell ps = PowerShell.Create(_InitState);
+            ps.AddCommand("New-AzureStorageContext");
+            ps.BindParameter("StorageAccountName", StorageAccountName);
+            ps.BindParameter("EndPoint", endPoint.Trim());
+
+            if (useHttps)
+            {
+                //TODO need tests to check whether it's ignore cases.
+                ps.BindParameter("Protocol", "https");
+            }
+            else
+            {
+                ps.BindParameter("Protocol", "http");
+            }
+
+            Test.Info("Set PowerShell Storage Context using OAuth storage account, Cmdline: {0}", GetCommandLine(ps));
+            SetStorageContext(ps);
+        }
 
         public override void SetStorageContextWithSASTokenInConnectionString(CloudStorageAccount StorageAccount, string sasToken)
         {
@@ -368,8 +395,14 @@ public static void SetLocalStorageContext()
         internal static void SetStorageContext(PowerShell ps)
         {
             AgentContext = null;
+            Console.WriteLine("New Oauth start ");
 
-            foreach (PSObject result in ps.Invoke())
+            Collection<PSObject> results = ps.Invoke();
+            foreach (ErrorRecord record in ps.Streams.Error)
+            {
+                Console.WriteLine("New Oauth fail: " + record.Exception.ToString());
+            }
+            foreach (PSObject result in results)
             {
                 foreach (PSMemberInfo member in result.Members)
                 {
@@ -377,6 +410,8 @@ public static void SetLocalStorageContext()
                     {
                         AgentContext = member.Value;
                         Agent.Context = AgentContext;
+
+                        Console.WriteLine("New Oauth context finish");
                         return;
                     }
                 }
@@ -4279,10 +4314,11 @@ public static void SetLocalStorageContext()
             return InvokePowerShellWithoutContext(ps);
         }
 
-        public override bool GetAzureStorageUsage()
+        public override bool GetAzureStorageUsage(string Location = null)
         {
             PowerShell ps = GetPowerShellInstance();
             ps.AddCommand("Get-AzureRMStorageUsage");
+            ps.BindParameter("Location", Location);
 
             return InvokePowerShellWithoutContext(ps);
         }
