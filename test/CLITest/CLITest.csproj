@@ -148,8 +148,8 @@
     <Reference Include="Microsoft.WindowsAzure.Management.Storage">
       <HintPath>..\packages\Microsoft.WindowsAzure.Management.Storage.5.1.1\lib\net40\Microsoft.WindowsAzure.Management.Storage.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Storage, Version=9.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\WindowsAzure.Storage.9.0.0\lib\net45\Microsoft.WindowsAzure.Storage.dll</HintPath>
+    <Reference Include="Microsoft.WindowsAzure.Storage, Version=9.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAzure.Storage.9.2.0\lib\net45\Microsoft.WindowsAzure.Storage.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Wtt.Log, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8a96d095ee9fe264">
       <SpecificVersion>False</SpecificVersion>
@@ -200,6 +200,7 @@
     <Compile Include="AssemblyInitCleanup.cs" />
     <Compile Include="BVT\HTTPS\AnonymousBVT.cs" />
     <Compile Include="BVT\HTTPS\AzureEnvironment.cs" />
+    <Compile Include="BVT\HTTPS\OAuthBVT.cs" />
     <Compile Include="BVT\HTTPS\ParamConnectionStringBVT.cs" />
     <Compile Include="BVT\HTTPS\ParamNameKeyBVT.cs" />
     <Compile Include="BVT\HTTPS\EnvNameKeyBVT.cs" />

@@ -46,6 +46,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void NewFileShareTest()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
             fileUtil.DeleteFileShareIfExistsWithSleep(fileShareName);
 
@@ -74,6 +79,16 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void GetExistingFileShareTest()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
             fileUtil.EnsureFileShareExists(fileShareName);
 
@@ -102,6 +117,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void RemoveFileShareTest()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
             fileUtil.EnsureFileShareExists(fileShareName);
 
@@ -130,6 +150,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(PsTag.FileBVT)]
         public void NewDirectoryTest_FileShareParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             NewDirectoryTest((fileShare, directoryName) =>
             {
                 CommandAgent.NewDirectory(fileShare, directoryName);
@@ -146,6 +171,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void NewDirectoryTest_FileShareNameParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             NewDirectoryTest((fileShare, directoryName) =>
             {
                 CommandAgent.NewDirectory(fileShare.Name, directoryName);
@@ -161,6 +191,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(PsTag.FileBVT)]
         public void RemoveDirectoryTest_FileShareParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             RemoveDirectoryTest((directory) =>
             {
                 CommandAgent.RemoveDirectory(directory.Share, CloudFileUtil.GetFullPath(directory));
@@ -177,6 +212,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void RemoveDirectoryTest_FileShareNameParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             RemoveDirectoryTest((directory) =>
             {
                 CommandAgent.RemoveDirectory(directory.Share.Name, CloudFileUtil.GetFullPath(directory));
@@ -191,6 +231,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void ListFileTest_FileShareNameParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
             var fileShare = fileUtil.EnsureFileShareExists(fileShareName);
 
@@ -235,6 +280,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void ListFileTest_ShareNameParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             ListFileTest((fileShare) =>
             {
                 CommandAgent.GetFile(fileShare.Name);
@@ -250,6 +300,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(PsTag.FileBVT)]
         public void ListFileTest_FileShareParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             ListFileTest((fileShare) =>
             {
                 CommandAgent.GetFile(fileShare);
@@ -265,6 +320,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(PsTag.FileBVT)]
         public void ListFileTest_DirectoryParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             string fileShareName = CloudFileUtil.GenerateUniqueFileShareName();
             string directoryName = CloudFileUtil.GenerateUniqueDirectoryName();
             string fileName = CloudFileUtil.GenerateUniqueFileName();
@@ -298,6 +358,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(PsTag.FileBVT)]
         public void GetFileTest_FileShareNameParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             this.GetFileTest((fileShare, path) =>
             {
                 CommandAgent.GetFile(fileShare.Name, path);
@@ -315,6 +380,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(PsTag.FileBVT)]
         public void GetDirectoryTest_FileShareNameParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             this.GetFileTest((fileShare, path) =>
             {
                 CommandAgent.GetFile(fileShare.Name, path);
@@ -330,6 +400,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(PsTag.FileBVT)]
         public void GetFileTest_FileShareParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             GetFileTest((fileShare, path) =>
             {
                 CommandAgent.GetFile(fileShare, path);
@@ -345,6 +420,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(PsTag.FileBVT)]
         public void GetDirectoryTest_FileShareParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             GetFileTest((fileShare, path) =>
             {
                 CommandAgent.GetFile(fileShare, path);
@@ -360,6 +440,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(PsTag.FileBVT)]
         public void GetFileTest_DirectoryParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             this.GetFileTest(false);
         }
 
@@ -372,6 +457,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(PsTag.FileBVT)]
         public void GetDirectoryTest_DirectoryParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             this.GetFileTest(true);
         }
 
@@ -385,6 +475,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(PsTag.FileBVT)]
         public void GetFileContentTest_FileShareParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             Test.Info("Testing against medium file.");
             GetFileContentTest(
                 CommonMediumFilePath,
@@ -414,6 +509,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void GetFileContentTest_FileShareNameParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             Test.Info("Testing against medium file.");
             GetFileContentTest(
                 CommonMediumFilePath,
@@ -443,6 +543,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(PsTag.FileBVT)]
         public void GetFileContentTest_FileParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             Test.Info("Testing against medium file.");
             GetFileContentTest(
                 CommonMediumFilePath,
@@ -471,6 +576,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(PsTag.FileBVT)]
         public void SetFileContentTest_FileShareParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             Test.Info("Testing against medium file.");
             SetFileContentTest(
                 CommonMediumFilePath,
@@ -500,6 +610,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void SetFileContentTest_FileShareNameParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             Test.Info("Testing against medium file.");
             SetFileContentTest(
                 CommonMediumFilePath,
@@ -528,6 +643,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(PsTag.FileBVT)]
         public void RemoveFileTest_FileShareParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             RemoveFileTest((file) =>
             {
                 CommandAgent.RemoveFile(file.Share, file.Name);
@@ -544,6 +664,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NodeJSBVT)]
         public void RemoveFileTest_FileShareNameParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             RemoveFileTest((file) =>
             {
                 CommandAgent.RemoveFile(file.Share.Name, file.Name);
@@ -559,6 +684,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(PsTag.FileBVT)]
         public void RemoveFileTest_FileParameterSet()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             RemoveFileTest((file) =>
             {
                 CommandAgent.RemoveFile(file);
@@ -576,6 +706,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void NewShareStoredPolicyTest()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             SharedAccessPolicyTest((share, samplePolicies) =>
             {
                 var samplePolicy = samplePolicies[0];
@@ -603,6 +738,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void GetShareStoredPolicyTest()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             SharedAccessPolicyTest((share, samplePolicies) =>
             {
                 var samplePolicy = samplePolicies[0];
@@ -634,6 +774,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void RemoveShareStoredPolicyTest()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             SharedAccessPolicyTest((share, samplePolicies) =>
             {
                 var samplePolicy = samplePolicies[0];
@@ -667,6 +812,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.StoredAccessPolicy)]
         public void SetShareStoredPolicyTest()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             SharedAccessPolicyTest((share, samplePolicies) =>
             {
                 var samplePolicy1 = samplePolicies[0];
@@ -713,6 +863,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.StartCopyFile)]
         public void StartCopyFromBlobToFile()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             string containerName = Utility.GenNameString("container");
             CloudBlobContainer container = blobUtil.CreateContainer(containerName);
             string destShareName = Utility.GenNameString("share");
@@ -775,6 +930,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.StartCopyFile)]
         public void StartCopyFromFileToFile()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             this.ValidateFileCopyFromFile((srcFile, destFile) =>
             {
                 Test.Assert(CommandAgent.StartFileCopyFromFile(srcFile.Share.Name, CloudFileUtil.GetFullPath(srcFile), destFile.Share.Name, CloudFileUtil.GetFullPath(destFile), Agent.Context),
@@ -811,6 +971,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.StartCopyFile)]
         public void CopyFromPublicBlobToFile()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             this.CopyFromPublicBlobToFile(StorageBlob.BlobType.AppendBlob);
             this.CopyFromPublicBlobToFile(StorageBlob.BlobType.BlockBlob);
             this.CopyFromPublicBlobToFile(StorageBlob.BlobType.PageBlob);
@@ -857,6 +1022,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.GetBlobCopyState)]
         public void CopyFromFileToBlob()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             ValidateCopyFromFileToBlob((srcFile, destBlob) =>
             {
                 Test.Info("Starting copying with share name and file path to blob");
@@ -897,6 +1067,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(PsTag.FileBVT)]
         public void CopyFromShareToBlob()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             string srcShareName = Utility.GenNameString("share");
             CloudFileShare srcShare = fileUtil.EnsureFileShareExists(srcShareName);
 
@@ -948,6 +1123,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.GetBlobCopyState)]
         public void GetStateOfBlobCopyFromFileTest()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             string srcShareName = Utility.GenNameString("share");
             CloudFileShare srcShare = fileUtil.EnsureFileShareExists(srcShareName);
 
@@ -999,6 +1179,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.StopCopyBlob)]
         public void StopBlobCopyFromFileTest()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             string destContainerName = Utility.GenNameString("container");
             CloudBlobContainer destContainer = blobUtil.CreateContainer(destContainerName);
 
@@ -1040,6 +1225,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.GetFileCopyState)]
         public void GetFileCopyStateTest()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             string shareName = Utility.GenNameString("share");
             CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
 
@@ -1090,6 +1280,11 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.StopCopyFile)]
         public void StopFileCopyTest()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
             string shareName = Utility.GenNameString("share");
             CloudFileShare share = fileUtil.EnsureFileShareExists(shareName);
 
