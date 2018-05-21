@@ -382,14 +382,8 @@ namespace Management.Storage.ScenarioTest
         internal static void SetStorageContext(PowerShell ps)
         {
             AgentContext = null;
-            Console.WriteLine("New Oauth start ");
 
-            Collection<PSObject> results = ps.Invoke();
-            foreach (ErrorRecord record in ps.Streams.Error)
-            {
-                Console.WriteLine("New Oauth fail: " + record.Exception.ToString());
-            }
-            foreach (PSObject result in results)
+            foreach (PSObject result in ps.Invoke())
             {
                 foreach (PSMemberInfo member in result.Members)
                 {
@@ -397,8 +391,7 @@ namespace Management.Storage.ScenarioTest
                     {
                         AgentContext = member.Value;
                         Agent.Context = AgentContext;
-
-                        Console.WriteLine("New Oauth context finish");
+                        
                         return;
                     }
                 }
