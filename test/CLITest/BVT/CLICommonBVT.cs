@@ -243,6 +243,12 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.NewTable)]
         public void NewTableTest()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
+
             NewTableTest(CommandAgent);
         }
 
@@ -256,6 +262,12 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.GetTable)]
         public void GetTableTest()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
+
             GetTableTest(CommandAgent);
         }
 
@@ -269,6 +281,12 @@ namespace Management.Storage.ScenarioTest.BVT
         [TestCategory(CLITag.RemoveTable)]
         public void RemoveTableTest()
         {
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
+
             RemoveTableTest(CommandAgent);
         }
 
@@ -400,6 +418,11 @@ namespace Management.Storage.ScenarioTest.BVT
                 Test.Info("skip this case as Azure emulator does not support Get/Set ServiceProperties currently");
                 return;
             }
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
 
             foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
             {
@@ -436,6 +459,11 @@ namespace Management.Storage.ScenarioTest.BVT
             if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
             {
                 Test.Info("skip this case as Azure emulator does not support Get/Set ServiceProperties currently");
+                return;
+            }
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
                 return;
             }
 
@@ -484,6 +512,11 @@ namespace Management.Storage.ScenarioTest.BVT
                 Test.Info("skip this case as Azure emulator does not support Get/Set ServiceProperties currently");
                 return;
             }
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
 
             foreach (Constants.ServiceType serviceType in Enum.GetValues(typeof(Constants.ServiceType)))
             {
@@ -510,6 +543,11 @@ namespace Management.Storage.ScenarioTest.BVT
             if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
             {
                 Test.Info("skip this case as Azure emulator does not support Get/Set ServiceProperties currently");
+                return;
+            }
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
                 return;
             }
 
@@ -1304,6 +1342,11 @@ namespace Management.Storage.ScenarioTest.BVT
                 Test.Info("skip NewContainerSasTest as Azure emulator does not support sas token");
                 return;
             }
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File/SAS currently");
+                return;
+            }
 
             CloudBlobUtil blobUtil = new CloudBlobUtil(CommonStorageAccount);
             blobUtil.SetupTestContainerAndBlob();
@@ -1334,6 +1377,11 @@ namespace Management.Storage.ScenarioTest.BVT
             if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
             {
                 Test.Info("skip NewBlobSasTest as Azure emulator does not support sas token");
+                return;
+            }
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File/SAS currently");
                 return;
             }
 
@@ -1368,6 +1416,11 @@ namespace Management.Storage.ScenarioTest.BVT
                 Test.Info("skip NewQueueSasTest as Azure emulator does not support sas token");
                 return;
             }
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File/SAS currently");
+                return;
+            }
 
             CloudQueueUtil queueUtil = new CloudQueueUtil(CommonStorageAccount);
             CloudQueue queue = queueUtil.CreateQueue();
@@ -1400,6 +1453,11 @@ namespace Management.Storage.ScenarioTest.BVT
                 Test.Info("skip NewTableSasTest as Azure emulator does not support sas token");
                 return;
             }
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File/SAS currently");
+                return;
+            }
 
             CloudTableUtil tableUtil = new CloudTableUtil(CommonStorageAccount);
             CloudTable table = tableUtil.CreateTable();
@@ -1430,6 +1488,11 @@ namespace Management.Storage.ScenarioTest.BVT
             if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
             {
                 Test.Info("skip NewAccountSas as Azure emulator does not support sas token");
+                return;
+            }
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File/SAS currently");
                 return;
             }
 
@@ -1471,6 +1534,11 @@ namespace Management.Storage.ScenarioTest.BVT
                 Test.Info("skip NewTableStoredPolicyTest as Azure emulator does not support stored access policy");
                 return;
             }
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
 
             CloudTableUtil tableUtil = new CloudTableUtil(CommonStorageAccount);
             CloudTable table = tableUtil.CreateTable();
@@ -1510,6 +1578,11 @@ namespace Management.Storage.ScenarioTest.BVT
             if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
             {
                 Test.Info("skip GetTableStoredPolicyTest as Azure emulator does not support stored access policy");
+                return;
+            }
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
                 return;
             }
 
@@ -1556,6 +1629,11 @@ namespace Management.Storage.ScenarioTest.BVT
                 Test.Info("skip RemoveTableStoredPolicyTest as Azure emulator does not support stored access policy");
                 return;
             }
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
 
             CloudTableUtil tableUtil = new CloudTableUtil(CommonStorageAccount);
             CloudTable table = tableUtil.CreateTable();
@@ -1596,6 +1674,11 @@ namespace Management.Storage.ScenarioTest.BVT
             if (this.TestContext.FullyQualifiedTestClassName.Contains("AzureEmulatorBVT"))
             {
                 Test.Info("skip SetTableStoredPolicyTest as Azure emulator does not support stored access policy");
+                return;
+            }
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT"))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
                 return;
             }
 
@@ -2015,6 +2098,13 @@ namespace Management.Storage.ScenarioTest.BVT
 
         private void CORSRulesTest (Constants.ServiceType serviceType, int corsRuleCount)
         {
+
+            if (this.TestContext.FullyQualifiedTestClassName.Contains("OAuthBVT") && (serviceType == Constants.ServiceType.Table || serviceType == Constants.ServiceType.File))
+            {
+                Test.Info("skip this case as OAuthBVT does not support Table/File currently");
+                return;
+            }
+
             try
             {
                 PSCorsRule[] corsRules = CORSRuleUtil.GetRandomValidCORSRules(corsRuleCount);
