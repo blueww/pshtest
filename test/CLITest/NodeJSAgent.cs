@@ -3272,5 +3272,55 @@ namespace Management.Storage.ScenarioTest
         {
             throw new NotImplementedException();
         }
+
+        public override bool NewAzureRmStorageContainer(string resourceGroupName, string accountName, string Name, Hashtable Metadata = null, PSPublicAccess? PublicAccess = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool UpdateAzureRmStorageContainer(string resourceGroupName, string accountName, string Name, Hashtable Metadata = null, PSPublicAccess? PublicAccess = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool GetAzureRmStorageContainer(string resourceGroupName, string accountName, string Name = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool RemoveAzureRmStorageContainer(string resourceGroupName, string accountName, string Name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool AddAzureRmStorageContainerLegalHold(string resourceGroupName, string accountName, string Name, string[] tag)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool RemoveAzureRmStorageContainerLegalHold(string resourceGroupName, string accountName, string Name, string[] tag)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool GetAzureRmStorageContainerImmutabilityPolicy(string resourceGroupName, string accountName, string containerName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool SetAzureRmStorageContainerImmutabilityPolicy(string resourceGroupName, string accountName, string containerName, int immutabilityPeriod, bool extendPolicy = false, string Etag = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool LockAzureRmStorageContainerImmutabilityPolicy(string resourceGroupName, string accountName, string containerName, string Etag)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool RemoveAzureRmStorageContainerImmutabilityPolicy(string resourceGroupName, string accountName, string containerName, string Etag)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

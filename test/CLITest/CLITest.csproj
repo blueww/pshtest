@@ -265,6 +265,7 @@
     <Compile Include="Functional\CloudFile\ShareStoredAccessPolicyTest.cs" />
     <Compile Include="Functional\CloudFile\StoredAccessPolicyWithoutPermissionsTest.cs" />
     <Compile Include="Functional\InvalidCredentialCases.cs" />
+    <Compile Include="Functional\WORM.cs" />
     <Compile Include="Functional\Queue\QueueStoredAccessPolicy.cs" />
     <Compile Include="Functional\Service\AccountSASTest.cs" />
     <Compile Include="Functional\Service\ServiceProperties.cs" />

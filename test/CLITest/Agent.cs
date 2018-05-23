@@ -144,6 +144,21 @@ namespace Management.Storage.ScenarioTest
 
         #endregion
 
+        #region worm
+
+        public abstract bool NewAzureRmStorageContainer(string resourceGroupName, string accountName, string Name, Hashtable Metadata = null, PSPublicAccess? PublicAccess = null);
+        public abstract bool UpdateAzureRmStorageContainer(string resourceGroupName, string accountName, string Name, Hashtable Metadata = null, PSPublicAccess? PublicAccess = null);
+        public abstract bool GetAzureRmStorageContainer(string resourceGroupName, string accountName, string Name = null);
+        public abstract bool RemoveAzureRmStorageContainer(string resourceGroupName, string accountName, string Name);
+        public abstract bool AddAzureRmStorageContainerLegalHold(string resourceGroupName, string accountName, string Name, string[] tag);
+        public abstract bool RemoveAzureRmStorageContainerLegalHold(string resourceGroupName, string accountName, string Name, string[] tag);
+        public abstract bool GetAzureRmStorageContainerImmutabilityPolicy(string resourceGroupName, string accountName, string containerName);
+        public abstract bool SetAzureRmStorageContainerImmutabilityPolicy(string resourceGroupName, string accountName, string containerName, int immutabilityPeriod, bool extendPolicy = false, string Etag = null);
+        public abstract bool LockAzureRmStorageContainerImmutabilityPolicy(string resourceGroupName, string accountName, string containerName, string Etag);
+        public abstract bool RemoveAzureRmStorageContainerImmutabilityPolicy(string resourceGroupName, string accountName, string containerName, string Etag);
+
+        #endregion
+
         public abstract bool GetAzureStorageUsage(string Location = null);
 
         #region Container
