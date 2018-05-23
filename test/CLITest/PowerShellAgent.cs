@@ -4465,5 +4465,141 @@ public static void SetLocalStorageContext()
 
             return InvokePowerShellWithoutContext(ps);
         }
+
+        public override bool NewAzureRmStorageContainer(string resourceGroupName, string accountName, string name, Hashtable Metadata = null, PSPublicAccess? PublicAccess = null)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("New-AzureRmStorageContainer");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("StorageAccountName", accountName);
+            ps.BindParameter("Name", name);
+            ps.BindParameter("Metadata", Metadata);
+            ps.BindParameter("PublicAccess", PublicAccess);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool UpdateAzureRmStorageContainer(string resourceGroupName, string accountName, string name, Hashtable Metadata = null, PSPublicAccess? PublicAccess = null)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Update-AzureRmStorageContainer");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("StorageAccountName", accountName);
+            ps.BindParameter("Name", name);
+            ps.BindParameter("Metadata", Metadata);
+            ps.BindParameter("PublicAccess", PublicAccess);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool GetAzureRmStorageContainer(string resourceGroupName, string accountName, string name = null)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Get-AzureRmStorageContainer");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("StorageAccountName", accountName);
+            ps.BindParameter("Name", name);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool RemoveAzureRmStorageContainer(string resourceGroupName, string accountName, string name)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Remove-AzureRmStorageContainer");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("StorageAccountName", accountName);
+            ps.BindParameter("Name", name);
+            ps.AddParameter("Force");
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool AddAzureRmStorageContainerLegalHold(string resourceGroupName, string accountName, string name, string[] tag)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Add-AzureRmStorageContainerLegalHold");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("StorageAccountName", accountName);
+            ps.BindParameter("Name", name);
+            ps.BindParameter("Tag", tag);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool RemoveAzureRmStorageContainerLegalHold(string resourceGroupName, string accountName, string name, string[] tag)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Remove-AzureRmStorageContainerLegalHold");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("StorageAccountName", accountName);
+            ps.BindParameter("Name", name);
+            ps.BindParameter("Tag", tag);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool GetAzureRmStorageContainerImmutabilityPolicy(string resourceGroupName, string accountName, string containerName)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Get-AzureRmStorageContainerImmutabilityPolicy");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("StorageAccountName", accountName);
+            ps.BindParameter("ContainerName", containerName);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool SetAzureRmStorageContainerImmutabilityPolicy(string resourceGroupName, string accountName, string containerName, int immutabilityPeriod, bool extendPolicy = false, string Etag = null)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Set-AzureRmStorageContainerImmutabilityPolicy");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("StorageAccountName", accountName);
+            ps.BindParameter("ContainerName", containerName);
+            ps.BindParameter("ImmutabilityPeriod", immutabilityPeriod);
+            ps.BindParameter("Etag", Etag);
+            if (extendPolicy)
+            {
+                ps.BindParameter("ExtendPolicy");
+            }
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool LockAzureRmStorageContainerImmutabilityPolicy(string resourceGroupName, string accountName, string containerName, string Etag)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Lock-AzureRmStorageContainerImmutabilityPolicy");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("StorageAccountName", accountName);
+            ps.BindParameter("ContainerName", containerName);
+            ps.BindParameter("Etag", Etag);
+            ps.AddParameter("Force");
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool RemoveAzureRmStorageContainerImmutabilityPolicy(string resourceGroupName, string accountName, string containerName, string Etag)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Remove-AzureRmStorageContainerImmutabilityPolicy");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("StorageAccountName", accountName);
+            ps.BindParameter("ContainerName", containerName);
+            ps.BindParameter("Etag", Etag);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
     }
 }
