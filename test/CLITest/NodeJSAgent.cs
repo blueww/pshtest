@@ -3322,5 +3322,45 @@ namespace Management.Storage.ScenarioTest
         {
             throw new NotImplementedException();
         }
+
+        public override bool SetAzureRmStorageAccountManagementPolicy(string resourceGroupName, string accountName, string policy)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool SetAzureRmStorageAccountManagementPolicy(PSStorageAccount accountObject, string policy)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool SetAzureRmStorageAccountManagementPolicy(string resourceGroupName, string accountName, PSManagementPolicy policyObject)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool GetAzureRmStorageAccountManagementPolicy(string resourceGroupName, string accountName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool GetAzureRmStorageAccountManagementPolicy(PSStorageAccount accountObject)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool RemoveAzureRmStorageAccountManagementPolicy(string resourceGroupName, string accountName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool RemoveAzureRmStorageAccountManagementPolicy(PSStorageAccount accountObject)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool RemoveAzureRmStorageAccountManagementPolicy(PSManagementPolicy policyObject)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

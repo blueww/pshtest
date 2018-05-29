@@ -142,6 +142,15 @@ namespace Management.Storage.ScenarioTest
         public abstract bool RemoveSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, PSIpRule[] iprule);
         public abstract bool RemoveSRPAzureStorageAccountNetworkAclRule(string resourceGroupName, string accountName, PSVirtualNetworkRule[] networkRule);
 
+        public abstract bool SetAzureRmStorageAccountManagementPolicy(string resourceGroupName, string accountName, string policy);
+        public abstract bool SetAzureRmStorageAccountManagementPolicy(PSStorageAccount accountObject, string policy);
+        public abstract bool SetAzureRmStorageAccountManagementPolicy(string resourceGroupName, string accountName, PSManagementPolicy policyObject);
+        public abstract bool GetAzureRmStorageAccountManagementPolicy(string resourceGroupName, string accountName);
+        public abstract bool GetAzureRmStorageAccountManagementPolicy(PSStorageAccount accountObject);
+        public abstract bool RemoveAzureRmStorageAccountManagementPolicy(string resourceGroupName, string accountName);
+        public abstract bool RemoveAzureRmStorageAccountManagementPolicy(PSStorageAccount accountObject);
+        public abstract bool RemoveAzureRmStorageAccountManagementPolicy(PSManagementPolicy policyObject);
+
         #endregion
 
         #region worm

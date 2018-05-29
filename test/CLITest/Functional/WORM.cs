@@ -100,6 +100,7 @@ namespace Management.Storage.ScenarioTest
         #endregion
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(Tag.Function_SRP)]
         public void CreateContainer_allParameter()
         {
@@ -122,6 +123,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(Tag.Function_SRP)]
         public void UpdateContainer_allParameter()
         {
@@ -157,6 +159,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(Tag.Function_SRP)]
         public void GetContainer()
         {
@@ -183,6 +186,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(Tag.Function_SRP)]
         public void ListContainer()
         {
@@ -213,6 +217,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(Tag.Function_SRP)]
         public void LegalHoldTest()
         {
@@ -254,6 +259,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(Tag.Function_SRP)]
         public void ImmutabilityPolicy_SetGetDelete()
         {
@@ -295,6 +301,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(Tag.Function_SRP)]
         public void ImmutabilityPolicy_LockExtend()
         {
@@ -349,6 +356,7 @@ namespace Management.Storage.ScenarioTest
         }
 
         [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(Tag.Function_SRP)]
         public void GetContainer_withLegalHoldAndImmutabilityPolicy()
         {
