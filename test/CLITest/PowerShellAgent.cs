@@ -4586,5 +4586,92 @@ namespace Management.Storage.ScenarioTest
 
             return InvokePowerShellWithoutContext(ps);
         }
+
+        public override bool SetAzureRmStorageAccountManagementPolicy(string resourceGroupName, string accountName, string policy)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Set-AzureRmStorageAccountManagementPolicy");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("StorageAccountName", accountName);
+            ps.BindParameter("Policy", policy);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool SetAzureRmStorageAccountManagementPolicy(PSStorageAccount accountObject, string policy)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Set-AzureRmStorageAccountManagementPolicy");
+            ps.BindParameter("StorageAccount", accountObject);
+            ps.BindParameter("Policy", policy);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool SetAzureRmStorageAccountManagementPolicy(string resourceGroupName, string accountName, PSManagementPolicy policyObject)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Set-AzureRmStorageAccountManagementPolicy");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("StorageAccountName", accountName);
+            ps.BindParameter("InputObject", policyObject);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool GetAzureRmStorageAccountManagementPolicy(string resourceGroupName, string accountName)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Get-AzureRmStorageAccountManagementPolicy");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("StorageAccountName", accountName);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool GetAzureRmStorageAccountManagementPolicy(PSStorageAccount accountObject)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Get-AzureRmStorageAccountManagementPolicy");
+            ps.BindParameter("StorageAccount", accountObject);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool RemoveAzureRmStorageAccountManagementPolicy(string resourceGroupName, string accountName)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Remove-AzureRmStorageAccountManagementPolicy");
+            ps.BindParameter("ResourceGroupName", resourceGroupName);
+            ps.BindParameter("StorageAccountName", accountName);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool RemoveAzureRmStorageAccountManagementPolicy(PSStorageAccount accountObject)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Remove-AzureRmStorageAccountManagementPolicy");
+            ps.BindParameter("StorageAccount", accountObject);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
+
+        public override bool RemoveAzureRmStorageAccountManagementPolicy(PSManagementPolicy policyObject)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Remove-AzureRmStorageAccountManagementPolicy");
+            ps.BindParameter("InputObject", policyObject);
+
+            return InvokePowerShellWithoutContext(ps);
+        }
     }
 }

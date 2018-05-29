@@ -164,18 +164,29 @@ namespace Management.Storage.ScenarioTest
             if (string.IsNullOrEmpty(isPowerShellGet) || bool.Parse(isPowerShellGet))
             {
                 ResourceModulePaths = new string[]
+                {
+                    "AzureRM.Profile",
+                    "Azure.Storage",
+                    "AzureRM.Storage"
+                };
+
+                //random the module load sequence, per cover regression issue https://github.com/Azure/azure-powershell/issues/6250 
+                if (new Random().Next() % 2 == 0)
+                {
+                    ResourceModulePaths = new string[]
                     {
                         "AzureRM.Profile",
-                        "Azure.Storage",
-                        "AzureRM.Storage"
+                        "AzureRM.Storage",
+                        "Azure.Storage"
                     };
+                }
 
                 ServiceModulePaths = new string[]
-                    {
+                {
                         "AzureRM.Profile",
                         "Azure.Storage",
                         "Azure"
-                    };
+                };
             }
             else
             {

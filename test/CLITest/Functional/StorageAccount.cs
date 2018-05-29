@@ -19,10 +19,12 @@ namespace Management.Storage.ScenarioTest
     using System.Collections.Generic;
     using System.Net;
     using System.Reflection;
+    using System.Text.RegularExpressions;
     using System.Threading;
     using Management.Storage.ScenarioTest.Common;
     using Management.Storage.ScenarioTest.Util;
     using Microsoft.Azure.Commands.Common.Authentication.Models;
+    using Microsoft.Azure.Commands.Management.Storage.Models;
     using Microsoft.Azure.Management.Storage;
     using Microsoft.Azure.Management.Storage.Models;
     using Microsoft.Rest.Azure;
@@ -93,8 +95,8 @@ namespace Management.Storage.ScenarioTest
 
                 accountNameForConnectionStringTest = accountUtils.GenerateAccountName();
 
-                var parameters = new SRPModel.StorageAccountCreateParameters(new SRPModel.Sku(SRPModel.SkuName.StandardGRS), SRPModel.Kind.Storage,
-                    isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastAsia);
+                var parameters = new SRPModel.StorageAccountCreateParameters(new SRPModel.Sku(SRPModel.SkuName.StandardGRS), SRPModel.Kind.StorageV2,
+                    isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastUS2Stage);
                 accountUtils.SRPStorageClient.StorageAccounts.CreateAsync(resourceGroupName, accountNameForConnectionStringTest, parameters, CancellationToken.None).Wait();
                 var keys = accountUtils.SRPStorageClient.StorageAccounts.ListKeysAsync(resourceGroupName, accountNameForConnectionStringTest, CancellationToken.None).Result;
                 primaryKeyForConnectionStringTest = keys.Keys[0].Value;
@@ -3053,6 +3055,244 @@ namespace Management.Storage.ScenarioTest
                     Test.Assert(false, "Test set Encryption as none failed: " + e.ToString());
                 }
             }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void ManagementPolicy_Test()
+        {
+            if (isResourceMode)
+            {
+                try
+                {
+
+                    string rules1 = @"{
+    ""version"":""0.5"",
+    ""rules"":
+    [{
+        ""name"": ""olcmtest"",
+        ""type"": ""Lifecycle"",
+        ""definition"": {
+            ""filters"":
+            {
+                ""blobTypes"":[""blockBlob""],
+                ""prefixMatch"":[""olcmtestcontainer""]
+            },
+            ""actions"":
+            {
+                ""baseBlob"":
+                {
+                    ""tierToCool"":
+                    {
+                        ""daysAfterModificationGreaterThan"":30.0
+                    },
+					""tierToArchive"" : {
+						""daysAfterModificationGreaterThan"" : 90.0
+					},
+                    ""delete"":
+                    {
+                        ""daysAfterModificationGreaterThan"":1000.0
+                    }
+                },
+				""snapshot"":
+                {
+                    ""delete"":
+                    {
+                        ""daysAfterCreationGreaterThan"":30.0
+                    }
+                }
+            }
+        }
+    }]
+}";
+
+                    string rules2 = @"{
+    ""version"":""0.5"",
+    ""rules"":
+    [{
+        ""name"": ""olcmtest2"",
+        ""type"": ""Lifecycle"",
+        ""definition"": {
+            ""filters"":
+            {
+                ""blobTypes"":[""blockBlob""],
+                ""prefixMatch"":[""olcmtestcontainer2""]
+            },
+            ""actions"":
+            {
+                ""baseBlob"":
+                {
+                    ""tierToCool"":
+                    {
+                        ""daysAfterModificationGreaterThan"":30.0
+                    },
+					""tierToArchive"" : {
+						""daysAfterModificationGreaterThan"" : 9.0
+					},
+                    ""delete"":
+                    {
+                        ""daysAfterModificationGreaterThan"":100.0
+                    }
+                },
+				""snapshot"":
+                {
+                    ""delete"":
+                    {
+                        ""daysAfterCreationGreaterThan"":30.0
+                    }
+                }
+            }
+        }
+    }]
+}";
+                    //Set policy - create
+                    Test.Assert(CommandAgent.SetAzureRmStorageAccountManagementPolicy(resourceGroupName, accountNameForConnectionStringTest, rules1), "Set ManagementPolicy should success.");
+                    PSManagementPolicy policy = GetManagementPolicyFromOutput();
+                    Test.AssertEqual(Regex.Replace(rules1, @"\r\n?|\n|\t| ", ""), Regex.Replace(policy.Policy.ToString(), @"\r\n?|\n|\t| ", ""));
+
+                    //Get policy
+                    Test.Assert(CommandAgent.GetAzureRmStorageAccountManagementPolicy(resourceGroupName, accountNameForConnectionStringTest), "Get ManagementPolicy should success.");
+                    policy = GetManagementPolicyFromOutput();
+                    Test.AssertEqual(Regex.Replace(rules1, @"\r\n?|\n|\t| ", ""), Regex.Replace(policy.Policy.ToString(), @"\r\n?|\n|\t| ", ""));
+
+                    // Set policy - update
+                    Test.Assert(CommandAgent.SetAzureRmStorageAccountManagementPolicy(resourceGroupName, accountNameForConnectionStringTest, rules2), "Set ManagementPolicy should success.");
+                    policy = GetManagementPolicy(accountNameForConnectionStringTest);
+                    Test.AssertEqual(Regex.Replace(rules2, @"\r\n?|\n|\t| ", ""), Regex.Replace(policy.Policy.ToString(), @"\r\n?|\n|\t| ", ""));
+
+                    //delete policy
+                    Test.Assert(CommandAgent.RemoveAzureRmStorageAccountManagementPolicy(resourceGroupName, accountNameForConnectionStringTest), "Remove ManagementPolicy should success.");
+                    Test.Assert(!CommandAgent.GetAzureRmStorageAccountManagementPolicy(resourceGroupName, accountNameForConnectionStringTest), "Get ManagementPolicy should fail since not exist.");
+                    ExpectedContainErrorMessage(string.Format("No ManagementPolicy found for account {0}", accountNameForConnectionStringTest));
+
+                }
+                catch (Exception e)
+                {
+                    Test.Assert(false, "Test set Encryption as none failed: " + e.ToString());
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void ManagementPolicy_PipelineTest()
+        {
+            if (isResourceMode)
+            {
+                try
+                {
+
+                    string rules1 = @"{
+    ""version"":""0.5"",
+    ""rules"":
+    [{
+        ""name"": ""olcmtest"",
+        ""type"": ""Lifecycle"",
+        ""definition"": {
+            ""filters"":
+            {
+                ""blobTypes"":[""blockBlob""],
+                ""prefixMatch"":[""olcmtestcontainer""]
+            },
+            ""actions"":
+            {
+                ""baseBlob"":
+                {
+                    ""tierToCool"":
+                    {
+                        ""daysAfterModificationGreaterThan"":30.0
+                    },
+					""tierToArchive"" : {
+						""daysAfterModificationGreaterThan"" : 90.0
+					},
+                    ""delete"":
+                    {
+                        ""daysAfterModificationGreaterThan"":1000.0
+                    }
+                },
+				""snapshot"":
+                {
+                    ""delete"":
+                    {
+                        ""daysAfterCreationGreaterThan"":30.0
+                    }
+                }
+            }
+        }
+    }]
+}";
+                    string accountName = accountUtils.GenerateAccountName();
+                    string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
+                    string location = Constants.Location.EastUS2Stage;
+                    Kind kind = Kind.StorageV2;
+
+                    CreateNewSRPAccount(accountName, location, accountType, kind: kind);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountName, location, accountType, kind: kind);
+
+
+                    Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroupName, accountNameForConnectionStringTest), "Get Storage Account should success.");
+                    PSStorageAccount accountObject = CommandAgent.Output[0]["_baseObject"] as PSStorageAccount;
+
+                    //Set policy with pipeline
+                    Test.Assert(CommandAgent.SetAzureRmStorageAccountManagementPolicy(accountObject, rules1), "Set ManagementPolicy with account object should success.");
+                    PSManagementPolicy policy = GetManagementPolicy(accountNameForConnectionStringTest);
+                    Test.AssertEqual(Regex.Replace(rules1, @"\r\n?|\n|\t| ", ""), Regex.Replace(policy.Policy.ToString(), @"\r\n?|\n|\t| ", ""));
+
+                    Test.Assert(CommandAgent.SetAzureRmStorageAccountManagementPolicy(resourceGroupName, accountName, rules1), "Set ManagementPolicy with policy object should success.");
+                    policy = GetManagementPolicy(accountName);
+                    Test.AssertEqual(Regex.Replace(rules1, @"\r\n?|\n|\t| ", ""), Regex.Replace(policy.Policy.ToString(), @"\r\n?|\n|\t| ", ""));
+
+                    //Get policy with pipeline
+                    Test.Assert(CommandAgent.GetAzureRmStorageAccountManagementPolicy(accountObject), "Get ManagementPolicy with account object should success.");
+                    policy = GetManagementPolicyFromOutput();
+                    Test.AssertEqual(Regex.Replace(rules1, @"\r\n?|\n|\t| ", ""), Regex.Replace(policy.Policy.ToString(), @"\r\n?|\n|\t| ", ""));
+                    
+                    //Delete policy with pipeline
+                    Test.Assert(CommandAgent.RemoveAzureRmStorageAccountManagementPolicy(accountObject), "Remove ManagementPolicy with account object should success.");
+                    
+                    policy = GetManagementPolicyFromServer(accountName);
+                    Test.Assert(CommandAgent.RemoveAzureRmStorageAccountManagementPolicy(policy), "Remove ManagementPolicy with policy object should success.");
+
+                    //Validate policy is deleted
+                    Test.Assert(!CommandAgent.GetAzureRmStorageAccountManagementPolicy(resourceGroupName, accountNameForConnectionStringTest), "Get ManagementPolicy should fail since not exist.");
+                    ExpectedContainErrorMessage(string.Format("No ManagementPolicy found for account {0}", accountNameForConnectionStringTest));
+
+                    Test.Assert(!CommandAgent.GetAzureRmStorageAccountManagementPolicy(resourceGroupName, accountName), "Get ManagementPolicy should fail since not exist.");
+                    ExpectedContainErrorMessage(string.Format("No ManagementPolicy found for account {0}", accountName));
+
+                }
+                catch (Exception e)
+                {
+                    Test.Assert(false, "Test set Encryption as none failed: " + e.ToString());
+                }
+            }
+        }
+
+        private PSManagementPolicy GetManagementPolicyFromOutput()
+        {
+            try
+            {
+                return CommandAgent.Output[0]["_baseObject"] as PSManagementPolicy;
+            }
+            catch (Exception e)
+            {
+                Test.Warn("Get ManagementPolicy from output failed: " + e.Message);
+            }
+            return null;
+        }
+
+        private PSManagementPolicy GetManagementPolicyFromServer(string accountName)
+        {
+            Test.Assert(CommandAgent.GetAzureRmStorageAccountManagementPolicy(resourceGroupName, accountName), "Get ManagementPolicy should success.");
+            return GetManagementPolicyFromOutput();
+        }
+
+        private PSManagementPolicy GetManagementPolicy(string accountName)
+        {
+            if (random.Next() % 2 == 0)
+                return GetManagementPolicyFromServer(accountName);
+            else
+                return GetManagementPolicyFromOutput();
         }
 
         private void GetAzureStorageUsage_Test(string Location = null)
