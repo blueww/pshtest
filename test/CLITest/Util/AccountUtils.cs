@@ -95,6 +95,7 @@
 
                 return Constants.Location.WestUS;
             }
+            //This can be removed when ZRSV2 is enabled in all region
             else if (type == this.mapAccountType(Constants.AccountType.Standard_ZRS))
             {
                 return Constants.Location.SoutheastAsia;

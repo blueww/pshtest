@@ -1426,6 +1426,29 @@ public static void SetLocalStorageContext()
         }
 
 
+        public override bool DisableAzureStorageStaticWebsite(bool PassThru = false)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Disable-AzureStorageStaticWebsite");
+            ps.BindParameter("PassThru", PassThru);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool EnableAzureStorageStaticWebsite(string indexDocument, string errorDocument404Path, bool PassThru = false)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Enable-AzureStorageStaticWebsite");
+            ps.BindParameter("IndexDocument", indexDocument);
+            ps.BindParameter("ErrorDocument404Path", errorDocument404Path);
+            ps.BindParameter("PassThru", PassThru);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+
         public override bool DisableAzureStorageDeleteRetentionPolicy(bool PassThru = false)
         {
             PowerShell ps = GetPowerShellInstance();
@@ -3860,11 +3883,12 @@ public static void SetLocalStorageContext()
             return !ps.HadErrors;
         }
 
-        public override void Logout()
+        public override bool Logout()
         {
             PowerShell ps = GetPowerShellInstance();
             ps.AddScript("Logout-AzureRmAccount");
             ps.Invoke();
+            return !ps.HadErrors;
         }
 
         public override bool ShowAzureStorageAccountConnectionString(string accountName, string resourceGroupName = null)

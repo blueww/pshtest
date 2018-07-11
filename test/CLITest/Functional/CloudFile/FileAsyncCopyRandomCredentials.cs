@@ -272,6 +272,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 Test.Assert(!CommandAgent.StartFileCopyFromFile(sourceShareName, sourceFile.Name, destShareName, destFileName, destContext), "Copy to file with invalid sas token credential should fail.");
 
                 ExpectedContainErrorMessage("Could not verify the copy source within the specified time.");
+                ExpectedContainErrorMessage("Could not verify the copy source within the specified time.");
             }
             finally
             {

@@ -238,6 +238,31 @@ namespace Management.Storage.ScenarioTest.Functional.Service
             Test.Assert(policy.RetentionDays == null, "DeleteRetentionPolicy RetentionDays should be null.");
         }
 
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void Enable_DisableAzureStorageStaticWebsite()
+        {
+            string indexDocument = "Test_IndexDocument";
+            string errorDocument404Path = "Test_ErrorDocument404Path";
+
+            //Enable AzureStorageStaticWebsite
+            Test.Assert(CommandAgent.EnableAzureStorageStaticWebsite(indexDocument, errorDocument404Path), "EnableAzureStorageStaticWebsite should success.");
+            PSSeriviceProperties properties = GetServicePropertiesFromPSH(Constants.ServiceType.Blob);
+
+            Test.Assert(properties.StaticWebsite.Enabled, "StaticWebsite Enabled should be enabled.");
+            Test.Assert(properties.StaticWebsite.IndexDocument == indexDocument, "StorageStaticWebsite IndexDocument: {0} == {1}", properties.StaticWebsite.IndexDocument, indexDocument);
+            Test.Assert(properties.StaticWebsite.ErrorDocument404Path == errorDocument404Path, "StorageStaticWebsite ErrorDocument404Path: {0} == {1}", properties.StaticWebsite.ErrorDocument404Path, errorDocument404Path);
+
+            //Disable AzureStorageStaticWebsite
+            Test.Assert(CommandAgent.DisableAzureStorageStaticWebsite(PassThru: true), "DisableAzureStorageStaticWebsite should success.");
+            properties = GetServicePropertiesFromPSH(Constants.ServiceType.Blob);
+
+            Test.Assert(!properties.StaticWebsite.Enabled, "StaticWebsite Enabled should be disabled.");
+            Test.Assert(properties.StaticWebsite.IndexDocument == null, "StaticWebsite IndexDocument should be null.");
+            Test.Assert(properties.StaticWebsite.ErrorDocument404Path == null, "StaticWebsite ErrorDocument404Path should be null.");
+
+        }
+
         private PSSeriviceProperties GetServicePropertiesFromPSH(Constants.ServiceType service)
         {
             Test.Assert(CommandAgent.GetAzureStorageServiceProperties(service), "GetAzureStorageServiceProperties with service as {0} should success.", service);

@@ -562,15 +562,17 @@ namespace Management.Storage.ScenarioTest
                 category: "login");
         }
 
-        public override void Logout()
+        public override bool Logout()
         {
             try
             {
                 RunNodeJSProcess(string.Format("{0}", Test.Data.Get("AADClient")), needAccountParam: false, category: "logout");
+                return true;
             }
             catch (Exception ex)
             {
                 Test.Info("Logout exception: {0}\n Info: {1}", ex, Output);
+                return false;
             }
         }
 
@@ -3359,6 +3361,16 @@ namespace Management.Storage.ScenarioTest
         }
 
         public override bool RemoveAzureRmStorageAccountManagementPolicy(PSManagementPolicy policyObject)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool DisableAzureStorageStaticWebsite(bool PassThru = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool EnableAzureStorageStaticWebsite(string indexDocument, string errorDocument404Path, bool PassThru = false)
         {
             throw new NotImplementedException();
         }

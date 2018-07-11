@@ -30,6 +30,7 @@ namespace Management.Storage.ScenarioTest.Functional
             if (lang == Language.PowerShell)
             {
                 PowerShellAgent.SetAnonymousStorageContext(storageAccountName, useHttps, storageEndPoint);
+                CommandAgent.Logout();
             }
             else
             {
@@ -45,6 +46,7 @@ namespace Management.Storage.ScenarioTest.Functional
         public static void InvalidCredentialCasesClassCleanup()
         {
             CLICommonBVT.RestoreSubScriptionAndEnvConnectionString();
+            CommandAgent.Login();
             NodeJSAgent.AgentConfig.UseEnvVar = PreviousUseEnvVar;
             TestBase.TestClassCleanup();
         }

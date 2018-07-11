@@ -1296,6 +1296,22 @@ namespace Management.Storage.ScenarioTest
 
         [TestMethod]
         [TestCategory(Tag.Function)]
+        public void FTAccount118_CreateAccount_IsHnsEnabled()
+        {
+            if (isResourceMode)
+            {
+                string accountType = Constants.AccountType.Standard_LRS;
+                string accountName = accountUtils.GenerateAccountName();
+                string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
+
+                CreateAndValidateAccount(accountName, null, null, location, null, accountUtils.mapAccountType(accountType), null, kind: Kind.StorageV2);
+
+
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSBVT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
@@ -3298,7 +3314,7 @@ namespace Management.Storage.ScenarioTest
         private void GetAzureStorageUsage_Test(string Location = null)
         {
             Test.Assert(CommandAgent.GetAzureStorageUsage(Location), "Get azure storage usage should succeeded.");
-            var usages = Location == null ? accountUtils.SRPStorageClient.Usage.List() : accountUtils.SRPStorageClient.Usage.ListByLocation(Location);
+            var usages = Location == null ? accountUtils.SRPStorageClient.Usages.List() : accountUtils.SRPStorageClient.Usages.ListByLocation(Location);
 
             ValidateGetUsageOutput(new List<SRPModel.Usage>(usages));
         }

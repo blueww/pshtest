@@ -90,7 +90,7 @@ namespace Management.Storage.ScenarioTest
 
         public abstract bool Login();
 
-        public abstract void Logout();
+        public abstract bool Logout();
 
         #region Account Keys
         public abstract bool ShowAzureStorageAccountConnectionString(string accountName, string resourceGroupName = null);
@@ -309,6 +309,8 @@ namespace Management.Storage.ScenarioTest
         public abstract bool UpdateAzureStorageServiceProperties(Constants.ServiceType serviceType, string DefaultServiceVersion);
         public abstract bool DisableAzureStorageDeleteRetentionPolicy(bool PassThru = false);
         public abstract bool EnableAzureStorageDeleteRetentionPolicy(int RetentionDays, bool PassThru = false);
+        public abstract bool DisableAzureStorageStaticWebsite(bool PassThru = false);
+        public abstract bool EnableAzureStorageStaticWebsite(string indexDocument, string errorDocument404Path, bool PassThru = false);
         #endregion
 
         #region SAS token APIs

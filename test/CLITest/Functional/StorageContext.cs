@@ -279,6 +279,7 @@ namespace Management.Storage.ScenarioTest.Functional
         [TestMethod()]
         [TestCategory(Tag.Function)]
         [TestCategory(PsTag.StorageContext)]
+        [Ignore]
         public void GetMooncakeStorageContext()
         {
             CLICommonBVT.SaveAndCleanSubScriptionAndEnvConnectionString();
