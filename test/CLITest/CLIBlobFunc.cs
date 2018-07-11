@@ -167,7 +167,8 @@ namespace Management.Storage.ScenarioTest
             Test.Assert(blob.Exists(), "blob " + blobName + " should exist!");
 
             // validate the ContentType value for GetAzureStorageBlob operation
-            dic["ContentType"] = "application/octet-stream";
+            // Remove the ContentType validation since it's not set/control by PowerShell, and is totally server behavior, and can change with server behavior change.
+            //dic["ContentType"] = "application/octet-stream";
 
             //--------------Get operation--------------
             Test.Assert(agent.GetAzureStorageBlob(blobName, ROOT_CONTAINER_NAME), Utility.GenComparisonData("GetAzureStorageBlob", true));
