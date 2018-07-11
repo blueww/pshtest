@@ -30,6 +30,7 @@ namespace Management.Storage.ScenarioTest.Functional
             if (lang == Language.PowerShell)
             {
                 PowerShellAgent.SetAnonymousStorageContext(storageAccountName, useHttps, storageEndPoint);
+                CommandAgent.Logout();
             }
             else
             {
@@ -45,6 +46,7 @@ namespace Management.Storage.ScenarioTest.Functional
         public static void InvalidCredentialCasesClassCleanup()
         {
             CLICommonBVT.RestoreSubScriptionAndEnvConnectionString();
+            CommandAgent.Login();
             NodeJSAgent.AgentConfig.UseEnvVar = PreviousUseEnvVar;
             TestBase.TestClassCleanup();
         }
@@ -135,8 +137,9 @@ namespace Management.Storage.ScenarioTest.Functional
             if (isResourceMode)
             {
                 PowerShellAgent.RemoveAzureSubscriptionIfExists();
+                CommandAgent.Logout();
                 Test.Assert(!CommandAgent.GetAzureStorageUsage(), "Get azure storage usage should fail.");
-                ExpectedContainErrorMessage("No default subscription has been designated.");
+                ExpectedContainErrorMessage("No subscription found in the context.");
             }
         }
 
@@ -147,9 +150,10 @@ namespace Management.Storage.ScenarioTest.Functional
             if (isResourceMode)
             {
                 PowerShellAgent.RemoveAzureSubscriptionIfExists();
+                CommandAgent.Logout();
                 string accountName = AccountUtils.GenerateAvailableAccountName();
                 Test.Assert(!CommandAgent.CheckNameAvailability(accountName), "Check name availability should fail.");
-                ExpectedContainErrorMessage("No default subscription has been designated.");
+                ExpectedContainErrorMessage("No subscription found in the context.");
             }
         }
 

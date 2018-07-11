@@ -121,6 +121,7 @@ namespace Management.Storage.ScenarioTest
             {
                 ImportModule(moduleFilePath);
             }
+            PrintModule();
         }
 
         public static void ImportModule(string ModuleFilePath)
@@ -283,6 +284,18 @@ namespace Management.Storage.ScenarioTest
 
             Test.Info("Set PowerShell Storage Context using connection string, Cmdline: {0}", GetCommandLine(ps));
             SetStorageContext(ps);
+        }
+
+        public static void PrintModule()
+        {
+            PowerShell ps = PowerShell.Create(_InitState);
+            ps.AddCommand("Get-Module");
+
+            var result = ps.Invoke();
+            foreach (PSObject po in result)
+            {
+                Test.Info(((System.Management.Automation.PSModuleInfo)po.BaseObject).ModuleBase);
+            }
         }
 
         public static void SetLocalStorageContext()
@@ -1408,6 +1421,29 @@ namespace Management.Storage.ScenarioTest
             ps.AddCommand("Update-AzureStorageServiceProperty");
             ps.BindParameter("ServiceType", serviceType.ToString());
             ps.BindParameter("DefaultServiceVersion", DefaultServiceVersion);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+
+        public override bool DisableAzureStorageStaticWebsite(bool PassThru = false)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Disable-AzureStorageStaticWebsite");
+            ps.BindParameter("PassThru", PassThru);
+
+            return InvokeStoragePowerShell(ps);
+        }
+
+        public override bool EnableAzureStorageStaticWebsite(string indexDocument, string errorDocument404Path, bool PassThru = false)
+        {
+            PowerShell ps = GetPowerShellInstance();
+
+            ps.AddCommand("Enable-AzureStorageStaticWebsite");
+            ps.BindParameter("IndexDocument", indexDocument);
+            ps.BindParameter("ErrorDocument404Path", errorDocument404Path);
+            ps.BindParameter("PassThru", PassThru);
 
             return InvokeStoragePowerShell(ps);
         }
@@ -3847,9 +3883,12 @@ namespace Management.Storage.ScenarioTest
             return !ps.HadErrors;
         }
 
-        public override void Logout()
+        public override bool Logout()
         {
-            //Do nothing
+            PowerShell ps = GetPowerShellInstance();
+            ps.AddScript("Logout-AzureRmAccount");
+            ps.Invoke();
+            return !ps.HadErrors;
         }
 
         public override bool ShowAzureStorageAccountConnectionString(string accountName, string resourceGroupName = null)

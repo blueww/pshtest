@@ -69,8 +69,8 @@ namespace Management.Storage.ScenarioTest
                 resourceGroupName = accountUtils.GenerateResourceGroupName();
                 resourceManager.CreateResourceGroup(resourceGroupName, resourceLocation);
 
-                var parameters = new SRPModel.StorageAccountCreateParameters(new SRPModel.Sku(SRPModel.SkuName.StandardGRS), SRPModel.Kind.Storage,
-                    isMooncake ? Constants.MCLocation.ChinaEast : allowedLocation);
+                var parameters = new SRPModel.StorageAccountCreateParameters(new SRPModel.Sku(SRPModel.SkuName.StandardLRS), SRPModel.Kind.StorageV2,
+                    isMooncake ? Constants.MCLocation.ChinaEast : Constants.Location.EastUS2Stage);
                 accountUtils.SRPStorageClient.StorageAccounts.CreateAsync(resourceGroupName, accountName, parameters, CancellationToken.None).Wait();
 
                 //resourceGroupName = "weitest";

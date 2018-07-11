@@ -285,10 +285,10 @@ namespace Management.Storage.ScenarioTest.Common
 
                     string settingFile = Test.Data.Get("AzureSubscriptionPath");
                     string subscriptionId = Test.Data.Get("AzureSubscriptionID");
-                    CommandAgent.ImportAzureSubscription(settingFile);
+                    //CommandAgent.ImportAzureSubscription(settingFile);
 
                     string subscriptionID = Test.Data.Get("AzureSubscriptionID");
-                    CommandAgent.SetActiveSubscription(subscriptionID);
+                    //CommandAgent.SetActiveSubscription(subscriptionID);
 
                     accountImported = true;
                 }
