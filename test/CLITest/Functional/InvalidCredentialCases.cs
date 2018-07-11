@@ -135,8 +135,9 @@ namespace Management.Storage.ScenarioTest.Functional
             if (isResourceMode)
             {
                 PowerShellAgent.RemoveAzureSubscriptionIfExists();
+                CommandAgent.Logout();
                 Test.Assert(!CommandAgent.GetAzureStorageUsage(), "Get azure storage usage should fail.");
-                ExpectedContainErrorMessage("No default subscription has been designated.");
+                ExpectedContainErrorMessage("No subscription found in the context.");
             }
         }
 
@@ -147,9 +148,10 @@ namespace Management.Storage.ScenarioTest.Functional
             if (isResourceMode)
             {
                 PowerShellAgent.RemoveAzureSubscriptionIfExists();
+                CommandAgent.Logout();
                 string accountName = AccountUtils.GenerateAvailableAccountName();
                 Test.Assert(!CommandAgent.CheckNameAvailability(accountName), "Check name availability should fail.");
-                ExpectedContainErrorMessage("No default subscription has been designated.");
+                ExpectedContainErrorMessage("No subscription found in the context.");
             }
         }
 

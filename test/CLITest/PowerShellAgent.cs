@@ -121,6 +121,7 @@ namespace Management.Storage.ScenarioTest
             {
                 ImportModule(moduleFilePath);
             }
+            PrintModule();
         }
 
         public static void ImportModule(string ModuleFilePath)
@@ -285,7 +286,19 @@ namespace Management.Storage.ScenarioTest
             SetStorageContext(ps);
         }
 
-        public static void SetLocalStorageContext()
+        public static void PrintModule()
+        {
+            PowerShell ps = PowerShell.Create(_InitState);
+            ps.AddCommand("Get-Module");
+
+            var result = ps.Invoke();
+            foreach (PSObject po in result)
+            {
+                Test.Info(((System.Management.Automation.PSModuleInfo) po.BaseObject).ModuleBase);
+            }
+        }
+
+public static void SetLocalStorageContext()
         {
             PowerShell ps = PowerShell.Create(_InitState);
             ps.AddCommand("New-AzureStorageContext");
@@ -3821,7 +3834,9 @@ namespace Management.Storage.ScenarioTest
 
         public override void Logout()
         {
-            //Do nothing
+            PowerShell ps = GetPowerShellInstance();
+            ps.AddScript("Logout-AzureRmAccount");
+            ps.Invoke();
         }
 
         public override bool ShowAzureStorageAccountConnectionString(string accountName, string resourceGroupName = null)

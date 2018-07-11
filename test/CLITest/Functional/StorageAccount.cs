@@ -1906,11 +1906,11 @@ namespace Management.Storage.ScenarioTest
 
                     string invalidCustomDomainName = "www.bing.com";
                     Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, customDomain: invalidCustomDomainName, useSubdomain: null), "Set custom domain should fail.");
-                    ExpectedContainErrorMessage(string.Format("The custom domain name could not be verified. CNAME mapping from {0} to {1}.blob.core.windows.net does not exist.", invalidCustomDomainName, accountName));
+                    ExpectedContainErrorMessage(string.Format("The custom domain name could not be verified. CNAME mapping from {0} to", invalidCustomDomainName));
 
                     invalidCustomDomainName = accountUtils.GenerateAccountName();
                     Test.Assert(!CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountName, customDomain: invalidCustomDomainName, useSubdomain: null), "Set custom domain should fail.");
-                    ExpectedContainErrorMessage(string.Format("The custom domain name could not be verified. CNAME mapping from {0} to {1}.blob.core.windows.net does not exist.", invalidCustomDomainName, accountName));
+                    ExpectedContainErrorMessage(string.Format("The custom domain name could not be verified. CNAME mapping from {0} to", invalidCustomDomainName));
                 }
                 finally
                 {
@@ -2793,8 +2793,8 @@ namespace Management.Storage.ScenarioTest
             {
                 try
                 {
-                    SetSRPAccount(accountNameForConnectionStringTest, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, StorageEncryption: true);
-                    accountUtils.ValidateSRPAccount(resourceGroupName, accountNameForConnectionStringTest, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, StorageEncryption: true);
+                    SetSRPAccount(accountNameForConnectionStringTest, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob, StorageEncryption: true, kind: Kind.StorageV2);
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountNameForConnectionStringTest, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, StorageEncryption: true, kind: Kind.StorageV2);
 
                 }
                 catch (Exception e)

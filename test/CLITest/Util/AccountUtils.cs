@@ -95,6 +95,10 @@
 
                 return Constants.Location.WestUS;
             }
+            else if (type == this.mapAccountType(Constants.AccountType.Standard_ZRS))
+            {
+                return Constants.Location.SoutheastAsia;
+            }
             else
             {
                 if (isMooncake)
