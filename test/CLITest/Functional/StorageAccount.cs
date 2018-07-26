@@ -2873,47 +2873,28 @@ namespace Management.Storage.ScenarioTest
             {
                 try
                 {
-                    string cMKResourceGroup = Test.Data.Get("CMKAccountResourceGroup");
-                    string cMKAccountName = Test.Data.Get("CMKAccountName");
                     string cMKKeyName = Test.Data.Get("CMKKeyName");
                     string cMKKeyVersion = Test.Data.Get("CMKKeyVersion");
                     string cMKKeyvaultUri = Test.Data.Get("CMKKeyvaultUri");
 
                     //Set to Microsoft.Storage
-                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(cMKResourceGroup, cMKAccountName,
+                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountNameForConnectionStringTest,
                         StorageEncryption: true, kind: Kind.StorageV2),
                         "Set Keysource to MicrosoftStorage should succeed.");
-                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, kind: Kind.StorageV2, accessTier: AccessTier.Cool, StorageEncryption: true);
-
-
-                    //Set to Keyvault + Blob/File Enable
-                    Test.Assert(CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
-                        enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File,
-                        keyvaultEncryption: true,
-                        keyName: cMKKeyName,
-                        keyVersion: cMKKeyVersion,
-                        keyVaultUri: cMKKeyvaultUri),
-                        "Set Keysource to MicrosoftKeyvault should succeed.");
-                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, 
-                        kind: Kind.StorageV2,
-                        enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, 
-                        keyvaultEncryption: true,
-                        keyName: cMKKeyName,
-                        keyVersion: cMKKeyVersion,
-                        keyVaultUri: cMKKeyvaultUri);     
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountNameForConnectionStringTest, kind: Kind.StorageV2, accessTier: AccessTier.Cool, StorageEncryption: true);
 
                     //Set only Keyname or KeyVersion or KeyvaultUri
-                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountKeyVault(resourceGroupName, accountNameForConnectionStringTest,
                         keyvaultEncryption: true,
                         keyName: cMKKeyName),
                         "Set Only keyName to MicrosoftKeyvault should Fail.");
                     ExpectedContainErrorMessage("Cannot process command because of one or more missing mandatory parameters: KeyVersion KeyVaultUri.");
-                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountKeyVault(resourceGroupName, accountNameForConnectionStringTest,
                         keyvaultEncryption: true,
                         keyVersion: cMKKeyVersion),
                         "Set Only keyName to MicrosoftKeyvault should Fail.");
                     ExpectedContainErrorMessage("Cannot process command because of one or more missing mandatory parameters: KeyName KeyVaultUri.");
-                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountKeyVault(cMKResourceGroup, cMKAccountName,
+                    Test.Assert(!CommandAgent.SetSRPAzureStorageAccountKeyVault(resourceGroupName, accountNameForConnectionStringTest,
                         keyvaultEncryption: true,
                         keyVaultUri: cMKKeyvaultUri),
                         "Set Only keyName to MicrosoftKeyvault should Fail.");
@@ -2936,11 +2917,8 @@ namespace Management.Storage.ScenarioTest
             {
                 try
                 {
-                    string cMKResourceGroup = Test.Data.Get("CMKAccountResourceGroup");
-                    string cMKAccountName = Test.Data.Get("CMKAccountName");
-
-                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(cMKResourceGroup, cMKAccountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob| Constants.EncryptionSupportServiceEnum.File, AssignIdentity: true, kind: Kind.StorageV2), "Set IdentityType should succeed.");
-                    accountUtils.ValidateSRPAccount(cMKResourceGroup, cMKAccountName, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, AssignIdentity: true, kind: Kind.StorageV2, accessTier: AccessTier.Cool);
+                    Test.Assert(CommandAgent.SetSRPAzureStorageAccount(resourceGroupName, accountNameForConnectionStringTest, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob| Constants.EncryptionSupportServiceEnum.File, AssignIdentity: true, kind: Kind.StorageV2), "Set IdentityType should succeed.");
+                    accountUtils.ValidateSRPAccount(resourceGroupName, accountNameForConnectionStringTest, enableEncryptionService: Constants.EncryptionSupportServiceEnum.Blob | Constants.EncryptionSupportServiceEnum.File, AssignIdentity: true, kind: Kind.StorageV2, accessTier: AccessTier.Cool);
                 }
                 catch (Exception e)
                 {

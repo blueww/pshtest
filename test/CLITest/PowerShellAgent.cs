@@ -52,7 +52,7 @@ namespace Management.Storage.ScenarioTest
         private static Hashtable ExpectedErrorMsgTablePS = new Hashtable() {
                 {"GetBlobContentWithNotExistsBlob", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
                 {"GetBlobContentWithNotExistsContainer", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
-                {"SetBlobContentWithInvalidBlobType", "User specified blob type does not match the blob type of the existing destination blob."},
+                {"SetBlobContentWithInvalidBlobType", "The blob type is invalid for this operation."},
                 {"GetNonExistingBlob", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
                 {"RemoveBlobWithLease", "The remote server returned an error: (412)"},
                 {"SetPageBlobWithInvalidFileSize", "File size {0} bytes is invalid for PageBlob, must be a multiple of 512 bytes"},
