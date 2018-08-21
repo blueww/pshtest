@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+	<DefineConstants>$(DefineConstants);DOTNET5_4</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\test\internal\StorageTestLib\Helpers.cs" Link="Helpers.cs" />
+    <Compile Include="..\..\test\internal\StorageTestLib\StorageExtensions.cs" Link="StorageExtensions.cs" />
+    <Compile Include="..\..\test\internal\StorageTestLib\TestConstants.cs" Link="TestConstants.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WindowsAzure.Storage" Version="9.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MsTestLib\MsTestLib.csproj" />
+  </ItemGroup>
+
+</Project>

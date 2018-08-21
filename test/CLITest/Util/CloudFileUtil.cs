@@ -15,6 +15,7 @@
     using Microsoft.WindowsAzure.Storage.Blob;
     using Microsoft.WindowsAzure.Storage.File;
     using MS.Test.Common.MsTestLib;
+    using StorageTestLib;
 
     public class CloudFileUtil : UtilBase
     {

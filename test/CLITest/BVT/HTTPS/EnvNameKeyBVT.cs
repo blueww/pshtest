@@ -43,6 +43,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             string StorageAccountName = Test.Data.Get("StorageAccountName");
             string StorageAccountKey = Test.Data.Get("StorageAccountKey");
 
+#if !DOTNET5_4
             if (NodeJSAgent.AgentOSType == OSType.Windows)
             {
                 Environment.SetEnvironmentVariable("AZURE_STORAGE_ACCOUNT", StorageAccountName);
@@ -54,6 +55,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
                 NodeJSAgent.AgentConfig.AccountKey = StorageAccountKey;
             }
             NodeJSAgent.AgentConfig.UseEnvVar = true;
+#endif
         }
 
         [ClassCleanup()]

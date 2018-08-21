@@ -53,12 +53,14 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             {
                 PowerShellAgent.SetStorageContext(SetUpStorageAccount.ToString(true));
             }
+#if !DOTNET5_4
             else
             {
                 NodeJSAgent.AgentConfig.UseEnvVar = false;
                 NodeJSAgent.AgentConfig.AccountName = StorageAccountName;
                 NodeJSAgent.AgentConfig.AccountKey = SetUpStorageAccount.Credentials.ExportBase64EncodedKey();
             }
+#endif
         }
     }
 }

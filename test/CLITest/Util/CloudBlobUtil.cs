@@ -288,7 +288,11 @@ namespace Management.Storage.ScenarioTest.Util
             random.NextBytes(buffer);
             using (MemoryStream ms = new MemoryStream(buffer))
             {
+#if DOTNET5_4
+                await pageBlob.UploadFromStreamAsync(ms, null, null, null, cancellationToken);
+#else
                 await pageBlob.UploadFromStreamAsync(ms, cancellationToken);
+#endif
             }
 
             string md5sum = Convert.ToBase64String(Helper.GetMD5(buffer));

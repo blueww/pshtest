@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "MsTest2": {
+      "commandName": "Project",
+      "commandLineArgs": "-lib CLITest\\CLITest.dll -config TestData.xml -group Management.Storage.ScenarioTest.BVT.HTTPS.ParamNameKeyBVT -case NewContainerTest -lang PowerShell",
+      "workingDirectory": "D:\\clitest\\netcore\\MsTest2\\bin\\Debug\\netcoreapp2.1\\publish"
+    }
+  }
+}
