@@ -42,9 +42,11 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             string StorageAccountName = Test.Data.Get("StorageAccountName");
             string StorageAccountKey = Test.Data.Get("StorageAccountKey");
 
+#if !DOTNET5_4
             NodeJSAgent.AgentConfig.AccountName = StorageAccountName;
             NodeJSAgent.AgentConfig.AccountKey = StorageAccountKey;
             NodeJSAgent.AgentConfig.UseEnvVar = false;
+#endif
         }
 
         [ClassCleanup()]

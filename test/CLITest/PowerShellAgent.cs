@@ -49,6 +49,10 @@ namespace Management.Storage.ScenarioTest
         private static string CmdletLogFormat = "{0} : {1}";
         protected bool _UseContextParam = true;  // decide whether to specify the Context parameter
 
+#if DOTNET5_4
+        private static List<Command> InitializeCommands = new List<Command>();
+#endif
+
         private static Hashtable ExpectedErrorMsgTablePS = new Hashtable() {
                 {"GetBlobContentWithNotExistsBlob", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
                 {"GetBlobContentWithNotExistsContainer", "Can not find blob '{0}' in container '{1}', or the blob type is unsupported."},
@@ -94,6 +98,33 @@ namespace Management.Storage.ScenarioTest
         // add this member for importing module
         private static InitialSessionState _InitState = InitialSessionState.CreateDefault();
 
+        private static PowerShell InitializePSInstance()
+        {
+#if DOTNET5_4
+            // Importing module within _InitState doesn't work for PowerShell Core
+            // Invoke Import-Module directly with PowerShell instance instead.
+            var psInstance = PowerShell.Create(_InitState);
+
+            foreach (var command in InitializeCommands)
+            {
+                psInstance.Commands.AddCommand(command);
+                psInstance.Invoke();
+
+                if (psInstance.HadErrors)
+                {
+                    Test.Error("Import module failed: {0}", psInstance.Streams.Error[0].ToString());
+                }
+
+                psInstance.Commands.Clear();
+            }
+
+            return psInstance;
+                
+#else
+            return PowerShell.Create(_InitState);
+#endif
+        }
+
         private PowerShell GetPowerShellInstance()
         {
             this.Clear();
@@ -102,7 +133,7 @@ namespace Management.Storage.ScenarioTest
 
         public static void RemoveModule(string moduleName)
         {
-            PowerShell ps = PowerShell.Create(_InitState);
+            PowerShell ps = InitializePSInstance();
             //TODO add tests for positional parameter
             ps.AddCommand("Remove-Module");
             ps.BindParameter("Name", moduleName);
@@ -133,12 +164,18 @@ namespace Management.Storage.ScenarioTest
             }
 
             Test.Info("Import-Module {0}", ModuleFilePath);
+#if DOTNET5_4
+            var command = new Command("Import-Module");
+            command.Parameters.Add("Name", ModuleFilePath);
+            InitializeCommands.Add(command);
+#else
             _InitState.ImportPSModule(new string[] { ModuleFilePath });
+#endif
         }
 
         public static void InstallAzureModule()
         {
-            PowerShell ps = PowerShell.Create(_InitState);
+            PowerShell ps = InitializePSInstance();
             //TODO add tests for positional parameter
             ps.AddCommand("Install-Module");
             ps.BindParameter("Name", "Azure");
@@ -182,7 +219,7 @@ namespace Management.Storage.ScenarioTest
         /// <param name="filePath">Azure subscription file path</param>
         public static void ImportAzureSubscriptionAndSetStorageAccount(string filePath, string subscriptionName, string storageAccountName)
         {
-            PowerShell ps = PowerShell.Create(_InitState);
+            PowerShell ps = InitializePSInstance();
             //TODO add tests for positional parameter
             ps.AddCommand("Import-AzurePublishSettingsFile");
             ps.BindParameter("PublishSettingsFile", filePath);
@@ -194,7 +231,7 @@ namespace Management.Storage.ScenarioTest
                 return;
             }
 
-            ps = PowerShell.Create(_InitState);
+            ps = InitializePSInstance();
             ps.AddCommand("Set-AzureSubscription");
             ps.BindParameter("SubscriptionName", subscriptionName);
             ps.BindParameter("CurrentStorageAccount", storageAccountName);
@@ -226,7 +263,7 @@ namespace Management.Storage.ScenarioTest
         public static string AddRandomAzureEnvironment(string endpoint, string prefix = "")
         {
             string envName = Utility.GenNameString(prefix);
-            PowerShell ps = PowerShell.Create(_InitState);
+            PowerShell ps = InitializePSInstance();
             ps.AddCommand("Add-AzureEnvironment");
             ps.BindParameter("Name", envName);
             ps.BindParameter("PublishSettingsFileUrl", Utility.GenNameString("PublishSettingsFileUrl"));
@@ -248,7 +285,7 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         public static void RemoveAzureSubscriptionIfExists()
         {
-            PowerShell ps = PowerShell.Create(_InitState);
+            PowerShell ps = InitializePSInstance();
             ps.AddScript("Get-AzureSubscription | Remove-AzureSubscription -Force");
             ps.Invoke();
         }
@@ -256,7 +293,7 @@ namespace Management.Storage.ScenarioTest
         public static void SetStorageContext(string StorageAccountName, string StorageAccountKey,
             bool useHttps = true, string endPoint = "")
         {
-            PowerShell ps = PowerShell.Create(_InitState);
+            PowerShell ps = InitializePSInstance();
             ps.AddCommand("New-AzureStorageContext");
             ps.BindParameter("StorageAccountName", StorageAccountName);
             ps.BindParameter("StorageAccountKey", StorageAccountKey);
@@ -278,7 +315,7 @@ namespace Management.Storage.ScenarioTest
 
         public static void SetStorageContext(string ConnectionString)
         {
-            PowerShell ps = PowerShell.Create(_InitState);
+            PowerShell ps = InitializePSInstance();
             ps.AddCommand("New-AzureStorageContext");
             ps.BindParameter("ConnectionString", ConnectionString);
 
@@ -288,7 +325,7 @@ namespace Management.Storage.ScenarioTest
 
         public static void PrintModule()
         {
-            PowerShell ps = PowerShell.Create(_InitState);
+            PowerShell ps = InitializePSInstance();
             ps.AddCommand("Get-Module");
 
             var result = ps.Invoke();
@@ -300,7 +337,7 @@ namespace Management.Storage.ScenarioTest
 
 public static void SetLocalStorageContext()
         {
-            PowerShell ps = PowerShell.Create(_InitState);
+            PowerShell ps = InitializePSInstance();
             ps.AddCommand("New-AzureStorageContext");
             ps.BindParameter("Local");
 
@@ -310,7 +347,7 @@ public static void SetLocalStorageContext()
 
         public static void SetAnonymousStorageContext(string StorageAccountName, bool useHttps, string endPoint = "")
         {
-            PowerShell ps = PowerShell.Create(_InitState);
+            PowerShell ps = InitializePSInstance();
             ps.AddCommand("New-AzureStorageContext");
             ps.BindParameter("StorageAccountName", StorageAccountName);
             ps.BindParameter("Anonymous");
@@ -389,7 +426,7 @@ public static void SetLocalStorageContext()
         public static void SetStorageContextWithAzureEnvironment(string StorageAccountName, string StorageAccountKey,
             bool useHttps = true, string azureEnvironmentName = "")
         {
-            PowerShell ps = PowerShell.Create(_InitState);
+            PowerShell ps = InitializePSInstance();
             ps.AddCommand("New-AzureStorageContext");
             ps.BindParameter("StorageAccountName", StorageAccountName);
             ps.BindParameter("StorageAccountKey", StorageAccountKey);
@@ -460,7 +497,7 @@ public static void SetLocalStorageContext()
 
         internal static object GetStorageContext(string ConnectionString)
         {
-            PowerShell ps = PowerShell.Create(_InitState);
+            PowerShell ps = InitializePSInstance();
             ps.AddCommand("New-AzureStorageContext");
             ps.BindParameter("ConnectionString", ConnectionString);
 
@@ -471,7 +508,7 @@ public static void SetLocalStorageContext()
 
         internal static object GetStorageContext(string StorageAccountName, string StorageAccountKey)
         {
-            PowerShell ps = PowerShell.Create(_InitState);
+            PowerShell ps = InitializePSInstance();
             ps.AddCommand("New-AzureStorageContext");
             ps.BindParameter("StorageAccountName", StorageAccountName);
             ps.BindParameter("StorageAccountKey", StorageAccountKey);
@@ -3071,7 +3108,7 @@ public static void SetLocalStorageContext()
             return bResult;
         }
 
-        #region xSMB operations
+#region xSMB operations
 
         private PowerShell shell;
 
@@ -3083,7 +3120,7 @@ public static void SetLocalStorageContext()
             var initSessionState = _InitState.Clone();
             initSessionState.LanguageMode = PSLanguageMode.FullLanguage;
 
-            this.shell = PowerShell.Create(initSessionState);
+            this.shell = InitializePSInstance();
             this.Clear();
         }
 
@@ -3793,7 +3830,7 @@ public static void SetLocalStorageContext()
             }
         }
 
-        #endregion
+#endregion
 
         public override bool ChangeCLIMode(Constants.Mode mode)
         {

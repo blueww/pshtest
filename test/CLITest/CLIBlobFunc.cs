@@ -175,6 +175,7 @@ namespace Management.Storage.ScenarioTest
             // Verification for returned values
             agent.OutputValidation(comp);
 
+#if !DOTNET5_4
             if (agent is NodeJSAgent)
             {
                 NodeJSAgent nodejsAgent = (NodeJSAgent)agent;
@@ -183,6 +184,7 @@ namespace Management.Storage.ScenarioTest
                 // Verification for returned values
                 nodejsAgent.OutputValidation(comp);
             }
+#endif
 
             //--------------Download operation--------------
             downloadFilePath = Path.Combine(DownloadDirPath, blobName);    

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+	<DefineConstants>$(DefineConstants);DOTNET5_4</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\test\internal\MsTest2\Main.cs" Link="Main.cs" />
+    <Compile Include="..\..\test\internal\MsTest2\TestClassUnit.cs" Link="TestClassUnit.cs" />
+    <Compile Include="..\..\test\internal\MsTest2\TestContext2.cs" Link="TestContext2.cs" />
+    <Compile Include="..\..\test\internal\MsTest2\TestMethodUnit.cs" Link="TestMethodUnit.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MSTest.TestFramework" Version="1.1.18" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MsTestLib\MsTestLib.csproj" />
+  </ItemGroup>
+
+</Project>
