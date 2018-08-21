@@ -674,6 +674,7 @@ namespace Management.Storage.ScenarioTest.BVT
             }
         }
 
+#if !DOTNET5_4
         /// <summary>
         /// BVT case : for container show command
         /// </summary>
@@ -774,6 +775,7 @@ namespace Management.Storage.ScenarioTest.BVT
                 container.DeleteIfExists();
             }
         }
+#endif
 
         internal CloudBlob CopyBlobAndWaitForComplete(CloudBlobUtil blobUtil)
         {

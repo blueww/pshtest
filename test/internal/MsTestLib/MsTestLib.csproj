@@ -43,10 +43,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>...\..\..\azcopy\dmlib\internal\imports\VisualStudio\VS10RTM\MsTest\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
+      <HintPath>...\imports\VisualStudio\VS10RTM\MsTest\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Wtt.Log, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8a96d095ee9fe264">
-      <HintPath>..\..\..\azcopy\dmlib\internal\imports\WTT\2.6\Logger\amd64\Microsoft.Wtt.Log.dll</HintPath>
+      <HintPath>..\imports\WTT\2.6\Logger\amd64\Microsoft.Wtt.Log.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -56,43 +56,43 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\ClassConfig.cs">
+    <Compile Include="ClassConfig.cs">
       <Link>ClassConfig.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\ConsoleLogger.cs">
+    <Compile Include="ConsoleLogger.cs">
       <Link>ConsoleLogger.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\DumpHelper.cs">
+    <Compile Include="DumpHelper.cs">
       <Link>DumpHelper.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\Exceptions.cs">
+    <Compile Include="Exceptions.cs">
       <Link>Exceptions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\FileLogger.cs">
+    <Compile Include="FileLogger.cs">
       <Link>FileLogger.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\ILogger.cs">
+    <Compile Include="ILogger.cs">
       <Link>ILogger.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\MessageBuilder.cs">
+    <Compile Include="MessageBuilder.cs">
       <Link>MessageBuilder.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\MethodConfig.cs">
+    <Compile Include="MethodConfig.cs">
       <Link>MethodConfig.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\Test.cs">
+    <Compile Include="Test.cs">
       <Link>Test.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\TestConfig.cs">
+    <Compile Include="TestConfig.cs">
       <Link>TestConfig.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\TestHelper.cs">
+    <Compile Include="TestHelper.cs">
       <Link>TestHelper.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\TestLogger.cs">
+    <Compile Include="TestLogger.cs">
       <Link>TestLogger.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\WTTLogger.cs">
+    <Compile Include="WTTLogger.cs">
       <Link>WTTLogger.cs</Link>
     </Compile>
   </ItemGroup>

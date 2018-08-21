@@ -52,12 +52,15 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
                 string azureEnvironmentName = PowerShellAgent.AddRandomAzureEnvironment(StorageEndpoint, "bvt");
                 PowerShellAgent.SetStorageContextWithAzureEnvironment(StorageAccountName, StorageAccountKey, useHttps, azureEnvironmentName);
             }
+
+#if !DOTNET5_4
             else
             {
                 NodeJSAgent.AgentConfig.UseEnvVar = false;
                 NodeJSAgent.AgentConfig.AccountName = StorageAccountName;
                 NodeJSAgent.AgentConfig.AccountKey = StorageAccountKey;
             }
+#endif
         }
     }
 }

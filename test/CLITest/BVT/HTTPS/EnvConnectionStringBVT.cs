@@ -79,6 +79,8 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             {
                 Environment.SetEnvironmentVariable(EnvKey, SetUpStorageAccount.ToString(true));
             }
+
+#if !DOTNET5_4
             else if (lang == Language.NodeJS)
             {
                 switch (NodeJSAgent.AgentOSType)
@@ -93,6 +95,7 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
                 }
                 NodeJSAgent.AgentConfig.UseEnvVar = true;
             }
+#endif
             Test.Info("set env var {0} = {1}", EnvKey, SetUpStorageAccount.ToString(true));
         }
     }
