@@ -39,9 +39,9 @@
   <AgentOS>Windows</AgentOS>
 
   <!-- The following settings are for storage data tests -->
-  <StorageAccountName>emmahk2</StorageAccountName>
-  <StorageAccountKey>NiCJ0KtN1YWIebcfODbaKWa5dL9xKvOsIhE8mBnysTGnTyZFlUacjDD0h3/14X54xws+k7oeI6PEFOai16253A==</StorageAccountKey>
-  <StorageConnectionString>AccountName=emmahk2;AccountKey=NiCJ0KtN1YWIebcfODbaKWa5dL9xKvOsIhE8mBnysTGnTyZFlUacjDD0h3/14X54xws+k7oeI6PEFOai16253A==</StorageConnectionString>
+  <StorageAccountName>testaccount1</StorageAccountName>
+  <StorageAccountKey>FjUfNl1KiJttbXlsdkMzBTC7WagvrRM9/g6UPBuy0ypCpAbYTL6/KA+dI/7gyoWvLFYmah3IviUP1jykOHHOlA==</StorageAccountKey>
+  <StorageConnectionString>DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/testaccount1;QueueEndpoint=http://127.0.0.1:10001/testaccount1;TableEndpoint=http://127.0.0.1:10002/testaccount1;FileEndpoint=http://127.0.0.1:10004/testaccount1;AccountName=testaccount1;AccountKey=FjUfNl1KiJttbXlsdkMzBTC7WagvrRM9/g6UPBuy0ypCpAbYTL6/KA+dI/7gyoWvLFYmah3IviUP1jykOHHOlA==</StorageConnectionString>
   <StorageAccountResourceGroup>Default-Storage-EastAsia</StorageAccountResourceGroup>
   <StorageConnectionString2></StorageConnectionString2>
   <Pre42StorageConnectionString></Pre42StorageConnectionString>
@@ -69,8 +69,8 @@
   <!-- Mooncake subscription -->
   <MooncakeSubscriptionName>Azure Storage DM</MooncakeSubscriptionName>
   <MooncakeSubscriptionPath>D:\powershell\Azure Storage DM-7-16-2015-credentials.publishsettings</MooncakeSubscriptionPath>
-  <MooncakeStorageAccountName>emmahk2</MooncakeStorageAccountName>
-  <MooncakeStorageAccountKey>NiCJ0KtN1YWIebcfODbaKWa5dL9xKvOsIhE8mBnysTGnTyZFlUacjDD0h3/14X54xws+k7oeI6PEFOai16253A==</MooncakeStorageAccountKey>
+  <MooncakeStorageAccountName>testaccount1</MooncakeStorageAccountName>
+  <MooncakeStorageAccountKey>FjUfNl1KiJttbXlsdkMzBTC7WagvrRM9/g6UPBuy0ypCpAbYTL6/KA+dI/7gyoWvLFYmah3IviUP1jykOHHOlA==</MooncakeStorageAccountKey>
 
   <NodeWorkingDirectory>.</NodeWorkingDirectory>
   <BigBlobUri>http://xdmtestsea.blob.core.windows.net/public/Fedora-18-x86_64-Live-Desktop.iso?sv=2017-04-17&amp;sr=b&amp;sig=fdgRDOh2PDyeo8o7Vuh%2FfUJPOFwXgp8LQtp%2BitE6kUc%3D&amp;se=2020-12-30T16%3A00%3A00Z&amp;sp=r</BigBlobUri>
