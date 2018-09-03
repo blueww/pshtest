@@ -63,18 +63,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTest2\Main.cs">
-      <Link>Main.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTest2\TestClassUnit.cs">
-      <Link>TestClassUnit.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTest2\TestContext2.cs">
-      <Link>TestContext2.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTest2\TestMethodUnit.cs">
-      <Link>TestMethodUnit.cs</Link>
-    </Compile>
+    <Compile Include="Main.cs" />
+    <Compile Include="TestClassUnit.cs" />
+    <Compile Include="TestContext2.cs" />
+    <Compile Include="TestMethodUnit.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MsTestLib\MsTestLib.csproj">
