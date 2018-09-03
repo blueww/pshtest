@@ -96,6 +96,15 @@ namespace StorageTestLib
             blob.UploadFromStreamAsync(source, accessCondition, options, operationContext).GetAwaiter().GetResult();
         }
 
+        public static void UploadFromStream(this CloudPageBlob blob,
+            Stream source,
+            AccessCondition accessCondition = null,
+            BlobRequestOptions options = null,
+            OperationContext operationContext = null)
+        {
+            blob.UploadFromStreamAsync(source, accessCondition, options, operationContext).GetAwaiter().GetResult();
+        }
+
         public static void PutBlockList(this CloudBlockBlob blob, string[] blockIds)
         {
             blob.PutBlockListAsync(blockIds).GetAwaiter().GetResult();

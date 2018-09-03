@@ -373,17 +373,13 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\azcopy\dmlib\internal\test\StorageTestLib\StorageTestLib.csproj">
-      <Project>{4f2832dd-e6c6-48b7-819a-ae06bfcafa7c}</Project>
-      <Name>StorageTestLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\MsTestLib.csproj">
+    <ProjectReference Include="..\internal\MsTestLib\MsTestLib.csproj">
       <Project>{ac39b50f-dc27-4411-9ed4-a4a137190acb}</Project>
       <Name>MsTestLib</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTest2\MsTest2.csproj">
-      <Project>{A7EDCC64-0549-4C78-ACED-0CA7B605D8FB}</Project>
-      <Name>MsTest2</Name>
+    <ProjectReference Include="..\internal\StorageTestLib\StorageTestLib.csproj">
+      <Project>{4f2832dd-e6c6-48b7-819a-ae06bfcafa7c}</Project>
+      <Name>StorageTestLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
