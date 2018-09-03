@@ -121,16 +121,16 @@
 
   <ItemGroup>
     <Reference Include="Microsoft.Azure.Commands.Management.Storage">
-      <HintPath>..\..\PowerShell\src\Package\Debug\ResourceManager\AzureResourceManager\AzureRM.Storage.Netcore\Microsoft.Azure.Commands.Management.Storage.dll</HintPath>
+      <HintPath>..\..\PowerShell\Package\Debug\ResourceManager\AzureResourceManager\AzureRM.Storage.Netcore\Microsoft.Azure.Commands.Management.Storage.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Azure.Common">
       <HintPath>..\References\Microsoft.Azure.Common\netstandard1.5\Microsoft.Azure.Common.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Commands.Common.Storage">
-      <HintPath>..\..\PowerShell\src\Package\Debug\Storage\Azure.Storage.Netcore\Microsoft.WindowsAzure.Commands.Common.Storage.dll</HintPath>
+      <HintPath>..\..\PowerShell\Package\Debug\Storage\Azure.Storage.Netcore\Microsoft.WindowsAzure.Commands.Common.Storage.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Commands.Storage">
-      <HintPath>..\..\PowerShell\src\Package\Debug\Storage\Azure.Storage.Netcore\Microsoft.WindowsAzure.Commands.Storage.dll</HintPath>
+      <HintPath>..\..\PowerShell\Package\Debug\Storage\Azure.Storage.Netcore\Microsoft.WindowsAzure.Commands.Storage.dll</HintPath>
     </Reference>
   </ItemGroup>
 
