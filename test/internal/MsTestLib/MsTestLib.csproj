@@ -15,11 +15,6 @@
     <RestorePackages>true</RestorePackages>
     <TargetFrameworkProfile />
   </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\..\..\azcopy\dmlib\internal\tools\strongnamekeys\fake\windows.snk</AssemblyOriginatorKeyFile>
-    <DelaySign>true</DelaySign>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -56,45 +51,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClassConfig.cs">
-      <Link>ClassConfig.cs</Link>
-    </Compile>
-    <Compile Include="ConsoleLogger.cs">
-      <Link>ConsoleLogger.cs</Link>
-    </Compile>
-    <Compile Include="DumpHelper.cs">
-      <Link>DumpHelper.cs</Link>
-    </Compile>
-    <Compile Include="Exceptions.cs">
-      <Link>Exceptions.cs</Link>
-    </Compile>
-    <Compile Include="FileLogger.cs">
-      <Link>FileLogger.cs</Link>
-    </Compile>
-    <Compile Include="ILogger.cs">
-      <Link>ILogger.cs</Link>
-    </Compile>
-    <Compile Include="MessageBuilder.cs">
-      <Link>MessageBuilder.cs</Link>
-    </Compile>
-    <Compile Include="MethodConfig.cs">
-      <Link>MethodConfig.cs</Link>
-    </Compile>
-    <Compile Include="Test.cs">
-      <Link>Test.cs</Link>
-    </Compile>
-    <Compile Include="TestConfig.cs">
-      <Link>TestConfig.cs</Link>
-    </Compile>
-    <Compile Include="TestHelper.cs">
-      <Link>TestHelper.cs</Link>
-    </Compile>
-    <Compile Include="TestLogger.cs">
-      <Link>TestLogger.cs</Link>
-    </Compile>
-    <Compile Include="WTTLogger.cs">
-      <Link>WTTLogger.cs</Link>
-    </Compile>
+    <Compile Include="ClassConfig.cs" />
+    <Compile Include="ConsoleLogger.cs" />
+    <Compile Include="DumpHelper.cs" />
+    <Compile Include="Exceptions.cs" />
+    <Compile Include="FileLogger.cs" />
+    <Compile Include="ILogger.cs" />
+    <Compile Include="MessageBuilder.cs" />
+    <Compile Include="MethodConfig.cs" />
+    <Compile Include="Test.cs" />
+    <Compile Include="TestConfig.cs" />
+    <Compile Include="TestHelper.cs" />
+    <Compile Include="TestLogger.cs" />
+    <Compile Include="WTTLogger.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
