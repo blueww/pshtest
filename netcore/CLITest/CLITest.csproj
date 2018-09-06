@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
 	<DefineConstants>$(DefineConstants);DOTNET5_4</DefineConstants>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  <RuntimeIdentifiers>win10-x64</RuntimeIdentifiers>
+	<RuntimeIdentifiers>win10-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup>
@@ -83,6 +83,7 @@
 
   <ItemGroup>
     <Content Include="..\..\test\CLITest\MyTestData.xml" Link="MyTestData.xml" />
+    <Content Include="..\..\test\CLITest\TestData.xml" Link="TestData.xml" />
   </ItemGroup>
 
   <ItemGroup>
