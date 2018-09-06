@@ -62,17 +62,17 @@ namespace Management.Storage.ScenarioTest
 
         public static string StartCopy(this CloudBlockBlob dest, CloudBlockBlob source)
         {
-            return source.StartCopyAsync(source).GetAwaiter().GetResult();
+            return dest.StartCopyAsync(source).GetAwaiter().GetResult();
         }
 
         public static string StartCopy(this CloudAppendBlob dest, CloudAppendBlob source)
         {
-            return source.StartCopyAsync(source).GetAwaiter().GetResult();
+            return dest.StartCopyAsync(source).GetAwaiter().GetResult();
         }
 
         public static string StartCopy(this CloudPageBlob dest, CloudPageBlob source)
         {
-            return source.StartCopyAsync(source).GetAwaiter().GetResult();
+            return dest.StartCopyAsync(source).GetAwaiter().GetResult();
         }
 
         public static long AppendBlock(this CloudAppendBlob appendBlob,
