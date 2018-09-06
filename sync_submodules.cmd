@@ -2,11 +2,6 @@ git submodule init
 git submodule sync
 git submodule update
 
-echo "update submodule Powershell"
-cd PowerShell
-git fetch
-git reset origin/preview --hard
-cd ..
 echo "update submodule xplat"
 cd Xplat
 git fetch
