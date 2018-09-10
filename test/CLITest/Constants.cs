@@ -198,9 +198,8 @@ namespace Management.Storage.ScenarioTest
 
 #if DOTNET5_4
                 ResourceModulePaths = new string[] {
-                        Path.Combine(moduleFileFolder, "ResourceManager\\AzureResourceManager\\AzureRM.Profile.Netcore\\AzureRM.Profile.Netcore.psd1"),
-                        Path.Combine(moduleFileFolder, "Storage\\Azure.Storage.Netcore\\Azure.Storage.Netcore.psd1"),
-                        Path.Combine(moduleFileFolder, "ResourceManager\\AzureResourceManager\\AzureRM.Storage.Netcore\\AzureRM.Storage.Netcore.psd1") };
+                        Path.Combine(moduleFileFolder, "ResourceManager\\AzureResourceManager\\Az.Profile\\Az.Profile.psd1"),
+                        Path.Combine(moduleFileFolder, "ResourceManager\\AzureResourceManager\\Az.Storage\\Az.Storage.psd1") };
 
                 ServiceModulePaths = new string[] {
                         Path.Combine(moduleFileFolder, "ResourceManager\\AzureResourceManager\\AzureRM.Profile\\AzureRM.Profile.psd1"),

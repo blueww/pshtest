@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-	<DefineConstants>$(DefineConstants);DOTNET5_4</DefineConstants>
+	<DefineConstants>$(DefineConstants);DOTNET5_4;NEW_CMDLET_NAME</DefineConstants>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<RuntimeIdentifiers>win10-x64</RuntimeIdentifiers>
   </PropertyGroup>
@@ -122,17 +122,18 @@
 
   <ItemGroup>
     <Reference Include="Microsoft.Azure.Commands.Management.Storage">
-      <HintPath>..\..\PowerShell\Package\Debug\ResourceManager\AzureResourceManager\AzureRM.Storage.Netcore\Microsoft.Azure.Commands.Management.Storage.dll</HintPath>
+      <HintPath>..\..\PowerShell\Package\Debug\ResourceManager\AzureResourceManager\Az.Storage\Microsoft.Azure.Commands.Management.Storage.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Azure.Common">
       <HintPath>..\References\Microsoft.Azure.Common\netstandard1.5\Microsoft.Azure.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Commands.Common.Storage">
-      <HintPath>..\..\PowerShell\Package\Debug\Storage\Azure.Storage.Netcore\Microsoft.WindowsAzure.Commands.Common.Storage.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.WindowsAzure.Commands.Storage">
-      <HintPath>..\..\PowerShell\Package\Debug\Storage\Azure.Storage.Netcore\Microsoft.WindowsAzure.Commands.Storage.dll</HintPath>
+      <HintPath>..\..\PowerShell\Package\Debug\ResourceManager\AzureResourceManager\Az.Storage\Microsoft.WindowsAzure.Commands.Storage.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <PropertyGroup>
+    <PostBuildEvent>
+	</PostBuildEvent>
+  </PropertyGroup>
 
 </Project>
