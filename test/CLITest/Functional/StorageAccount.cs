@@ -2983,7 +2983,7 @@ namespace Management.Storage.ScenarioTest
         private void GetAzureStorageUsage_Test()
         {
             Test.Assert(CommandAgent.GetAzureStorageUsage(), "Get azure storage usage should succeeded.");
-            var usages = accountUtils.SRPStorageClient.Usage.List();
+            var usages = accountUtils.SRPStorageClient.Usages.List();
             ValidateGetUsageOutput(new List<SRPModel.Usage>(usages));
         }
 

@@ -69,7 +69,7 @@ namespace Management.Storage.ScenarioTest
                 resourceGroupName = accountUtils.GenerateResourceGroupName();
                 resourceManager.CreateResourceGroup(resourceGroupName, resourceLocation);
 
-                var parameters = new SRPModel.StorageAccountCreateParameters(new SRPModel.Sku(SRPModel.SkuName.StandardGRS), SRPModel.Kind.Storage,
+                var parameters = new SRPModel.StorageAccountCreateParameters(new SRPModel.Sku(SRPModel.SkuName.StandardGRS), SRPModel.Kind.StorageV2,
                     isMooncake ? Constants.MCLocation.ChinaEast : allowedLocation);
                 accountUtils.SRPStorageClient.StorageAccounts.CreateAsync(resourceGroupName, accountName, parameters, CancellationToken.None).Wait();
 
@@ -107,10 +107,10 @@ namespace Management.Storage.ScenarioTest
             {
                 string containerName = Utility.GenNameString("container");
                 //Hashtable[] metadata = StorageAccountTest.GetUnicodeTags();
-                Hashtable metadata = new Hashtable(3);
+                Hashtable metadata = new Hashtable(2);
                 metadata.Add("key1", "value1");
                 metadata.Add("key2", "value2");
-                metadata.Add("key3", "value3");
+                //metadata.Add("key3", "value3");
 
                 Test.Assert(CommandAgent.NewAzureRmStorageContainer(resourceGroupName, accountName, containerName, metadata, PublicAccess: PSPublicAccess.Container), "Create Container should success.");
                 PSContainer con = GetContainer(containerName);
@@ -129,10 +129,10 @@ namespace Management.Storage.ScenarioTest
             {
                 string containerName = Utility.GenNameString("container");
 
-                Hashtable metadata = new Hashtable(3);
+                Hashtable metadata = new Hashtable(2);
                 metadata.Add("key1", "value1");
                 metadata.Add("key2", "value2");
-                metadata.Add("key3", "value3");
+               // metadata.Add("key3", "value3");
 
                 //Creat container
                 Test.Assert(CommandAgent.NewAzureRmStorageContainer(resourceGroupName, accountName, containerName), "Create Container should success."); 
@@ -287,7 +287,7 @@ namespace Management.Storage.ScenarioTest
                 Test.Assert(CommandAgent.RemoveAzureRmStorageContainerImmutabilityPolicy(resourceGroupName, accountName, containerName, immuPolicy.Etag), "Remove Container ImmutabilityPolicy should success.");
                 Test.Assert(CommandAgent.GetAzureRmStorageContainerImmutabilityPolicy(resourceGroupName, accountName, containerName), "Get Container ImmutabilityPolicy should success.");
                 immuPolicy = GetImmutabilityPolicyFromOutput();
-                ValidateImmutabilityPolicy(immuPolicy, 0, "Unlocked");
+                ValidateImmutabilityPolicy(immuPolicy, 0, "Deleted");
 
                 //Remove Container
                 Test.Assert(CommandAgent.RemoveAzureRmStorageContainer(resourceGroupName, accountName, containerName), "Remove Container should success.");

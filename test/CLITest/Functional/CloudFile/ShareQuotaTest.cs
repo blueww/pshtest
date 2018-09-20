@@ -137,13 +137,13 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 int quota = random.Next(0 - MaxQuota, MinQuota);
                 Test.Assert(!CommandAgent.SetAzureStorageShareQuota(shareName, quota),
                     "Set quota with value of less than 1 to a share should fail.");
-                ExpectedContainErrorMessage(string.Format("The {0} argument is less than the minimum allowed range of 1.", quota));
+                ExpectedContainErrorMessage(string.Format("The argument 'Quota' is smaller than minimum of '1'"));
                 
                 // Quota greater than maximum value
                 quota = random.Next(MaxQuota + 1, int.MaxValue);
                 Test.Assert(!CommandAgent.SetAzureStorageShareQuota(shareName, quota),
                     "Set quota with value of greater than 5120 to a share should fail.");
-                ExpectedContainErrorMessage(string.Format("The {0} argument is greater than the maximum allowed range of 5120.", quota));
+                ExpectedContainErrorMessage(string.Format("The value for one of the HTTP headers is not in the correct format.", quota));
 
                 // Share not exist
                 string nonExistShareName = Utility.GenNameString("share");
