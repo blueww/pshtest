@@ -126,7 +126,7 @@
                 catch (StorageException e)
                 {
                     Test.Info(e.Message);
-                    ExpectEqual(e.RequestInformation.HttpStatusCode, 403, "(403) Forbidden");
+                    Test.Assert(403 == e.RequestInformation.HttpStatusCode || 306 == e.RequestInformation.HttpStatusCode, string.Format("HttpStatusCode should be 403 or 306, and actually it's {0}", e.RequestInformation.HttpStatusCode));
                 }
             }
             finally
@@ -461,13 +461,13 @@
                 catch (StorageException e)
                 {
                     Test.Info(e.Message);
-                    if (403 == e.RequestInformation.HttpStatusCode)
+                    if (403 == e.RequestInformation.HttpStatusCode || 306 == e.RequestInformation.HttpStatusCode)
                     {
                         Test.Info("Limited permission sas token should not access storage objects. {0}", e.RequestInformation.HttpStatusMessage);
                     }
                     else
                     {
-                        Test.Error("Limited permission sas token should return 403, but actually it's {0} {1} {2}",
+                        Test.Error("Limited permission sas token should return 403 or 306, but actually it's {0} {1} {2}",
                             e.RequestInformation.HttpStatusCode, e.RequestInformation.HttpStatusMessage, e.ToString());
                     }
                 }
