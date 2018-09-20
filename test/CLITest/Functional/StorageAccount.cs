@@ -2754,59 +2754,6 @@ namespace Management.Storage.ScenarioTest
         [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSResourceAccount)]
-        public void FTAccount701_GetAzureStorageUsage()
-        {
-            if (isResourceMode)
-            {
-                GetAzureStorageUsage_Test();
-
-                List<string> accountNames = new List<string>();
-
-                try
-                {
-                    int accountCount = random.Next(0, 2);
-
-                    while (accountCount > 0)
-                    {
-                        string accountName = accountUtils.GenerateAccountName();
-                        string accountType = accountUtils.mapAccountType(accountUtils.GenerateAccountType(isResourceMode, isMooncake));
-                        string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode, isMooncake);
-
-                        CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
-                        accountCount--;
-                    }
-
-                    GetAzureStorageUsage_Test();
-
-                    foreach (var accountName in accountNames)
-                    {
-                        DeleteAccountWrapper(accountName);
-                    }
-
-                    GetAzureStorageUsage_Test();
-                }
-                finally
-                {
-                    foreach (var accountName in accountNames)
-                    {
-                        DeleteAccountWrapper(accountName);
-                    }
-                }
-            }
-            else
-            {
-                if (lang == Language.NodeJS)
-                {
-                    Test.Assert(!CommandAgent.GetAzureStorageUsage(), "Get azure storage usage should fail.");
-                    ExpectedContainErrorMessage("'usage' is not an azure command. See 'azure help'.");
-                }
-            }
-        }
-
-        [TestMethod]
-        [TestCategory(Tag.Function)]
-        [TestCategory(CLITag.NodeJSFT)]
-        [TestCategory(CLITag.NodeJSResourceAccount)]
         public void FTAccount701_GetAzureStorageLocationUsage()
         {
             if (isResourceMode)
@@ -3284,6 +3231,57 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void CreateAccount_BlockBlobStorage()
+        {
+            string accountName = accountUtils.GenerateAccountName();
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Premium_LRS);
+            string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode, isMooncake);
+
+            if (isResourceMode)
+            {
+                try
+                {
+                    CreateNewSRPAccount(accountName, location, accountType, kind: Kind.BlockBlobStorage);
+                    Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroupName, accountName), "Get Storage Account should success.");
+                    PSStorageAccount accountObject = CommandAgent.Output[0]["_baseObject"] as PSStorageAccount;
+                    Test.Assert(accountObject.Kind == Kind.BlockBlobStorage, string.Format("Account Kind should be BlockBlobStorage, and it's {0}", accountObject.Kind));
+                    Test.Assert(accountObject.Sku.Name == SkuName.PremiumLRS, string.Format("Account Sku should be PremiumLRS, and it's {0}.", accountObject.Sku.Name) );
+                }
+                finally
+                {
+                    DeleteAccountWrapper(accountName);
+                }
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void CreateAccount_FileStorage()
+        {
+            string accountName = accountUtils.GenerateAccountName();
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Premium_LRS);
+            string location = accountUtils.GenerateAccountLocation(accountType, isResourceMode, isMooncake);
+            if (isResourceMode)
+            {
+                try
+                {
+
+                    CreateNewSRPAccount(accountName, location, accountType, kind: Kind.FileStorage);
+                    Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroupName, accountName), "Get Storage Account should success.");
+                    PSStorageAccount accountObject = CommandAgent.Output[0]["_baseObject"] as PSStorageAccount;
+                    Test.Assert(accountObject.Kind == Kind.FileStorage, string.Format("Account Kind should be FileStorage, and it's {0}", accountObject.Kind));
+                    Test.Assert(accountObject.Sku.Name == SkuName.PremiumLRS, string.Format("Account Sku should be PremiumLRS, and it's {0}.", accountObject.Sku.Name));
+
+                }
+                finally
+                {
+                    DeleteAccountWrapper(accountName);
+                }
+            }
+        }
+
         private PSManagementPolicy GetManagementPolicyFromOutput()
         {
             try
@@ -3311,10 +3309,10 @@ namespace Management.Storage.ScenarioTest
                 return GetManagementPolicyFromOutput();
         }
 
-        private void GetAzureStorageUsage_Test(string Location = null)
+        private void GetAzureStorageUsage_Test(string Location)
         {
             Test.Assert(CommandAgent.GetAzureStorageUsage(Location), "Get azure storage usage should succeeded.");
-            var usages = Location == null ? accountUtils.SRPStorageClient.Usages.List() : accountUtils.SRPStorageClient.Usages.ListByLocation(Location);
+            var usages = accountUtils.SRPStorageClient.Usages.ListByLocation(Location);
 
             ValidateGetUsageOutput(new List<SRPModel.Usage>(usages));
         }

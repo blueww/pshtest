@@ -341,6 +341,7 @@ public static void SetLocalStorageContext()
             PowerShell ps = PowerShell.Create(_InitState);
             ps.AddCommand("New-AzureStorageContext");
             ps.BindParameter("StorageAccountName", StorageAccountName);
+            ps.AddParameter("UseConnectedAccount");
             ps.BindParameter("EndPoint", endPoint.Trim());
 
             if (useHttps)

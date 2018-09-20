@@ -88,11 +88,6 @@
         {
             if (type == this.mapAccountType(Constants.AccountType.Premium_LRS))
             {
-                if (isResourceMode)
-                {
-                    throw new InvalidOperationException("SRP does not support Premium_LRS yet");
-                }
-
                 return Constants.Location.WestUS;
             }
             //This can be removed when ZRSV2 is enabled in all region
