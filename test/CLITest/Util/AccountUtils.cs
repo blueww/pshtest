@@ -164,7 +164,8 @@
             bool keyvaultEncryption = false,
             string keyName = null,
             string keyVersion = null,
-            string keyVaultUri = null)
+            string keyVaultUri = null,
+            bool? failoverInProgress= null)
         {
 
             AzureOperationResponse<SRPModel.StorageAccount> response = this.SRPStorageClient.StorageAccounts.GetPropertiesWithHttpMessagesAsync(resourceGroupName, accountName).Result;
@@ -205,7 +206,8 @@
             {
                 Test.Assert(enableHttpsTrafficOnly == account.EnableHttpsTrafficOnly, string.Format("EnableHttpsTrafficOnly should match: {0} == {1}", enableHttpsTrafficOnly, account.EnableHttpsTrafficOnly));
             }
-            if(AssignIdentity)
+            Test.Assert(failoverInProgress == account.FailoverInProgress, string.Format("FailoverInProgress should match: {0} == {1}", failoverInProgress, account.FailoverInProgress));
+            if (AssignIdentity)
             {
                 Test.Assert(account.Identity != null, string.Format("IdentityType should not be null: {0}, {1}", account.Identity.PrincipalId, account.Identity.TenantId));
             }

@@ -277,7 +277,7 @@ namespace Management.Storage.ScenarioTest
                 //Get ImmutabilityPolicy
                 Test.Assert(CommandAgent.GetAzureRmStorageContainerImmutabilityPolicy(resourceGroupName, accountName, containerName), "Get Container ImmutabilityPolicy should success.");
                 PSImmutabilityPolicy immuPolicy = GetImmutabilityPolicyFromOutput();
-                ValidateImmutabilityPolicy(immuPolicy, 0, "Unlocked");
+                ValidateImmutabilityPolicy(immuPolicy, 0, "Deleted");
 
                 //Set ImmutabilityPolicy
                 Test.Assert(CommandAgent.SetAzureRmStorageContainerImmutabilityPolicy(resourceGroupName, accountName, containerName, immutabilityPeriod), "Set Container ImmutabilityPolicy should success.");
@@ -293,7 +293,7 @@ namespace Management.Storage.ScenarioTest
                 Test.Assert(CommandAgent.RemoveAzureRmStorageContainerImmutabilityPolicy(resourceGroupName, accountName, containerName, immuPolicy.Etag), "Remove Container ImmutabilityPolicy should success.");
                 Test.Assert(CommandAgent.GetAzureRmStorageContainerImmutabilityPolicy(resourceGroupName, accountName, containerName), "Get Container ImmutabilityPolicy should success.");
                 immuPolicy = GetImmutabilityPolicyFromOutput();
-                ValidateImmutabilityPolicy(immuPolicy, 0, "Unlocked");
+                ValidateImmutabilityPolicy(immuPolicy, 0, "Deleted");
 
                 //Remove Container
                 Test.Assert(CommandAgent.RemoveAzureRmStorageContainer(resourceGroupName, accountName, containerName), "Remove Container should success.");
