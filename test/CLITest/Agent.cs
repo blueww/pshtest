@@ -124,7 +124,7 @@ namespace Management.Storage.ScenarioTest
 
         public abstract bool DeleteSRPAzureStorageAccount(string resourceGroup, string accountName);
 
-        public abstract bool ShowSRPAzureStorageAccount(string resourceGroup, string accountName);
+        public abstract bool ShowSRPAzureStorageAccount(string resourceGroup, string accountName, bool IncludeGeoReplicationStats = false);
 
         public abstract bool ShowSRPAzureStorageAccountKeys(string resourceGroup, string accountName);
 

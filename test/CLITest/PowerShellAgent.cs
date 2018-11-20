@@ -4277,13 +4277,18 @@ public static void SetLocalStorageContext()
             return InvokePowerShellWithoutContext(ps);
         }
 
-        public override bool ShowSRPAzureStorageAccount(string resourceGroup, string accountName)
+        public override bool ShowSRPAzureStorageAccount(string resourceGroup, string accountName, bool IncludeGeoReplicationStats = false)
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
             ps.AddCommand("Get-AzureRmStorageAccount");
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
+
+            if (IncludeGeoReplicationStats)
+            {
+                ps.AddParameter("IncludeGeoReplicationStats");
+            }
 
             return InvokePowerShellWithoutContext(ps);
         }

@@ -892,13 +892,20 @@ namespace Management.Storage.ScenarioTest
         {
             string accountName = accountUtils.GenerateAccountName();
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
-            string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
+            string location = Constants.Location.EastUS2EUAP;
 
             try
             {
                 if (isResourceMode)
                 {
                     CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
+
+                    // Get LST
+                    Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroupName, accountName, IncludeGeoReplicationStats: true), "Get Storage Account should success.");
+                    PSStorageAccount accountObject = CommandAgent.Output[0]["_baseObject"] as PSStorageAccount;
+                    Test.Assert(accountObject.GeoReplicationStats.Status != null, string.Format("Account GeoReplicationStats.Status should not be null"));
+                    Test.Assert(accountObject.GeoReplicationStats.LastSyncTime != null, string.Format("Account GeoReplicationStats.LastSyncTime should not be null"));
+
                     Test.Assert(!CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
                         string.Format("Creating an storage account {0} in location {1} with the same properties with an existing account should fail.", accountName, location));
 

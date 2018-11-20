@@ -821,7 +821,7 @@ namespace Management.Storage.ScenarioTest
             return RunNodeJSProcess(command, force: true, needAccountParam: false);
         }
 
-        public override bool ShowSRPAzureStorageAccount(string resourceGroupName, string accountName)
+        public override bool ShowSRPAzureStorageAccount(string resourceGroupName, string accountName, bool IncludeGeoReplicationStats = false)
         {
             string command = string.Empty;
             if (string.IsNullOrEmpty(accountName))
