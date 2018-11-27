@@ -151,6 +151,8 @@ namespace Management.Storage.ScenarioTest
         public abstract bool RemoveAzureRmStorageAccountManagementPolicy(PSStorageAccount accountObject);
         public abstract bool RemoveAzureRmStorageAccountManagementPolicy(PSManagementPolicy policyObject);
 
+        public abstract bool InvokeAzureRmStorageAccountFailover(string resourceGroup, string accountName);
+
         #endregion
 
         #region worm

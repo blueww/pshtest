@@ -3374,5 +3374,10 @@ namespace Management.Storage.ScenarioTest
         {
             throw new NotImplementedException();
         }
+
+        public override bool InvokeAzureRmStorageAccountFailover(string resourceGroup, string accountName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

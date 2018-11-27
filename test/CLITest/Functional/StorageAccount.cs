@@ -892,19 +892,13 @@ namespace Management.Storage.ScenarioTest
         {
             string accountName = accountUtils.GenerateAccountName();
             string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
-            string location = Constants.Location.EastUS2EUAP;
+            string location = accountUtils.GenerateAccountLocation(accountUtils.mapAccountType(accountType), isResourceMode, isMooncake);
 
             try
             {
                 if (isResourceMode)
                 {
                     CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
-
-                    // Get LST
-                    Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroupName, accountName, IncludeGeoReplicationStats: true), "Get Storage Account should success.");
-                    PSStorageAccount accountObject = CommandAgent.Output[0]["_baseObject"] as PSStorageAccount;
-                    Test.Assert(accountObject.GeoReplicationStats.Status != null, string.Format("Account GeoReplicationStats.Status should not be null"));
-                    Test.Assert(accountObject.GeoReplicationStats.LastSyncTime != null, string.Format("Account GeoReplicationStats.LastSyncTime should not be null"));
 
                     Test.Assert(!CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location),
                         string.Format("Creating an storage account {0} in location {1} with the same properties with an existing account should fail.", accountName, location));
@@ -934,6 +928,43 @@ namespace Management.Storage.ScenarioTest
                     string errorFormat = lang == Language.PowerShell ? "A storage account named '{0}' already exists in the subscription" : "A storage account named '{0}' already exists in the subscription";
 
                     ExpectedContainErrorMessage(string.Format(errorFormat, accountName));
+                }
+            }
+            finally
+            {
+                DeleteAccountWrapper(accountName);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory(Tag.Function)]
+        public void Account_Failover()
+        {
+            string accountName = accountUtils.GenerateAccountName();
+            string accountType = accountUtils.mapAccountType(Constants.AccountType.Standard_GRS);
+            string location = Constants.Location.EastUS2EUAP;
+
+            try
+            {
+                if (isResourceMode)
+                {
+                    CreateNewSRPAccount(accountName, location, accountType, kind: GetRandomAccountKind());
+
+                    // Get LST, and validate account sku, location
+                    Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroupName, accountName, IncludeGeoReplicationStats: true), "Get Storage Account should success.");
+                    PSStorageAccount accountObject = CommandAgent.Output[0]["_baseObject"] as PSStorageAccount;
+                    Test.Assert(accountObject.GeoReplicationStats.Status != null, string.Format("Account GeoReplicationStats.Status should not be null"));
+                    Test.Assert(accountObject.GeoReplicationStats.LastSyncTime != null, string.Format("Account GeoReplicationStats.LastSyncTime should not be null"));
+                    Test.Assert(location.Replace(" ", "").ToLower() == accountObject.Location, string.Format("Expected location is {0} and actually it is {1}", location, accountObject.Location));
+                    Test.Assert(accountUtils.mapAccountType(Constants.AccountTypes[(int)accountObject.Sku.Name]).Equals(accountType), string.Format("Expected account type is {0} and actually it is {1}", accountType, accountObject.Sku.Name));
+                    string secondaryLocation = accountObject.SecondaryLocation;
+
+                    //Failover and validate
+                    Test.Assert(CommandAgent.InvokeAzureRmStorageAccountFailover(resourceGroupName, accountName), "InvokeAzureRmStorageAccountFailover on Storage Account should success.");
+                    Test.Assert(CommandAgent.ShowSRPAzureStorageAccount(resourceGroupName, accountName), "Get Storage Account should success.");
+                    accountObject = CommandAgent.Output[0]["_baseObject"] as PSStorageAccount;
+                    Test.Assert(secondaryLocation.ToLower() == accountObject.PrimaryLocation, string.Format("Expected location is {0} and actually it is {1}", secondaryLocation, accountObject.PrimaryLocation));
+                    Test.Assert(accountUtils.mapAccountType(Constants.AccountTypes[(int)accountObject.Sku.Name]).Equals(Constants.AccountType.Standard_LRS), string.Format("Expected account type is {0} and actually it is {1}", Constants.AccountType.Standard_LRS, accountObject.Sku.Name));
                 }
             }
             finally

@@ -4718,5 +4718,17 @@ public static void SetLocalStorageContext()
 
             return InvokePowerShellWithoutContext(ps);
         }
+
+        public override bool InvokeAzureRmStorageAccountFailover(string resourceGroup, string accountName)
+        {
+            PowerShell ps = GetPowerShellInstance();
+            AttachPipeline(ps);
+            ps.AddCommand("Invoke-AzureRmStorageAccountFailover");
+            ps.BindParameter("ResourceGroupName", resourceGroup);
+            ps.BindParameter("StorageAccountName", accountName);
+            ps.AddParameter("Force");
+
+            return InvokePowerShellWithoutContext(ps);
+        }
     }
 }
