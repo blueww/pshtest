@@ -17,8 +17,8 @@
 
   <!-- These settings are only for resource mode which requires AAD authentication -->
   <AADRealm>72f988bf-86f1-41af-91ab-2d7cd011db47</AADRealm>
-  <AADClient>e3f21156-febf-4587-9449-68fb6a757747</AADClient>
-  <AADPassword>oKLElUo6PpfmA/Dz+EA6TZne2OadLkYiUyG/G/Js204=</AADPassword>
+  <AADClient></AADClient>
+  <AADPassword></AADPassword>
   <AutoLogin>true</AutoLogin>
 
   <!-- These settings are only for service mode which accepts certificate authentication -->
@@ -50,7 +50,7 @@
   <SecondaryStorageAccountKey></SecondaryStorageAccountKey>
   <SecondaryStorageEndPoint>core.windows.net</SecondaryStorageEndPoint>
   <StorageAccountNameInOtherSubscription>xtestragrsxsmb1</StorageAccountNameInOtherSubscription>
-  <XIOStorageConnectionString>DefaultEndpointsProtocol=http;AccountName=weixio;AccountKey=zBhYB9pv87JC1T5dgQ13aosFdPsudGsyokvhKuD5fXgWh094+4bUuHOfLGk5+EVH4BofIBZPD0Ja13BDjDWBzg==</XIOStorageConnectionString>
+  <XIOStorageConnectionString></XIOStorageConnectionString>
   
 
   <!-- Following setting are for custom domain setting test cases-->
