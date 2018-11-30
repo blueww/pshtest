@@ -1,7 +1,13 @@
 ﻿namespace Management.Storage.ScenarioTest.Util
 {
+#if DOTNET5_4
+    using Microsoft.Azure.Management.ResourceManager;
+    using Microsoft.Azure.Management.ResourceManager.Models;
+    using MS.Test.Common.MsTestLib;
+#else
     using Microsoft.Azure.Management.Resources;
     using Microsoft.Azure.Management.Resources.Models;
+#endif
 
     class ResourceManagerWrapper
     {
@@ -9,7 +15,10 @@
 
         public ResourceManagerWrapper()
         {
-            resourceManager = new ResourceManagementClient(Utility.GetTokenCloudCredential());
+            resourceManager = new ResourceManagementClient(Utility.GetTokenCredential())
+            {
+                SubscriptionId = Test.Data.Get("AzureSubscriptionID")
+            };
         }
 
         public void CreateResourceGroup(string resourceGroupName, string location)

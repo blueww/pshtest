@@ -78,6 +78,11 @@ namespace StorageTestLib
             return blob.CreateSnapshotAsync().GetAwaiter().GetResult();
         }
 
+        public static CloudBlob Snapshot(this CloudBlob blob)
+        {
+            return blob.SnapshotAsync().GetAwaiter().GetResult();
+        }
+
         public static void UploadFromStream(this CloudBlockBlob blob, 
             Stream source,
             AccessCondition accessCondition = null, 

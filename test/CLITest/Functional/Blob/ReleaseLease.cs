@@ -60,6 +60,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 Test.Assert(CommandAgent.AcquireLease(containerName, string.Empty), Utility.GenComparisonData("Acquire Container Lease", true));
 
+#if !DOTNET5_4
                 if (lang == Language.NodeJS)
                 {
                     try
@@ -77,6 +78,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                         Test.Error(string.Format("{0} error: {1}", MethodBase.GetCurrentMethod().Name, e.Message));
                     }
                 }
+#endif
             }
             finally
             {

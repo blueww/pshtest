@@ -1,6 +1,10 @@
 ﻿
+$PackagePath=$1
 
+echo $0
 
-#Install-Module Azure.Storage –Repository PSGallery -RequiredVersion 4.4.1-preview  –AllowPrerelease –AllowClobber –Force
+# Register-PSRepository –Name AzurePowerShellNetCore1 –SourceLocation “$PackagePathage” –PublishLocation “$PackagePath” –InstallationPolicy Trusted
 
-#Install-Module AzureRM.Storage –Repository PSGallery -RequiredVersion 5.0.4-preview –AllowPrerelease –AllowClobber –Force
+# Install-Module Az.Profile –Repository AzurePowerShellNetCore1 –AllowPrerelease –AllowClobber –Force
+
+# Install-Module Az.Storage –Repository AzurePowerShellNetCore1 –AllowPrerelease –AllowClobber –Force

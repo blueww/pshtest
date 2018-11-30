@@ -54,7 +54,11 @@
             var directory = fileUtil.EnsureDirectoryExists(this.fileShare, directoryName);
             fileUtil.CleanupDirectory(directory);
             CommandAgent.GetFileShareByName(this.fileShare.Name);
+#if NEW_CMDLET_NAME
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzStorageFile");
+#else
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzureStorageFile");
+#endif
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddParameter("Path", directoryName);
             var result = CommandAgent.Invoke();
             CommandAgent.AssertNoError();
@@ -64,7 +68,11 @@
             var fileName = CloudFileUtil.GenerateUniqueFileName();
             var file = fileUtil.CreateFile(this.fileShare.GetRootDirectoryReference(), fileName);
             CommandAgent.GetFileShareByName(this.fileShare.Name);
+#if NEW_CMDLET_NAME
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzStorageFile");
+#else
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzureStorageFile");
+#endif
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddParameter("Path", fileName);
             result = CommandAgent.Invoke();
             CommandAgent.AssertNoError();
@@ -76,7 +84,11 @@
             dirs.Add(directory);
             files.Add(file);
             CommandAgent.GetFileShareByName(this.fileShare.Name);
+#if NEW_CMDLET_NAME
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzStorageFile");
+#else
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzureStorageFile");
+#endif
             result = CommandAgent.Invoke();
             CommandAgent.AssertNoError();
             result.AssertFileListItems(files, dirs);
@@ -316,7 +328,11 @@
             string destFolder = Path.Combine(Test.Data.Get("TempDir"), Utility.GenNameString(""));
             FileUtil.CreateNewFolder(destFolder);
             CommandAgent.GetFile(this.fileShare, fileNames[0]);
+#if NEW_CMDLET_NAME
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzStorageFileContent");
+#else
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzureStorageFileContent");
+#endif
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddParameter("Destination", destFolder);
             CommandAgent.Invoke();
             CommandAgent.AssertNoError();
@@ -327,7 +343,11 @@
             FileUtil.CleanDirectory(destFolder);
             CommandAgent.Clear();
             CommandAgent.GetFile(this.fileShare);
+#if NEW_CMDLET_NAME
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzStorageFileContent");
+#else
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzureStorageFileContent");
+#endif
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddParameter("Destination", destFolder);
             CommandAgent.Invoke();
             CommandAgent.AssertNoError();
@@ -356,7 +376,11 @@
             var files = fileNames.Select(name => fileUtil.CreateFile(dirs[0], name)).ToList();
 
             CommandAgent.GetFile(this.fileShare, dirNames[0]);
+#if NEW_CMDLET_NAME
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzStorageFile");
+#else
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzureStorageFile");
+#endif
             var result = CommandAgent.Invoke();
             CommandAgent.AssertNoError();
             result.AssertFileListItems(files, Enumerable.Empty<CloudFileDirectory>());
@@ -369,7 +393,11 @@
 
             CommandAgent.Clear();
             CommandAgent.GetFile(this.fileShare);
+#if NEW_CMDLET_NAME
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzStorageFile");
+#else
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzureStorageFile");
+#endif
             result = CommandAgent.Invoke();
             CommandAgent.AssertNoError();
             result.AssertFileListItems(files, Enumerable.Empty<CloudFileDirectory>());

@@ -27,10 +27,12 @@ namespace Management.Storage.ScenarioTest
     using Microsoft.Azure.Management.Storage.Models;
     using Microsoft.Rest.Azure;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+#if !DOTNET5_4
     using Microsoft.WindowsAzure.Management;
     using Microsoft.WindowsAzure.Management.Models;
     using Microsoft.WindowsAzure.Management.Storage;
     using Microsoft.WindowsAzure.Management.Storage.Models;
+#endif
     using Microsoft.WindowsAzure.Storage.Auth;
     using Microsoft.WindowsAzure.Storage.Blob;
     using MS.Test.Common.MsTestLib;
@@ -44,7 +46,9 @@ namespace Management.Storage.ScenarioTest
     [TestClass]
     public class StorageAccountTest : TestBase
     {
+#if !DOTNET5_4
         private static ManagementClient managementClient;
+#endif
         protected static AccountUtils accountUtils;
         protected static string resourceGroupName = string.Empty;
         protected static string accountNameForConnectionStringTest;
@@ -65,20 +69,17 @@ namespace Management.Storage.ScenarioTest
 
         private const string NodeJSInvalidSetTypeError = "Given  \"{0}\" is invalid, supported values are: LRS, GRS, RAGRS";
 
-        #region Additional test attributes
+#region Additional test attributes
 
         [ClassInitialize()]
         public static void StorageAccountTestInit(TestContext testContext)
         {
-            Thread.Sleep(10000);
+            //Thread.Sleep(10000);
             TestBase.TestClassInitialize(testContext);
 
+#if !DOTNET5_4
             NodeJSAgent.AgentConfig.UseEnvVar = false;
-
-            AzureEnvironment environment = Utility.GetTargetEnvironment();
-            managementClient = new ManagementClient(Utility.GetCertificateCloudCredential(),
-                    environment.GetEndpointAsUri(AzureEnvironment.Endpoint.ServiceManagement));
-            managementClient = new ManagementClient(Utility.GetCertificateCloudCredential(),new Uri("https://management.rdfetest.dnsdemo4.com/"));
+#endif
 
             accountUtils = new AccountUtils(lang, isResourceMode);
 
@@ -111,6 +112,13 @@ namespace Management.Storage.ScenarioTest
             }
             else
             {
+#if !DOTNET5_4
+                AzureEnvironment environment = Utility.GetTargetEnvironment();
+
+                managementClient = new ManagementClient(Utility.GetCertificateCloudCredential(),
+                        environment.GetEndpointAsUri(AzureEnvironment.Endpoint.ServiceManagement));
+                managementClient = new ManagementClient(Utility.GetCertificateCloudCredential(), new Uri("https://management.rdfetest.dnsdemo4.com/"));
+
                 var parameters = new Microsoft.WindowsAzure.Management.Storage.Models.StorageAccountCreateParameters();
                 parameters.Name = accountNameForConnectionStringTest;
                 parameters.Label = "Test account in service mode";
@@ -119,7 +127,11 @@ namespace Management.Storage.ScenarioTest
                 accountUtils.StorageClient.StorageAccounts.CreateAsync(parameters).Wait();
                 var keys = accountUtils.StorageClient.StorageAccounts.GetKeysAsync(accountNameForConnectionStringTest).Result;
                 primaryKeyForConnectionStringTest = keys.PrimaryKey;
+#endif
             }
+
+            CommandAgent.Logout();
+            CommandAgent.Login();
         }
 
         [ClassCleanup()]
@@ -139,6 +151,7 @@ namespace Management.Storage.ScenarioTest
             }
             else
             {
+#if !DOTNET5_4
                 try
                 {
                     accountUtils.StorageClient.StorageAccounts.DeleteAsync(accountNameForConnectionStringTest).Wait();
@@ -147,13 +160,15 @@ namespace Management.Storage.ScenarioTest
                 {
                     Test.Info(string.Format("Account cleanup exception: {0}", ex));
                 }
+#endif
             }
 
             TestBase.TestClassCleanup();
         }
 
-        #endregion
+#endregion
 
+#if !DOTNET5_4
         /// <summary>
         /// Sprint 35 Test Spec: 1.1; 1.2
         /// </summary>
@@ -170,9 +185,8 @@ namespace Management.Storage.ScenarioTest
             // Act
             nodeAgent.ShowAzureStorageAccountConnectionString("-h");
             result = nodeAgent.Output[0].Count > 0;
-
-            // Assert
-            Test.Assert(result, Utility.GenComparisonData("azure storage account connectionstring show -h", true));
+        // Assert
+        Test.Assert(result, Utility.GenComparisonData("azure storage account connectionstring show -h", true));
         }
 
         /// <summary>
@@ -773,6 +787,7 @@ namespace Management.Storage.ScenarioTest
             Test.Info(string.Format("The connection string is: {0}", nodeAgent.Output[0]["string"] as string));
             Test.Assert(expect.Equals(nodeAgent.Output[0]["string"] as string), "Two strings should be identical.");
         }
+#endif
 
         [TestMethod]
         [TestCategory(Tag.Function)]
@@ -820,6 +835,7 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+#if !DOTNET5_4
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
@@ -849,6 +865,7 @@ namespace Management.Storage.ScenarioTest
                 Test.Info("Skip affinity group cases in resource mode");
             }
         }
+#endif
 
         [TestMethod]
         [TestCategory(Tag.Function)]
@@ -914,6 +931,7 @@ namespace Management.Storage.ScenarioTest
                 }
                 else
                 {
+#if !DOTNET5_4
                     string subscriptionId = Test.Data.Get("AzureSubscriptionID");
                     string label = "StorageAccountLabel";
                     string description = "Storage Account Negative Case";
@@ -925,6 +943,7 @@ namespace Management.Storage.ScenarioTest
                     string errorFormat = lang == Language.PowerShell ? "A storage account named '{0}' already exists in the subscription" : "A storage account named '{0}' already exists in the subscription";
 
                     ExpectedContainErrorMessage(string.Format(errorFormat, accountName));
+#endif
                 }
             }
             finally
@@ -933,6 +952,7 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+#if !DOTNET5_4
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         [TestCategory(CLITag.NodeJSServiceAccount)]
@@ -963,6 +983,7 @@ namespace Management.Storage.ScenarioTest
                 }
             }
         }
+#endif
 
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
@@ -1392,7 +1413,9 @@ namespace Management.Storage.ScenarioTest
                 }
                 else
                 {
+#if !DOTNET5_4
                     CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
+#endif
                 }
 
                 WaitForAccountAvailableToSet();
@@ -1483,7 +1506,9 @@ namespace Management.Storage.ScenarioTest
                 }
                 else
                 {
+#if !DOTNET5_4
                     CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
+#endif
                 }
 
                 WaitForAccountAvailableToSet();
@@ -1572,7 +1597,9 @@ namespace Management.Storage.ScenarioTest
             }
             else
             {
+#if !DOTNET5_4
                 this.CreateNewAccount(accountName, label, description, location, null, accountType);
+#endif
             }
 
             WaitForAccountAvailableToSet();
@@ -2131,7 +2158,9 @@ namespace Management.Storage.ScenarioTest
                     string description = "Storage Account Test Set Type";
                     string affinityGroup = string.Empty;
 
+#if !DOTNET5_4
                     CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
+#endif
                     Test.Assert(CommandAgent.DeleteAzureStorageAccount(accountName),
                         string.Format("Deleting stoarge account {0} should succeed", accountName));
                 }
@@ -2204,7 +2233,9 @@ namespace Management.Storage.ScenarioTest
                     string description = "Storage Account Test Set Type";
                     string affinityGroup = string.Empty;
 
+#if !DOTNET5_4
                     CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
+#endif
                     Test.Assert(CommandAgent.ShowAzureStorageAccount(accountName),
                         string.Format("Showing stoarge account {0} should succeed", accountName));
                 }
@@ -2246,7 +2277,9 @@ namespace Management.Storage.ScenarioTest
                         string description = "Storage Account Test Set Type";
                         string affinityGroup = string.Empty;
 
+#if !DOTNET5_4
                         CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
+#endif
                     }
                     accountNames[i] = accountName;
                 }
@@ -2342,7 +2375,9 @@ namespace Management.Storage.ScenarioTest
                     string description = "Storage Account Test Set Type";
                     string affinityGroup = string.Empty;
 
+#if !DOTNET5_4
                     CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
+#endif
                     Test.Assert(CommandAgent.ShowAzureStorageAccountKeys(accountName),
                         string.Format("Showing keys of the stoarge account {0} should succeed", accountName));
                 }
@@ -2407,7 +2442,9 @@ namespace Management.Storage.ScenarioTest
                     string label = "StorageAccountLabel";
                     string description = "Storage Account Test Set Type";
                     string affinityGroup = string.Empty;
+#if !DOTNET5_4
                     CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
+#endif
 
                     Test.Assert(CommandAgent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Primary),
                         string.Format("Renewing the primary key of the stoarge account {0} should succeed", accountName));
@@ -2470,7 +2507,9 @@ namespace Management.Storage.ScenarioTest
                     string label = "StorageAccountLabel";
                     string description = "Storage Account Test Set Type";
                     string affinityGroup = string.Empty;
+#if !DOTNET5_4
                     CreateNewAccount(accountName, label, description, location, affinityGroup, accountType);
+#endif
 
                     Test.Assert(!CommandAgent.RenewAzureStorageAccountKeys(accountName, Constants.AccountKeyType.Invalid),
                         string.Format("Renewing an invalid key type of the stoarge account {0} should fail", accountName));
@@ -2983,7 +3022,11 @@ namespace Management.Storage.ScenarioTest
         private void GetAzureStorageUsage_Test()
         {
             Test.Assert(CommandAgent.GetAzureStorageUsage(), "Get azure storage usage should succeeded.");
+#if DOTNET5_4
             var usages = accountUtils.SRPStorageClient.Usages.List();
+#else
+            var usages = accountUtils.SRPStorageClient.Usage.List();
+#endif
             ValidateGetUsageOutput(new List<SRPModel.Usage>(usages));
         }
 
@@ -2991,6 +3034,7 @@ namespace Management.Storage.ScenarioTest
         {
             try
             {
+#if !DOTNET5_4
                 StorageAccountGetResponse response;
                 try
                 {
@@ -3002,6 +3046,9 @@ namespace Management.Storage.ScenarioTest
                     Test.Assert(ex.Error.Code.Equals("ResourceNotFound"), string.Format("Account {0} should not exist. Exception: {1}", accountName, ex));
                     createdAccounts.Add(accountName);
                 }
+#else
+                createdAccounts.Add(accountName);
+#endif
 
                 Test.Assert(!CommandAgent.CreateSRPAzureStorageAccount(resourceGroupName, accountName, accountType, location, tags),
                     string.Format("Creating storage account {0} in the resource group {1} at location {2} should failed", accountName, resourceGroupName, location));
@@ -3037,8 +3084,10 @@ namespace Management.Storage.ScenarioTest
                 }
                 else
                 {
+#if !DOTNET5_4
                     CreateNewAccount(accountName, label, description, location, affinityGroup, accountType, geoReplication);
                     ValidateAccount(accountName, label, description, location, affinityGroup, accountType, geoReplication);
+#endif
                 }
             }
             finally
@@ -3077,6 +3126,7 @@ namespace Management.Storage.ScenarioTest
                 }
                 else
                 {
+#if !DOTNET5_4
                     CreateNewAccount(accountName, label, description, location, affinityGroup, originalAccountType, geoReplication);
                     ValidateAccount(accountName, label, description, location, affinityGroup, originalAccountType, geoReplication);
 
@@ -3084,6 +3134,7 @@ namespace Management.Storage.ScenarioTest
 
                     SetAccount(accountName, newLabel, newDescription, newAccountType, geoReplication);
                     ValidateAccount(accountName, newLabel, newDescription, null, null, newAccountType, geoReplication);
+#endif
                 }
             }
             finally
@@ -3184,11 +3235,14 @@ namespace Management.Storage.ScenarioTest
             }
             else
             {
+#if !DOTNET5_4
                 DeleteAccount(accountName);
+#endif
             }
         }
 
-        #region Service managment account operations
+#if !DOTNET5_4
+#region Service managment account operations
         private void CreateNewAccount(string accountName, string label, string description, string location, string affinityGroup, string accountType, bool? geoReplication = null)
         {
             string subscriptionId = Test.Data.Get("AzureSubscriptionID");
@@ -3261,9 +3315,10 @@ namespace Management.Storage.ScenarioTest
                 Test.Info(string.Format("Deleting Account Exception: {0}", ex));
             }
         }
-        #endregion
+#endregion
+#endif
 
-        #region Resource management account operations
+#region Resource management account operations
 
         private void CreateNewSRPAccount(string accountName,
             string location,
@@ -3300,6 +3355,7 @@ namespace Management.Storage.ScenarioTest
                 {
                     isConflictError = CommandAgent.ErrorMessages[0].Contains("Conflict");
                     Thread.Sleep(10000);
+
                 }
             }
             Test.Assert(accountCreated, string.Format("Creating storage account {0} in the resource group {1} at location {2} should succeed", accountName, resourceGroupName, location));
@@ -3353,8 +3409,9 @@ namespace Management.Storage.ScenarioTest
                 Test.Info(string.Format("Deleting SRP Account Exception: {0}", ex));
             }
         }
-        #endregion
+#endregion
 
+#if !DOTNET5_4
         private void ErrorEndpoint(ServiceType type, ErrorType errorType)
         {
             // Arrange
@@ -3498,6 +3555,7 @@ namespace Management.Storage.ScenarioTest
             Test.Info(string.Format("The connection string is: {0}", nodeAgent.Output[0]["string"] as string));
             Test.Assert(expect.Equals(nodeAgent.Output[0]["string"] as string), "Two strings should be identical.");
         }
+#endif
 
         private void WaitForAccountAvailableToSet()
         {

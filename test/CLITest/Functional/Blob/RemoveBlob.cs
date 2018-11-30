@@ -69,10 +69,17 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 }
 
                 List<CloudBlob> blobs = blobUtil.CreateRandomBlob(container, blobNames);
-
+#if NEW_CMDLET_NAME
+                string cmd = String.Format("{0} {1}", "Get-AzStorageContainer", containerName);
+#else                
                 string cmd = String.Format("{0} {1}", "Get-AzureStorageContainer", containerName);
+#endif
                 ((PowerShellAgent)CommandAgent).AddPipelineScript(cmd);
+#if NEW_CMDLET_NAME
+                cmd = "Get-AzStorageBlob";
+#else
                 cmd = "Get-AzureStorageBlob";
+#endif
                 ((PowerShellAgent)CommandAgent).AddPipelineScript(cmd);
 
                 List<IListBlobItem> blobLists = container.ListBlobs().ToList();
