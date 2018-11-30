@@ -42,6 +42,54 @@
     <Compile Include="..\..\test\CLITest\CLITableFunc.cs" Link="CLITableFunc.cs" />
     <Compile Include="..\..\test\CLITest\Common\TestBase.cs" Link="Common\TestBase.cs" />
     <Compile Include="..\..\test\CLITest\Constants.cs" Link="Constants.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Blob\ContainerStoredAccessPolicy.cs" Link="Functional\Blob\ContainerStoredAccessPolicy.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Blob\GetBlob.cs" Link="Functional\Blob\GetBlob.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Blob\GetBlobContent.cs" Link="Functional\Blob\GetBlobContent.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Blob\GetContainer.cs" Link="Functional\Blob\GetContainer.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Blob\GetCopyState.cs" Link="Functional\Blob\GetCopyState.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Blob\NewBlobSas.cs" Link="Functional\Blob\NewBlobSas.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Blob\NewContainer.cs" Link="Functional\Blob\NewContainer.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Blob\NewContainerSas.cs" Link="Functional\Blob\NewContainerSas.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Blob\RemoveBlob.cs" Link="Functional\Blob\RemoveBlob.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Blob\RemoveContainer.cs" Link="Functional\Blob\RemoveContainer.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Blob\SetBlobContent.cs" Link="Functional\Blob\SetBlobContent.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Blob\SetContainerAcl.cs" Link="Functional\Blob\SetContainerAcl.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Blob\StartCopy.cs" Link="Functional\Blob\StartCopy.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Blob\StopCopy.cs" Link="Functional\Blob\StopCopy.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\CloudFile\FileAsyncCopyRandomCredentials.cs" Link="Functional\File\FileAsyncCopyRandomCredentials.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\CloudFile\FileAsyncCopyTest.cs" Link="Functional\File\FileAsyncCopyTest.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\CloudFile\GetAzureStorageFileContentTest.cs" Link="Functional\File\GetAzureStorageFileContentTest.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\CloudFile\GetAzureStorageFileTest.cs" Link="Functional\File\GetAzureStorageFileTest.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\CloudFile\GetAzureStorageShareTest.cs" Link="Functional\File\GetAzureStorageShareTest.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\CloudFile\InvalidParameterTest.cs" Link="Functional\File\InvalidParameterTest.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\CloudFile\MountTest.cs" Link="Functional\File\MountTest.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\CloudFile\NewAzureStorageFileDirectoryTest.cs" Link="Functional\File\NewAzureStorageFileDirectoryTest.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\CloudFile\NewAzureStorageFileShareTest.cs" Link="Functional\File\NewAzureStorageFileShareTest.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\CloudFile\ParameterSetNotMatchTest.cs" Link="Functional\File\ParameterSetNotMatchTest.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\CloudFile\RemoveAzureStorageFileDirectoryTest.cs" Link="Functional\File\RemoveAzureStorageFileDirectoryTest.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\CloudFile\RemoveAzureStorageFileShareTest.cs" Link="Functional\File\RemoveAzureStorageFileShareTest.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\CloudFile\RemoveAzureStorageFileTest.cs" Link="Functional\File\RemoveAzureStorageFileTest.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\CloudFile\SetAzureStorageFileContentTest.cs" Link="Functional\File\SetAzureStorageFileContentTest.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\CloudFile\ShareQuotaTest.cs" Link="Functional\File\ShareQuotaTest.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\CloudFile\ShareStoredAccessPolicyTest.cs" Link="Functional\File\ShareStoredAccessPolicyTest.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\CloudFile\StoredAccessPolicyWithoutPermissionsTest.cs" Link="Functional\File\StoredAccessPolicyWithoutPermissionsTest.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\InvalidCredentialCases.cs" Link="Functional\InvalidCredentialCases.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\NetworkACL.cs" Link="Functional\NetworkACL.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Queue\GetQueue.cs" Link="Functional\Queue\GetQueue.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Queue\NewQueueSas.cs" Link="Functional\Queue\NewQueueSas.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Queue\QueueStoredAccessPolicy.cs" Link="Functional\Queue\QueueStoredAccessPolicy.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Queue\RemoveQueue.cs" Link="Functional\Queue\RemoveQueue.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\SASInterop.cs" Link="Functional\SASInterop.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Service\AccountSASTest.cs" Link="Functional\Service\AccountSASTest.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Service\ServiceCORSRule.cs" Link="Functional\Service\ServiceCORSRule.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Service\ServiceProperties.cs" Link="Functional\Service\ServiceProperties.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Service\SetServiceLogging.cs" Link="Functional\Service\SetServiceLogging.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Service\SetServiceMetrics.cs" Link="Functional\Service\SetServiceMetrics.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\StorageAccount.cs" Link="Functional\StorageAccount.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\StorageContext.cs" Link="Functional\StorageContext.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Table\NewTableSas.cs" Link="Functional\Table\NewTableSas.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Table\RemoveTable.cs" Link="Functional\Table\RemoveTable.cs" />
+    <Compile Include="..\..\test\CLITest\Functional\Table\TableStoredAccessPolicy.cs" Link="Functional\Table\TableStoredAccessPolicy.cs" />
     <Compile Include="..\..\test\CLITest\IExecutionError.cs" Link="IExecutionError.cs" />
     <Compile Include="..\..\test\CLITest\IExecutionResult.cs" Link="IExecutionResult.cs" />
     <Compile Include="..\..\test\CLITest\NodeJSExecutionError.cs" Link="NodeJSExecutionError.cs" />
@@ -87,9 +135,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Management.Resources" Version="2.20.1-preview" />
+    <PackageReference Include="Hyak.Common" Version="1.2.2" />
+    <PackageReference Include="Microsoft.Azure.Common" Version="2.2.1" />
+    <PackageReference Include="Microsoft.Azure.Management.ResourceManager" Version="1.9.0-preview" />
     <PackageReference Include="Microsoft.Azure.Management.Storage" Version="8.1.0-preview" />
-    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="3.19.8" />
+    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="3.14.0" />
     <PackageReference Include="Microsoft.Management.Infrastructure" Version="1.0.0" />
     <PackageReference Include="Microsoft.PowerShell.Commands.Diagnostics" Version="6.1.0-preview.4" />
     <PackageReference Include="Microsoft.PowerShell.Commands.Management" Version="6.0.4" />
@@ -98,7 +148,6 @@
     <PackageReference Include="Microsoft.PowerShell.CoreCLR.Eventing" Version="6.1.0-preview.4" />
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="6.1.0-preview.4" />
     <PackageReference Include="Microsoft.PowerShell.Security" Version="6.0.4" />
-    <PackageReference Include="Microsoft.WindowsAzure.Management.Storage" Version="6.0.1" />
     <PackageReference Include="Microsoft.WSMan.Management" Version="6.1.0-preview.4" />
     <PackageReference Include="Microsoft.WSMan.Runtime" Version="6.1.0-preview.4" />
     <PackageReference Include="MSTest.TestFramework" Version="1.1.18" />
@@ -117,6 +166,11 @@
     <Folder Include="BVT\HTTPS\" />
     <Folder Include="Common\" />
     <Folder Include="Authentication\" />
+    <Folder Include="Functional\Blob\" />
+    <Folder Include="Functional\File\" />
+    <Folder Include="Functional\Table\" />
+    <Folder Include="Functional\Service\" />
+    <Folder Include="Functional\Queue\" />
     <Folder Include="Util\Globalization\" />
   </ItemGroup>
 
@@ -131,9 +185,25 @@
       <HintPath>..\..\PowerShell\Package\Debug\ResourceManager\AzureResourceManager\Az.Storage\Microsoft.WindowsAzure.Commands.Storage.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="PSHCoreScripts\CopyFromContainer.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="PSHCoreScripts\CopyFromShare.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="PSHCoreScripts\InstallPowerShellGet.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="PSHCoreScripts\InstallPowershellModule.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>
 	</PostBuildEvent>
+    <AssemblyName>PowerShellTest</AssemblyName>
   </PropertyGroup>
 
 </Project>

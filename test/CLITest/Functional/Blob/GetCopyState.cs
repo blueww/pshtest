@@ -64,8 +64,13 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
 
             try
             {
+#if NEW_CMDLET_NAME
+                ((PowerShellAgent)CommandAgent).AddPipelineScript(String.Format("Get-AzStorageBlob -Container {0}", srcContainer.Name));
+                ((PowerShellAgent)CommandAgent).AddPipelineScript(String.Format("Start-AzStorageBlobCopy -DestContainer {0}", destContainer.Name));
+#else
                 ((PowerShellAgent)CommandAgent).AddPipelineScript(String.Format("Get-AzureStorageBlob -Container {0}", srcContainer.Name));
                 ((PowerShellAgent)CommandAgent).AddPipelineScript(String.Format("Start-AzureStorageBlobCopy -DestContainer {0}", destContainer.Name));
+#endif
 
                 Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(string.Empty, string.Empty, true), "Get copy state for many blobs should succeed.");
                 Test.Assert(CommandAgent.Output.Count == blobs.Count, String.Format("Expected get {0} copy state, and actually get {1} copy state", blobs.Count, CommandAgent.Output.Count));

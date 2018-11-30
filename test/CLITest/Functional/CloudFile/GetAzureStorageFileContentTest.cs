@@ -132,7 +132,11 @@
             DirectoryInfo localDir = new DirectoryInfo(Test.Data.Get("TempDir"));
 
             CommandAgent.GetFile(this.fileShare);
+#if NEW_CMDLET_NAME
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzStorageFileContent");
+#else
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("Get-AzureStorageFileContent");
+#endif
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddParameter("Destination", localDir.FullName);
             CommandAgent.Invoke();
             CommandAgent.AssertNoError();
@@ -608,7 +612,11 @@
                 
                 //Get File content
                 string StorageConnectionString = Test.Data.Get("StorageConnectionString");
-                Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(New-AzureStorageContext -ConnectionString \"{4}\") | Get-AzureStorageShare -Name {0} -SnapshotTime \"{1}\" | Get-AzureStorageFileContent -Path {2} -Destination {3} -Force", 
+#if NEW_CMDLET_NAME
+                Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(New-AzStorageContext -ConnectionString \"{4}\") | Get-AzStorageShare -Name {0} -SnapshotTime \"{1}\" | Get-AzStorageFileContent -Path {2} -Destination {3} -Force",
+#else
+                Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(New-AzureStorageContext -ConnectionString \"{4}\") | Get-AzureStorageShare -Name {0} -SnapshotTime \"{1}\" | Get-AzureStorageFileContent -Path {2} -Destination {3} -Force",
+#endif
                     shareName, 
                     shareSnapshot2.SnapshotTime.Value, 
                     fileName, 
@@ -655,7 +663,11 @@
 
                 //Get File content
                 string StorageConnectionString = Test.Data.Get("StorageConnectionString");
+#if NEW_CMDLET_NAME
+                Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(New-AzStorageContext -ConnectionString \"{5}\" | Get-AzStorageShare -Name {0} -SnapshotTime \"{1}\").GetRootDirectoryReference().GetDirectoryReference(\"{4}\") | Get-AzStorageFileContent -Path {2} -Destination {3} -Force",
+#else
                 Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(New-AzureStorageContext -ConnectionString \"{5}\" | Get-AzureStorageShare -Name {0} -SnapshotTime \"{1}\").GetRootDirectoryReference().GetDirectoryReference(\"{4}\") | Get-AzureStorageFileContent -Path {2} -Destination {3} -Force",
+#endif
                     shareName,
                     shareSnapshot2.SnapshotTime.Value,
                     fileName,

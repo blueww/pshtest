@@ -92,7 +92,11 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                     CopyBigFileToBlob(blob);
                 }
 
+#if NEW_CMDLET_NAME
+                ((PowerShellAgent)CommandAgent).AddPipelineScript(String.Format("Get-AzStorageBlob -Container {0}", container.Name));
+#else
                 ((PowerShellAgent)CommandAgent).AddPipelineScript(String.Format("Get-AzureStorageBlob -Container {0}", container.Name));
+#endif
                 string copyId = "*";
                 bool force = true;
                 Test.Assert(CommandAgent.StopAzureStorageBlobCopy(string.Empty, string.Empty, copyId, force), "Stop multiple copy operations using blob pipeline should be successful");

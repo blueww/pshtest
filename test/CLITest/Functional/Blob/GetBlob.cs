@@ -148,7 +148,11 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             try
             {
                 CloudBlob blob = blobUtil.CreatePageBlob(container, blobName);
+#if NEW_CMDLET_NAME
+                string cmd = String.Format("Get-AzStorageContainer {0}", containerName);
+#else
                 string cmd = String.Format("Get-AzureStorageContainer {0}", containerName);
+#endif
                 ((PowerShellAgent)CommandAgent).AddPipelineScript(cmd);
 
                 Test.Assert(CommandAgent.GetAzureStorageBlob(blobName, string.Empty), Utility.GenComparisonData("Get-AzureStorageContainer | Get-AzureStorageBlob", true));

@@ -145,7 +145,11 @@
             string dir2 = CloudFileUtil.GenerateUniqueDirectoryName();
             string fullPathForDir2 = string.Concat(dir1, "/", dir2);
             CommandAgent.NewDirectory(this.fileShare, dir1);
+#if NEW_CMDLET_NAME
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("New-AzStorageDirectory");
+#else
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("New-AzureStorageDirectory");
+#endif
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddParameter("Path", dir2);
             var result = CommandAgent.Invoke();
             CommandAgent.AssertNoError();
@@ -166,7 +170,11 @@
             CommandAgent.NewDirectory(this.fileShare, "a");
             for (int i = 1; i < 250; i++)
             {
+#if NEW_CMDLET_NAME
+                ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("New-AzStorageDirectory");
+#else
                 ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("New-AzureStorageDirectory");
+#endif
                 ((PowerShellAgent)CommandAgent).PowerShellSession.AddParameter("Path", "a");
                 expectedPathBuilder.Append("/a");
             }
@@ -480,7 +488,11 @@
             CommandAgent.NewDirectory(this.fileShare, "1234567890123456789012345678");
             for (int i = 1; i < 250; i++)
             {
+#if NEW_CMDLET_NAME
+                ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("New-AzStorageDirectory");
+#else
                 ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("New-AzureStorageDirectory");
+#endif
                 ((PowerShellAgent)CommandAgent).PowerShellSession.AddParameter("Path", "123");
                 expectedPathBuilder.Append("/123");
             }
@@ -504,8 +516,11 @@
             CommandAgent.NewDirectory(this.fileShare, "a");
             for (int i = 1; i < 251; i++)
             {
-                ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("New-AzureStorageDirectory");
+#if NEW_CMDLET_NAME
+                ((PowerShellAgent)CommandAgent).PowerShellSession.AddCommand("New-AzStorageDirectory");
+#else
                 ((PowerShellAgent)CommandAgent).PowerShellSession.AddParameter("Path", "a");
+#endif
                 expectedPathBuilder.Append("/a");
             }
 

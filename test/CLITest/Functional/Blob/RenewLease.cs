@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using MS.Test.Common.MsTestLib;
+using StorageTestLib;
 
 namespace Management.Storage.ScenarioTest.Functional.Blob
 {
@@ -41,6 +42,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             TestBase.TestClassCleanup();
         }
 
+#if !DOTNET5_4
         /// <summary>
         /// Renew a container and access it by Lease ID
         /// 8.69 RenewLease-AzureStorageContainer/Blob BVT Cases
@@ -745,5 +747,6 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 blobUtil.RemoveContainer(containerName, containerLeaseId);
             }
         }
+#endif
     }
 }

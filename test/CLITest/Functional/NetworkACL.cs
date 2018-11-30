@@ -22,8 +22,10 @@ namespace Management.Storage.ScenarioTest
     using Microsoft.Azure.Commands.Common.Authentication.Models;
     using Microsoft.Azure.Management.Storage;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+#if !DOTNET5_4
     using Microsoft.WindowsAzure.Management;
     using Microsoft.WindowsAzure.Management.Storage;
+#endif
     using MS.Test.Common.MsTestLib;
     using StorageTestLib;
     using SRPModel = Microsoft.Azure.Management.Storage.Models;
@@ -35,7 +37,9 @@ namespace Management.Storage.ScenarioTest
     [TestClass]
     public class NetworkACLTest : TestBase
     {
+#if !DOTNET5_4
         private static ManagementClient managementClient;
+#endif
         protected static AccountUtils accountUtils;
         protected static string resourceGroupName = string.Empty;
         protected static string accountName = string.Empty;
@@ -48,7 +52,7 @@ namespace Management.Storage.ScenarioTest
 
         private const int maxRuleCount = 100;
         private const string allowedLocation = Constants.Location.EastUS2EUAP;
-        #region Additional test attributes
+#region Additional test attributes
 
         [ClassInitialize()]
         public static void StorageAccountTestInit(TestContext testContext)
@@ -57,11 +61,11 @@ namespace Management.Storage.ScenarioTest
 
             if (isResourceMode)
             {
+#if !DOTNET5_4
                 NodeJSAgent.AgentConfig.UseEnvVar = false;
+#endif
 
                 AzureEnvironment environment = Utility.GetTargetEnvironment();
-                managementClient = new ManagementClient(Utility.GetCertificateCloudCredential(),
-                        environment.GetEndpointAsUri(AzureEnvironment.Endpoint.ServiceManagement));
 
                 accountUtils = new AccountUtils(lang, isResourceMode);
 
@@ -100,7 +104,7 @@ namespace Management.Storage.ScenarioTest
             TestBase.TestClassCleanup();
         }
         
-        #endregion
+#endregion
 
         [TestMethod]
         [TestCategory(Tag.Function_SRP)]
@@ -686,7 +690,7 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
-        #region Help Functions
+#region Help Functions
 
         //Generate Random IpAddressOrRange array
         private string[] GetRandomIpRules(int count, string[] existingRules = null)
@@ -1131,7 +1135,7 @@ namespace Management.Storage.ScenarioTest
                 }
             }
         }
-        #endregion
+#endregion
     }
 }
 

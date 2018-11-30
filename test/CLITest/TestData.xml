@@ -16,7 +16,7 @@
   <AzureSubscriptionID></AzureSubscriptionID>
 
   <!-- These settings are only for resource mode which requires AAD authentication -->
-  <AADRealm>72f988bf-86f1-41af-91ab-2d7cd011db47</AADRealm>
+  <AADRealm></AADRealm>
   <AADClient></AADClient>
   <AADPassword></AADPassword>
   <AutoLogin>true</AutoLogin>
@@ -49,7 +49,7 @@
   <SecondaryStorageAccountName></SecondaryStorageAccountName>
   <SecondaryStorageAccountKey></SecondaryStorageAccountKey>
   <SecondaryStorageEndPoint>core.windows.net</SecondaryStorageEndPoint>
-  <StorageAccountNameInOtherSubscription>xtestragrsxsmb1</StorageAccountNameInOtherSubscription>
+  <StorageAccountNameInOtherSubscription></StorageAccountNameInOtherSubscription>
   <XIOStorageConnectionString></XIOStorageConnectionString>
   
 
