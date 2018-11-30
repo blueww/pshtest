@@ -701,6 +701,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 startTime = DateTime.Today.AddDays(-2);
                 CommandAgent.SetAzureStorageShareStoredAccessPolicy(shareName, policyName, null, startTime, null);
 
+                Test.Info("Sleep and wait for sas policy taking effect");
+                Thread.Sleep(TimeSpan.FromMinutes(lifeTime));
+
                 fileUtil.ValidateShareReadableWithSasToken(share, fileName, sasToken);
             }
             finally

@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "CLITest": {
+      "commandName": "Project",
+      "commandLineArgs": ".\\mstest2\\MsTest2.exe -lib CLITest.dll -config TestData.xml -group Management.Storage.ScenarioTest.BVT.HTTPS.NameKeyContextBVT -case NewContainerTest -lang PowerShell",
+      "workingDirectory": "D:\\clitest\\netcore\\CLITest\\bin\\Debug\\netstandard2.0\\win10-x64\\publish"
+    }
+  }
+}

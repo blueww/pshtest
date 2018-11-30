@@ -163,6 +163,14 @@ namespace Management.Storage.ScenarioTest
 
             if (string.IsNullOrEmpty(isPowerShellGet) || bool.Parse(isPowerShellGet))
             {
+#if DOTNET5_4
+                ResourceModulePaths = new string[]
+                {
+                    "Az.Profile",
+                    "Az.Storage"
+                };
+
+#else
                 ResourceModulePaths = new string[]
                 {
                     "AzureRM.Profile",
@@ -187,6 +195,7 @@ namespace Management.Storage.ScenarioTest
                         "Azure.Storage",
                         "Azure"
                 };
+#endif
             }
             else
             {

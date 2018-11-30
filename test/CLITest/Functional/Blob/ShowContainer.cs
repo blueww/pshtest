@@ -21,6 +21,7 @@ using MS.Test.Common.MsTestLib;
 using System.Reflection;
 using System.Collections.Generic;
 using Management.Storage.ScenarioTest.Util;
+using StorageTestLib;
 
 namespace Management.Storage.ScenarioTest.Functional.Blob
 {

@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using MS.Test.Common.MsTestLib;
+using StorageTestLib;
 
 namespace Management.Storage.ScenarioTest.Functional.Blob
 {
@@ -59,6 +60,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 Test.Assert(CommandAgent.AcquireLease(containerName, string.Empty), Utility.GenComparisonData("Acquire Container Lease", true));
 
+#if !DOTNET5_4
                 if (lang == Language.NodeJS)
                 {
                     try
@@ -75,6 +77,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                         Test.Error(string.Format("{0} error: {1}", MethodBase.GetCurrentMethod().Name, e.Message));
                     }
                 }
+#endif
             }
             finally
             {
@@ -881,6 +884,8 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 }
 
                 Test.Assert(CommandAgent.AcquireLease(containerName, blobName, duration: 30), Utility.GenComparisonData("Acquire blob Lease", true));
+
+#if !DOTNET5_4
                 if (lang == Language.NodeJS)
                 {
                     try
@@ -892,6 +897,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                         Test.Error(string.Format("{0} error: {1}", MethodBase.GetCurrentMethod().Name, e.Message));
                     }
                 }
+#endif
 
                 // Create a container SAS
                 string containerSasToken = string.Empty;

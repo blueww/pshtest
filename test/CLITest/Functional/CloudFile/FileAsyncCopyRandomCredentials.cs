@@ -92,7 +92,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 }
                 else
                 {
+#if !DOTNET5_4
                     NodeJSAgent.SetStorageContext(connectionString);
+#endif
                 }
             });
 
@@ -127,6 +129,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
             },
                 (destShare) =>
                 {
+#if DOTNET5_4
+                    return PowerShellAgent.GetStorageContext(StorageAccount.ToString(true));
+#else
                     if (lang == Language.PowerShell)
                     {
                         return PowerShellAgent.GetStorageContext(StorageAccount.ToString(true));
@@ -135,6 +140,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     {
                         return NodeJSAgent.GetStorageContext(StorageAccount.ToString(true));
                     }
+#endif
                 });
         }
 
@@ -153,8 +159,10 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     PowerShellAgent.SetStorageContext(StorageAccount.ToString(true));
                 }
                 else
-                {
+            {
+#if !DOTNET5_4
                     NodeJSAgent.SetStorageContext(StorageAccount.ToString(true));
+#endif
                 };
             });
 
@@ -251,6 +259,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 StorageFile.CloudFile sourceFile = fileUtil.CreateFile(sourceShare.GetRootDirectoryReference(), Utility.GenNameString("SourceFile"));
 
                 object destContext;
+#if DOTNET5_4
+                destContext = PowerShellAgent.GetStorageContext(StorageAccount.ToString(true));
+#else
                 if (lang == Language.PowerShell)
                 {
                     destContext = PowerShellAgent.GetStorageContext(StorageAccount.ToString(true));
@@ -259,6 +270,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 {
                     destContext = NodeJSAgent.GetStorageContext(StorageAccount.ToString(true));
                 }
+#endif
 
                 string sasToken = sourceShare.GetSharedAccessSignature(new SharedAccessFilePolicy()
                 {
@@ -296,6 +308,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 StorageFile.CloudFile destFile = fileUtil.GetFileReference(destShare.GetRootDirectoryReference(), fileName);
 
                 object destContext;
+#if DOTNET5_4
+                destContext = PowerShellAgent.GetStorageContext(StorageAccount.ToString(true));
+#else
                 if (lang == Language.PowerShell)
                 {
                     destContext = PowerShellAgent.GetStorageContext(StorageAccount.ToString(true));
@@ -304,6 +319,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 {
                     destContext = NodeJSAgent.GetStorageContext(StorageAccount.ToString(true));
                 }
+#endif
 
                 string bigBlobUri = Test.Data.Get("BigBlobUri");
 
@@ -325,7 +341,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                     copyId = ((JObject)CommandAgent.Output[0]["copy"])["id"].ToString();
                 }
 
+#if !DOTNET5_4
                 NodeJSAgent.AgentConfig.ConnectionString = StorageAccount.ToString(true);
+#endif
                 Test.Assert(CommandAgent.StopFileCopy(destFile, copyId), "Stop file copy should succeed.");
             }
             finally
@@ -430,6 +448,9 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 CloudBlob sourceBlob = blobUtil.CreateRandomBlob(container, Utility.GenNameString("BlobName"));
 
                 object destContext;
+#if DOTNET5_4
+                    destContext = PowerShellAgent.GetStorageContext(StorageAccount.ToString(true));
+#else
                 if (lang == Language.PowerShell)
                 {
                     destContext = PowerShellAgent.GetStorageContext(StorageAccount.ToString(true));
@@ -438,6 +459,7 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 {
                     destContext = NodeJSAgent.GetStorageContext(StorageAccount.ToString(true));
                 }
+#endif
 
                 SetSourceContext(container);
 

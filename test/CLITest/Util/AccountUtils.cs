@@ -8,7 +8,11 @@
     using Microsoft.Azure.Commands.Common.Authentication.Models;
     using Microsoft.Azure.Management.Storage.Models;
     using Microsoft.Rest.Azure;
+#if DOTNET5_4
+    using Microsoft.Azure.Management.Storage;
+#else
     using Microsoft.WindowsAzure.Management.Storage;
+#endif
     using MS.Test.Common.MsTestLib;
     using SRPManagement = Microsoft.Azure.Management.Storage;
     using SRPModel = Microsoft.Azure.Management.Storage.Models;
@@ -51,6 +55,7 @@
         public AccountUtils(Language language, bool isResourceMode)
         {
             this.language = language;
+#if !DOTNET5_4
             if (isResourceMode)
             {
                 StorageClient = new StorageManagementClient(Utility.GetCertificateCloudCredential());
@@ -61,6 +66,7 @@
                 StorageClient = new StorageManagementClient(Utility.GetCertificateCloudCredential(),
                     environment.GetEndpointAsUri(AzureEnvironment.Endpoint.ServiceManagement));
             }
+#endif
         }
 
         public string GenerateAccountName(int nameLength = 0)

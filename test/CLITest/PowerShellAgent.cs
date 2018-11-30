@@ -1253,11 +1253,7 @@ namespace Management.Storage.ScenarioTest
         public override bool StartAzureStorageBlobCopy(string sourceUri, string destContainerName, string destBlobName, object destContext = null, bool force = true)
         {
             PowerShell ps = GetPowerShellInstance();
-#if NEW_CMDLET_NAME
-            ps.AddCommand("Start-CopyAzStorageBlob");
-#else
             ps.AddCommand("Start-CopyAzureStorageBlob");
-#endif
             ps.BindParameter("SrcUri", sourceUri);
             ps.BindParameter("DestContainer", destContainerName);
             ps.BindParameter("DestBlob", destBlobName);
@@ -1276,11 +1272,7 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
-#if NEW_CMDLET_NAME
-            ps.AddCommand("Start-CopyAzStorageBlob");
-#else
             ps.AddCommand("Start-CopyAzureStorageBlob");
-#endif
             ps.BindParameter("SrcContainer", srcContainerName);
             ps.BindParameter("SrcBlob", srcBlobName);
             ps.BindParameter("DestContainer", destContainerName);
@@ -1298,11 +1290,7 @@ namespace Management.Storage.ScenarioTest
         public override bool StartAzureStorageBlobCopy(CloudBlob srcBlob, string destContainerName, string destBlobName, object destContext = null, bool force = true, PremiumPageBlobTier? premiumPageBlobTier = null)
         {
             PowerShell ps = GetPowerShellInstance();
-#if NEW_CMDLET_NAME
-            ps.AddCommand("Start-CopyAzStorageBlob");
-#else
             ps.AddCommand("Start-CopyAzureStorageBlob");
-#endif
             ps.BindParameter("CloudBlob", srcBlob);
             ps.BindParameter("DestContainer", destContainerName);
             ps.BindParameter("Force", force);
@@ -1319,11 +1307,7 @@ namespace Management.Storage.ScenarioTest
         public override bool StartAzureStorageBlobCopyFromFile(string srcShareName, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true)
         {
             PowerShell ps = GetPowerShellInstance();
-#if NEW_CMDLET_NAME
-            ps.AddCommand("Start-CopyAzStorageBlob");
-#else
             ps.AddCommand("Start-CopyAzureStorageBlob");
-#endif
             ps.BindParameter("SrcShareName", srcShareName);
             ps.BindParameter("SrcFilePath", srcFilePath);
             ps.BindParameter("DestContainer", destContainerName);
@@ -1337,11 +1321,7 @@ namespace Management.Storage.ScenarioTest
         public override bool StartAzureStorageBlobCopy(CloudFileShare srcShare, string srcFilePath, string destContainerName, string destBlobName, object destContext = null, bool force = true)
         {
             PowerShell ps = GetPowerShellInstance();
-#if NEW_CMDLET_NAME
-            ps.AddCommand("Start-CopyAzStorageBlob");
-#else
             ps.AddCommand("Start-CopyAzureStorageBlob");
-#endif
             ps.BindParameter("SrcShare", srcShare);
             ps.BindParameter("SrcFilePath", srcFilePath);
             ps.BindParameter("DestContainer", destContainerName);
@@ -1357,11 +1337,7 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
 
-#if NEW_CMDLET_NAME
-            ps.AddCommand("Start-CopyAzStorageBlob");
-#else
             ps.AddCommand("Start-CopyAzureStorageBlob");
-#endif
             ps.BindParameter("SrcFile", srcFile);
             ps.BindParameter("DestContainer", destContainerName);
             ps.BindParameter("DestBlob", destBlobName);
@@ -3621,7 +3597,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void NewFileShare(string fileShareName, object contextObject = null)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("New-AzStorageShare");
+#else
             this.shell.AddCommand("New-AzureStorageShare");
+#endif
             this.shell.AddParameter("Name", fileShareName);
             this.shell.AddParameter("Context", contextObject ?? PowerShellAgent.Context);
         }
@@ -3630,14 +3610,22 @@ namespace Management.Storage.ScenarioTest
         {
             this.shell.Runspace.SessionStateProxy.SetVariable("context", PowerShellAgent.Context);
             this.shell.AddCommand("Foreach-Object");
+#if NEW_CMDLET_NAME
+            this.shell.AddParameter("Process", ScriptBlock.Create("New-AzStorageShare -Name $_ -Context $context"));
+#else
             this.shell.AddParameter("Process", ScriptBlock.Create("New-AzureStorageShare -Name $_ -Context $context"));
+#endif
         }
 
         public override void NewDirectoryFromPipeline(string fileShareName)
         {
             this.shell.Runspace.SessionStateProxy.SetVariable("context", PowerShellAgent.Context);
             this.shell.AddCommand("Foreach-Object");
+#if NEW_CMDLET_NAME
+            this.shell.AddParameter("Process", ScriptBlock.Create(string.Format(CultureInfo.InvariantCulture, "New-AzStorageDirectory -ShareName {0} -Path $_ -Context $context", fileShareName)));
+#else
             this.shell.AddParameter("Process", ScriptBlock.Create(string.Format(CultureInfo.InvariantCulture, "New-AzureStorageDirectory -ShareName {0} -Path $_ -Context $context", fileShareName)));
+#endif
         }
 
         public override void UploadFilesFromPipeline(string fileShareName, string localFileName)
@@ -3647,7 +3635,11 @@ namespace Management.Storage.ScenarioTest
             this.shell.AddParameter("Process", ScriptBlock.Create(
                 string.Format(
                     CultureInfo.InvariantCulture,
+#if NEW_CMDLET_NAME
+                    "Set-AzStorageFileContent -ShareName {0} -Source \"{1}\" -Path $_ -Context $context",
+#else
                     "Set-AzureStorageFileContent -ShareName {0} -Source \"{1}\" -Path $_ -Context $context",
+#endif
                     fileShareName,
                     localFileName)));
         }
@@ -3659,7 +3651,11 @@ namespace Management.Storage.ScenarioTest
             this.shell.AddParameter("Process", ScriptBlock.Create(
                 string.Format(
                     CultureInfo.InvariantCulture,
+#if NEW_CMDLET_NAME
+                    @"Set-AzStorageFileContent -ShareName {0} -Source ""{1}\$_"" -Path $_ -Context $context",
+#else
                     @"Set-AzureStorageFileContent -ShareName {0} -Source ""{1}\$_"" -Path $_ -Context $context",
+#endif
                     fileShareName,
                     folder)));
         }
@@ -3668,26 +3664,42 @@ namespace Management.Storage.ScenarioTest
         {
             this.shell.Runspace.SessionStateProxy.SetVariable("context", PowerShellAgent.Context);
             this.shell.AddCommand("Foreach-Object");
+#if NEW_CMDLET_NAME
+            this.shell.AddParameter("Process", ScriptBlock.Create("Remove-AzStorageShare -Name $_ -Context $context -Confirm:$false"));
+#else
             this.shell.AddParameter("Process", ScriptBlock.Create("Remove-AzureStorageShare -Name $_ -Context $context -Confirm:$false"));
+#endif
         }
 
         public override void RemoveDirectoriesFromPipeline(string fileShareName)
         {
             this.shell.Runspace.SessionStateProxy.SetVariable("context", PowerShellAgent.Context);
             this.shell.AddCommand("Foreach-Object");
+#if NEW_CMDLET_NAME
+            this.shell.AddParameter("Process", ScriptBlock.Create(string.Format(CultureInfo.InvariantCulture, "Remove-AzStorageDirectory -ShareName {0} -Path $_ -Context $context -Confirm:$false", fileShareName)));
+#else
             this.shell.AddParameter("Process", ScriptBlock.Create(string.Format(CultureInfo.InvariantCulture, "Remove-AzureStorageDirectory -ShareName {0} -Path $_ -Context $context -Confirm:$false", fileShareName)));
+#endif
         }
 
         public override void RemoveFilesFromPipeline(string fileShareName)
         {
             this.shell.Runspace.SessionStateProxy.SetVariable("context", PowerShellAgent.Context);
             this.shell.AddCommand("Foreach-Object");
+#if NEW_CMDLET_NAME
+            this.shell.AddParameter("Process", ScriptBlock.Create(string.Format(CultureInfo.InvariantCulture, "Remove-AzStorageFile -ShareName {0} -Path $_ -Context $context -Confirm:$false", fileShareName)));
+#else
             this.shell.AddParameter("Process", ScriptBlock.Create(string.Format(CultureInfo.InvariantCulture, "Remove-AzureStorageFile -ShareName {0} -Path $_ -Context $context -Confirm:$false", fileShareName)));
+#endif
         }
 
         public override void GetFileShareByName(string fileShareName, DateTimeOffset? snapshotTime = null)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Get-AzStorageShare");
+#else
             this.shell.AddCommand("Get-AzureStorageShare");
+#endif
             if (!string.IsNullOrEmpty(fileShareName))
             {
                 this.shell.AddParameter("Name", fileShareName);
@@ -3698,14 +3710,22 @@ namespace Management.Storage.ScenarioTest
 
         public override void GetFileShareByPrefix(string prefix)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Get-AzStorageShare");
+#else
             this.shell.AddCommand("Get-AzureStorageShare");
+#endif
             this.shell.AddParameter("Prefix", prefix);
             this.shell.AddParameter("Context", PowerShellAgent.Context);
         }
 
         public override void RemoveFileShareByName(string fileShareName, bool passThru = false, object contextObject = null, bool confirm = false, bool includeAllSnapshot = false)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Remove-AzStorageShare");
+#else
             this.shell.AddCommand("Remove-AzureStorageShare");
+#endif
             this.shell.AddParameter("Name", fileShareName);
             if (includeAllSnapshot)
             {
@@ -3726,21 +3746,33 @@ namespace Management.Storage.ScenarioTest
 
         public override void NewDirectory(CloudFileShare fileShare, string directoryName)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("New-AzStorageDirectory");
+#else
             this.shell.AddCommand("New-AzureStorageDirectory");
+#endif
             this.shell.AddParameter("Share", fileShare);
             this.shell.AddParameter("Path", directoryName);
         }
 
         public override void NewDirectory(CloudFileDirectory directory, string directoryName)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("New-AzStorageDirectory");
+#else
             this.shell.AddCommand("New-AzureStorageDirectory");
+#endif
             this.shell.AddParameter("Directory", directory);
             this.shell.AddParameter("Path", directoryName);
         }
 
         public override void NewDirectory(string fileShareName, string directoryName, object contextObject = null)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("New-AzStorageDirectory");
+#else
             this.shell.AddCommand("New-AzureStorageDirectory");
+#endif
             this.shell.AddParameter("ShareName", fileShareName);
             this.shell.AddParameter("Path", directoryName);
             this.shell.AddParameter("Context", contextObject ?? PowerShellAgent.Context);
@@ -3748,7 +3780,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void RemoveDirectory(CloudFileShare fileShare, string directoryName, bool confirm = false)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Remove-AzStorageDirectory");
+#else
             this.shell.AddCommand("Remove-AzureStorageDirectory");
+#endif
             this.shell.AddParameter("Share", fileShare);
             this.shell.AddParameter("Path", directoryName);
 
@@ -3760,7 +3796,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void RemoveDirectory(CloudFileDirectory directory, string path, bool confirm = false)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Remove-AzStorageDirectory");
+#else
             this.shell.AddCommand("Remove-AzureStorageDirectory");
+#endif
             this.shell.AddParameter("Directory", directory);
             this.shell.AddParameter("Path", path);
 
@@ -3772,7 +3812,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void RemoveDirectory(string fileShareName, string directoryName, object contextObject = null, bool confirm = false)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Remove-AzStorageDirectory");
+#else
             this.shell.AddCommand("Remove-AzureStorageDirectory");
+#endif
             this.shell.AddParameter("ShareName", fileShareName);
             this.shell.AddParameter("Path", directoryName);
             this.shell.AddParameter("Context", contextObject ?? PowerShellAgent.Context);
@@ -3785,7 +3829,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void RemoveFile(CloudFileShare fileShare, string fileName, bool confirm = false)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Remove-AzStorageFile");
+#else
             this.shell.AddCommand("Remove-AzureStorageFile");
+#endif
             this.shell.AddParameter("Share", fileShare);
             this.shell.AddParameter("Path", fileName);
 
@@ -3797,7 +3845,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void RemoveFile(CloudFileDirectory directory, string fileName, bool confirm = false)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Remove-AzStorageFile");
+#else
             this.shell.AddCommand("Remove-AzureStorageFile");
+#endif
             this.shell.AddParameter("Directory", directory);
             this.shell.AddParameter("Path", fileName);
 
@@ -3809,7 +3861,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void RemoveFile(CloudFile file, bool confirm = false)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Remove-AzStorageFile");
+#else
             this.shell.AddCommand("Remove-AzureStorageFile");
+#endif
             this.shell.AddParameter("File", file);
 
             if (!confirm)
@@ -3820,7 +3876,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void RemoveFile(string fileShareName, string fileName, object contextObject = null, bool confirm = false)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Remove-AzStorageFile");
+#else
             this.shell.AddCommand("Remove-AzureStorageFile");
+#endif
             this.shell.AddParameter("ShareName", fileShareName);
             this.shell.AddParameter("Path", fileName);
             this.shell.AddParameter("Context", contextObject ?? PowerShellAgent.Context);
@@ -3833,7 +3893,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void GetFile(string fileShareName, string path = null)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Get-AzStorageFile");
+#else
             this.shell.AddCommand("Get-AzureStorageFile");
+#endif
             this.shell.AddParameter("ShareName", fileShareName);
             if (path != null)
             {
@@ -3848,13 +3912,21 @@ namespace Management.Storage.ScenarioTest
         /// </summary>
         public override void GetFile()
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Get-AzStorageFile");
+#else
             this.shell.AddCommand("Get-AzureStorageFile");
+#endif
 
         }
 
         public override void GetFile(CloudFileShare fileShare, string path = null)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Get-AzStorageFile");
+#else
             this.shell.AddCommand("Get-AzureStorageFile");
+#endif
             this.shell.AddParameter("Share", fileShare);
             if (path != null)
             {
@@ -3864,7 +3936,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void GetFile(CloudFileDirectory directory, string path = null)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Get-AzStorageFile");
+#else
             this.shell.AddCommand("Get-AzureStorageFile");
+#endif
             this.shell.AddParameter("Directory", directory);
             if (path != null)
             {
@@ -3874,7 +3950,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void DownloadFile(CloudFile file, string destination, bool overwrite = false)
         {
-            this.shell.AddCommand("Get-AzureStorageFileContent");
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Get-AzStorageFileContent");
+#else
+            this.shell.AddCommand("Get-AzStorageFileContent");
+#endif
             this.shell.AddParameter("File", file);
             this.shell.AddParameter("Destination", destination);
 
@@ -3886,7 +3966,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void DownloadFile(CloudFileDirectory directory, string path, string destination, bool overwrite = false)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Get-AzStorageFileContent");
+#else
             this.shell.AddCommand("Get-AzureStorageFileContent");
+#endif
             this.shell.AddParameter("Directory", directory);
             this.shell.AddParameter("Path", path);
             this.shell.AddParameter("Destination", destination);
@@ -3899,7 +3983,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void DownloadFile(CloudFileShare fileShare, string path, string destination, bool overwrite = false)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Get-AzStorageFileContent");
+#else
             this.shell.AddCommand("Get-AzureStorageFileContent");
+#endif
             this.shell.AddParameter("Share", fileShare);
             this.shell.AddParameter("Path", path);
             this.shell.AddParameter("Destination", destination);
@@ -3912,7 +4000,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void DownloadFile(string fileShareName, string path, string destination, bool overwrite = false, object contextObject = null, bool CheckMd5 = false)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Get-AzStorageFileContent");
+#else
             this.shell.AddCommand("Get-AzureStorageFileContent");
+#endif
             this.shell.AddParameter("ShareName", fileShareName);
             this.shell.AddParameter("Path", path);
             this.shell.AddParameter("Destination", destination);
@@ -3932,7 +4024,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void DownloadFiles(string fileShareName, string path, string destination, bool overwrite = false)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Get-AzStorageFile");
+#else
             this.shell.AddCommand("Get-AzureStorageFile");
+#endif
             this.shell.AddParameter("shareName", fileShareName);
             this.shell.AddParameter("context", PowerShellAgent.Context);
 
@@ -3947,7 +4043,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void UploadFile(CloudFileShare fileShare, string source, string path, bool overwrite = false, bool passThru = false)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Set-AzStorageFileContent");
+#else
             this.shell.AddCommand("Set-AzureStorageFileContent");
+#endif
             this.shell.AddParameter("Share", fileShare);
             this.shell.AddParameter("Source", source);
             this.shell.AddParameter("Path", path);
@@ -3965,7 +4065,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void UploadFile(CloudFileDirectory directory, string source, string path, bool overwrite = false, bool passThru = false)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Set-AzStorageFileContent");
+#else
             this.shell.AddCommand("Set-AzureStorageFileContent");
+#endif
             this.shell.AddParameter("Directory", directory);
             this.shell.AddParameter("Source", source);
             this.shell.AddParameter("Path", path);
@@ -3983,7 +4087,11 @@ namespace Management.Storage.ScenarioTest
 
         public override void UploadFile(string fileShareName, string source, string path, bool overwrite = false, bool passThru = false, object contextObject = null)
         {
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Set-AzStorageFileContent");
+#else
             this.shell.AddCommand("Set-AzureStorageFileContent");
+#endif
             this.shell.AddParameter("ShareName", fileShareName);
             this.shell.AddParameter("Source", source);
             this.shell.AddParameter("Path", path);
@@ -4005,7 +4113,11 @@ namespace Management.Storage.ScenarioTest
         {
             this.Clear();
 
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("New-AzStorageShareStoredAccessPolicy");
+#else
             this.shell.AddCommand("New-AzureStorageShareStoredAccessPolicy");
+#endif
             this.shell.BindParameter("ShareName", shareName);
             this.shell.BindParameter("Policy", policyName);
             this.shell.BindParameter("Permission", permissions);
@@ -4019,7 +4131,11 @@ namespace Management.Storage.ScenarioTest
         {
             this.Clear();
 
-            this.shell.AddCommand("Get-AzureStorageShareStoredAccessPolicy");
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Get-AzStorageShareStoredAccessPolicy");
+#else
+            this.shell.AddCommand("Get-AzStorageShareStoredAccessPolicy");
+#endif
             this.shell.BindParameter("ShareName", shareName);
 
             if (null != policyName)
@@ -4034,7 +4150,11 @@ namespace Management.Storage.ScenarioTest
         {
             this.Clear();
 
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Remove-AzStorageShareStoredAccessPolicy");
+#else
             this.shell.AddCommand("Remove-AzureStorageShareStoredAccessPolicy");
+#endif
             this.shell.BindParameter("ShareName", shareName);
             this.shell.BindParameter("Policy", policyName);
 
@@ -4046,7 +4166,11 @@ namespace Management.Storage.ScenarioTest
         {
             this.Clear();
 
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Set-AzStorageShareStoredAccessPolicy");
+#else
             this.shell.AddCommand("Set-AzureStorageShareStoredAccessPolicy");
+#endif
             this.shell.BindParameter("ShareName", shareName);
             this.shell.BindParameter("Policy", policyName);
             this.shell.BindParameter("Permission", permissions);
@@ -4072,7 +4196,11 @@ namespace Management.Storage.ScenarioTest
         {
             this.Clear();
 
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("New-AzStorageShareSASToken");
+#else
             this.shell.AddCommand("New-AzureStorageShareSASToken");
+#endif
             this.shell.BindParameter("ShareName", shareName);
             this.shell.BindParameter("Protocol", protocol);
             this.shell.BindParameter("IPAddressOrRange", iPAddressOrRange);
@@ -4088,7 +4216,11 @@ namespace Management.Storage.ScenarioTest
         {
             this.Clear();
 
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("New-AzStorageFileSASToken");
+#else
             this.shell.AddCommand("New-AzureStorageFileSASToken");
+#endif
             this.shell.BindParameter("ShareName", shareName);
             this.shell.BindParameter("Protocol", protocol);
             this.shell.BindParameter("IPAddressOrRange", iPAddressOrRange);
@@ -4105,7 +4237,11 @@ namespace Management.Storage.ScenarioTest
         {
             this.Clear();
 
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("New-AzStorageFileSASToken");
+#else
             this.shell.AddCommand("New-AzureStorageFileSASToken");
+#endif
             this.shell.BindParameter("File", file);
 
             this.AddSASTokenParameter(policyName, permissions, startTime, expiryTime, fulluri);
@@ -4175,7 +4311,11 @@ namespace Management.Storage.ScenarioTest
         {
             this.Clear();
 
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Set-AzStorageShareQuota");
+#else
             this.shell.AddCommand("Set-AzureStorageShareQuota");
+#endif
             this.shell.BindParameter("ShareName", shareName);
             this.shell.BindParameter("Quota", quota);
 
@@ -4186,7 +4326,11 @@ namespace Management.Storage.ScenarioTest
         {
             this.Clear();
 
+#if NEW_CMDLET_NAME
+            this.shell.AddCommand("Set-AzStorageShareQuota");
+#else
             this.shell.AddCommand("Set-AzureStorageShareQuota");
+#endif
             this.shell.BindParameter("Share", share);
             this.shell.BindParameter("Quota", quota);
 
@@ -4283,7 +4427,11 @@ namespace Management.Storage.ScenarioTest
 
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
+#if NEW_CMDLET_NAME
+            ps.AddCommand("Login-AzAccount");
+#else
             ps.AddCommand("Login-AzureRmAccount");
+#endif
             ps.BindParameter("Credential", psCredential);
             ps.BindParameter("ServicePrincipal");
             ps.BindParameter("Tenant", Test.Data.Get("AADRealm"));
@@ -4481,7 +4629,12 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
+
+#if NEW_CMDLET_NAME
+            ps.AddCommand("New-AzStorageAccount");
+#else
             ps.AddCommand("New-AzureRmStorageAccount");
+#endif
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
             if (new Random().Next() % 2 == 0)
@@ -4531,7 +4684,11 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
+#if NEW_CMDLET_NAME
+            ps.AddCommand("Set-AzStorageAccount");
+#else
             ps.AddCommand("Set-AzureRmStorageAccount");
+#endif
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
             if (new Random().Next() % 2 == 0)
@@ -4596,7 +4753,11 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
+#if NEW_CMDLET_NAME
+            ps.AddCommand("Set-AzStorageAccount");
+#else
             ps.AddCommand("Set-AzureRmStorageAccount");
+#endif
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
             if (new Random().Next() % 2 == 0)
@@ -4654,7 +4815,11 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
+#if NEW_CMDLET_NAME
+            ps.AddCommand("Set-AzStorageAccount");
+#else
             ps.AddCommand("Set-AzureRmStorageAccount");
+#endif
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
             ps.BindParameter("Tags", (tags == null || tags.Length == 0) ? null : tags[0]);
@@ -4667,7 +4832,11 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
+#if NEW_CMDLET_NAME
+            ps.AddCommand("Set-AzStorageAccount");
+#else
             ps.AddCommand("Set-AzureRmStorageAccount");
+#endif
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
             ps.BindParameter("CustomDomainName", customDomain, true);
@@ -4681,7 +4850,11 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
+#if NEW_CMDLET_NAME
+            ps.AddCommand("Remove-AzStorageAccount");
+#else
             ps.AddCommand("Remove-AzureRmStorageAccount");
+#endif
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
             ps.AddParameter("Force");
@@ -4693,7 +4866,11 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
+#if NEW_CMDLET_NAME
+            ps.AddCommand("Get-AzStorageAccount");
+#else
             ps.AddCommand("Get-AzureRmStorageAccount");
+#endif
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
 
@@ -4704,7 +4881,11 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
+#if NEW_CMDLET_NAME
+            ps.AddCommand("Get-AzStorageAccountKey");
+#else
             ps.AddCommand("Get-AzureRmStorageAccountKey");
+#endif
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
 
@@ -4715,7 +4896,11 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
+#if NEW_CMDLET_NAME
+            ps.AddCommand("New-AzStorageAccountKey");
+#else
             ps.AddCommand("New-AzureRmStorageAccountKey");
+#endif
             ps.BindParameter("ResourceGroupName", resourceGroup);
             ps.BindParameter("Name", accountName);
 
@@ -4738,7 +4923,11 @@ namespace Management.Storage.ScenarioTest
         public override bool CheckNameAvailability(string accountName)
         {
             PowerShell ps = GetPowerShellInstance();
+#if NEW_CMDLET_NAME
+            ps.AddCommand("Get-AzStorageAccountNameAvailability");
+#else
             ps.AddCommand("Get-AzureRMStorageAccountNameAvailability");
+#endif
             ps.BindParameter("Name", accountName, true);
 
             return InvokePowerShellWithoutContext(ps);
@@ -4747,7 +4936,11 @@ namespace Management.Storage.ScenarioTest
         public override bool GetAzureStorageUsage()
         {
             PowerShell ps = GetPowerShellInstance();
+#if NEW_CMDLET_NAME
+            ps.AddCommand("Get-AzStorageUsage");
+#else
             ps.AddCommand("Get-AzureRMStorageUsage");
+#endif
 
             return InvokePowerShellWithoutContext(ps);
         }
@@ -4761,7 +4954,11 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
+#if NEW_CMDLET_NAME
+            ps.AddCommand("Update-AzStorageAccountNetworkRuleSet");
+#else
             ps.AddCommand("Update-AzureRmStorageAccountNetworkRuleSet");
+#endif
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
 
@@ -4803,7 +5000,11 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
+#if NEW_CMDLET_NAME
+            ps.AddCommand("Get-AzStorageAccountNetworkRuleSet");
+#else
             ps.AddCommand("Get-AzureRmStorageAccountNetworkRuleSet");
+#endif
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
 
@@ -4814,7 +5015,11 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
+#if NEW_CMDLET_NAME
+            ps.AddCommand("Add-AzStorageAccountNetworkRule");
+#else
             ps.AddCommand("Add-AzureRmStorageAccountNetworkRule");
+#endif
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
 
@@ -4834,7 +5039,11 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
+#if NEW_CMDLET_NAME
+            ps.AddCommand("Add-AzStorageAccountNetworkRule");
+#else
             ps.AddCommand("Add-AzureRmStorageAccountNetworkRule");
+#endif
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
 
@@ -4847,7 +5056,11 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
+#if NEW_CMDLET_NAME
+            ps.AddCommand("Add-AzStorageAccountNetworkRule");
+#else
             ps.AddCommand("Add-AzureRmStorageAccountNetworkRule");
+#endif
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
 
@@ -4860,7 +5073,11 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
+#if NEW_CMDLET_NAME
+            ps.AddCommand("Remove-AzStorageAccountNetworkRule");
+#else
             ps.AddCommand("Remove-AzureRmStorageAccountNetworkRule");
+#endif
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
 
@@ -4880,7 +5097,11 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
+#if NEW_CMDLET_NAME
+            ps.AddCommand("Remove-AzStorageAccountNetworkRule");
+#else
             ps.AddCommand("Remove-AzureRmStorageAccountNetworkRule");
+#endif
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
 
@@ -4893,7 +5114,11 @@ namespace Management.Storage.ScenarioTest
         {
             PowerShell ps = GetPowerShellInstance();
             AttachPipeline(ps);
+#if NEW_CMDLET_NAME
+            ps.AddCommand("Remove-AzStorageAccountNetworkRule");
+#else
             ps.AddCommand("Remove-AzureRmStorageAccountNetworkRule");
+#endif
             ps.BindParameter("ResourceGroupName", resourceGroupName);
             ps.BindParameter("Name", accountName);
 

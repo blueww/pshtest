@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.File;
+using Microsoft.WindowsAzure.Storage.File.Protocol;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Queue.Protocol;
 using Microsoft.WindowsAzure.Storage.Shared.Protocol;
@@ -50,14 +51,19 @@ namespace Management.Storage.ScenarioTest
             } while (null != currentToken);
         }
 
+        public static ICloudBlob GetBlobReferenceFromServer(this CloudBlobContainer container, string blobName)
+        {
+            return container.GetBlobReferenceFromServerAsync(blobName).GetAwaiter().GetResult();
+        }
+
         public static void FetchAttributes(this CloudBlobContainer container)
         {
             container.FetchAttributesAsync().GetAwaiter().GetResult();
         }
 
-        public static void SetMetadata(this CloudBlobContainer container)
+        public static void SetMetadata(this CloudBlobContainer container, AccessCondition accessCondition = null, BlobRequestOptions options = null, OperationContext operationContext = null)
         {
-            container.SetMetadataAsync().GetAwaiter().GetResult();
+            container.SetMetadataAsync(accessCondition, options, operationContext).GetAwaiter().GetResult();
         }
 
         public static string StartCopy(this CloudBlockBlob dest, CloudBlockBlob source)
@@ -71,6 +77,11 @@ namespace Management.Storage.ScenarioTest
         }
 
         public static string StartCopy(this CloudPageBlob dest, CloudPageBlob source)
+        {
+            return dest.StartCopyAsync(source).GetAwaiter().GetResult();
+        }
+
+        public static string StartCopy(this CloudBlob dest, Uri source)
         {
             return dest.StartCopyAsync(source).GetAwaiter().GetResult();
         }
@@ -98,14 +109,39 @@ namespace Management.Storage.ScenarioTest
             blob.DownloadRangeToStreamAsync(target, offset, length).GetAwaiter().GetResult();
         }
 
-        public static void SetMetadata(this CloudBlob blob)
+        public static void SetMetadata(this CloudBlob blob, AccessCondition accessCondition = null, BlobRequestOptions options = null, OperationContext operationContext = null)
         {
-            blob.SetMetadataAsync().GetAwaiter().GetResult();
+            blob.SetMetadataAsync(accessCondition, options, operationContext).GetAwaiter().GetResult();
+        }
+
+        public static string AcquireLease(this CloudBlob blob, TimeSpan? leaseTime, string proposedLeaseId = null)
+        {
+            return blob.AcquireLeaseAsync(leaseTime, proposedLeaseId).GetAwaiter().GetResult();
+        }
+
+        public static void AbortCopy(this CloudBlob blob, string copyId)
+        {
+            blob.AbortCopyAsync(copyId).GetAwaiter().GetResult();
+        }
+
+        public static void Undelete(this CloudBlob blob)
+        {
+            blob.UndeleteAsync().GetAwaiter().GetResult();
         }
 
         #endregion
 
         #region file
+
+        public static void SetServiceProperties(this CloudFileClient fileClient, FileServiceProperties properties)
+        {
+            fileClient.SetServicePropertiesAsync(properties).GetAwaiter().GetResult();
+        }
+
+        public static void FetchAttributes(this CloudFileShare fileShare)
+        {
+            fileShare.FetchAttributesAsync().GetAwaiter().GetResult();
+        }
 
         public static void Create(this CloudFileShare share)
         {
@@ -125,6 +161,16 @@ namespace Management.Storage.ScenarioTest
         public static bool DeleteIfExists(this CloudFileDirectory directory)
         {
             return directory.DeleteIfExistsAsync().GetAwaiter().GetResult();
+        }
+
+        public static CloudFileShare Snapshot(this CloudFileShare fileShare)
+        {
+            return fileShare.SnapshotAsync().GetAwaiter().GetResult();
+        }
+
+        public static ShareStats GetStats(this CloudFileShare fileShare)
+        {
+            return fileShare.GetStatsAsync().GetAwaiter().GetResult();
         }
 
         public static void FetchAttributes(this CloudFile file)
@@ -193,6 +239,16 @@ namespace Management.Storage.ScenarioTest
                 operationContext).GetAwaiter().GetResult();
         }
 
+        public static string StartCopy(this CloudFile file, Uri source)
+        {
+            return file.StartCopyAsync(source).GetAwaiter().GetResult();
+        }
+
+        public static void AbortCopy(this CloudFile file, string copyId)
+        {
+            file.AbortCopyAsync(copyId).GetAwaiter().GetResult();
+        }
+
         #endregion
 
         #region queue
@@ -244,6 +300,11 @@ namespace Management.Storage.ScenarioTest
         public static bool DeleteIfExists(this CloudQueue queue)
         {
             return queue.DeleteIfExistsAsync().GetAwaiter().GetResult();
+        }
+
+        public static void Clear(this CloudQueue queue)
+        {
+            queue.ClearAsync();
         }
 
         public static void FetchAttributes(this CloudQueue queue)

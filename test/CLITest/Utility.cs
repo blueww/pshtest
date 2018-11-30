@@ -391,10 +391,10 @@ namespace Management.Storage.ScenarioTest
             return new TokenCredentials(result.AccessToken, result.AccessTokenType);
         }
 
-        public static TokenCloudCredentials GetTokenCloudCredential()
+        public static TokenCredentials GetTokenCloudCredential()
         {
             AuthenticationResult result = GetAuthenticationResult();
-            return new TokenCloudCredentials(Test.Data.Get("AzureSubscriptionID"), result.AccessToken);
+            return new TokenCredentials(Test.Data.Get("AzureSubscriptionID"), result.AccessToken);
         }
 
         public static AuthenticationResult GetAuthenticationResult()
