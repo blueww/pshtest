@@ -36,7 +36,11 @@
         [TestCategory(Tag.Function)]
         public void NewShareWithNullNameTest()
         {
+#if NEW_CMDLET_NAME
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("New-AzStorageShare -Name $null");
+#else
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("New-AzureStorageShare -Name $null");
+#endif
             var result = CommandAgent.Invoke();
             result.AssertNoResult();
             CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
@@ -50,7 +54,11 @@
         [TestCategory(Tag.Function)]
         public void NewShareWithEmptyNameTest()
         {
+#if NEW_CMDLET_NAME
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("New-AzStorageShare -Name \"\"");
+#else
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("New-AzureStorageShare -Name \"\"");
+#endif
             var result = CommandAgent.Invoke();
             result.AssertNoResult();
             CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
@@ -64,7 +72,11 @@
         [TestCategory(Tag.Function)]
         public void NewDirectoryWithNullShareObjectTest()
         {
+#if NEW_CMDLET_NAME
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("New-AzStorageDirectory -Share $null -Path dir");
+#else
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("New-AzureStorageDirectory -Share $null -Path dir");
+#endif
             var result = CommandAgent.Invoke();
             result.AssertNoResult();
             CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
@@ -78,7 +90,11 @@
         [TestCategory(Tag.Function)]
         public void ListFilesUsingNullDirectoryObjectTest()
         {
+#if NEW_CMDLET_NAME
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("Get-AzStorageFile -Directory $null");
+#else
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("Get-AzureStorageFile -Directory $null");
+#endif
             var result = CommandAgent.Invoke();
             result.AssertNoResult();
             CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));
@@ -92,7 +108,11 @@
         [TestCategory(Tag.Function)]
         public void DownloadFileUsingNullFileObjectTest()
         {
+#if NEW_CMDLET_NAME
+            ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("Get-AzStorageFileContent -File $null -Destination .");
+#else
             ((PowerShellAgent)CommandAgent).PowerShellSession.AddScript("Get-AzureStorageFileContent -File $null -Destination .");
+#endif
             var result = CommandAgent.Invoke();
             result.AssertNoResult();
             CommandAgent.AssertErrors(err => err.AssertError(AssertUtil.ParameterArgumentValidationErrorFullQualifiedErrorId));

@@ -1334,10 +1334,12 @@ namespace Management.Storage.ScenarioTest.BVT
             TimeSpan elapsed = DateTimeOffset.UtcNow - beginTime;
             int expectedSeconds = 5;
 
+#if !DOTNET5_4
             if (lang == Language.NodeJS && NodeJSAgent.AgentOSType != OSType.Windows)
             {
                 expectedSeconds = 15;
             }
+#endif
 
             Test.Assert(elapsed < TimeSpan.FromSeconds(expectedSeconds),
                 string.Format("Get copy state should finish in {0} seconds and actually it is {1} seconds.", expectedSeconds, elapsed.TotalSeconds));

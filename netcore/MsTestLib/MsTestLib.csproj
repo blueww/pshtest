@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+	<DefineConstants>$(DefineConstants);DOTNET5_4</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\test\internal\MsTestLib\ClassConfig.cs" Link="ClassConfig.cs" />
+    <Compile Include="..\..\test\internal\MsTestLib\ConsoleLogger.cs" Link="ConsoleLogger.cs" />
+    <Compile Include="..\..\test\internal\MsTestLib\DumpHelper.cs" Link="DumpHelper.cs" />
+    <Compile Include="..\..\test\internal\MsTestLib\Exceptions.cs" Link="Exceptions.cs" />
+    <Compile Include="..\..\test\internal\MsTestLib\FileLogger.cs" Link="FileLogger.cs" />
+    <Compile Include="..\..\test\internal\MsTestLib\ILogger.cs" Link="ILogger.cs" />
+    <Compile Include="..\..\test\internal\MsTestLib\MessageBuilder.cs" Link="MessageBuilder.cs" />
+    <Compile Include="..\..\test\internal\MsTestLib\MethodConfig.cs" Link="MethodConfig.cs" />
+    <Compile Include="..\..\test\internal\MsTestLib\Test.cs" Link="Test.cs" />
+    <Compile Include="..\..\test\internal\MsTestLib\TestConfig.cs" Link="TestConfig.cs" />
+    <Compile Include="..\..\test\internal\MsTestLib\TestHelper.cs" Link="TestHelper.cs" />
+    <Compile Include="..\..\test\internal\MsTestLib\TestLogger.cs" Link="TestLogger.cs" />
+    <Compile Include="..\..\test\internal\MsTestLib\WTTLogger.cs" Link="WTTLogger.cs" />
+  </ItemGroup>
+
+</Project>

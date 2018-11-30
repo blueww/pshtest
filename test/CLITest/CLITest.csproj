@@ -104,11 +104,11 @@
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Commands.Storage, Version=1.0.4.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\PowerShell\src\Package\$(Configuration)\Storage\Azure.Storage\Microsoft.WindowsAzure.Commands.Storage.dll</HintPath>
+      <HintPath>..\..\PowerShell\Package\$(Configuration)\Storage\Azure.Storage\Microsoft.WindowsAzure.Commands.Storage.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Azure.Commands.Management.Storage.dll, Version=1.0.4.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\PowerShell\src\Package\$(Configuration)\ResourceManager\AzureResourceManager\AzureRM.Storage\Microsoft.Azure.Commands.Management.Storage.dll</HintPath>
+      <HintPath>..\..\PowerShell\Package\$(Configuration)\ResourceManager\AzureResourceManager\AzureRM.Storage\Microsoft.Azure.Commands.Management.Storage.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -148,8 +148,8 @@
     <Reference Include="Microsoft.WindowsAzure.Management.Storage">
       <HintPath>..\packages\Microsoft.WindowsAzure.Management.Storage.5.1.1\lib\net40\Microsoft.WindowsAzure.Management.Storage.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.WindowsAzure.Storage, Version=9.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\WindowsAzure.Storage.9.3.0\lib\net45\Microsoft.WindowsAzure.Storage.dll</HintPath>
+    <Reference Include="Microsoft.WindowsAzure.Storage, Version=9.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\WindowsAzure.Storage.9.0.0\lib\net45\Microsoft.WindowsAzure.Storage.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Wtt.Log, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8a96d095ee9fe264">
       <SpecificVersion>False</SpecificVersion>
@@ -374,22 +374,22 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\azcopy\dmlib\internal\test\StorageTestLib\StorageTestLib.csproj">
-      <Project>{4f2832dd-e6c6-48b7-819a-ae06bfcafa7c}</Project>
-      <Name>StorageTestLib</Name>
+    <ProjectReference Include="..\internal\MsTest2\MsTest2.csproj">
+      <Project>{a7edcc64-0549-4c78-aced-0ca7b605d8fb}</Project>
+      <Name>MsTest2</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTestLib\MsTestLib.csproj">
+    <ProjectReference Include="..\internal\MsTestLib\MsTestLib.csproj">
       <Project>{ac39b50f-dc27-4411-9ed4-a4a137190acb}</Project>
       <Name>MsTestLib</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\azcopy\dmlib\internal\test\TestFramework\MsTest\MsTest2\MsTest2.csproj">
-      <Project>{A7EDCC64-0549-4C78-ACED-0CA7B605D8FB}</Project>
-      <Name>MsTest2</Name>
+    <ProjectReference Include="..\internal\StorageTestLib\StorageTestLib.csproj">
+      <Project>{4f2832dd-e6c6-48b7-819a-ae06bfcafa7c}</Project>
+      <Name>StorageTestLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y ..\..\..\..\azcopy\dmlib\internal\imports\WTT\2.6\Logger\amd64\WTTlog.dll
+    <PostBuildEvent>copy /Y ..\..\..\internal\imports\WTT\2.6\Logger\amd64\WTTlog.dll
 copy /Y ..\..\..\..\PowerShell\src\Package\$(Configuration)\Storage\Azure.Storage\AzureStorageStartup.ps1
 copy /Y PowerShellTest.dll.config MsTest2.exe.config
 MD mstest2

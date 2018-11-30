@@ -165,6 +165,7 @@ namespace Management.Storage.ScenarioTest.Common
                 //set the default storage context
                 PowerShellAgent.SetStorageContext(StorageAccount.ToString(true));
             }
+#if !DOTNET5_4
             else if (lang == Language.NodeJS)
             {
                 NodeJSAgent.GetOSConfig(Test.Data);
@@ -174,6 +175,7 @@ namespace Management.Storage.ScenarioTest.Common
 
                 FileUtil.GetOSConfig(Test.Data);
             }
+#endif
         }
 
         //
@@ -276,12 +278,14 @@ namespace Management.Storage.ScenarioTest.Common
             {
                 if (!accountImported)
                 {
+#if !DOTNET5_4
                     if (lang == Language.NodeJS)
                     {
                         NodeJSAgent nodeAgent = (NodeJSAgent)CommandAgent;
                         nodeAgent.Logout();
                         nodeAgent.ChangeCLIMode(Constants.Mode.asm);
                     }
+#endif
 
                     string settingFile = Test.Data.Get("AzureSubscriptionPath");
                     string subscriptionId = Test.Data.Get("AzureSubscriptionID");
@@ -301,6 +305,7 @@ namespace Management.Storage.ScenarioTest.Common
         /// </summary>
         public virtual void OnTestCleanUp()
         {
+#if !DOTNET5_4
             if (lang == Language.NodeJS)
             {
                 NodeJSAgent.AgentConfig.SAS = string.Empty;
@@ -310,6 +315,7 @@ namespace Management.Storage.ScenarioTest.Common
                     NodeJSAgent.AgentConfig.AccountName = string.Empty;
                 }
             }
+#endif
         }
 
         /// <summary>
@@ -340,7 +346,7 @@ namespace Management.Storage.ScenarioTest.Common
             Test.End(TestContext.FullyQualifiedTestClassName, TestContext.TestName);
         }
 
-        #endregion
+#endregion
 
         public delegate void Validator(string s);
 
@@ -544,6 +550,7 @@ namespace Management.Storage.ScenarioTest.Common
 
         protected void SetActiveSubscription()
         {
+#if !DOTNET5_4
             NodeJSAgent nodeAgent = (NodeJSAgent)CommandAgent;
             string subscriptionID = Test.Data.Get("AzureSubscriptionID");
             if (!string.IsNullOrEmpty(subscriptionID))
@@ -558,6 +565,7 @@ namespace Management.Storage.ScenarioTest.Common
                     nodeAgent.SetActiveSubscription(subscriptionName);
                 }
             }
+#endif
         }
     }
 }

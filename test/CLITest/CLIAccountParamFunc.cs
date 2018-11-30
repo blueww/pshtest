@@ -22,6 +22,7 @@ using MS.Test.Common.MsTestLib;
 
 namespace Management.Storage.ScenarioTest
 {
+#if !DOTNET5_4
     /// <summary>
     /// this class contains all the account parameter settings related negative functional test cases for Node.js commands
     /// </summary>
@@ -32,7 +33,7 @@ namespace Management.Storage.ScenarioTest
         private static string StorageAccountKey;
         private static string TempTestFile;
 
-        #region Additional test attributes
+    #region Additional test attributes
 
         [ClassInitialize()]
         public static void CLIAccountParamFuncClassInit(TestContext testContext)
@@ -57,7 +58,7 @@ namespace Management.Storage.ScenarioTest
             TestBase.TestClassCleanup();
         }
 
-        #endregion
+    #endregion
 
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
@@ -72,11 +73,11 @@ namespace Management.Storage.ScenarioTest
         [TestMethod]
         [TestCategory(CLITag.NodeJSFT)]
         public void MissingAccountName()
-        {            
+        {
             NodeJSAgent.AgentConfig.AccountKey = StorageAccountKey;
             NodeJSAgent.AgentConfig.AccountName = string.Empty;
 
-            StorageTest(MethodBase.GetCurrentMethod().Name);
+        StorageTest(MethodBase.GetCurrentMethod().Name);
         }
 
         [TestMethod]
@@ -136,5 +137,6 @@ namespace Management.Storage.ScenarioTest
                 Utility.GenComparisonData("RemoveAzureStorageBlob", false));
             nodeAgent.ValidateErrorMessage(caseName);
         }
-    }
+}
+#endif
 }

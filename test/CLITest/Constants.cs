@@ -163,6 +163,14 @@ namespace Management.Storage.ScenarioTest
 
             if (string.IsNullOrEmpty(isPowerShellGet) || bool.Parse(isPowerShellGet))
             {
+#if DOTNET5_4
+                ResourceModulePaths = new string[]
+                {
+                    "Az.Profile",
+                    "Az.Storage"
+                };
+
+#else
                 ResourceModulePaths = new string[]
                 {
                     "AzureRM.Profile",
@@ -187,6 +195,7 @@ namespace Management.Storage.ScenarioTest
                         "Azure.Storage",
                         "Azure"
                 };
+#endif
             }
             else
             {
@@ -196,6 +205,16 @@ namespace Management.Storage.ScenarioTest
                     moduleFileFolder = string.Empty;
                 }
 
+#if DOTNET5_4
+                ResourceModulePaths = new string[] {
+                        Path.Combine(moduleFileFolder, "ResourceManager\\AzureResourceManager\\Az.Profile\\Az.Profile.psd1"),
+                        Path.Combine(moduleFileFolder, "ResourceManager\\AzureResourceManager\\Az.Storage\\Az.Storage.psd1") };
+
+                ServiceModulePaths = new string[] {
+                        Path.Combine(moduleFileFolder, "ResourceManager\\AzureResourceManager\\AzureRM.Profile\\AzureRM.Profile.psd1"),
+                        Path.Combine(moduleFileFolder, "Storage\\Azure.Storage\\Azure.Storage.psd1"),
+                        Path.Combine(moduleFileFolder, "ServiceManagement\\Azure\\Azure.psd1") };
+#else
                 ResourceModulePaths = new string[] {
                         Path.Combine(moduleFileFolder, "ResourceManager\\AzureResourceManager\\AzureRM.Profile\\AzureRM.Profile.psd1"),
                         Path.Combine(moduleFileFolder, "Storage\\Azure.Storage\\Azure.Storage.psd1"),
@@ -205,6 +224,7 @@ namespace Management.Storage.ScenarioTest
                         Path.Combine(moduleFileFolder, "ResourceManager\\AzureResourceManager\\AzureRM.Profile\\AzureRM.Profile.psd1"),
                         Path.Combine(moduleFileFolder, "Storage\\Azure.Storage\\Azure.Storage.psd1"),
                         Path.Combine(moduleFileFolder, "ServiceManagement\\Azure\\Azure.psd1") };
+#endif
             }
         }
     }

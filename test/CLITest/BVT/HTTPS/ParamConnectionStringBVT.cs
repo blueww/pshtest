@@ -42,8 +42,10 @@ namespace Management.Storage.ScenarioTest.BVT.HTTPS
             SetUpStorageAccount = TestBase.GetCloudStorageAccountFromConfig(useHttps: useHttps);
             CLICommonBVT.CLICommonBVTInitialize(testContext);
 
+#if !DOTNET5_4
             NodeJSAgent.AgentConfig.ConnectionString = SetUpStorageAccount.ToString(true);
             NodeJSAgent.AgentConfig.UseEnvVar = false;
+#endif
         }
     }
 }

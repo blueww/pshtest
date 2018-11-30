@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using MS.Test.Common.MsTestLib;
+using StorageTestLib;
 
 namespace Management.Storage.ScenarioTest.Functional.Blob
 {
@@ -59,6 +60,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             {
                 Test.Assert(CommandAgent.AcquireLease(containerName, string.Empty), Utility.GenComparisonData("Acquire Lease", true));
 
+#if !DOTNET5_4
                 if (lang == Language.NodeJS)
                 {
                     try
@@ -73,6 +75,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                         Test.Error(string.Format("{0} error: {1}", MethodBase.GetCurrentMethod().Name, e.Message));
                     }
                 }
+#endif
             }
             finally
             {
@@ -80,6 +83,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             }
         }
 
+#if !DOTNET5_4
         /// <summary>
         /// Lease a blob with a proposed id and access it by Lease ID
         /// 8.68 Lease-AzureStorageContainer/Blob BVT Cases
@@ -613,6 +617,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
             try
             {
                 Test.Assert(CommandAgent.AcquireLease(containerName, null), Utility.GenComparisonData("Acquire Lease", true));
+
                 if (lang == Language.NodeJS)
                 {
                     try
@@ -836,6 +841,7 @@ namespace Management.Storage.ScenarioTest.Functional.Blob
                 blobUtil.RemoveContainer(containerName);
             }
         }
+#endif
     }
 }
 

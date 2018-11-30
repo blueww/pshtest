@@ -391,10 +391,10 @@ namespace Management.Storage.ScenarioTest
             return new TokenCredentials(result.AccessToken, result.AccessTokenType);
         }
 
-        public static TokenCloudCredentials GetTokenCloudCredential()
+        public static TokenCredentials GetTokenCloudCredential()
         {
             AuthenticationResult result = GetAuthenticationResult();
-            return new TokenCloudCredentials(Test.Data.Get("AzureSubscriptionID"), result.AccessToken);
+            return new TokenCredentials(Test.Data.Get("AzureSubscriptionID"), result.AccessToken);
         }
 
         public static AuthenticationResult GetAuthenticationResult()
@@ -1383,7 +1383,11 @@ namespace Management.Storage.ScenarioTest
             DateTimeOffset start = DateTimeOffset.Now;
 
             bool found = true;
+#if DOTNET5_4
+            while (((dynamic)resource).GetPermissionsAsync().GetAwaiter().GetResult().SharedAccessPolicies.Keys.Count != expectedCount)
+#else
             while (((dynamic)resource).GetPermissions().SharedAccessPolicies.Keys.Count != expectedCount)
+#endif
             {
                 if ((DateTimeOffset.Now - start) <= TimeSpan.FromSeconds(45))
                 {
@@ -1409,25 +1413,41 @@ namespace Management.Storage.ScenarioTest
                     if (typeof(T) == typeof(CloudBlobContainer))
                     {
                         SharedAccessBlobPolicy output = null;
+#if DOTNET5_4
+                        match = (resource as CloudBlobContainer).GetPermissions().SharedAccessPolicies.TryGetValue(expectedPolicy.PolicyName, out output);
+#else
                         match = ((dynamic)resource).GetPermissions().SharedAccessPolicies.TryGetValue(expectedPolicy.PolicyName, out output);
+#endif
                         policy = output;
                     }
                     else if (typeof(T) == typeof(CloudTable))
                     {
                         SharedAccessTablePolicy output = null;
+#if DOTNET5_4
+                        match = (resource as CloudTable).GetPermissions().SharedAccessPolicies.TryGetValue(expectedPolicy.PolicyName, out output);
+#else
                         match = ((dynamic)resource).GetPermissions().SharedAccessPolicies.TryGetValue(expectedPolicy.PolicyName, out output);
+#endif
                         policy = output;
                     }
                     else if (typeof(T) == typeof(CloudQueue))
                     {
                         SharedAccessQueuePolicy output = null;
+#if DOTNET5_4
+                        match = (resource as CloudQueue).GetPermissions().SharedAccessPolicies.TryGetValue(expectedPolicy.PolicyName, out output);
+#else
                         match = ((dynamic)resource).GetPermissions().SharedAccessPolicies.TryGetValue(expectedPolicy.PolicyName, out output);
+#endif
                         policy = output;
                     }
                     else if (typeof(T) == typeof(CloudFileShare))
                     {
                         SharedAccessFilePolicy output = null;
+#if DOTNET5_4
+                        match = (resource as CloudFileShare).GetPermissions().SharedAccessPolicies.TryGetValue(expectedPolicy.PolicyName, out output);
+#else
                         match = ((dynamic)resource).GetPermissions().SharedAccessPolicies.TryGetValue(expectedPolicy.PolicyName, out output);
+#endif
                         policy = output;
                     }
 

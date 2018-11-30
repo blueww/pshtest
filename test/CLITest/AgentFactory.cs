@@ -12,7 +12,11 @@
         private static Language? agentLanguage;
         private static OSType? agentOS;
 
+#if DOTNET5_4
+        public static Language GetLanguage(IDictionary<string, object> properties = null)
+#else
         public static Language GetLanguage(IDictionary properties = null)
+#endif
         {
             if (agentLanguage.HasValue)
             {
@@ -24,12 +28,20 @@
                 throw new InvalidOperationException("Language has not been cached.");
             }
 
+#if DOTNET5_4
+            if (!properties.ContainsKey("lang"))
+#else
             if (!properties.Contains("lang"))
+#endif
             {
                 properties["lang"] = Test.Data.Get("language");
             }
 
+#if DOTNET5_4
+            if (properties.ContainsKey("lang") && !String.IsNullOrEmpty(properties["lang"] as string))
+#else
             if (properties.Contains("lang") && !String.IsNullOrEmpty(properties["lang"] as string))
+#endif
             {
                 string v = properties["lang"] as string;
                 if (String.Compare(Language.PowerShell.ToString(), v, StringComparison.InvariantCultureIgnoreCase) == 0)
@@ -89,7 +101,12 @@
             return agentOS.Value;
         }
 
+#if DOTNET5_4
+        public static Agent CreateAgent(IDictionary<string, object> properties)
+#else
+            
         public static Agent CreateAgent(IDictionary properties)
+#endif
         {
             Language lang = GetLanguage(properties);
             GetOSType();
@@ -98,8 +115,10 @@
             {
                 case Language.PowerShell:
                     return new PowerShellAgent();
+#if !DOTNET5_4
                 case Language.NodeJS:
                     return new NodeJSAgent();
+#endif
                 default:
                     throw new Exception(String.Format("Please specify language parameter value!"));
             }

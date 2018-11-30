@@ -33,9 +33,11 @@ namespace Management.Storage.ScenarioTest.Functional
             }
             else
             {
+#if !DOTNET5_4
                 NodeJSAgent.AgentConfig.ConnectionString = null;
                 PreviousUseEnvVar = NodeJSAgent.AgentConfig.UseEnvVar;
                 NodeJSAgent.AgentConfig.UseEnvVar = true;
+#endif
             }
         }
 
@@ -45,7 +47,9 @@ namespace Management.Storage.ScenarioTest.Functional
         public static void InvalidCredentialCasesClassCleanup()
         {
             CLICommonBVT.RestoreSubScriptionAndEnvConnectionString();
+#if !DOTNET5_4
             NodeJSAgent.AgentConfig.UseEnvVar = PreviousUseEnvVar;
+#endif
             TestBase.TestClassCleanup();
         }
 

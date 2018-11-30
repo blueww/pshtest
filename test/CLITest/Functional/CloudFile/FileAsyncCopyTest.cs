@@ -300,7 +300,11 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 Test.Assert(psAgent.StartFileCopyFromContainer(StorageAccount.ToString(true), StorageAccount.ToString(true), containerName, shareName),
                     "Start file copy should succeed.");
 
+#if NEW_CMDLET_NAME
+                psAgent.AddPipelineScript(string.Format("Get-AzStorageFile -ShareName {0}", shareName));
+#else
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageFile -ShareName {0}", shareName));
+#endif
 
                 Test.Assert(CommandAgent.GetFileCopyState(file: null, context: Agent.Context, waitForComplete: true), "Get file copy state should succeed.");
 
@@ -343,7 +347,11 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
                 Test.Assert(psAgent.StartFileCopyFromShare(StorageAccount.ToString(true), StorageAccount.ToString(true), srcShareName, destShareName),
                     "Start file copy should succeed.");
 
+#if NEW_CMDLET_NAME
+                psAgent.AddPipelineScript(string.Format("Get-AzStorageFile -ShareName {0}", destShareName));
+#else
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageFile -ShareName {0}", destShareName));
+#endif
 
                 Test.Assert(CommandAgent.GetFileCopyState(file: null, context: Agent.Context, waitForComplete: true), "Get file copy state should succeed.");
 
@@ -999,7 +1007,11 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 //Copy File content
                 string StorageConnectionString = Test.Data.Get("StorageConnectionString");
+#if NEW_CMDLET_NAME
+                Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",($ctx = New-AzStorageContext -ConnectionString \"{0}\"); (Get-AzStorageShare -Name {1} -SnapshotTime \"{2}\" -Context $ctx) | Get-AzStorageFile | Get-AzStorageFile | Start-AzStorageFileCopy -DestShareName {3} -DestFilePath {4} -DestContext $ctx",
+#else
                 Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",($ctx = New-AzureStorageContext -ConnectionString \"{0}\"); (Get-AzureStorageShare -Name {1} -SnapshotTime \"{2}\" -Context $ctx) | Get-AzureStorageFile | Get-AzureStorageFile | Start-AzureStorageFileCopy -DestShareName {3} -DestFilePath {4} -DestContext $ctx",
+#endif
                     StorageConnectionString,
                     shareName,
                     shareSnapshot2.SnapshotTime.Value,
@@ -1046,7 +1058,11 @@ namespace Management.Storage.ScenarioTest.Functional.CloudFile
 
                 //Copy File 
                 string StorageConnectionString = Test.Data.Get("StorageConnectionString");
+#if NEW_CMDLET_NAME
+                Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",($ctx = New-AzStorageContext -ConnectionString \"{0}\"); $share =(Get-AzStorageShare -Name {1} -SnapshotTime \"{2}\" -Context $ctx); Start-AzStorageFileCopy -SrcShare $share -SrcFilePath {4} -DestShareName {3} -DestFilePath {4} -DestContext $ctx",
+#else
                 Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",($ctx = New-AzureStorageContext -ConnectionString \"{0}\"); $share =(Get-AzureStorageShare -Name {1} -SnapshotTime \"{2}\" -Context $ctx); Start-AzureStorageFileCopy -SrcShare $share -SrcFilePath {4} -DestShareName {3} -DestFilePath {4} -DestContext $ctx",
+#endif
                     StorageConnectionString,
                     shareName,
                     shareSnapshot2.SnapshotTime.Value,
