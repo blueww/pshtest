@@ -32,6 +32,8 @@ namespace Management.Storage.ScenarioTest
     using Microsoft.WindowsAzure.Management.Models;
     using Microsoft.WindowsAzure.Management.Storage;
     using Microsoft.WindowsAzure.Management.Storage.Models;
+#else
+    using SRPExtensions = Microsoft.Azure.Management.Storage.UsagesOperationsExtensions;
 #endif
     using Microsoft.WindowsAzure.Storage.Auth;
     using Microsoft.WindowsAzure.Storage.Blob;
@@ -2771,6 +2773,7 @@ namespace Management.Storage.ScenarioTest
             this.ValidateAccountNameAvailabilityInvalidName(accountNameAvailability, accountName);
         }
 
+#if !DOTNET5_4 //TMP
         [TestMethod]
         [TestCategory(Tag.Function)]
         [TestCategory(CLITag.NodeJSFT)]
@@ -2823,6 +2826,7 @@ namespace Management.Storage.ScenarioTest
                 }
             }
         }
+#endif
 
         [TestMethod]
         [TestCategory(Tag.Function)]
@@ -3019,6 +3023,7 @@ namespace Management.Storage.ScenarioTest
             }
         }
 
+#if !DOTNET5_4 //TMP
         private void GetAzureStorageUsage_Test()
         {
             Test.Assert(CommandAgent.GetAzureStorageUsage(), "Get azure storage usage should succeeded.");
@@ -3029,6 +3034,7 @@ namespace Management.Storage.ScenarioTest
 #endif
             ValidateGetUsageOutput(new List<SRPModel.Usage>(usages));
         }
+#endif
 
         private void CreateAndValidateAccountWithInvalidTags(string accountName, string location, string accountType, Hashtable[] tags)
         {

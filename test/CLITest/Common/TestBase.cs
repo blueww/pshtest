@@ -149,7 +149,11 @@ namespace Management.Storage.ScenarioTest.Common
             {
                 if (isResourceMode)
                 {
-                    PowerShellAgent.ImportModules(Constants.ResourceModulePaths); ;
+                    PowerShellAgent.ImportModules(Constants.ResourceModulePaths);
+
+#if NEW_CMDLET_NAME
+                    PowerShellAgent.EnableAzureRmAlias();
+#endif
                 }
                 else
                 {

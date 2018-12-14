@@ -166,7 +166,7 @@ namespace Management.Storage.ScenarioTest
 #if DOTNET5_4
                 ResourceModulePaths = new string[]
                 {
-                    "Az.Profile",
+                    "Az.Accounts",
                     "Az.Storage"
                 };
 

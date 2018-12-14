@@ -602,7 +602,7 @@ namespace Management.Storage.ScenarioTest.BVT
 
                     Uri sourceUri = (Uri)CommandAgent.Output[0]["Source"];
                     string expectedUri = CloudBlobUtil.ConvertCopySourceUri(blobUtil.Blob.Uri.ToString());
-                    Test.Assert(sourceUri.ToString() == expectedUri, String.Format("Expected source uri is {0}, actually it's {1}", expectedUri, sourceUri.ToString()));
+                    Test.Assert(sourceUri.ToString() == expectedUri.Replace("[", "%5B").Replace("]", "%5D"), String.Format("Expected source uri is {0}, actually it's {1}", expectedUri, sourceUri.ToString()));
                 }
                 else
                 {
@@ -853,7 +853,7 @@ namespace Management.Storage.ScenarioTest.BVT
 
                 Test.Assert(blob.BlobType == blobUtil.Blob.BlobType, String.Format("The destination blob type should be {0}, actually {1}.", blobUtil.Blob.BlobType, blob.BlobType));
 
-                Test.Assert(blob.CopyState.Source.ToString().StartsWith(sourceUri), String.Format("The source of destination blob should start with {0}, and actually it's {1}", sourceUri, blob.CopyState.Source.ToString()));
+                Test.Assert(blob.CopyState.Source.ToString().StartsWith(sourceUri.Replace("[", "%5B").Replace("]", "%5D")), String.Format("The source of destination blob should start with {0}, and actually it's {1}", sourceUri.Replace("[", "%5B").Replace("]", "%5D"), blob.CopyState.Source));
             }
             finally
             {

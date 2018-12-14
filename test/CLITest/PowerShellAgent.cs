@@ -173,7 +173,16 @@ namespace Management.Storage.ScenarioTest
 #endif
         }
 
-        public static void InstallAzureModule()
+#if NEW_CMDLET_NAME
+        public static void EnableAzureRmAlias()
+        {
+            Test.Info("Enable-AzureRmAlias");
+            var command = new Command("Enable-AzureRmAlias");
+            InitializeCommands.Add(command);
+        }
+#endif
+
+            public static void InstallAzureModule()
         {
             PowerShell ps = InitializePSInstance();
             //TODO add tests for positional parameter
@@ -296,7 +305,7 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = InitializePSInstance();
 #if NEW_CMDLET_NAME
             ps.AddCommand("New-AzStorageContext");
-#else            
+#else
             ps.AddCommand("New-AzureStorageContext");
 #endif
             ps.BindParameter("StorageAccountName", StorageAccountName);
@@ -322,7 +331,7 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = InitializePSInstance();
 #if NEW_CMDLET_NAME
             ps.AddCommand("New-AzStorageContext");
-#else            
+#else
             ps.AddCommand("New-AzureStorageContext");
 #endif
             ps.BindParameter("ConnectionString", ConnectionString);
@@ -348,7 +357,7 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = InitializePSInstance();
 #if NEW_CMDLET_NAME
             ps.AddCommand("New-AzStorageContext");
-#else            
+#else
             ps.AddCommand("New-AzureStorageContext");
 #endif
             ps.BindParameter("Local");
@@ -362,7 +371,7 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = InitializePSInstance();
 #if NEW_CMDLET_NAME
             ps.AddCommand("New-AzStorageContext");
-#else            
+#else
             ps.AddCommand("New-AzureStorageContext");
 #endif
             ps.BindParameter("StorageAccountName", StorageAccountName);
@@ -426,7 +435,7 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = this.GetPowerShellInstance();
 #if NEW_CMDLET_NAME
             ps.AddCommand("New-AzStorageContext");
-#else            
+#else
             ps.AddCommand("New-AzureStorageContext");
 #endif
             ps.BindParameter("StorageAccountName", StorageAccountName);
@@ -478,7 +487,7 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = InitializePSInstance();
 #if NEW_CMDLET_NAME
             ps.AddCommand("New-AzStorageContext");
-#else            
+#else
             ps.AddCommand("New-AzureStorageContext");
 #endif
             ps.BindParameter("StorageAccountName", StorageAccountName);
@@ -527,7 +536,7 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = this.GetPowerShellInstance();
 #if NEW_CMDLET_NAME
             ps.AddCommand("New-AzStorageContext");
-#else            
+#else
             ps.AddCommand("New-AzureStorageContext");
 #endif
             ps.BindParameter("StorageAccountName", accountName);
@@ -557,7 +566,7 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = InitializePSInstance();
 #if NEW_CMDLET_NAME
             ps.AddCommand("New-AzStorageContext");
-#else            
+#else
             ps.AddCommand("New-AzureStorageContext");
 #endif
             ps.BindParameter("ConnectionString", ConnectionString);
@@ -572,7 +581,7 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = InitializePSInstance();
 #if NEW_CMDLET_NAME
             ps.AddCommand("New-AzStorageContext");
-#else            
+#else
             ps.AddCommand("New-AzureStorageContext");
 #endif
             ps.BindParameter("StorageAccountName", StorageAccountName);
@@ -622,7 +631,7 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = GetPowerShellInstance();
 #if NEW_CMDLET_NAME
             ps.AddCommand("New-AzStorageContext");
-#else            
+#else
             ps.AddCommand("New-AzureStorageContext");
 #endif
             ps.BindParameter("StorageAccountName", StorageAccountName);
@@ -645,7 +654,7 @@ namespace Management.Storage.ScenarioTest
             PowerShell ps = GetPowerShellInstance();
 #if NEW_CMDLET_NAME
             ps.AddCommand("New-AzStorageContext");
-#else            
+#else
             ps.AddCommand("New-AzureStorageContext");
 #endif
             ps.BindParameter("ConnectionString", ConnectionString);
@@ -820,7 +829,11 @@ namespace Management.Storage.ScenarioTest
             }
             else
             {
+#if NEW_CMDLET_NAME
+                ps.AddCommand("Get-AzStorageContainerAcl");
+#else
                 ps.AddCommand("Get-AzureStorageContainerAcl");
+#endif
             }
 
             ps.BindParameter("Name", ContainerName);
@@ -4961,7 +4974,7 @@ namespace Management.Storage.ScenarioTest
 
             return InvokePowerShellWithoutContext(ps);
         }
-
+        
         public override bool GetAzureStorageUsage()
         {
             PowerShell ps = GetPowerShellInstance();
