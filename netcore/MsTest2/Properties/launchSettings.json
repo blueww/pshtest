@@ -2,8 +2,8 @@
   "profiles": {
     "MsTest2": {
       "commandName": "Project",
-      "commandLineArgs": "-lib CLITest\\PowerShellTest.dll -config TestData.xml -group Management.Storage.ScenarioTest.StorageAccountTest -lang PowerShell -case FTAccount209_SetAccount_TagsWordCaseAndDuplicatedName",
-      "workingDirectory": "D:\\clitest\\netcore\\MsTest2\\bin\\Debug\\netcoreapp2.1\\publish"
+      "commandLineArgs": "-lib PowerShellTest\\PowerShellTest.dll -config PowerShellTest\\TestData.xml -lang PowerShell -group Management.Storage.ScenarioTest.Functional.StorageContext",
+      "workingDirectory": "D:\\repo\\pshtest\\netcore\\MsTest2\\bin\\Debug\\netcoreapp2.1\\publish"
     }
   }
 }

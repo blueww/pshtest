@@ -1089,12 +1089,21 @@ namespace Management.Storage.ScenarioTest.BVT
                 }
 
                 PowerShellAgent psAgent = CommandAgent as PowerShellAgent;
+
+#if NEW_CMDLET_NAME
+                psAgent.AddPipelineScript(string.Format("Get-AzStorageFile -ShareName {0}", srcShareName));
+#else
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageFile -ShareName {0}", srcShareName));
+#endif
 
                 Test.Assert(CommandAgent.StartAzureStorageBlobCopy(srcFile: null, destContainerName: destContainerName, destBlobName: null, destContext: Agent.Context),
                     "Start copying from file to blob should succeed.");
 
+#if NEW_CMDLET_NAME
+                psAgent.AddPipelineScript(string.Format("Get-AzStorageBlob -Container {0}", destContainerName));
+#else
                 psAgent.AddPipelineScript(string.Format("Get-AzureStorageBlob -Container {0}", destContainerName));
+#endif
 
                 Test.Assert(CommandAgent.GetAzureStorageBlobCopyState(blob: null, context: null, waitForComplete: true),
                     "Get blob copying state should succeed.");

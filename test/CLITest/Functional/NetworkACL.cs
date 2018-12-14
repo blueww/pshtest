@@ -234,42 +234,73 @@ namespace Management.Storage.ScenarioTest
 
                     //Add Rules
                     // Add Unary Operators "," in the begin of the script, see more detail in http://stackoverflow.com/questions/29973212/pipe-complete-array-objects-instead-of-array-items-one-at-a-time       
+
+#if NEW_CMDLET_NAME
+                    Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(Get-AzStorageAccountNetworkRuleSet -ResourceGroupName {0} -Name {1}).IpRules | Add-AzStorageAccountNetworkRule -ResourceGroupName {0} -Name {2}", resourceGroupName, accountName, accountName2)),
+                        string.Format("Add IPRule to NetworkAcl of storage account {0} in the resource group {1} should success.", accountName, resourceGroupName));
+#else
                     Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(Get-AzureRMStorageAccountNetworkRuleSet -ResourceGroupName {0} -Name {1}).IpRules | Add-AzureRMStorageAccountNetworkRule -ResourceGroupName {0} -Name {2}", resourceGroupName, accountName, accountName2)),
                         string.Format("Add IPRule to NetworkAcl of storage account {0} in the resource group {1} should success.", accountName, resourceGroupName));
+#endif
                     PSNetworkRuleSet acl2 = GetNetworkAclFromServer(accountName2);
                     ValidateIpRules(acl.IpRules, acl2.IpRules);
 
                     if (allowedNetworkRules.Length > 0)
                     {
+#if NEW_CMDLET_NAME
+                        Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(Get-AzStorageAccountNetworkRuleSet -ResourceGroupName {0} -Name {1}).VirtualNetworkRules | Add-AzStorageAccountNetworkRule -ResourceGroupName {0} -Name {2}", resourceGroupName, accountName, accountName2)),
+                            string.Format("Add VirtualNetworkRule to NetworkAcl of storage account {0} in the resource group {1} should success.", accountName, resourceGroupName));
+#else
                         Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(Get-AzureRMStorageAccountNetworkRuleSet -ResourceGroupName {0} -Name {1}).VirtualNetworkRules | Add-AzureRMStorageAccountNetworkRule -ResourceGroupName {0} -Name {2}", resourceGroupName, accountName, accountName2)),
                             string.Format("Add VirtualNetworkRule to NetworkAcl of storage account {0} in the resource group {1} should success.", accountName, resourceGroupName));
+#endif
                         acl2 = GetNetworkAclFromServer(accountName2);
                         ValidateNetworkRules(acl.VirtualNetworkRules, acl2.VirtualNetworkRules);
                     }
 
                     //Remove Rules
+#if NEW_CMDLET_NAME
+                    Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(Get-AzStorageAccountNetworkRuleSet -ResourceGroupName {0} -Name {1}).IpRules | Remove-AzStorageAccountNetworkRule -ResourceGroupName {0} -Name {2}", resourceGroupName, accountName, accountName2)),
+                        string.Format("Remove IPRule to NetworkAcl of storage account {0} in the resource group {1} should success.", accountName, resourceGroupName));
+#else
                     Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(Get-AzureRMStorageAccountNetworkRuleSet -ResourceGroupName {0} -Name {1}).IpRules | Remove-AzureRMStorageAccountNetworkRule -ResourceGroupName {0} -Name {2}", resourceGroupName, accountName, accountName2)),
                         string.Format("Remove IPRule to NetworkAcl of storage account {0} in the resource group {1} should success.", accountName, resourceGroupName));
+#endif
                     acl2 = GetNetworkAclFromServer(accountName2);
                     ValidateIpRules(new PSIpRule[] { }, acl2.IpRules);
 
 
                     if (allowedNetworkRules.Length > 0)
                     {
+#if NEW_CMDLET_NAME
+                        Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(Get-AzStorageAccountNetworkRuleSet -ResourceGroupName {0} -Name {1}).VirtualNetworkRules | Remove-AzStorageAccountNetworkRule -ResourceGroupName {0} -Name {2}", resourceGroupName, accountName, accountName2)),
+                        string.Format("Remove VirtualNetworkRule to NetworkAcl of storage account {0} in the resource group {1} should success.", accountName, resourceGroupName));
+#else                        
                         Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(Get-AzureRMStorageAccountNetworkRuleSet -ResourceGroupName {0} -Name {1}).VirtualNetworkRules | Remove-AzureRMStorageAccountNetworkRule -ResourceGroupName {0} -Name {2}", resourceGroupName, accountName, accountName2)),
                         string.Format("Remove VirtualNetworkRule to NetworkAcl of storage account {0} in the resource group {1} should success.", accountName, resourceGroupName));
+#endif
                         acl2 = GetNetworkAclFromServer(accountName2);
                         ValidateNetworkRules(new PSVirtualNetworkRule[] { }, acl2.VirtualNetworkRules);
                     }
 
                     //Add Rules by Update ACL
+#if NEW_CMDLET_NAME
+                    Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(Get-AzStorageAccountNetworkRuleSet -ResourceGroupName {0} -Name {1}).IpRules | Update-AzStorageAccountNetworkRuleSet -ResourceGroupName {0} -Name {2}", resourceGroupName, accountName, accountName2)),
+                        string.Format("Update IPRule to NetworkAcl of storage account {0} in the resource group {1} should success.", accountName, resourceGroupName));
+#else
                     Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(Get-AzureRMStorageAccountNetworkRuleSet -ResourceGroupName {0} -Name {1}).IpRules | Update-AzureRMStorageAccountNetworkRuleSet -ResourceGroupName {0} -Name {2}", resourceGroupName, accountName, accountName2)),
                         string.Format("Update IPRule to NetworkAcl of storage account {0} in the resource group {1} should success.", accountName, resourceGroupName));
+#endif
                     acl2 = GetNetworkAclFromServer(accountName2);
                     ValidateIpRules(acl.IpRules, acl2.IpRules);
 
+#if NEW_CMDLET_NAME
+                    Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(Get-AzStorageAccountNetworkRuleSet -ResourceGroupName {0} -Name {1}).VirtualNetworkRules | Update-AzStorageAccountNetworkRuleSet -ResourceGroupName {0} -Name {2}", resourceGroupName, accountName, accountName2)),
+                        string.Format("Update VirtualNetworkRule to NetworkAcl of storage account {0} in the resource group {1} should success.", accountName, resourceGroupName));
+#else
                     Test.Assert((CommandAgent as PowerShellAgent).InvokePSScript(string.Format(",(Get-AzureRMStorageAccountNetworkRuleSet -ResourceGroupName {0} -Name {1}).VirtualNetworkRules | Update-AzureRMStorageAccountNetworkRuleSet -ResourceGroupName {0} -Name {2}", resourceGroupName, accountName, accountName2)),
                         string.Format("Update VirtualNetworkRule to NetworkAcl of storage account {0} in the resource group {1} should success.", accountName, resourceGroupName));
+#endif
                     acl2 = GetNetworkAclFromServer(accountName2);
                     ValidateNetworkRules(acl.VirtualNetworkRules, acl2.VirtualNetworkRules);
                 }
